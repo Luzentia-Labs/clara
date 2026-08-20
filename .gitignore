@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+storybook-static/
+*.tsbuildinfo
+
+# Test and coverage
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor and OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Turborepo
+.turbo/
