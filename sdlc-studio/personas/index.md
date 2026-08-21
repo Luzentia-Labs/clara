@@ -7,7 +7,7 @@ Related: reference-persona.md, help/persona.md
 
 Personas for the **Clara Design System**. This index lists all active personas by category.
 
-**Last updated:** 2026-08-21
+**Last updated:** 2026-08-21 (design personas and stakeholder panel added)
 **Generated from:** `sdlc-studio/prd.md`
 
 ---
@@ -82,15 +82,45 @@ the incident that shaped Mira's card.
 
 ---
 
+## Design Personas
+
+The cast Clara is designed **for**. Stories reference these by name; `validate serves` reads them.
+Cooper's rule holds: one Primary per interface.
+
+| Persona | Cast | Interface | Summary | File |
+|---------|------|-----------|---------|------|
+| Sofia Marchetti | **primary** | The Clara public API and token layer | Full-stack developer building internal ERP apps. Has assembled the same 25 components four times and lost a week each time to the same fights | [Details](sofia-marchetti.md) |
+| Grace Adeyemi | **served** | None - she never touches Clara's API | Accounts payable clerk. 200-400 lines a day, eight hours, one fixed monitor, mild red-green colour vision deficiency she has never mentioned at work. The reason the floors exist, and she will never file an issue | [Details](grace-adeyemi.md) |
+| Theo Lindgren | **negative** | n/a | Consumer and marketing surface builder. Everything he wants is legitimate; none of it is Clara's job. Serving him would not make Clara worse at his job, it would make Clara worse at Sofia's and Grace's | [Details](theo-lindgren.md) |
+
+**Why the developer is Primary rather than the operator.** Clara's interface is its API and its
+tokens, and Sofia is the only one who touches them. Grace experiences the *result* of every
+decision but can neither call a component nor override a token, so designing "for" her at the API
+layer would be incoherent. Served is the honest designation, and it does not make her needs
+secondary - the density, contrast, focus and target-size floors exist for her, and Idris (ux) holds
+them on her behalf.
+
+---
+
 ## Stakeholder Personas
 
-None yet. Run `/sdlc-studio persona generate --stakeholders` to grow the panel.
+The panel Clara must answer to but who never build. **Assumption personas until validated against
+real people** (Cooper's rule), so they keep their provisional stamp and there is no batch-accept.
 
-For Clara the plausible panel is small and worth thinking about before generating: the **library
-consumer** (a developer installing Clara, and Clara's true Primary user), the **end user** of
-applications built on Clara (operations staff, keyboard-heavy, mixed accessibility needs), and the
-**reviewing stakeholder** who judges whether the result reads as enterprise-credible. All three are
-described in PRD §2.
+| Persona | Type | Cast | Summary | File |
+|---------|------|------|---------|------|
+| Daniel Achebe | `buyer` | Customer | Operations Director who signs off the build. Once approved a tool that worked correctly and looked like a prototype; his team's confidence never recovered | [Details](stakeholders/daniel-achebe.md) |
+
+**Arbitration rule, carried on the card itself:** a stakeholder's goals never override the
+Primary's interface. When Daniel's wants conflict with what Sofia needs from the API or Grace needs
+from the screen, the Primary wins the interface and Daniel's needs are met elsewhere.
+
+**Why the panel has one card.** Clara has no paying buyer, no compliance regime (D0016 sets
+accessibility as an internal bar with no VPAT), and no runtime, so no ops or support function
+exists. The ERP end user was considered for a `served` stakeholder card and placed as a **design
+persona** instead, because Clara is genuinely designed for her - two cards for one person in two
+homes would drift. Inventing a compliance officer and an ops manager for a project that has neither
+would be the persona proliferation this skill warns against.
 
 ---
 
@@ -132,7 +162,7 @@ not failing:
 
 | Source | Count | Notes |
 |--------|-------|-------|
-| Generated | 4 | Inferred from `sdlc-studio/prd.md`, 2026-08-21 |
+| Generated | 8 | 4 seats, 3 design personas, 1 stakeholder - inferred from `sdlc-studio/prd.md`, 2026-08-21 |
 | Archetypes | 0 | No shipped archetype cards used |
 | Imported | 0 | - |
 | Authored | 0 | - |

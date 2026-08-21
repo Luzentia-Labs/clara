@@ -108,6 +108,11 @@ This project is developed specification-first. The PRD is reviewed by four indep
 seats (product, engineering, QA, UX) before work proceeds; the most recent review is in
 `sdlc-studio/reviews/`.
 
+> **On the personas.** The people in `sdlc-studio/personas/` are **constructed design personas and
+> review seats, not real individuals and not user research.** Their names, roles, and the incidents
+> in their backstories are invented, deliberately and in the Cooper tradition, to make design
+> trade-offs arguable by someone specific rather than by an average. Treat them as design tools.
+
 ## Contributing
 
 Not yet open to contributions. The specification is still moving and the toolchain does not exist.

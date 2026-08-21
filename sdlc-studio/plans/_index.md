@@ -6,15 +6,16 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 0 |
+| Draft | 1 |
 | In Progress | 0 |
 | Complete | 0 |
-| **Total** | **0** |
+| **Total** | **1** |
 
 ## Plans
 
 | ID | Story | Epic | Status | Created |
 | --- | --- | --- | --- | --- |
+| [PL-01M0HRA0](PL-01M0HRA0-pnpm-workspace-and-repository-scaffold-implementation-plan.md) | -- | -- | Draft | 2026-08-21 |
 
 ## Notes
 

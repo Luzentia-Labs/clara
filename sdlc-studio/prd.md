@@ -1,9 +1,11 @@
 # Product Requirements Document
 
 **Project:** Clara Design System
-**Version:** 0.2.0
+**Version:** 0.4.0
 **Last Updated:** 2026-08-21
-**Status:** Draft (Tier 1 review conditions applied)
+**Status:** Draft (Tier 1 + Tier 2 applied; Tier 3 PRD-level applied)
+**TRD:** [TRD v0.1.0](trd.md)
+**TSD:** [TSD v0.1.0](tsd.md)
 
 ---
 
@@ -160,13 +162,10 @@ the higher principle wins.
 | F21 Versioning and release process | Changesets, semver policy, changelog, deprecation policy | Not Started | Must-have | root |
 | F22 Test infrastructure | Unit, a11y, and visual regression harnesses with coverage gates | Not Started | Must-have | cross-cutting |
 | F23 SSR and RSC compatibility | Works in Next.js App Router and Vite SSR without hydration errors | Not Started | Must-have | `packages/react` |
+| F31 Reference application | A real list screen and form screen built entirely on Clara. The integration proof, and the gate on v1.0 | Not Started | Must-have (gating) | `apps/reference-app` |
 | F24 DataGrid (advanced) | Sorting, filtering, virtualization, column resize, inline edit, selection | Not Started | Should-have (v1.1) | `packages/react` |
 | F25 Application shell | AppShell, Sidebar nav, Topbar, PageHeader, layout scaffolding | Not Started | Should-have (v1.1) | `packages/react` |
 | F26 Figma library | Published Figma UI kit generated from the same tokens | Not Started | Should-have (v1.1) | `design/figma` |
-| F27 Command palette | Global keyboard-driven action search | Not Started | Nice-to-have | `packages/react` |
-| F28 Filter builder | Composable query/filter UI for list screens | Not Started | Nice-to-have | `packages/react` |
-| F29 Charts | Token-aligned chart primitives for dashboards | Not Started | Nice-to-have | `packages/charts` |
-| F30 Tailwind token preset | Clara tokens exposed as a Tailwind theme preset | Not Started | Nice-to-have | `packages/tailwind-preset` |
 
 ---
 
@@ -178,7 +177,8 @@ the higher principle wins.
 that F01 can be built on real values, and so that the foundations work cannot quietly become the
 project.
 
-**Serves:** The library maintainer, the reviewing stakeholder
+**Serves:** Sofia Marchetti
+**Evaluated by:** Daniel Achebe (stakeholder)
 
 **Why it is a feature row and not an open question:** v0.1.0 left this as an unbounded open question.
 The UX seat's documented failure mode is refining foundations indefinitely, and that seat explicitly
@@ -218,7 +218,7 @@ asked to be capped rather than trusted. A deadline held by the document is the c
 named token so that I can retheme an entire application by changing a small set of values
 rather than overriding component styles.
 
-**Serves:** The library consumer, the library maintainer
+**Serves:** Sofia Marchetti
 
 **Design:** Three tiers, with a strict dependency direction.
 
@@ -269,17 +269,21 @@ names the publisher; the prefix names the design system.
 apply my own brand color so that Clara-based applications fit their context without
 forking the library.
 
-**Serves:** The library consumer, the end user
+**Serves:** Sofia Marchetti, Grace Adeyemi
 
 **Acceptance Criteria:**
 
 - [ ] Light mode is the default and requires no configuration
-- [ ] Dark mode activates via `data-clara-theme="dark"` on any ancestor element
+- [ ] Dark mode activates via `data-clara-theme="dark"`, set by `<ClaraProvider>` or `<ClaraScope>`
 - [ ] `data-clara-theme="light"` forces light mode regardless of system preference
-- [ ] With no attribute set, the theme follows `prefers-color-scheme`
-- [ ] Theme can be scoped to a subtree, so a dark sidebar inside a light page works correctly with no style leakage
+- [ ] With no explicit setting, the theme follows `prefers-color-scheme`
+- [ ] Theme scopes to a subtree via `<ClaraScope theme="dark">`, so a dark sidebar inside a light page works with no style leakage
+- [ ] **Theme and density propagate through React context, not DOM inheritance.** `<ClaraScope>` sets both the context value and the DOM attribute so the two cannot drift. Every portal wrapper re-applies the resolved values as data attributes on the portal root, so a Popover opened inside a dark compact sidebar renders dark and compact (TRD ADR-006)
+- [ ] A hand-written `data-clara-theme` attribute on a plain element styles that subtree but does **not** reach its portals; this limitation is documented rather than silently broken
+- [ ] No overlay component accepts a `theme`, `density`, or `portalContainer` prop. Scoping is solved once in the architecture, not nine times in props
+- [ ] A visual baseline renders a Combobox and a DropdownMenu inside a dark compact scope on a light comfortable page, with trigger and portal content matching
 - [ ] Only tier 1 and tier 2 tokens are redefined per theme; no component CSS is theme-aware
-- [ ] A documented `createTheme()` helper accepts a brand hue and generates a conforming 11-step ramp that passes contrast requirements at the semantic mappings
+- [ ] Retheming is documented as **manual tier 1 and tier 2 override**, with a worked example. Generated brand ramps (`createTheme()`) are **deferred to v1.1** (D0017); revival condition: an application requires a non-default brand
 - [ ] Switching themes causes no layout shift and no flash of unstyled content in SSR
 - [ ] Every semantic color pairing meets WCAG 2.2 AA contrast in both modes, verified by an automated contrast test over the token matrix
 
@@ -295,7 +299,7 @@ forking the library.
 compact layout option so that I can see more records without scrolling, while other users
 keep a comfortable layout.
 
-**Serves:** The end user, the library consumer
+**Serves:** Grace Adeyemi, Sofia Marchetti
 
 **Acceptance Criteria:**
 
@@ -305,6 +309,7 @@ keep a comfortable layout.
 - [ ] Density changes control heights, internal padding, table row height, and vertical rhythm between form fields
 - [ ] Density does **not** change font sizes below the minimum legible size (14px body text in both modes)
 - [ ] Density does **not** reduce interactive target size below 24x24px, per WCAG 2.2 Target Size (Minimum)
+- [ ] Compact density declares a **minimum internal padding** and a **minimum spacing between adjacent interactive targets**, both fixed in F00. Two 24x24px targets touching satisfies the letter of the target rule and is still crowding; principle 3 says Clara removes chrome rather than crowds content
 - [ ] Every component with vertical padding responds to density; verified by a Storybook story rendering the full component set in both modes side by side
 
 **Dependencies:** F01
@@ -319,7 +324,7 @@ keep a comfortable layout.
 that stays legible and aligns numerically so that I can scan columns without
 misreading figures.
 
-**Serves:** The end user
+**Serves:** Grace Adeyemi
 
 **Acceptance Criteria:**
 
@@ -328,7 +333,7 @@ misreading figures.
 - [ ] Body text minimum is 14px; no Clara component renders text below 12px, and 12px is reserved for non-essential metadata only
 - [ ] A `tabular` variant using `font-variant-numeric: tabular-nums` is available and is the default inside Table numeric cells
 - [ ] Heading components (`Heading` with `level` and `size` decoupled) allow correct semantic heading order independent of visual size
-- [ ] Long text truncation is a documented, opt-in utility that always exposes the full value via `title` or a tooltip, never silently
+- [ ] Long text truncation is a documented, opt-in utility that always exposes the full value, never silently. **The recovery path must work without a pointer**: `title` and hover tooltips are unreachable on a non-focusable table cell, so a truncated value is either rendered in a focusable element or recoverable through a documented keyboard-accessible affordance. Verified by a keyboard-only test that recovers a truncated cell value in the F15 Table
 
 **Dependencies:** F01
 **Status:** Not Started
@@ -341,7 +346,7 @@ misreading figures.
 **User Story:** As a library consumer, I want a consistent icon set that ships with Clara
 so that I do not have to source, size, and color icons separately in every project.
 
-**Serves:** The library consumer
+**Serves:** Sofia Marchetti
 
 **Acceptance Criteria:**
 
@@ -349,7 +354,7 @@ so that I do not have to source, size, and color icons separately in every proje
 - [ ] All icons are on a 24x24 grid with consistent stroke width and optical weight
 - [ ] Icons inherit `currentColor` and size from font size by default, with a `size` prop override
 - [ ] Every icon accepts `aria-label`; when omitted, the icon renders `aria-hidden="true"` and is treated as decorative
-- [ ] v1 set covers at minimum the icons Clara's own components need, plus common ERP actions: navigation, status, CRUD, sort/filter, file, calendar, user, settings
+- [ ] The v1 icon set is an **enumerated, counted list** committed to `packages/icons/ICONS.md` before implementation begins, not "at minimum the icons we need". Target 48 icons covering: navigation (12), status and intent (8), CRUD and actions (10), sort and filter (6), file (4), calendar (3), user and settings (5). CI fails if an exported icon is absent from the list, or a listed icon is unexported
 - [ ] Importing a single icon adds no more than 1KB gzipped to a consumer bundle
 - [ ] Icon source is a documented pipeline (SVG files to generated components), so adding an icon is one command
 
@@ -364,7 +369,7 @@ so that I do not have to source, size, and color icons separately in every proje
 **User Story:** As a library consumer, I want spacing and layout primitives so that I
 compose screens with consistent rhythm instead of writing ad-hoc CSS in every application.
 
-**Serves:** The library consumer
+**Serves:** Sofia Marchetti
 
 **Acceptance Criteria:**
 
@@ -386,7 +391,7 @@ compose screens with consistent rhythm instead of writing ad-hoc CSS in every ap
 **User Story:** As an end user, I want buttons whose importance and state are immediately
 readable so that I know what the primary action on a screen is and whether it is available.
 
-**Serves:** The end user, the library consumer
+**Serves:** Grace Adeyemi, Sofia Marchetti
 
 **Acceptance Criteria:**
 
@@ -394,8 +399,12 @@ readable so that I know what the primary action on a screen is and whether it is
 - [ ] Sizes: `sm`, `md`, `lg`, with `md` matching the density-driven control height
 - [ ] States: default, hover, active, focus-visible, disabled, loading
 - [ ] Loading state disables interaction, preserves button width to prevent layout shift, and announces via `aria-busy`
-- [ ] Disabled buttons remain focusable-with-explanation or are paired with a documented tooltip pattern, so the reason is never invisible
-- [ ] Focus ring is a 2px token-driven outline with a 2px offset, visible against every background token, and appears on `:focus-visible` only
+- [ ] **Disabled controls use `aria-disabled` and remain focusable** (D0022). They stay in the tab order, announce as disabled, and do nothing on activation, so their explanation is reachable by keyboard and screen reader. Native `disabled` is not used anywhere an explanation matters
+  > This resolves a contradiction in v0.1.0: F07 permitted a non-focusable disabled button paired with a tooltip, while F13 requires Tooltip to appear on keyboard focus - making the explanation unreachable by exactly the users who need it
+- [ ] Focus indicator is **two-part** - a ring token and an offset token, defined separately - because the offset gap renders the surface underneath, so the indicator must contrast with both the control and its surround. A single ring color cannot satisfy every surface
+- [ ] The indicator is specified against an **enumerated** list of surfaces it must survive: `bg-canvas`, `bg-surface`, `bg-subtle`, `bg-accent-emphasis`, `bg-danger-emphasis`, `bg-success-emphasis`, `bg-warning-emphasis`, `bg-info-emphasis`, and any dark-sidebar surface produced by `<ClaraScope>`
+- [ ] Indicator contrast is a **computed assertion** at 3:1 against every enumerated surface, not a visual baseline. A baseline catches change; it cannot catch a wrong value that was wrong on day one (TSD level 6)
+- [ ] Appears on `:focus-visible` only
 - [ ] `IconButton` requires an `aria-label` at the type level; omitting it is a TypeScript error
 - [ ] `ButtonGroup` merges adjacent borders and manages roving focus with arrow keys
 - [ ] Renders as `<button>` by default and as `<a>` when `href` is supplied, with correct role semantics in both cases
@@ -412,7 +421,7 @@ readable so that I know what the primary action on a screen is and whether it is
 message, and required indication wired to every input automatically so that I never ship a
 form field with broken accessibility.
 
-**Serves:** The library consumer, the end user
+**Serves:** Sofia Marchetti, Grace Adeyemi
 
 This is the highest-leverage feature in Clara. ERP applications are mostly forms, and this
 is where most component libraries leak accessibility bugs.
@@ -440,7 +449,7 @@ is where most component libraries leak accessibility bugs.
 **User Story:** As an end user entering data all day, I want inputs that behave
 predictably, show me their state, and never lose my work.
 
-**Serves:** The end user
+**Serves:** Grace Adeyemi
 
 **Acceptance Criteria:**
 
@@ -465,7 +474,7 @@ predictably, show me their state, and never lose my work.
 **User Story:** As an end user, I want checkboxes, radios, and switches whose state is
 unmistakable at a glance, including the partially-selected case in tables.
 
-**Serves:** The end user
+**Serves:** Grace Adeyemi
 
 **Acceptance Criteria:**
 
@@ -489,7 +498,7 @@ unmistakable at a glance, including the partially-selected case in tables.
 want to type to filter and choose with the keyboard so that I am not scrolling through a
 dropdown.
 
-**Serves:** The end user
+**Serves:** Grace Adeyemi
 
 **Acceptance Criteria:**
 
@@ -498,7 +507,8 @@ dropdown.
 - [ ] Full keyboard operation: type to filter, arrow keys to move, Enter to select, Escape to close and restore, Home/End to jump, Tab to commit and move on
 - [ ] Option groups with `role="group"` and accessible group labels
 - [ ] Async option loading with loading, empty, and error states
-- [ ] Lists over 100 options are virtualized without breaking keyboard navigation or `aria-activedescendant`
+- [ ] **Large option sets are served by async loading, not client-side virtualization** (D0019). Virtualization is deferred to v1.1 on the same reasoning that defers DataGrid: it is grid-class work, and the real ERP pattern for 2,000 accounts is server-side search
+- [ ] A documented client-side option-count ceiling, above which async loading is required; exceeding it emits a development warning
 - [ ] `MultiSelect` renders selections as removable tags; each remove control is keyboard reachable and labeled with the value it removes
 - [ ] Selected count is announced when it changes
 - [ ] Dropdown positioning flips and shifts to stay in the viewport, and remains anchored on scroll within a scrollable container
@@ -515,7 +525,7 @@ dropdown.
 **User Story:** As an end user entering posting dates and reporting periods, I want to type
 a date directly or pick it from a calendar, whichever is faster for me.
 
-**Serves:** The end user
+**Serves:** Grace Adeyemi
 
 **Acceptance Criteria:**
 
@@ -523,8 +533,8 @@ a date directly or pick it from a calendar, whichever is faster for me.
 - [ ] Expected input format is shown in the field description, not only in the placeholder
 - [ ] Calendar is fully keyboard navigable: arrows by day, PageUp/PageDown by month, Home/End to week bounds, Escape to close
 - [ ] Calendar announces the focused date and the month context to screen readers
-- [ ] `DateRangePicker` supports start and end selection with a documented preset pattern (this month, last quarter, year to date)
-- [ ] `TimePicker` supports 12h and 24h display
+- [ ] `DateRangePicker` supports start and end selection with a documented preset pattern (this month, last quarter, year to date). In v1.0 - consumed by F31's list-screen filter bar
+- [ ] `TimePicker` is **deferred to v1.1** (D0018); no v1.0 screen requires time-of-day entry. Revival condition: a screen requires it
 - [ ] Min date, max date, and disabled-date predicates are supported and announced when a date is unavailable
 - [ ] Locale and first-day-of-week are configurable; Clara depends on a documented date library rather than reimplementing calendar math
 - [ ] Timezone handling behavior is explicitly documented (Clara operates on calendar dates, not instants, unless a time component is present)
@@ -540,11 +550,13 @@ a date directly or pick it from a calendar, whichever is faster for me.
 **User Story:** As an end user, I want dialogs and menus that trap focus correctly and
 return me where I was so that keyboard navigation never strands me.
 
-**Serves:** The end user, the library consumer
+**Serves:** Grace Adeyemi, Sofia Marchetti
 
 **Acceptance Criteria:**
 
-- [ ] `Modal` traps focus, restores focus to the trigger on close, closes on Escape, and marks background content inert
+- [ ] **Every overlay names its initial focus target on open and its restoration target on close, per dismissal route.** "Restores focus correctly" is not a criterion; the named element is. Routes covered: Escape, outside click, close button, and successful commit. Applies to Modal, Drawer, Popover, DropdownMenu, Tooltip, and the Combobox and DatePicker popups
+- [ ] Focus placement is asserted by **element identity** in an automated test per overlay per route (TSD level 4), and each such test is recorded as observed failing before it counts
+- [ ] `Modal` traps focus, closes on Escape, and marks background content inert
 - [ ] `Modal` sizes are token-driven, content scrolls internally, and the header and footer remain fixed
 - [ ] `Drawer` supports left, right, and bottom placement with the same focus behavior as Modal
 - [ ] `Popover` is non-modal and returns focus correctly on dismissal
@@ -565,14 +577,14 @@ return me where I was so that keyboard navigation never strands me.
 **User Story:** As an end user, I want to know whether my action succeeded, is still
 running, or failed, without hunting for the answer.
 
-**Serves:** The end user
+**Serves:** Grace Adeyemi
 
 **Acceptance Criteria:**
 
 - [ ] `Toast` with a provider and imperative API; toasts are announced via a live region with `polite` for success and `assertive` for error
 - [ ] Toast auto-dismiss timing is configurable, pauses on hover and on focus, and error toasts do not auto-dismiss by default
 - [ ] `Alert` (inline banner) with info, success, warning, danger intents, each with an intent icon so meaning survives without color
-- [ ] `Badge` for counts and `Tag` for labels, both with the four intents plus neutral
+- [ ] `Badge` for counts and `Tag` for labels, both with the four intents plus neutral. **Intent is never carried by colour alone** - each intent variant renders a mark, icon, or text label alongside the colour. These are the components most likely to appear a hundred times on a list screen, so colour-only intent here is the highest-volume accessibility failure in the library
 - [ ] `Spinner` with an accessible label; `ProgressBar` with determinate and indeterminate modes and correct `aria-valuenow`
 - [ ] `Skeleton` for loading placeholders, marked `aria-hidden` with the loading state announced once at the container level rather than per skeleton
 - [ ] `EmptyState` composes an icon, message, and optional action, with documented guidance distinguishing "no data yet" from "no results for this filter"
@@ -589,7 +601,7 @@ running, or failed, without hunting for the answer.
 **User Story:** As an end user scanning a list of transactions, I want a table that keeps
 columns aligned and headers visible so that I can read down a column without losing context.
 
-**Serves:** The end user
+**Serves:** Grace Adeyemi
 
 Scope note: v1 delivers a well-built **basic** table. The advanced DataGrid (F24) is
 deliberately deferred, because building it badly early is worse than building it properly
@@ -604,6 +616,8 @@ once a real application defines the requirements.
 - [ ] Row selection via checkbox column with a header select-all supporting the indeterminate state
 - [ ] Zebra striping is opt-in and off by default; row separation uses a border token by default
 - [ ] Loading, empty, and error states are first-class table states, not consumer responsibility
+- [ ] A documented **status-in-a-dense-list pattern**: a status column carrying an icon and a short label, with colour as reinforcement rather than as the signal. A tinted row is explicitly rejected - four tinted rows in a two-hundred-row table communicate nothing at a glance and convey nothing at all to a user who cannot distinguish the tints. The pattern must still work printed in black and white, which is how finance teams review it
+- [ ] Negative and credit number conventions are defined without depending on red
 - [ ] `Card`, `Avatar`, `Tag`, `DescriptionList` are provided with token-driven styling
 - [ ] Horizontal overflow scrolls within the table container; the page body never scrolls horizontally
 
@@ -618,7 +632,7 @@ once a real application defines the requirements.
 **User Story:** As an end user, I want to know where I am in the application and move
 between sections without losing my place.
 
-**Serves:** The end user
+**Serves:** Grace Adeyemi
 
 **Acceptance Criteria:**
 
@@ -626,7 +640,7 @@ between sections without losing my place.
 - [ ] `Tabs` supports lazy panel mounting with content state preserved between switches
 - [ ] `Breadcrumb` uses `<nav aria-label>` with an ordered list and marks the current page with `aria-current="page"`
 - [ ] `Pagination` exposes page size selection, total count, and jump-to-page, with each control labeled for screen readers
-- [ ] `Menu` (navigation) is distinguished in docs from `DropdownMenu` (actions), with the correct role semantics for each
+- [ ] `Menu` (navigation) is **deferred to v1.1** alongside F25 AppShell (D0020), where navigation actually lives. `DropdownMenu` (actions, F13) covers what the v1.0 screens need. Distinguishing two components in documentation alone is where consumers pick wrong
 - [ ] Active navigation state is conveyed by more than color
 
 **Dependencies:** F01, F07, F13
@@ -641,7 +655,7 @@ between sections without losing my place.
 requirements, I want documented WCAG conformance so that Clara is not the reason an
 accessibility audit fails.
 
-**Serves:** The library consumer, the end user
+**Serves:** Sofia Marchetti, Grace Adeyemi
 
 **Acceptance Criteria:**
 
@@ -651,9 +665,13 @@ accessibility audit fails.
 - [ ] Every interactive component has a documented keyboard interaction table in its docs page
 - [ ] Focus is visible on every interactive element against every background token, verified by a dedicated visual regression story
 - [ ] No information in Clara is conveyed by color alone; a documented audit confirms this per component
-- [ ] Manual screen reader verification recorded for the form components at minimum: VoiceOver on Safari, NVDA on Firefox
+- [ ] **A per-component `verification.md` exists and is current for every exported component**, recording the keyboard interaction table with observed results and **the strings actually announced**, not the strings expected. The criterion is "a current record exists", which can be observed failing; "testing happened" cannot
+- [ ] Manual keyboard pass: **every** exported component, at export, re-run on any change to focus behaviour or the keyboard table
+- [ ] Manual screen reader pass: VoiceOver on Safari for every interactive component, on the same trigger
+- [ ] **NVDA is not verified and is recorded as a stated known gap** in the accessibility statement. NVDA is Windows-only and the maintainer works on macOS; NVDA and VoiceOver differ in real ways, so this is a genuine gap named rather than implied away (D0016)
+- [ ] Forced-colors mode (Windows High Contrast) is untested in v1 and is recorded as a known gap on the same page
 - [ ] Reduced motion preference (`prefers-reduced-motion`) disables non-essential animation library-wide
-- [ ] An accessibility statement page in the docs site lists conformance level, known gaps, and testing method
+- [ ] An accessibility statement page in the docs site lists conformance level, **every known gap by name**, and the testing method. A gap that is not listed is a claim of coverage
 
 **Dependencies:** All component features
 **Status:** Not Started
@@ -666,7 +684,7 @@ accessibility audit fails.
 **User Story:** As a library consumer, I want to see and interact with every component
 state before I write code so that I choose the right component and props first time.
 
-**Serves:** The library consumer, the library maintainer
+**Serves:** Sofia Marchetti
 
 **Acceptance Criteria:**
 
@@ -689,7 +707,8 @@ state before I write code so that I choose the right component and props first t
 design language explained, not just the components listed, so that I apply it correctly and
 believe it is a real system.
 
-**Serves:** The library consumer, the reviewing stakeholder
+**Serves:** Sofia Marchetti
+**Evaluated by:** Daniel Achebe (stakeholder)
 
 The docs site is Clara's own proof. It is built with Clara, so a visitor sees the system
 working before reading a word about it.
@@ -700,7 +719,7 @@ working before reading a word about it.
 - [ ] Every component page includes: purpose, when to use and when not to use, live examples, props reference, keyboard interactions, accessibility notes, and do/don't guidance
 - [ ] A Patterns section documents composite ERP patterns Clara does not ship as components: form layout, list-detail screens, bulk actions, destructive confirmation, filtering
 - [ ] Token reference pages render live swatches and values, generated from the token source rather than hand-maintained
-- [ ] Copyable code examples that work when pasted into a fresh project
+- [ ] Copyable code examples that work when pasted into a fresh project, **proven by a CI job that extracts every fenced example from the docs, pastes it into the verification app, and builds**. Without the job that pastes them, this is an intention rather than a criterion
 - [ ] The site is built with Clara components and passes the same accessibility gate as the library
 - [ ] Deploys automatically on merge to the default branch
 
@@ -715,7 +734,7 @@ working before reading a word about it.
 **User Story:** As a library consumer, I want to install Clara from npm and have it work in
 my Vite or Next.js project with correct types and no configuration.
 
-**Serves:** The library consumer
+**Serves:** Sofia Marchetti
 
 **Acceptance Criteria:**
 
@@ -741,7 +760,7 @@ my Vite or Next.js project with correct types and no configuration.
 **User Story:** As a library consumer with three applications on Clara, I want to know
 whether an upgrade will break me before I run it.
 
-**Serves:** The library consumer, the library maintainer
+**Serves:** Sofia Marchetti
 
 **Acceptance Criteria:**
 
@@ -751,6 +770,8 @@ whether an upgrade will break me before I run it.
 - [ ] Deprecation policy: a deprecated API emits a development-mode console warning, remains functional for at least two minor versions, and is documented with its replacement
 - [ ] Pre-1.0 releases are explicitly marked unstable in the README with the stability expectations stated
 - [ ] Migration guides accompany every major version
+- [ ] **v1.0 entry criteria are stated and objectively determinable** (D0025). v1.0 requires all three: every must-have feature row Complete; the reference application (F31) built on the **published** package; and the API surface report stable across **two consecutive releases** with no change. API stability across two releases is the criterion that actually proves the surface has settled, which is what 1.0 means for a library
+- [ ] **The 1.x support window after 2.0 ships is 6 months, critical and security fixes only.** Stated because a consumer running three applications needs to know where they stand before upgrading
 
 **Dependencies:** F20
 **Status:** Not Started
@@ -763,7 +784,8 @@ whether an upgrade will break me before I run it.
 **User Story:** As the library maintainer, I want a test harness that catches regressions
 before consumers do, since a bug in Clara is a bug in every application at once.
 
-**Serves:** The library maintainer
+**Serves:** Sofia Marchetti
+**Delivered via:** the maintainer's tooling
 
 **Acceptance Criteria:**
 
@@ -786,11 +808,12 @@ before consumers do, since a bug in Clara is a bug in every application at once.
 **User Story:** As a library consumer building on Next.js App Router, I want Clara to work
 without hydration warnings so that I do not have to wrap everything in a client boundary.
 
-**Serves:** The library consumer
+**Serves:** Sofia Marchetti
 
 **Acceptance Criteria:**
 
-- [ ] Components requiring interactivity carry the `"use client"` directive; purely presentational components do not
+- [ ] **The classification is produced as an explicit list** (TRD Section 7), not left as a principle. Rule: a component is client-only if its public props include a function, or if it uses state, effects, refs, or browser APIs internally. Everything else is server-capable and carries no directive
+- [ ] CI asserts the `"use client"` directive **survives bundling** at the top of both the built ESM and CJS output for every client component - bundlers have historically dropped or misplaced it
 - [ ] Generated ids use `useId` and are stable across server and client render
 - [ ] No component reads `window`, `document`, or `matchMedia` during render
 - [ ] No hydration mismatch warnings in the Next.js verification app
@@ -803,12 +826,59 @@ without hydration warnings so that I do not have to wrap everything in a client 
 
 ---
 
+#### F31 Reference application (must-have, gating)
+
+**User Story:** As the maintainer, I want a real ERP screen built on Clara while the component
+set is still forming, so that API problems surface while they are still cheap to fix rather than
+after v1.0 has made them permanent.
+
+**Serves:** Sofia Marchetti
+
+> **Why the id is out of sequence.** F31 was allocated after F00-F30 because v0.1.0 carried this
+> only as prose in an open question - called "the highest-risk question in this document" and then
+> left with no id, no priority, no acceptance criteria, and no owner. Two review seats converged on
+> it independently from opposite directions: scope discipline (a component with no consuming need
+> is speculative) and release readiness (v1.0 cannot be declared without an integration proof). The
+> row sits here, among the must-haves, because that is its priority; the number is just its
+> identity.
+
+**Why it exists:** design systems built without a consuming application reliably solve the wrong
+problems and over-build. Every component below is currently justified by an invented user, and an
+invented user is not a consuming need. This is the artifact that replaces invention with evidence.
+
+**Scope:** two screens, inside the monorepo, treated as a first-class deliverable and not a demo.
+
+| Screen | Exercises |
+|--------|-----------|
+| **List screen** | Table with sort, selection, and sticky header; Pagination; SearchInput; filter controls; EmptyState; loading and error states; a bulk action via DropdownMenu |
+| **Form screen** | Field framework end to end; Input, NumberInput, Textarea, Select, Combobox, Checkbox, Radio, Switch, DatePicker; validation and error display; Modal confirmation; Toast on save |
+
+**Timing:** started as soon as the form components exist, at roughly the 40% mark of the component
+set - not after. Its purpose is to find problems early, which it cannot do if it is built last.
+
+**Acceptance Criteria:**
+
+- [ ] Both screens are built **entirely from `@luzentialabs/clara-react`**, with no ad-hoc CSS in the application beyond page layout
+- [ ] Any place the application needs an escape hatch is recorded as a finding against the component that forced it - that is the signal this row exists to produce
+- [ ] Both screens are operable end to end by keyboard alone
+- [ ] Both screens pass the axe assertion suite
+- [ ] Both render correctly in dark theme and compact density
+- [ ] The application consumes the **published tarball**, not workspace source, so it exercises what a consumer actually receives
+- [ ] **No PRD feature row may be marked Complete for v1.0 until the reference application renders on it**
+- [ ] Every must-have component row can name the screen above that consumes it, or moves to v1.1 with a revival condition
+
+**Dependencies:** F00, F01, F06-F10 (form components) at minimum
+**Status:** Not Started
+**Confidence:** [HIGH] - the need is settled; the exact screens may shift
+
+---
+
 #### F24 DataGrid (advanced) - deferred to v1.1
 
 **User Story:** As an end user working a list of fifty thousand records, I want to sort,
 filter, resize, and edit inline without the screen becoming unusable.
 
-**Serves:** The end user
+**Serves:** Grace Adeyemi
 
 **Acceptance Criteria:**
 
@@ -863,6 +933,25 @@ library whose components match the code exactly so that a design handoff has no 
 
 ---
 
+## 3b. Future Considerations
+
+Ideas worth keeping, deliberately **outside** the Feature Inventory (D0026). A row in the
+inventory reads as a commitment; these are not commitments. Each carries the condition that would
+pull it forward.
+
+| Idea | What it is | Revival condition |
+|------|-----------|-------------------|
+| Command palette | Global keyboard-driven action search | An application has enough distinct actions that menu navigation becomes the bottleneck |
+| Filter builder | Composable query UI for list screens | A second list screen needs filtering beyond what F31's filter bar established |
+| Charts | Token-aligned chart primitives for dashboards | A dashboard screen exists and a third-party chart library cannot be themed to match Clara |
+| Tailwind token preset | Clara tokens as a Tailwind theme preset | An application is built with Tailwind rather than Clara components |
+| `createTheme()` brand ramps | Generated 11-step ramps from a brand hue | An application requires a brand other than Clara's default (D0017) |
+| TimePicker | 12h/24h time-of-day entry | A screen requires time-of-day entry (D0018) |
+| Combobox virtualization | Client-side windowing for large local option sets | A screen needs a large option set that cannot be served by async search (D0019) |
+| Navigation `Menu` | Nav-role menu, distinct from `DropdownMenu` | Delivered with F25 AppShell (D0020) |
+
+---
+
 ## 4. Functional Requirements
 
 ### Core Behaviors
@@ -878,9 +967,17 @@ library whose components match the code exactly so that a design handoff has no 
    - accepts `style` and applies it last, so a token override on `style` wins
    - never requires a context provider except where documented (Toast, and theme-if-scoped)
 
-3. **Controlled and uncontrolled.** Every stateful component supports both. Uncontrolled is
-   the default. Supplying the value prop without the change handler produces a development
-   warning, matching React's own convention.
+3. **Controlled and uncontrolled.** Every stateful component supports both, uncontrolled by
+   default. The prop convention is fixed library-wide by component shape, because
+   inconsistency here is permanent:
+
+   | Component shape | Convention | Examples |
+   |-----------------|-----------|----------|
+   | Wraps a single native form control | `value` / `defaultValue` / `onChange`, receiving the **native event** | `Input`, `Textarea`, `Checkbox`, `Radio`, `Switch` |
+   | Composite widget with a semantic value | `value` / `defaultValue` / `onValueChange`, receiving the **value itself** | `Select`, `Combobox`, `MultiSelect`, `DatePicker`, `Tabs` |
+
+   Supplying the value prop without its change handler produces a development warning,
+   matching React's own convention.
 
 4. **Composition over configuration.** Compound components (`Field.Label`, `Table.Row`,
    `Modal.Header`) are preferred over prop-driven slots when a consumer might need to place
@@ -945,8 +1042,18 @@ subpaths explicitly and contains no `./*` wildcard:
    raw value from component CSS fails CI.
 2. Every interactive component must have a documented keyboard interaction table before it
    is exported.
-3. No component ships without: stories, unit tests, an axe assertion, a visual baseline, and
-   a docs page. This is the definition of done for a component.
+3. No component ships without **all** of: stories covering every state; unit and interaction
+   tests using accessible queries; an axe assertion over the default **and error** states; a
+   visual baseline in both themes and both densities; a documented keyboard interaction table;
+   **a recorded manual keyboard pass**; **a recorded VoiceOver pass** (interactive components);
+   focus-identity assertions (overlays); a docs page; and a mutation score at or above
+   threshold on the changed surface. This is the definition of done for a component, and it is
+   maintained in the TSD.
+
+   > v0.1.0 listed the keyboard interaction *table* but not a keyboard *pass*. A table is a
+   > specification; it is not evidence that a person ever drove the component. Nothing in that
+   > version required anyone to keyboard-operate Modal, Drawer, Combobox, or DatePicker before
+   > permanent publication.
 4. Color alone never carries meaning. Any status, selection, or error state pairs color with
    an icon, a mark, or text.
 5. Breaking changes to a public prop, an exported name, or a documented token require a
@@ -965,8 +1072,12 @@ subpaths explicitly and contains no `./*` wildcard:
    Clara API. Design principle 2 - "guessable by someone who has used another Clara component" - is
    enforced by this rule rather than merely asserted by it.
 9. **Tier 2 tokens are public; tier 1 and tier 3 are not.** See F01's token visibility rule.
-   A change to a tier 2 token *name* is breaking. Whether a change to a tier 2 token *value* is
-   breaking is deferred to F21 (Tier 3 condition) and is currently unresolved.
+   A change to a tier 2 token *name* is **breaking** and requires a major.
+   A change to a tier 2 token *value* is a **minor** (D0021), subject to three conditions:
+   value changes are **batched** into designated releases rather than dribbled out; each carries
+   a **visual changelog** entry showing before and after; and a value change that breaks a
+   documented contrast pairing is a **bug**, not a release. Requiring a major for every neutral
+   ramp tweak would freeze the palette permanently, which no working design system does.
 
 ---
 
@@ -1036,7 +1147,7 @@ out of scope for v1; Clara targets desktop and tablet, which is where ERP work h
 - [ ] Every public prop has a TSDoc comment that appears in editor autocomplete
 - [ ] Prop types use literal unions rather than `string` wherever the value set is closed
 - [ ] Common mistakes fail at the type level rather than at runtime (an `IconButton` without a label, an arbitrary spacing value)
-- [ ] A new consumer can install Clara and render a working themed form in under 10 minutes using the Getting Started page alone
+- [ ] The Getting Started page is **verified by someone who did not write it** - the first external user, or a fresh agent session with no project context - who records where they got stuck. Until such an observer exists the criterion is recorded as unverified rather than assumed met. (v0.1.0 stated a 10-minute target whose only possible tester was the page's author, which could not be observed failing)
 
 ---
 
@@ -1274,30 +1385,20 @@ the canonical home and the handoff context delegated agents read; the ids below 
 | D0006 | CSS delivery | One stylesheet per package, deliberately not tree-shaken | Simple, robust across bundlers, and honest. Forced the v0.1.0 per-component CSS budget to be restated as a fixed stylesheet ceiling plus JS-only per-component budgets |
 | D0007 | Token visibility | Tier 2 public; tiers 1 and 3 private | Otherwise the boundary is an honor system and consumers settle it by overriding tier 3. Enforced via generated `tokens.public.json` |
 | D0008 | Composition idiom | `as`, everywhere | v0.1.0 carried three idioms answering one question (`asChild`, `as`, `href`), breaking design principle 2 on paper before any code existed |
+| D0009 | Build tooling | Vite library mode | Native CSS Modules handling, decisive given D0006. See TRD ADR-007 |
+| D0010 | Monorepo orchestration | Plain pnpm workspaces; Turborepo deferred | No build exists yet to be slow, and adding it later is cheap because it is not public API. See TRD ADR-009 |
+| D0011 | Date library (F12) | `@internationalized/date`, ISO strings at the public boundary | Models calendar dates as distinct from instants, which F12 must document; `date-fns` conflates them. See TRD ADR-008 |
+| D0012 | API surface gate | `api-extractor` report, blocking in CI | Makes an accidental public surface change a reviewable diff rather than a consumer's install-time surprise. See TRD ADR-010 |
+| D0013 | Visual regression | Chromatic | Consumes existing stories, so baselines are nearly free; its review UI matters at 100+ baselines. See TSD |
+| D0014 | Coverage gates | 90% statements **and** 85% branches | The PRD's only hard number sat on the metric that rises while assertions weaken. See TSD |
+| D0015 | Mutation gate | Stryker, changed files, 70%, blocking | F22 required a mutation check but gave it no tool, threshold, or teeth. See TSD |
+| F31 | Reference application | Promoted from an open question to a gating must-have feature row | Two seats converged on it independently; leaving it as prose was how it would have become a default by accident |
+| D0016 | Screen reader scope | VoiceOver only; NVDA a stated known gap | NVDA is Windows-only and the maintainer is on macOS. Naming the gap beats implying coverage. See TSD |
 
 ### Still open
 
-- **Q:** Which date library for F12?
-  **Context:** Affects bundle size, locale handling, and timezone semantics.
-  **Options:** `date-fns` (tree-shakeable, familiar) / Temporal polyfill (future-proof,
-  heavier today) / `@internationalized/date` (designed for exactly this use case, pairs with
-  React Aria).
-
-- **Q:** Should the first real application be built in parallel with v1, or after it?
-  **Context:** This is the highest-risk question in this document. Design systems built
-  without a consuming application reliably solve the wrong problems and over-build. Building
-  one real ERP screen against Clara at roughly the 40% mark would surface API problems while
-  they are still cheap to fix.
-  **Recommendation:** Build a thin, real "reference application" inside the monorepo -
-  one list screen and one form screen - starting as soon as the form components exist. Treat
-  it as a first-class deliverable, not a demo.
-
-- **Q:** Visual regression tooling - Chromatic or self-hosted Playwright snapshots?
-  **Context:** Chromatic is excellent and effectively free at this scale, but adds an
-  external service dependency. Playwright snapshots are free and local but need baseline
-  management and are sensitive to rendering differences across machines.
-  **Options:** Start with Playwright snapshots pinned to a CI container, and adopt Chromatic
-  if baseline management becomes a burden.
+None. Every open question from v0.1.0 is now closed by a decision (D0001-D0016) or promoted
+to a tracked feature row (F31). New questions are recorded here as they arise.
 
 ---
 
@@ -1307,6 +1408,8 @@ the canonical home and the handoff context delegated agents read; the ids below 
 |------|---------|---------|
 | 2026-08-21 | 0.1.0 | Initial PRD created. Scope set for v1.0: token system, theming, density, and 16 component families. DataGrid, app shell, and Figma library deferred to v1.1. Architecture decisions recorded: React-only, CSS variables plus CSS Modules, Radix primitives, monorepo with split packages, Storybook plus docs site. |
 | 2026-08-21 | 0.2.0 | **Tier 1 conditions applied** from the four-seat team consultation (`reviews/prd-team-consult-2026-08-21.md`). Fixes verified defect D1 (tier 3 referenced an `accent` family tier 2 never defined). Adds: four missing semantic families (accent, selected, fg-readonly, focus) plus row-surface precedence; the legal pairing table with per-role thresholds (Section 7); the cascade layer contract and closed exports map (Section 4); the token visibility rule (F01); primitive isolation and single-idiom rules (Section 4 rules 7-9); F00 foundations pass as a blocking, time-boxed feature row. Closes 8 decisions, promoted to the decisions log as D0001-D0008. Restates the CSS size budget, which was unmeasurable as written. Open questions reduced from 7 to 4. |
+| 2026-08-21 | 0.3.0 | **Tier 2 conditions applied** (9). Adds **F31 Reference application** as a must-have gating row - the deferral two seats independently called the highest risk, previously prose in an open question. Corrects F02: theme and density propagate through React context, not DOM inheritance, so portaled content inherits (TRD ADR-006); no overlay takes a theme/density/portalContainer prop. F07 focus indicator becomes two-part with an enumerated surface list and a computed contrast assertion. F13 names an initial-focus and restoration target per overlay per dismissal route. F17 requires a per-component verification record and names NVDA and forced-colors as stated gaps. F23 requires the explicit client/server list plus a directive-survival check. Section 4 rule 3 adds the manual keyboard pass to the definition of done; the controlled/uncontrolled convention is fixed library-wide by component shape. Open questions: 1 -> 0. |
+| 2026-08-21 | 0.4.0 | **Twelve interview decisions applied (D0017-D0028)**, closing every operator call and the PRD-level Tier 3 conditions. Scope cuts: `createTheme()`, TimePicker, Combobox virtualization, and navigation `Menu` all move to v1.1 with revival conditions; F27-F30 leave the inventory for a new **Future Considerations** section. Resolves the F07/F13 contradiction - disabled controls use `aria-disabled` and stay focusable, so their explanation is reachable. Settles the tier 2 token *value* question: minor, batched, visually changelogged, and a broken contrast pairing is a bug not a release. Adds v1.0 entry criteria and a 6-month 1.x support window. Repairs four unfalsifiable criteria (enumerated icon list, a CI job that actually pastes the docs examples, an external observer for the Getting Started claim). Closes the colour-alone gaps in `Badge`/`Tag` and adds the status-in-dense-list pattern. Truncation must be keyboard-recoverable. Compact density gains padding and adjacent-target floors. |
 
 ---
 
