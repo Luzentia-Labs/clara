@@ -1,0 +1,10 @@
+{
+  "name": "@clara-internal/docs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Clara documentation site, built with Clara itself.",
+  "type": "module",
+  "scripts": {
+    "build": "echo \"not yet implemented\" && exit 1"
+  }
+}

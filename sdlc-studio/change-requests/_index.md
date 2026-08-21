@@ -13,7 +13,8 @@
 | Complete | 0 |
 | Rejected | 0 |
 | Deferred | 0 |
-| **Total** | **0** |
+| inbox | 2 |
+| **Total** | **2** |
 
 ## By Priority
 
@@ -24,6 +25,8 @@
 
 | ID | Title | Priority | Status | Type | Linked Epics | Date |
 | --- | --- | --- | --- | --- | --- | --- |
+| [CR-01M0HT8N](CR-01M0HT8N-low-severity-bugs-consolidated.md) | Low-severity bugs (consolidated) | Low | inbox | Improvement | -- | 2026-08-21 |
+| [CR-01M0HTB4](CR-01M0HTB4-low-severity-crs-consolidated.md) | Low-severity crs (consolidated) | Low | inbox | Improvement | -- | 2026-08-21 |
 
 ## Dependencies
 

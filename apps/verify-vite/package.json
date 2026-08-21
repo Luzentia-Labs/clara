@@ -1,0 +1,10 @@
+{
+  "name": "@clara-internal/verify-vite",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Consumer verification target: a fresh Vite app built from the published tarball.",
+  "type": "module",
+  "scripts": {
+    "build": "echo \"not yet implemented\" && exit 1"
+  }
+}

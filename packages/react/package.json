@@ -1,0 +1,32 @@
+{
+  "name": "@luzentialabs/clara-react",
+  "version": "0.0.0",
+  "description": "Clara components for React: accessible, token-driven, built for enterprise web applications.",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/Luzentia-Labs/clara.git", "directory": "packages/react" },
+  "publishConfig": { "access": "public", "provenance": true },
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "files": ["dist"],
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/index.cjs" },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@luzentialabs/clara-icons": "workspace:*",
+    "@luzentialabs/clara-tokens": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "scripts": {
+    "build": "echo \"not yet implemented - see the package build story\" && exit 1",
+    "test": "echo \"no tests yet\" && exit 0",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

@@ -8,11 +8,11 @@
 | Status | Count |
 | --- | --- |
 | Draft | 85 |
-| Ready | 1 |
+| Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
 | Review | 0 |
-| Done | 0 |
+| Done | 1 |
 | **Total** | **86** |
 
 ## Stories by Epic
@@ -24,7 +24,7 @@
 
 | ID | Title | Epic | Status | Points | Persona |
 | --- | --- | --- | --- | --- | --- |
-| [US-01M0GMPJ](US-01M0GMPJ-pnpm-workspace-and-repository-scaffold.md) | pnpm workspace and repository scaffold | EP-01M0GKNH | Ready | 2 | -- |
+| [US-01M0GMPJ](US-01M0GMPJ-pnpm-workspace-and-repository-scaffold.md) | pnpm workspace and repository scaffold | EP-01M0GKNH | Done | 2 | -- |
 | [US-01M0GM9N](US-01M0GM9N-package-builds-vite-library-mode-and-the-tokens.md) | Package builds: Vite library mode and the tokens pipeline | EP-01M0GKNH | Draft | 5 | -- |
 | [US-01M0GMFB](US-01M0GMFB-dual-publishing-with-a-closed-exports-map.md) | Dual publishing with a closed exports map | EP-01M0GKNH | Draft | 3 | -- |
 | [US-01M0GM16](US-01M0GM16-cascade-layers-and-the-consumer-override-guarantee.md) | Cascade layers and the consumer override guarantee | EP-01M0GKNH | Draft | 3 | -- |

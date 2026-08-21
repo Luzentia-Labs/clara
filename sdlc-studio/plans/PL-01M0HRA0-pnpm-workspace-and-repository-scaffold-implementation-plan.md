@@ -1,6 +1,6 @@
 # PL-01M0HRA0: pnpm workspace and repository scaffold - Implementation Plan
 
-> **Status:** Draft
+> **Status:** Complete
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** planning

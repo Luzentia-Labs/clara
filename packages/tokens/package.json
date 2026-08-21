@@ -1,0 +1,27 @@
+{
+  "name": "@luzentialabs/clara-tokens",
+  "version": "0.0.0",
+  "description": "Clara design tokens: CSS custom properties, typed constants, and the public and pairings manifests.",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/Luzentia-Labs/clara.git", "directory": "packages/tokens" },
+  "publishConfig": { "access": "public", "provenance": true },
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "files": ["dist"],
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/index.cjs" },
+    "./tokens.css": "./dist/tokens.css",
+    "./themes/dark.css": "./dist/themes/dark.css",
+    "./tokens.json": "./dist/tokens.json",
+    "./tokens.public.json": "./dist/tokens.public.json",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "echo \"not yet implemented - see the token pipeline story\" && exit 1",
+    "test": "echo \"no tests yet\" && exit 0",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

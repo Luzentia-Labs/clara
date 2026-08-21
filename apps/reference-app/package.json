@@ -1,0 +1,10 @@
+{
+  "name": "@clara-internal/reference-app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The integration proof (PRD F31): a real list screen and form screen built on the published package.",
+  "type": "module",
+  "scripts": {
+    "build": "echo \"not yet implemented\" && exit 1"
+  }
+}

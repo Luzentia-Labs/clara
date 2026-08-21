@@ -12,7 +12,8 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| **Total** | **0** |
+| inbox | 1 |
+| **Total** | **1** |
 
 ## By Severity
 
@@ -23,6 +24,7 @@
 
 | ID | Title | Severity | Priority | Status | Epic | Story | Created |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| [BG-01M0HTRM](BG-01M0HTRM-published-packages-declare-one-d-ts-for-both.md) | Published packages declare one .d.ts for both import and require (attw FalseCJS) | Medium | Medium | inbox | -- | -- | 2026-08-21 |
 
 ## Notes
 
