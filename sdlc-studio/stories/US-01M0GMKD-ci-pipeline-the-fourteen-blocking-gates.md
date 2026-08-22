@@ -1,6 +1,6 @@
 # US-01M0GMKD: CI pipeline: the fourteen blocking gates
 
-> **Status:** Review
+> **Status:** Done
 > **Supersedes:** CR-01M0HT8N
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
@@ -69,6 +69,8 @@ itself enforceable - a pending gate must name an OPEN story.
 - **Given** a PR touching packages/
 - **When** no changeset is present
 - **Then** CI fails
+- **Verify:** manual measured both ways on 2026-08-22: with .changeset/foundation-toolchain.md removed, `pnpm changeset status --since=origin/main` exits 1; restored, it exits 0. The gate runs in ci.yml and carries no continue-on-error.
+- **Verified:** yes (2026-08-22, operator sign-off, failure case reproduced)
 - **Verify:** manual the changeset gate lands with US-01M0GMWF; recorded pending in ci-gates.json rather than claimed
 - **Verification target:** functional
 

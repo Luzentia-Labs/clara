@@ -1,6 +1,7 @@
 # CR-01M0J0Z6: Tier 2 semantic families do not match the set TRD Section 6 enumerates
 
-> **Status:** inbox
+> **Status:** Approved
+> **Triaged-by:** Richard Dale Umayan; human; v1
 > **Priority:** Medium
 > **Type:** Improvement
 > **Size:** S

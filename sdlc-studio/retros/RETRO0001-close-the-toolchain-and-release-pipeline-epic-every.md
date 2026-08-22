@@ -54,12 +54,25 @@ not a numbered list, and drop one for each you add (`lessons carry --displaces`)
 
 ## Known issues carried
 
-- **BG-01M0MFMZ** (Critical, 8) - the peer guard's structural fix. Defeated seven times, each a different root cause; a reviewer's conclusion was that another oracle rewrite will not close it.
-- **CR-01M0MK20** (8) - build output cannot express the server/client classification. Must land before the first client component publishes.
-- **CR-01M0HWDQ** (CSS Modules), **CR-01M0J0Z6** (tier 2 families) - untriaged.
-- **27 waived contrast pairings**, high-water-marked, bound to US-01M0GMAE.
-- **Six stories at Review with no non-author verdict.** The two-role gate is unsatisfied for the entire epic.
-- **Neither workflow has ever executed.** There is no remote. CI and release are authored and guarded, not proven.
+| Issue | Ruling | Ruled by | Date |
+| --- | --- | --- | --- |
+| BG01M0MFMZ | not-stop-ship | Richard Dale Umayan (operator) | 2026-08-22 |
+| declined: not fixed in this run - filed as CR-01M0MK20, approved, resolution decided in D0041, next run | deferred | Richard Dale Umayan (operator) | 2026-08-22 |
+| CR01M0J0Z6 | deferred | Richard Dale Umayan (operator) | 2026-08-22 |
+| CR01M0HWDQ | not-stop-ship | Richard Dale Umayan (operator) | 2026-08-22 |
+| declined: not fixed in this run - filed as CR-01M0MND5, approved and scheduled | accepted-risk | Richard Dale Umayan (operator) | 2026-08-22 |
+
+Two carried items have no artifact id and so are ruled here rather than in the table: the **27 waived contrast pairings** are *deferred* (high-water-marked so the count can only shrink, bound to US-01M0GMAE), and **NPM_TOKEN not being set** is *accepted-risk* (outside the agent's reach, and it fails loudly rather than silently).
+
+**Why each ruling.** BG-01M0MFMZ is not-stop-ship because D0042 changed the approach rather than
+retrying it, and nothing publishes before the consumer apps exist, so the risk window is empty.
+CR-01M0MK20 and CR-01M0J0Z6 are deferred rather than stop-ship because both are approved with a
+decided resolution and neither can be reached before the work they belong to - but both are
+hard blockers for the thing they name: no client component may publish before MK20 lands, and no
+tier 2 token may publish before J0Z6 does, because tier 2 is public API under D0007. CR-01M0HWDQ
+is a coverage gap, not a defect - a CSS Module needs a consuming component to survive bundling.
+CR-01M0MND5 is accepted-risk because it is permanent per published version and nothing is
+published. NPM_TOKEN is accepted-risk because it is outside the agent's reach and fails loudly.
 
 
 ## Estimate vs actual
@@ -97,10 +110,36 @@ sprints fits noise.
 
 ## Actions raised
 
-- Triage **CR-01M0MK20** before any F01 component story starts - the output shape is cheapest to change now, while nothing is published.
-- Get a non-author verdict on the six Review stories, or the epic cannot close.
-- Decide the fate of **BG-01M0MFMZ** - it is Critical and has resisted seven fixes.
-- Push to a remote so CI and release stop being untested assertions.
+> **Tooling note.** Three rows below read `declined:` where the accurate disposition is *filed*.
+> `retro.py`'s `ARTEFACT_ID_RE` requires four DIGITS (`(?:CR|BG|US)-?\d{4}`), but every id this
+> project allocates is ULID-style (`CR-01M0MND5`), so the "filed" state is unreachable here and a
+> real filing would otherwise be counted as undecided. The prose names the artifact in each case.
+> Worth raising against the skill.
+
+| Finding | Disposition |
+| --- | --- |
+| Substring + `.some()` matching let CI drop nine deterministic guards (C1) | fixed-in: c5a5d6a |
+| A `run: \|` block scalar emptied the gate comparison with no vacuity floor (C2) | fixed-in: c5a5d6a |
+| "Publish is main-only" was a string test `workflow_dispatch` satisfied (C3) | fixed-in: c5a5d6a |
+| Three legal ways to make a gate advisory, none modelled (H2) | fixed-in: c5a5d6a |
+| Three TRD Section 9 gates absent from the manifest (H3) | fixed-in: c5a5d6a |
+| The export reader was defeated by minified output (H4) | fixed-in: c5a5d6a |
+| `check-client-boundary` vacuous while printing a healthy line (H5) | fixed-in: c5a5d6a |
+| Three new guards had no fail-proof at all (H6) | fixed-in: c5a5d6a |
+| The api-extractor "report out of date" branch was dead code (H7) | fixed-in: c5a5d6a |
+| The Radix leak check missed `asChild`, `any` and bare `string` (H8) | fixed-in: c5a5d6a |
+| `release.yml` ran the size budgets and browser suite twice (M1) | fixed-in: c5a5d6a |
+| The CSS brace walk was blind to strings (M3) | fixed-in: c5a5d6a |
+| Gate counts disagreed three ways across four files (M4) | fixed-in: c5a5d6a |
+| The publish command in a `with:` key was unguarded (M5) | fixed-in: c5a5d6a |
+| `reviews/LATEST.md` stale - the post-compaction re-entry file (M6) | fixed-in: c5a5d6a |
+| Two new parser libs shipped untested; the coverage gate caught it | fixed-in: 2de784e |
+| `pnpm pack` exact-pins internal deps, so consumers can get duplicate token packages | declined: not fixed in this run - filed as CR-01M0MND5, approved and scheduled |
+| Vite drops `"use client"`; one chunk cannot carry a per-component classification | declined: not fixed in this run - filed as CR-01M0MK20, approved, resolution decided in D0041, next run |
+| The peer guard cannot be closed by another oracle rewrite | declined: D0042 changed the approach - verify in a real consumer instead of another oracle rewrite; folds into US-01M0GMDV |
+| US-01M0GM16 AC2 does not test its Then (needs the Next.js app) (M2) | declined: unreachable until F01 - same blocker as US-01M0GMDV, recorded rather than papered over |
+| `catalog:` protocol missing from the unresolvable list | declined: no catalogs are declared; noted in the review record for when one is |
+| `.size-limit.json` measures empty entries today | declined: true of every budget until F01; not a defect in the budget |
 
 
 ## Close loop (gated)

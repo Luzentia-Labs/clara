@@ -1,6 +1,6 @@
 # US-01M0GMWF: Changesets, semver policy, and automated publish
 
-> **Status:** Review
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1

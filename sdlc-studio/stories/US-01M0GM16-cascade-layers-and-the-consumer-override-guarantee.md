@@ -1,6 +1,6 @@
 # US-01M0GM16: Cascade layers and the consumer override guarantee
 
-> **Status:** Review
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -72,6 +72,8 @@ before the first component for that reason alone.
 - **Given** the decision record
 - **When** anyone proposes deferring layers
 - **Then** D0005 records that adding them post-1.0 silently changes every existing override
+- **Verify:** manual D0005 states it verbatim: "It cannot be retrofitted: introducing layers after v1.0 would silently change the resolved styles of every consumer override already shipped."
+- **Verified:** yes (2026-08-22, operator sign-off, checked against sdlc-studio/decisions.md)
 - **Verify:** manual D0005 records that adding layers post-1.0 silently changes every existing override; read 2026-08-22, present in decisions.md
 - **Verification target:** conversational
 
