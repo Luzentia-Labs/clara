@@ -35,3 +35,27 @@ export function exportedNames (source) {
   // component is excluded on purpose rather than lost to a pattern that never matched it.
   return new Set([...names].filter((n) => /^[A-Z]/.test(n)))
 }
+
+/**
+ * The component names a module DEFINES, as opposed to the ones it merely forwards.
+ *
+ * `exportedNames` deliberately counts both, because for the shipped bundle "what can a consumer
+ * import" is the question. For "where did this component's code land", a re-export is the wrong
+ * answer: `src/index.ts` re-exports every component, so counting those would place every component
+ * in the entry chunk and make the placement check useless.
+ */
+export function definedNames (source) {
+  const names = new Set()
+  for (const m of source.matchAll(/\bexport\s+(?:default\s+)?(?:declare\s+)?(?:abstract\s+)?(?:const|let|var|function\*?|class)\s+([A-Za-z_$][\w$]*)/g)) {
+    names.add(m[1])
+  }
+  // `export { A, B }` with NO `from` clause re-exports local bindings, which are definitions here.
+  for (const m of source.matchAll(/\bexport\s*\{([^}]*)\}\s*(?!from)(?:;|\n|$)/g)) {
+    for (const part of m[1].split(',')) {
+      const name = (part.includes(' as ') ? part.split(' as ').pop() : part).trim().replace(/^["']|["']$/g, '')
+      if (/^[A-Za-z_$][\w$]*$/.test(name)) names.add(name)
+    }
+  }
+  names.delete('default')
+  return new Set([...names].filter((n) => /^[A-Z]/.test(n)))
+}

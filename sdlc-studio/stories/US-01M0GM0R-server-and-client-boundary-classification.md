@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/CLIENT-BOUNDARY.md, packages/react/dist/index.js, packages/react/src/**
+> **Affects:** packages/react/CLIENT-BOUNDARY.md, packages/react/client-boundary.json, scripts/check-client-boundary.mjs, packages/react/src/components
 > **Points:** 3
 
 ## User Story
@@ -199,9 +199,9 @@ would have printed a healthy "39 classified" while an unclassified component shi
 Three mutations pin it: an unclassified export, a built client component whose directive did not
 survive, and an invalid boundary value - 20 killed in total.
 
-Not delivered: AC2 and AC3, for the reasons recorded against each. AC2 is a genuine architectural
-finding (CR-01M0MK20, 8 points), not a shortfall of effort - and it is far cheaper now, with
-nothing published and no component written, than after either.
+**Update 2026-08-22:** AC2 and AC3 are now delivered. CR-01M0MK20 landed as US-01M0MQYN, so the
+directive survives and the guard's directive branch executes for real; two fixture components mean
+the server-render suite asserts over a non-empty set. All three criteria pass.
 
 ## Revision History
 

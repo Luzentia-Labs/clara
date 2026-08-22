@@ -24,16 +24,13 @@ export function prependDirective (source) {
     : USE_CLIENT + '\n' + source
 }
 
-/**
- * Point every RELATIVE require at the renamed file.
- *
- * Deliberately scoped to the inside of a `require(...)` call rather than replacing `.js` in the
- * text: a `.js` inside an ordinary string is not a specifier, and rewriting it would corrupt data.
- * Bare specifiers are package names and must never be touched.
- */
-export function rewriteCjsSpecifiers (source) {
-  return source.replace(
-    /(require\(\s*)(['"])(\.\.?\/[^'"]+?)\.js\2(\s*\))/g,
-    (_m, open, quote, path, close) => `${open}${quote}${path}.cjs${quote}${close}`,
-  )
-}
+// `rewriteCjsSpecifiers` used to live here. It is deleted rather than fixed.
+//
+// D0045 made it dead: each format now names its chunks with its own extension, so Rollup emits
+// requires that already resolve and there is nothing to rewrite. Its only remaining reachable
+// behaviour was corruption - it matched `require("./x.js")` anywhere in the text, including inside
+// a string literal and inside a comment, so a component rendering that text as data produced
+// DIFFERENT DOM in the ESM and CJS builds (a hydration mismatch, in the change whose purpose is
+// preventing them) and then wedged the build with "the record is stale or fabricated", which no
+// rebuild could clear. A regex that edits JavaScript source it did not parse was the eighth
+// instance of that mistake in this repo.

@@ -103,7 +103,22 @@ for (const { dir, kind, manifest } of readWorkspace(root)) {
         })
   const emitted = walkDist(dist).filter((f) => /\.(js|cjs|mjs)$/.test(f))
   const byName = new Map(record.chunks.map((c) => [c.fileName, c]))
-  for (const file of emitted) {
+    // The reverse direction. The loop below walks files found on DISK and looks each up in the
+  // record, which catches "a file exists that the record does not describe" but never "the record
+  // describes a file that is not there". With dist deleted entirely it read zero files and still
+  // printed "10 chunk(s) hash-matched" - the banner asserting something that did not happen
+  // (review F5). Counting record entries is not the same as checking them.
+  for (const chunk of record.chunks ?? []) {
+    if (!chunk.fileName) continue
+    if (!existsSync(join(root, dir, 'dist', chunk.fileName))) {
+      problems.push(
+        `${manifest.name}: the bundle record describes dist/${chunk.fileName}, which does not ` +
+          'exist. The build output is missing or stale, so nothing was verified for it.',
+      )
+    }
+  }
+
+for (const file of emitted) {
     const name = relative(dist, file)
     const chunk = byName.get(name)
     if (!chunk) {
@@ -130,7 +145,10 @@ for (const { dir, kind, manifest } of readWorkspace(root)) {
     // undone and the result must reproduce the recorded hash exactly. A directive prepend is
     // forgiven; anything else that happened to the file is not.
     if (actual !== chunk.sha256) {
-      const undone = text.replace(/^\s*["']use client["'];?\r?\n/, '')
+      // The exact inverse of prependDirective, INCLUDING the shebang case - it puts the directive
+      // below a shebang, and an undo that cannot skip one would report "stale or fabricated" for a
+      // file nobody tampered with (review F8).
+      const undone = text.replace(/^(#![^\n]*\n)?\s*["']use client["'];?\r?\n/, '$1')
       if (undone !== text && sha(undone) === chunk.sha256) actual = chunk.sha256
     }
     if (actual !== chunk.sha256) {

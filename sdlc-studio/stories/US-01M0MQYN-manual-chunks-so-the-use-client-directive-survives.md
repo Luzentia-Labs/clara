@@ -5,7 +5,7 @@
 > **Created:** 2026-08-22
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Affects:** packages/react/vite.config.ts, scripts/lib/finalize-dual.mjs, scripts/check-client-boundary.mjs, .size-limit.json, packages/react/client-boundary.json
+> **Affects:** packages/react/vite.config.ts, packages/react/src, packages/react/client-boundary.json, scripts/lib/chunk-plan.mjs, scripts/lib/directive.mjs, scripts/lib/exports-read.mjs, scripts/lib/finalize-dual.mjs, scripts/check-client-boundary.mjs, scripts/check-bundled-peers.mjs, scripts/prove-guards-fail.mjs, scripts/prove-coverage-gate.mjs, test/setup.ts
 > **Epic:** EP-01M0GKNH
 > **Points:** 8
 > **Persona:** Sofia Marchetti
@@ -63,7 +63,7 @@ output cannot disagree, because the list is what cuts the chunks.
 - **Given** client-boundary.json
 - **When** a component is listed client-only
 - **Then** it is cut into the client chunk, and a component emitted into the wrong chunk fails the build
-- **Verify:** shell npx vitest run scripts/lib/__tests__/chunk-plan.test.ts scripts/lib/__tests__/directive.test.ts
+- **Verify:** shell npx vitest run scripts/lib/__tests__/chunk-plan.test.ts scripts/lib/__tests__/directive.test.ts scripts/lib/__tests__/exports-read.test.ts
 - **Verified:** yes (2026-08-22)
 - **Verification target:** functional
 

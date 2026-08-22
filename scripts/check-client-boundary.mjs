@@ -12,7 +12,7 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fail, pass } from './lib/workspace.mjs'
-import { exportedNames } from './lib/exports-read.mjs'
+import { exportedNames, definedNames } from './lib/exports-read.mjs'
 import { CLIENT_CHUNK, SERVER_CHUNK } from './lib/chunk-plan.mjs'
 
 const RULE = 'client-boundary'
@@ -21,6 +21,11 @@ const file = join(pkg, 'client-boundary.json')
 
 if (!existsSync(file)) fail(RULE, [`${file} is missing - the classification is build input, not optional`])
 const doc = JSON.parse(readFileSync(file, 'utf8'))
+// A crash wearing a non-zero exit code is not the same as a rejection, which is the distinction
+// prove-guards-fail was written to make - so the shape is checked before anything reads it.
+if (!Array.isArray(doc.components)) {
+  fail(RULE, [`${file} has no \`components\` array - the classification cannot be read`])
+}
 
 const errors = []
 const names = doc.components.map((c) => c.name)
@@ -77,6 +82,68 @@ if (builtClients.length) {
     if (!DIRECTIVE.test(readFileSync(chunk, 'utf8'))) {
       errors.push(`${label}: ${CLIENT_CHUNK}.${ext} carries no "use client" as its first statement`)
       errors.push('  a directive is only a directive at the top; Rollup drops it and only warns (D0041)')
+    }
+  }
+}
+
+// WHERE each component's code actually landed (review F1).
+//
+// The checks above prove the client CHUNK is directived. That is only the same thing as "every
+// client component is directived" while every component's code happens to sit under
+// `src/components/<its own name>/`, which is what the chunk planner keys on. Two realistic layouts
+// break the equivalence and both shipped silently:
+//
+//   - co-location: `src/components/Table/TableSortButton.tsx` chunks as `Table`, so a client
+//     component classified separately lands in the SERVER chunk, undirectived. The classification
+//     file's own `special.Table` entry describes exactly this split.
+//   - a flat file: `src/components/Switch.tsx` matches no component directory, so it is inlined
+//     into the ENTRY - the one file that must stay undirectived.
+//
+// So this reads the bundle record, which already lists the source files inlined into each chunk,
+// and asks the question directly: is this component's code in the chunk its boundary requires?
+const recordFile = join(pkg, 'build/bundle-record.json')
+if (!existsSync(recordFile)) {
+  errors.push(`${recordFile} is missing - where each component landed cannot be checked`)
+} else {
+  const record = JSON.parse(readFileSync(recordFile, 'utf8'))
+  const chunks = record.chunks ?? []
+  if (!chunks.length) errors.push('the bundle record lists no chunks - the placement check would be vacuous')
+
+  const expectedChunk = { client: CLIENT_CHUNK, server: SERVER_CHUNK }
+  for (const chunk of chunks) {
+    const base = chunk.fileName.replace(/\.(js|cjs)$/, '')
+    for (const rel of chunk.inlined ?? []) {
+      if (!/\.(ts|tsx|js|jsx)$/.test(rel)) continue
+      const abs = join(pkg, rel)
+      if (!existsSync(abs)) continue
+      for (const name of definedNames(readFileSync(abs, 'utf8'))) {
+        const entry = classified.get(name)
+        if (!entry || entry.status !== 'built') continue
+        const want = expectedChunk[entry.boundary]
+        if (base === want) continue
+        errors.push(
+          `${name} is classified ${entry.boundary} but its code (${rel}) was emitted into ` +
+            `${chunk.fileName}, not ${want}.${chunk.format === 'es' ? '' : ` [${chunk.format}]`}`,
+        )
+        errors.push(entry.boundary === 'client'
+          ? '  it therefore ships with NO directive, and crashes the server render of every App Router consumer'
+          : '  it therefore ships marked client, forcing every consumer into a client boundary')
+      }
+    }
+  }
+
+  // A server chunk that IMPORTS the client chunk is behind the client boundary (review F2).
+  // Under RSC every export of a `"use client"` module is a client reference, so a server-capable
+  // component calling into it throws during the server render. Which chunk a SHARED module lands
+  // in is decided by Rollup from module-graph order - reordering two lines in src/index.ts was
+  // enough to flip it - so this cannot be left to the planner.
+  for (const chunk of chunks) {
+    if (!chunk.fileName.startsWith(SERVER_CHUNK) && !chunk.fileName.startsWith('index.')) continue
+    for (const ref of chunk.external ?? []) {
+      if (!String(ref).startsWith(CLIENT_CHUNK)) continue
+      if (chunk.fileName.startsWith('index.')) continue // the entry re-exports both, by design
+      errors.push(`${chunk.fileName} imports ${ref}, putting server-capable code behind the client boundary`)
+      errors.push('  every export of a "use client" module is a client reference under RSC, so the server render throws')
     }
   }
 }

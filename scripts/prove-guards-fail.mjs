@@ -63,7 +63,7 @@ function stageWorkspace ({ withOutput = false } = {}) {
       // files on every prover run - and a guard that checks nothing also exits 0, so the clean-run
       // precondition could not see it (review X14).
       for (const sub of [
-        'dist', 'build', 'src', 'vite.config.ts', 'generate-ramps.mjs',
+        'dist', 'build', 'src', 'vite.config.ts', 'generate-ramps.mjs', 'client-boundary.json',
         'tokens.public.lock.json', 'contrast-required.json', 'client-boundary.json',
       ]) {
         const from = join(root, dir, sub)
@@ -455,6 +455,57 @@ const OUTPUT_CASES = [
       const f = join(stage, 'packages/react/dist/index.js')
       writeFileSync(f, 'const Rogue=()=>null;const Other=()=>null;export{Rogue,Other};\n')
     },
+  },
+  {
+    // F1: the guard proved the CHUNK was directived, never that a given component's code was IN
+    // it. A client component co-located under a server component chunked as the server one and
+    // shipped undirectived. The classification's own `special.Table` entry describes this layout.
+    name: 'a client component whose code landed in the server chunk',
+    guard: 'check-client-boundary.mjs',
+    expect: /was emitted into clara-server/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/build/bundle-record.json')
+      const rec = JSON.parse(readFileSync(f, 'utf8'))
+      for (const c of rec.chunks) {
+        const i = (c.inlined ?? []).indexOf('src/components/Button/Button.tsx')
+        if (i >= 0 && c.fileName.startsWith('clara-client')) {
+          c.inlined.splice(i, 1)
+          rec.chunks.find((x) => x.fileName === c.fileName.replace('client', 'server')).inlined.push('src/components/Button/Button.tsx')
+        }
+      }
+      writeFileSync(f, JSON.stringify(rec, null, 2))
+    },
+  },
+  {
+    // F2: a module shared by a client and a server component lands in ONE of the two by Rollup's
+    // graph order. When that was the client chunk, the server chunk imported it - and under RSC
+    // every export of a "use client" module is a client reference, so the server render throws.
+    // Reordering two export lines was enough to flip it.
+    name: 'the server chunk importing the client chunk',
+    guard: 'check-client-boundary.mjs',
+    expect: /putting server-capable code behind the client boundary/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/build/bundle-record.json')
+      const rec = JSON.parse(readFileSync(f, 'utf8'))
+      rec.chunks.find((c) => c.fileName === 'clara-server.js').external.push('clara-client.js')
+      writeFileSync(f, JSON.stringify(rec, null, 2))
+    },
+  },
+  {
+    // F5: the binding loop walked files on disk, so a record describing a file that is NOT there
+    // was invisible - it printed "10 chunk(s) hash-matched" with dist deleted entirely.
+    name: 'the bundle record describing a chunk that does not exist',
+    guard: 'check-bundled-peers.mjs',
+    expect: /which does not exist/,
+    stage: (stage) => rmSync(join(stage, 'packages/react/dist/clara-client.js')),
+  },
+  {
+    // F9: a malformed classification threw an uncaught TypeError - a crash wearing a non-zero
+    // exit code, which is the distinction this whole file exists to make.
+    name: 'a classification with no components array',
+    guard: 'check-client-boundary.mjs',
+    expect: /no `components` array/,
+    stage: patch('packages/react/client-boundary.json', (m) => { delete m.components }),
   },
 ]
 

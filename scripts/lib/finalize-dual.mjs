@@ -17,8 +17,8 @@
  */
 import { readdirSync, renameSync, copyFileSync, rmSync, existsSync, statSync, readFileSync, writeFileSync } from 'node:fs'
 import { applyCascadeLayer } from './cascade-layer.mjs'
-import { prependDirective, rewriteCjsSpecifiers, USE_CLIENT } from './directive.mjs'
-import { CLIENT_CHUNK, SERVER_CHUNK } from './chunk-plan.mjs'
+import { prependDirective } from './directive.mjs'
+import { CLIENT_CHUNK } from './chunk-plan.mjs'
 import { join, resolve } from 'node:path'
 
 const walkCss = (dir) =>
@@ -94,34 +94,15 @@ for (const ext of ['js', 'cjs']) {
   }
 }
 
-// Anything the rename step left pointing at a `.js` that no longer exists. The build names CJS
-// chunks `.cjs` directly, so this is normally a no-op - it is here because the failure mode is
-// MODULE_NOT_FOUND on a consumer's first require, and a silent no-op costs nothing.
-for (const name of readdirSync(dist)) {
-  if (!name.endsWith('.cjs')) continue
-  const file = join(dist, name)
-  const before = readFileSync(file, 'utf8')
-  const after = rewriteCjsSpecifiers(before)
-  if (after !== before) writeFileSync(file, after)
-}
-
-// The server chunk must carry no directive, or the classification is a lie in the other
-// direction: every consumer is forced into a client boundary, which is what F23 exists to prevent.
-for (const ext of ['js', 'cjs']) {
-  const serverChunk = join(dist, `${SERVER_CHUNK}.${ext}`)
-  if (existsSync(serverChunk) && /use client/.test(readFileSync(serverChunk, 'utf8'))) {
-    console.error(`FAIL [finalize] ${SERVER_CHUNK}.${ext} carries a "use client" directive`)
-    console.error('  Server-capable components carry NO directive (TRD Section 7). A directive here')
-    console.error('  forces every consumer into a client boundary.')
-    process.exit(1)
-  }
-}
-const entry = join(dist, 'index.js')
-if (existsSync(entry) && new RegExp(USE_CLIENT.replace(/[".;]/g, '.')).test(readFileSync(entry, 'utf8').slice(0, 200))) {
-  console.error('FAIL [finalize] the entry carries a "use client" directive')
-  console.error('  The entry must stay server-capable so the boundary forms at the component import.')
-  process.exit(1)
-}
+// The "no directive anywhere else" half is NOT re-checked here.
+//
+// It used to be, and worse than the guard that owns it: the entry check read only index.js (never
+// index.cjs), looked at the first 200 characters, and used an unanchored pattern built by string
+// substitution, so it matched the words anywhere in that window rather than as the first
+// statement; the server-chunk check was a bare /use client/ over the whole file, which fails a
+// build for a component whose own documentation contains the phrase (review F10). Duplicated logic
+// with weaker semantics reads as defence in depth and is not. `check-client-boundary.mjs` checks
+// both formats with an anchored pattern, over the entry, the server chunk and the shared chunk.
 
 // D0005 / TRD:318: every emitted Clara stylesheet is wrapped in the cascade layer. Done HERE, in
 // the step every package already runs last, rather than in each bundler's own hooks - a Vite plugin

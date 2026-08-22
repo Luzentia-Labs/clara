@@ -62,10 +62,24 @@ unclassified component shipped beside it. It fails when:
 - a component is exported while still marked `planned`
 - a component marked `built` + `client` ships without `"use client"` in **both** ESM and CJS
 
+## Known limit: one client chunk for all client components
+
+`"use client"` boundaries are module-granular, so a consumer importing only `Button` takes the
+whole client chunk as one client reference - `Dialog`, `Combobox`, `DatePicker` and the rest come
+with it. D0041 rejected `preserveModules` on pipeline grounds and this is the cost of that choice;
+it runs against "per-component budgets apply to JavaScript only" (AGENTS.md).
+
+Nothing currently surfaces the growth: `.size-limit.json` measures `dist/index.js`, which follows
+the chunks today but reports one number. Recorded here rather than discovered at component 20.
+Raised by review F7 against US-01M0MQYN.
+
 ## Known gap
 
-The third rule cannot yet be satisfied. Vite's library build **drops module-level directives** and
-downgrades it to a warning, and a single bundled chunk has one top - so the directive is either on
-everything or on nothing, and neither matches the rule above. Tracked as **CR-01M0MK20**, which
-must land before the first client component is published. The guard is already wired, so that
-component cannot ship unmarked in the meantime.
+**Closed 2026-08-22.** CR-01M0MK20 landed as US-01M0MQYN: the build is cut into a client chunk, a
+server chunk and a shared chunk, and the directive is stamped on the client chunk in both formats.
+
+The guard now checks four things, not one: the directive is on the client chunk in ESM and CJS; it
+is on neither the entry, the server chunk nor the shared chunk; each built component's code is in
+the chunk its boundary requires (read from the bundle record, so co-location and flat files are
+both handled); and no server or shared chunk imports the client chunk, which would put
+server-capable code behind the client boundary.

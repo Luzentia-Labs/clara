@@ -1,3 +1,4 @@
+import { cx } from '../../lib/cx'
 import { useState, type ReactNode } from 'react'
 
 /**
@@ -15,7 +16,7 @@ export function Button ({ children, onClick, variant = 'primary' }: ButtonProps)
   const [pressed, setPressed] = useState(false)
   return (
     <button
-      className={`clara-button clara-button--${variant}`}
+      className={cx('clara-button', `clara-button--${variant}`)}
       data-pressed={pressed || undefined}
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}

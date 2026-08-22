@@ -201,6 +201,16 @@
       "name": "Tooltip",
       "boundary": "client",
       "status": "planned"
+    },
+    {
+      "name": "Table",
+      "boundary": "server",
+      "status": "built"
+    },
+    {
+      "name": "TableSortButton",
+      "boundary": "client",
+      "status": "built"
     }
   ]
 }

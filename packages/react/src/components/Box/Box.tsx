@@ -1,3 +1,4 @@
+import { cx } from '../../lib/cx'
 import type { ReactNode } from 'react'
 
 /**
@@ -11,5 +12,5 @@ export interface BoxProps {
 }
 
 export function Box ({ children, padding = 'none' }: BoxProps) {
-  return <div className={`clara-box clara-box--${padding}`}>{children}</div>
+  return <div className={cx('clara-box', `clara-box--${padding}`)}>{children}</div>
 }

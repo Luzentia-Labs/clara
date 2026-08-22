@@ -43,8 +43,12 @@ process.on('exit', () => { cleanup(); rmSync(join(root, '.coverage-fixture'), { 
 // level up. Caught when the first two components landed and the fixture could no longer breach
 // the threshold.
 //
-// Sizing it in the hundreds means the assertion holds regardless of how large the project grows,
-// and costs nothing: the file is never imported, only measured.
+// 400 functions is roughly 2000 uncovered statements, which breaches a 90% threshold while the
+// covered set stays under about 18,000. That is a bound, not "any size" - the same fixed-size
+// defect with a larger constant. It is acceptable only because this prover FAILS LOUDLY when it
+// stops working (it asserts on the threshold diagnostic, not on a ratio it computed), so the cost
+// of outgrowing it is a puzzling red gate rather than a silent green one. Deriving the size from
+// the measured covered-statement count would remove the bound entirely.
 const UNCOVERED_FUNCTIONS = 400
 writeFileSync(
   join(dir, 'uncovered.ts'),
