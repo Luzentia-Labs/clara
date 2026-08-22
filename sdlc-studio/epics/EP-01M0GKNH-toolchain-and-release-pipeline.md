@@ -50,7 +50,7 @@ Establish the buildable and testable scaffold: pnpm workspaces, Vite library bui
 
 - [x] [US-01M0GMPJ: pnpm workspace and repository scaffold](../stories/US-01M0GMPJ-pnpm-workspace-and-repository-scaffold.md)
 - [ ] [US-01M0GM9N: Package builds: Vite library mode and the tokens pipeline](../stories/US-01M0GM9N-package-builds-vite-library-mode-and-the-tokens.md)
-- [ ] [US-01M0GMFB: Dual publishing with a closed exports map](../stories/US-01M0GMFB-dual-publishing-with-a-closed-exports-map.md)
+- [x] [US-01M0GMFB: Dual publishing with a closed exports map](../stories/US-01M0GMFB-dual-publishing-with-a-closed-exports-map.md)
 - [ ] [US-01M0GM16: Cascade layers and the consumer override guarantee](../stories/US-01M0GM16-cascade-layers-and-the-consumer-override-guarantee.md)
 - [ ] [US-01M0GMKD: CI pipeline: the fourteen blocking gates](../stories/US-01M0GMKD-ci-pipeline-the-fourteen-blocking-gates.md)
 - [ ] [US-01M0GM3X: Test harness: Vitest, RTL, axe, Playwright, Stryker, size-limit](../stories/US-01M0GM3X-test-harness-vitest-rtl-axe-playwright-stryker-size.md)

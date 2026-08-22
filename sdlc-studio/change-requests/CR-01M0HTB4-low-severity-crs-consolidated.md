@@ -1,7 +1,11 @@
 # CR-01M0HTB4: Low-severity crs (consolidated)
 
-> **Status:** inbox
+> **Status:** Complete
+> **Resolved-by:** trd.md Section 5 corrected; D0029
+> **Triage-severity:** Low
+> **Triaged-by:** Richard Dale Umayan; human; v1
 > **Priority:** Low
+> **Affects:** sdlc-studio/trd.md
 > **Type:** Improvement
 > **Date:** 2026-08-21
 > **Consolidation:** low-severity-crs

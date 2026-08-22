@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": "D0015 sets a blocking 70% mutation score. `vitest.related: false` is REQUIRED: it defaults to true, so Stryker runs `vitest --related <mutated file>` and discovers zero tests because nothing imports the package entries - that was BG-01M0J70K. `plugins` is explicit because pnpm's non-flat node_modules defeats Stryker's auto-discovery. NOTE: `since` was removed - it is not a Stryker option (the schema has no such key and Stryker warns 'Unknown stryker config option'), so D0015's changed-file scope was never in force; use `ignorePatterns`/`incremental` instead. The SCORE is still not meaningful while both packages export `export {}`.",
+  "packageManager": "pnpm",
+  "testRunner": "vitest",
+  "plugins": [
+    "@stryker-mutator/vitest-runner"
+  ],
+  "vitest": {
+    "configFile": "vitest.config.ts",
+    "related": false
+  },
+  "reporters": [
+    "clear-text",
+    "progress"
+  ],
+  "mutate": [
+    "packages/*/src/**/*.{ts,tsx}",
+    "scripts/lib/*.mjs",
+    "!packages/*/src/**/*.test.{ts,tsx}",
+    "!packages/*/src/**/*.d.ts",
+    "!packages/tokens/src/generated/**",
+    "!scripts/lib/__tests__/**",
+    "!scripts/lib/finalize-dual.mjs",
+    "!scripts/lib/bundle-record.mjs"
+  ],
+  "thresholds": {
+    "high": 90,
+    "low": 70,
+    "break": 70
+  },
+  "coverageAnalysis": "perTest",
+  "tempDirName": ".stryker-tmp",
+  "cleanTempDir": true
+}

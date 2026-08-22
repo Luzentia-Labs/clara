@@ -1,0 +1,26 @@
+[
+  {
+    "name": "@luzentialabs/clara-react (ESM entry)",
+    "path": "packages/react/dist/index.js",
+    "limit": "5 kB",
+    "gzip": true
+  },
+  {
+    "name": "@luzentialabs/clara-icons (ESM entry)",
+    "path": "packages/icons/dist/index.js",
+    "limit": "5 kB",
+    "gzip": true
+  },
+  {
+    "name": "@luzentialabs/clara-tokens (ESM entry)",
+    "path": "packages/tokens/dist/index.js",
+    "limit": "5 kB",
+    "gzip": true
+  },
+  {
+    "name": "@luzentialabs/clara-react styles.css (the fixed sheet ceiling, TRD:480 / PRD:1090)",
+    "path": "packages/react/dist/styles.css",
+    "limit": "15 kB",
+    "gzip": true
+  }
+]

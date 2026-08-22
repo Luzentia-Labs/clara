@@ -97,7 +97,7 @@ keyboard, a screen reader, and time, and there is no substitute for spending the
 
 | Attribute | Value |
 |-----------|-------|
-| Framework | `axe-core` via `vitest-axe`, plus the Storybook a11y addon for interactive inspection |
+| Framework | `axe-core` driven directly by a local matcher in `test/axe.ts` (**D0032** - `vitest-axe` is unmaintained), plus the Storybook a11y addon for interactive inspection |
 | Execution | Every PR, blocking |
 | Gate | **Zero violations at serious or critical severity** |
 | Scope | Every exported component, in its default state **and its error state** |
@@ -300,7 +300,7 @@ baselines, contrast, geometry, mutation, packaging, consumer builds.
 | Layer | Tool |
 |-------|------|
 | Unit / interaction | Vitest + React Testing Library |
-| Accessibility (automated) | axe-core via vitest-axe |
+| Accessibility (automated) | axe-core via a local matcher (D0032) |
 | Keyboard / geometry | Playwright |
 | Visual regression | Chromatic |
 | Mutation | Stryker |

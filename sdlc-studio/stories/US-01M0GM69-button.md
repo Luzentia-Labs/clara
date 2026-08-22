@@ -1,6 +1,7 @@
 # US-01M0GM69: Button
 
 > **Status:** Draft
+> **Plan:** PL-01M0J6TB
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -9,6 +10,15 @@
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** packages/react/src/components/Button/**, packages/react/src/components/Button/verification.md
 > **Points:** 5
+
+> **NOT READY - do not start.** `PL-01M0J6TB` checked this story's prerequisites against the
+> running build: 8 depend-on stories are Draft, 9 of the 10 tier 2 token families F07 enumerates do
+> not exist, `pnpm lint:css` (AC6's verifier) is not a script, and no `@layer` appears in any
+> emitted stylesheet. ~42 points sit on the critical path first.
+>
+> **The one that cannot be deferred is US-01M0GM16 (cascade layers).** Button is the first
+> component; AGENTS.md states `@layer` cannot be retrofitted without silently changing specificity
+> for every consumer override in existence. CSS shipped outside the layer is permanently wrong.
 
 ## User Story
 
@@ -109,3 +119,4 @@
 
 | Date | Author | Change |
 | --- | --- | --- |
+| 2026-08-21 | sdlc-studio | Planned as PL-01M0J6TB. Held at Draft: readiness check found 8 Draft prerequisites, 9 missing tier 2 families, a non-existent AC6 verifier, and no cascade layer. AC8's verifier flagged as a weak-verifier instance. |

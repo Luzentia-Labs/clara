@@ -192,7 +192,7 @@ apps/
 
 | Package | Exports |
 |---------|---------|
-| `@luzentialabs/clara-tokens` | `tokens.css`, `themes/dark.css`, typed constants, `tokens.json`, `tokens.public.json`, `tokens.pairings.json` |
+| `@luzentialabs/clara-tokens` | `tokens.css`, `themes/dark.css`, typed constants, `tokens.json`, `tokens.public.json` |
 | `@luzentialabs/clara-icons` | One named component per icon, plus an `Icon` base |
 | `@luzentialabs/clara-react` | Named component exports, their prop types, `useToast`, and `styles.css` |
 
@@ -206,6 +206,10 @@ apps/
 
 Every reachable subpath is a permanent promise. A wildcard would publish the entire `dist` tree as
 API by accident. CI fails if a wildcard is introduced.
+
+`tokens.pairings.json` is deliberately **not** in either table. It is build-time input to the contrast
+gate, read from inside the repository, not a consumer-facing artefact. Publishing it would make the
+pairing table a permanent promise that the contrast gate could then never restructure (D0029).
 
 ### Component contract
 
@@ -442,7 +446,7 @@ the PRD previously defined gates with no enforcement point.
 | 7 | Token contrast | Any pairing below threshold, either theme; row count mismatch |
 | 8 | Public token reference | Docs or examples reference a non-tier-2 token |
 | 9 | **API report diff** | The generated surface differs from the committed `.api.md` |
-| 10 | Package validation (`publint`, `attw`) | Any error; a `./*` wildcard in an exports map |
+| 10 | Package validation (`publint`, `attw`, `check-exports`) | Any error. **`publint` does NOT detect an exports wildcard** - verified: it exits 0 with `"./*"` present. `scripts/check-exports.mjs` is the enforcement point for the wildcard rule and must be in this gate. |
 | 11 | Size budgets (`size-limit`) | Any budget in Section 10 exceeded |
 | 12 | Changeset present | A `packages/` change arrives with no changeset |
 | 13 | Consumer verification | The built tarball fails to install and build in a fresh Vite app or a fresh Next.js App Router app, or produces a hydration warning |

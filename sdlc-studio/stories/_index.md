@@ -7,12 +7,12 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 85 |
+| Draft | 81 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
-| Review | 0 |
-| Done | 1 |
+| Review | 3 |
+| Done | 2 |
 | **Total** | **86** |
 
 ## Stories by Epic
@@ -25,18 +25,18 @@
 | ID | Title | Epic | Status | Points | Persona |
 | --- | --- | --- | --- | --- | --- |
 | [US-01M0GMPJ](US-01M0GMPJ-pnpm-workspace-and-repository-scaffold.md) | pnpm workspace and repository scaffold | EP-01M0GKNH | Done | 2 | -- |
-| [US-01M0GM9N](US-01M0GM9N-package-builds-vite-library-mode-and-the-tokens.md) | Package builds: Vite library mode and the tokens pipeline | EP-01M0GKNH | Draft | 5 | -- |
-| [US-01M0GMFB](US-01M0GMFB-dual-publishing-with-a-closed-exports-map.md) | Dual publishing with a closed exports map | EP-01M0GKNH | Draft | 3 | -- |
-| [US-01M0GM16](US-01M0GM16-cascade-layers-and-the-consumer-override-guarantee.md) | Cascade layers and the consumer override guarantee | EP-01M0GKNH | Draft | 3 | -- |
+| [US-01M0GM9N](US-01M0GM9N-package-builds-vite-library-mode-and-the-tokens.md) | Package builds: Vite library mode and the tokens pipeline | EP-01M0GKNH | Review | 5 | -- |
+| [US-01M0GMFB](US-01M0GMFB-dual-publishing-with-a-closed-exports-map.md) | Dual publishing with a closed exports map | EP-01M0GKNH | Done | 5 | -- |
+| [US-01M0GM16](US-01M0GM16-cascade-layers-and-the-consumer-override-guarantee.md) | Cascade layers and the consumer override guarantee | EP-01M0GKNH | Review | 3 | -- |
 | [US-01M0GMKD](US-01M0GMKD-ci-pipeline-the-fourteen-blocking-gates.md) | CI pipeline: the fourteen blocking gates | EP-01M0GKNH | Draft | 8 | -- |
-| [US-01M0GM3X](US-01M0GM3X-test-harness-vitest-rtl-axe-playwright-stryker-size.md) | Test harness: Vitest, RTL, axe, Playwright, Stryker, size-limit | EP-01M0GKNH | Draft | 5 | -- |
+| [US-01M0GM3X](US-01M0GM3X-test-harness-vitest-rtl-axe-playwright-stryker-size.md) | Test harness: Vitest, RTL, axe, Playwright, Stryker, size-limit | EP-01M0GKNH | Review | 8 | -- |
 | [US-01M0GMYH](US-01M0GMYH-api-surface-report-gate.md) | API surface report gate | EP-01M0GKNH | Draft | 3 | -- |
 | [US-01M0GMWF](US-01M0GMWF-changesets-semver-policy-and-automated-publish.md) | Changesets, semver policy, and automated publish | EP-01M0GKNH | Draft | 5 | -- |
 | [US-01M0GM0R](US-01M0GM0R-server-and-client-boundary-classification.md) | Server and client boundary classification | EP-01M0GKNH | Draft | 3 | -- |
 | [US-01M0GMDV](US-01M0GMDV-consumer-verification-apps.md) | Consumer verification apps | EP-01M0GKNH | Draft | 3 | -- |
 | [US-01M0GMN0](US-01M0GMN0-f00-foundations-pass-decide-the-visual-language.md) | F00 foundations pass: decide the visual language | EP-01M0GKNG | Draft | 8 | -- |
 | [US-01M0GME0](US-01M0GME0-token-pipeline-and-tier-enforcement.md) | Token pipeline and tier enforcement | EP-01M0GKNG | Draft | 5 | -- |
-| [US-01M0GMAE](US-01M0GMAE-semantic-token-layer.md) | Semantic token layer | EP-01M0GKNG | Draft | 5 | -- |
+| [US-01M0GMAE](US-01M0GMAE-semantic-token-layer.md) | Semantic token layer | EP-01M0GKNG | Draft | 8 | -- |
 | [US-01M0GM66](US-01M0GM66-legal-pairing-table-and-the-contrast-gate.md) | Legal pairing table and the contrast gate | EP-01M0GKNG | Draft | 5 | -- |
 | [US-01M0GMMX](US-01M0GMMX-public-token-manifest-and-reference-gate.md) | Public token manifest and reference gate | EP-01M0GKNG | Draft | 2 | -- |
 | [US-01M0GM5M](US-01M0GM5M-theming-light-dark-and-context-based-scoping.md) | Theming: light, dark, and context-based scoping | EP-01M0GKNG | Draft | 8 | -- |
