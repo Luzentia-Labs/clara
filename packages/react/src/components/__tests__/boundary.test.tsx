@@ -16,12 +16,23 @@ import classification from '../../../client-boundary.json'
  *      hardcoded list goes quietly under-inclusive the moment a third component lands - the
  *      criterion says "every component", so the test has to mean it.
  */
-const WATCHED = ['window', 'document', 'matchMedia'] as const
+// TRD Section 7 names window, document and matchMedia. The other three are here because the
+// previous version watched localStorage and dropping it was a quiet loss of coverage presented as
+// a gain - a component reading localStorage or navigator during render is just as broken.
+const WATCHED = ['window', 'document', 'matchMedia', 'localStorage', 'sessionStorage', 'navigator'] as const
 
 type Renderable = ComponentType<Record<string, never>>
 
+// `typeof value === 'function'` was wrong: forwardRef() and memo() return OBJECTS, so any
+// component using either silently left the set while the self-check still passed on the two that
+// did not. For a library whose single polymorphism idiom is `as` and which must forward refs, that
+// is close to certain (review finding 5).
+const isRenderable = (value: unknown) =>
+  typeof value === 'function' ||
+  (typeof value === 'object' && value !== null && '$$typeof' in value)
+
 const components: Array<[string, Renderable]> = Object.entries(Clara)
-  .filter(([name, value]) => typeof value === 'function' && /^[A-Z]/.test(name))
+  .filter(([name, value]) => isRenderable(value) && /^[A-Z]/.test(name))
   .map(([name, value]) => [name, value as Renderable])
 
 const boundaryOf = (name: string) =>
@@ -52,8 +63,11 @@ function renderRecordingGlobalReads (component: Renderable) {
 }
 
 describe('server render', () => {
-  it('enumerates the real exported surface, so this suite cannot go under-inclusive', () => {
-    expect(components.length).toBeGreaterThan(0)
+  it('enumerates exactly the components the classification says are built', () => {
+    // Compared against the classification rather than against `> 0`: a count check passes while
+    // a component quietly drops out of the set, which is the failure this suite must not have.
+    const built = classification.components.filter((c) => c.status === 'built').map((c) => c.name).sort()
+    expect(components.map(([n]) => n).sort()).toEqual(built)
     for (const [name] of components) expect(boundaryOf(name)).toMatch(/^(client|server)$/)
   })
 

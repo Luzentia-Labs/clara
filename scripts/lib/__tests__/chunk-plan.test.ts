@@ -197,6 +197,19 @@ describe('placement predicates', () => {
       expect(() => chunkFor(id, new Map(), () => 'export function Anything () {}')).toThrow(/not classified/)
     })
 
+  // An unnamed component cannot be classified, so the build refuses it rather than defaulting it
+  // into the undirectived shared chunk.
+  it('throws on an anonymous default export under components/', () => {
+    expect(() => chunkFor('src/components/X/X.tsx', new Map(), () => 'export default () => null'))
+      .toThrow(/ANONYMOUS default export/)
+  })
+
+  it('accepts a NAMED default export', () => {
+    const b = boundaryMap({ components: [{ name: 'Switch', boundary: 'client' }] })
+    expect(chunkFor('src/components/Switch/Switch.tsx', b, () => 'const Switch = () => null\nexport default Switch'))
+      .toBe(CLIENT_CHUNK)
+  })
+
   it('names every unclassified export in the error, not just the first', () => {
     expect(() => chunkFor('src/components/X/X.ts', new Map(), () => 'export function Alpha () {}\nexport function Beta () {}'))
       .toThrow(/Alpha, Beta/)

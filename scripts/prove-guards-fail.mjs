@@ -500,6 +500,54 @@ const OUTPUT_CASES = [
     stage: (stage) => rmSync(join(stage, 'packages/react/dist/clara-client.js')),
   },
   {
+    // H3 round 2: the shared chunk was never checked for a directive while three documents said it
+    // was - and a directive there makes every shared helper a client reference, so the server chunk
+    // importing it sits behind the boundary. The original F2 crash, restored.
+    name: 'a directive added to the shared chunk',
+    guard: 'check-client-boundary.mjs',
+    expect: /shared chunk .* carries a "use client"/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/clara-shared.js')
+      writeFileSync(f, '"use client";\n' + readFileSync(f, 'utf8'))
+    },
+  },
+  {
+    // The record forgiveness must cover the CLIENT chunk only. Applied to every chunk, the tamper
+    // above laundered straight through the sha256 binding.
+    name: 'a directive added to the shared chunk, laundering the hash',
+    guard: 'check-bundled-peers.mjs',
+    expect: /does not match its bundle record/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/clara-shared.js')
+      writeFileSync(f, '"use client";\n' + readFileSync(f, 'utf8'))
+    },
+  },
+  {
+    // F2 round 2: reachability, not adjacency. server -> shared -> client left every server
+    // component transitively behind the boundary while the guard reported PASS.
+    name: 'the server chunk reaching the client chunk through the shared chunk',
+    guard: 'check-client-boundary.mjs',
+    expect: /reaches clara-client through its imports/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/build/bundle-record.json')
+      const rec = JSON.parse(readFileSync(f, 'utf8'))
+      rec.chunks.find((c) => c.fileName === 'clara-shared.js').external.push('clara-client.js')
+      rec.chunks.find((c) => c.fileName === 'clara-server.js').external.push('clara-shared.js')
+      writeFileSync(f, JSON.stringify(rec, null, 2))
+    },
+  },
+  {
+    // The oracle that does NOT share the planner's reader: client-only React in an undirectived
+    // chunk, however it got there.
+    name: 'client-only React in an undirectived chunk',
+    guard: 'check-client-boundary.mjs',
+    expect: /carries no directive but uses client-only React/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/clara-server.js')
+      writeFileSync(f, 'import { useState as q } from "react";\n' + readFileSync(f, 'utf8'))
+    },
+  },
+  {
     // F9: a malformed classification threw an uncaught TypeError - a crash wearing a non-zero
     // exit code, which is the distinction this whole file exists to make.
     name: 'a classification with no components array',

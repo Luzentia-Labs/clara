@@ -21,7 +21,7 @@
  * importing `Button` crosses it exactly at the import.
  */
 import { readFileSync, existsSync } from 'node:fs'
-import { definedNames } from './exports-read.mjs'
+import { componentsIn } from './module-exports.mjs'
 
 export const CLIENT_CHUNK = 'clara-client'
 export const SERVER_CHUNK = 'clara-server'
@@ -60,9 +60,16 @@ export function chunkFor (id, boundaries, read = defaultRead) {
   const source = read(id)
   if (source == null) return null
 
-  const defined = [...definedNames(source)]
+  const defined = [...componentsIn(source, id)]
   const known = defined.filter((n) => boundaries.has(n))
-  const unknown = defined.filter((n) => !boundaries.has(n) && !isPartName(n))
+  const unknown = defined.filter((n) => !boundaries.has(n))
+  if (unknown.includes('default') && looksLikeComponentModule(id)) {
+    throw new Error(
+      `${id} has an ANONYMOUS default export. A component is classified by name, so an unnamed one ` +
+        'can never be classified - and an unclassified client component reaches the undirectived ' +
+        'shared chunk. Name it: `const Thing = () => ...; export default Thing`.',
+    )
+  }
   if (unknown.length && !known.length && looksLikeComponentModule(id)) {
     throw new Error(
       `${id} defines ${unknown.join(', ')}, which ${unknown.length > 1 ? 'are' : 'is'} not classified in ` +
@@ -83,14 +90,13 @@ export function chunkFor (id, boundaries, read = defaultRead) {
   return boundariesFound.has('client') ? CLIENT_CHUNK : SERVER_CHUNK
 }
 
-// A capitalised export that is not a component - a type, an internal part - is not something the
-// classification is expected to name. Only whole modules with no classified component at all fall
-// through to the unclassified error, so this stays narrow deliberately.
-const isPartName = (name) => /Props$|Context$|Provider$|Ref$|Type$|Options$/.test(name)
+// The suffix heuristic that used to live here - /Props$|Context$|Provider$|Ref$|Type$|Options$/ -
+// is gone. It silently excluded every `*Provider`, and a React context Provider is client-only by
+// definition, so `ThemeProvider` was dropped into the undirectived shared chunk. A component is now
+// identified by what it IS - a function-like value export with a capitalised name, per the
+// TypeScript parser - rather than by how its name is spelled. That also stops
+// `export const BUTTON_VARIANTS = [...]` from hard-failing the build as an unclassified component.
 
-// Only a module under `src/components/` is expected to define a component, so only there does an
-// unclassified capitalised export mean "somebody forgot to classify this". Elsewhere it is an
-// ordinary helper and belongs in the shared chunk.
 const isEntry = (id) => /(?:^|\/)src\/index\.tsx?$/.test(id.replace(/\\/g, '/'))
 
 const looksLikeComponentModule = (id) => id.replace(/\\/g, '/').includes('/src/components/') ||

@@ -144,7 +144,10 @@ for (const file of emitted) {
     // the whole hole this record exists to close. Instead the ONE permitted transformation is
     // undone and the result must reproduce the recorded hash exactly. A directive prepend is
     // forgiven; anything else that happened to the file is not.
-    if (actual !== chunk.sha256) {
+    // ONLY the client chunk is stamped, so only it may be forgiven. Applied to every chunk, a
+    // hand-added directive on clara-shared laundered straight through the hash binding - and
+    // that directive alone puts the server chunk behind the client boundary (review F3 r2).
+    if (actual !== chunk.sha256 && /^clara-client\./.test(chunk.fileName)) {
       // The exact inverse of prependDirective, INCLUDING the shebang case - it puts the directive
       // below a shebang, and an undo that cannot skip one would report "stale or fabricated" for a
       // file nobody tampered with (review F8).

@@ -62,8 +62,8 @@ output cannot disagree, because the list is what cuts the chunks.
 
 - **Given** client-boundary.json
 - **When** a component is listed client-only
-- **Then** it is cut into the client chunk, and a component emitted into the wrong chunk fails the build
-- **Verify:** shell npx vitest run scripts/lib/__tests__/chunk-plan.test.ts scripts/lib/__tests__/directive.test.ts scripts/lib/__tests__/exports-read.test.ts
+- **Then** it is cut into the client chunk by a REAL build, and no undirectived chunk contains client-only React
+- **Verify:** shell npx vitest run test/build/chunk-placement.test.ts
 - **Verified:** yes (2026-08-22)
 - **Verification target:** functional
 

@@ -5,9 +5,10 @@ import { Table } from '../Table/Table'
 import { TableSortButton } from '../Table/TableSortButton'
 
 /**
- * These two exist to prove co-location works: a client component living inside a server
- * component's directory. Keyed on the directory, TableSortButton chunked as Table and shipped
- * with no directive - so they are real fixtures, and get real tests.
+ * These two are unit-test fixtures. They are NOT exported, so they are not in the build graph and
+ * prove nothing about chunking on their own - the co-location case they were written for is
+ * covered end to end by test/build/chunk-placement.test.ts. They keep real tests because code that
+ * ships nothing still has to be correct if anyone reads it as an example.
  */
 describe('Table', () => {
   it('renders a table element wrapping its children', () => {

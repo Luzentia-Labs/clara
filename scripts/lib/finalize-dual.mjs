@@ -101,8 +101,9 @@ for (const ext of ['js', 'cjs']) {
 // substitution, so it matched the words anywhere in that window rather than as the first
 // statement; the server-chunk check was a bare /use client/ over the whole file, which fails a
 // build for a component whose own documentation contains the phrase (review F10). Duplicated logic
-// with weaker semantics reads as defence in depth and is not. `check-client-boundary.mjs` checks
-// both formats with an anchored pattern, over the entry, the server chunk and the shared chunk.
+// with weaker semantics reads as defence in depth and is not. `check-client-boundary.mjs` owns it:
+// an anchored pattern over both formats, across the entry, the server chunk and the shared chunk -
+// the last of which this comment claimed was covered before it actually was (review F3 r2).
 
 // D0005 / TRD:318: every emitted Clara stylesheet is wrapped in the cascade layer. Done HERE, in
 // the step every package already runs last, rather than in each bundler's own hooks - a Vite plugin

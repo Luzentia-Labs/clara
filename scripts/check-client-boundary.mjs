@@ -12,8 +12,10 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fail, pass } from './lib/workspace.mjs'
-import { exportedNames, definedNames } from './lib/exports-read.mjs'
-import { CLIENT_CHUNK, SERVER_CHUNK } from './lib/chunk-plan.mjs'
+import { exportedNames } from './lib/exports-read.mjs'
+import { componentsIn } from './lib/module-exports.mjs'
+import { clientHooksUsed } from './lib/client-signals.mjs'
+import { CLIENT_CHUNK, SERVER_CHUNK, SHARED_CHUNK } from './lib/chunk-plan.mjs'
 
 const RULE = 'client-boundary'
 const pkg = 'packages/react'
@@ -116,7 +118,7 @@ if (!existsSync(recordFile)) {
       if (!/\.(ts|tsx|js|jsx)$/.test(rel)) continue
       const abs = join(pkg, rel)
       if (!existsSync(abs)) continue
-      for (const name of definedNames(readFileSync(abs, 'utf8'))) {
+      for (const name of componentsIn(readFileSync(abs, 'utf8'), abs)) {
         const entry = classified.get(name)
         if (!entry || entry.status !== 'built') continue
         const want = expectedChunk[entry.boundary]
@@ -132,19 +134,44 @@ if (!existsSync(recordFile)) {
     }
   }
 
-  // A server chunk that IMPORTS the client chunk is behind the client boundary (review F2).
-  // Under RSC every export of a `"use client"` module is a client reference, so a server-capable
-  // component calling into it throws during the server render. Which chunk a SHARED module lands
-  // in is decided by Rollup from module-graph order - reordering two lines in src/index.ts was
-  // enough to flip it - so this cannot be left to the planner.
-  for (const chunk of chunks) {
-    if (!chunk.fileName.startsWith(SERVER_CHUNK) && !chunk.fileName.startsWith('index.')) continue
-    for (const ref of chunk.external ?? []) {
-      if (!String(ref).startsWith(CLIENT_CHUNK)) continue
-      if (chunk.fileName.startsWith('index.')) continue // the entry re-exports both, by design
-      errors.push(`${chunk.fileName} imports ${ref}, putting server-capable code behind the client boundary`)
-      errors.push('  every export of a "use client" module is a client reference under RSC, so the server render throws')
+  // Reachability, not adjacency (review F2 round 2). The first version asked only whether the
+  // SERVER chunk directly imported the client chunk. A shared module sits between them:
+  // `clara-server -> clara-shared -> clara-client` left every server component transitively behind
+  // the client boundary while the guard reported PASS, and Rollup even printed "Circular chunk"
+  // into a build log nothing gates on.
+  const importsOf = new Map(chunks.map((c) => [c.fileName, (c.external ?? []).filter((r) => String(r).includes('clara-'))]))
+  const reachesClient = (start) => {
+    const seen = new Set()
+    const stack = [...(importsOf.get(start) ?? [])]
+    while (stack.length) {
+      const next = String(stack.pop())
+      if (seen.has(next)) continue
+      seen.add(next)
+      if (next.startsWith(CLIENT_CHUNK)) return true
+      stack.push(...(importsOf.get(next) ?? []))
     }
+    return false
+  }
+  for (const chunk of chunks) {
+    // The entry re-exports both by design; it is the boundary, not something behind it.
+    if (chunk.fileName.startsWith('index.') || chunk.fileName.startsWith(CLIENT_CHUNK)) continue
+    if (!reachesClient(chunk.fileName)) continue
+    errors.push(`${chunk.fileName} reaches ${CLIENT_CHUNK} through its imports, putting server-capable code behind the client boundary`)
+    errors.push('  every export of a "use client" module is a client reference under RSC, so the server render throws')
+  }
+
+  // An oracle that does not share the planner's reader (review F4 round 2). If the source parser
+  // has a blind spot, the planner misplaces a module AND a guard re-deriving names with the same
+  // parser finds nothing - which is how a client component shipped in the undirectived shared
+  // chunk with every gate green. This reads the EMITTED bytes instead.
+  for (const chunk of chunks) {
+    if (chunk.fileName.startsWith(CLIENT_CHUNK)) continue
+    const file = join(pkg, 'dist', chunk.fileName)
+    if (!existsSync(file)) continue
+    const hooks = clientHooksUsed(readFileSync(file, 'utf8'))
+    if (!hooks.length) continue
+    errors.push(`${chunk.fileName} carries no directive but uses client-only React: ${hooks.join(', ')}`)
+    errors.push('  a component using these hooks must be in the client chunk; the server render calls them and throws')
   }
 }
 
@@ -152,7 +179,14 @@ if (!existsSync(recordFile)) {
 // carry NO directive. Checked on the entry as well, because the entry is what a consumer imports -
 // if IT were marked, the whole package would be client regardless of how the chunks are cut.
 for (const [label, ext] of [['ESM', 'js'], ['CJS', 'cjs']]) {
-  for (const [what, rel] of [['the entry', `dist/index.${ext}`], ['the server chunk', `dist/${SERVER_CHUNK}.${ext}`]]) {
+  for (const [what, rel] of [
+    ['the entry', `dist/index.${ext}`],
+    ['the server chunk', `dist/${SERVER_CHUNK}.${ext}`],
+    // The shared chunk was never checked, while three documents claimed it was (review F3 round 2).
+    // A directive here makes every shared helper a client reference, so the server chunk that
+    // imports it is behind the boundary - the original F2 crash, restored.
+    ['the shared chunk', `dist/${SHARED_CHUNK}.${ext}`],
+  ]) {
     const file = join(pkg, rel)
     if (!existsSync(file)) continue
     if (DIRECTIVE.test(readFileSync(file, 'utf8'))) {
