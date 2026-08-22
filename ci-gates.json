@@ -90,6 +90,12 @@
       "gate": "Server/client boundary: every exported component is classified",
       "status": "wired",
       "run": "pnpm check:client-boundary"
+    },
+    {
+      "n": 16,
+      "gate": "Tarball install-safety: no workspace/link protocol, every exports target shipped",
+      "status": "wired",
+      "run": "pnpm check:pack"
     }
   ],
   "plus": [

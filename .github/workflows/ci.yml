@@ -58,6 +58,8 @@ jobs:
       - name: Gate 8 - token contrast, both themes
         run: pnpm check:contrast
 
+      - name: Gate 16 - tarball install-safety
+        run: pnpm check:pack
       - name: Gate 15 - server/client boundary classification
         run: pnpm check:client-boundary
       - name: Gate 11 - API surface report diff
