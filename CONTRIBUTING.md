@@ -69,7 +69,7 @@ changed and what they must do, not what the commit did.
 ## Before you open a PR
 
 `pnpm check` runs the deterministic guards. CI runs the full gate set - see `ci-gates.json`, which
-enumerates all fourteen TRD gates: the ones that run today, and the ones still pending with the open
+enumerates every TRD Section 9 gate: the ones that run today, and the ones still pending with the open
 story that lands each (D0038).
 
 Review is independent of the author. Whoever wrote a change never records its sign-off.

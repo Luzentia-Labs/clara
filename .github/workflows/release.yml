@@ -41,17 +41,25 @@ jobs:
 
       # The publish path runs the SAME gates as CI. A release that skipped a gate CI enforces would
       # make the gate advisory, and an immutable artifact is the worst place to learn that.
+      #
+      # "CI already ran this on the PR" is not a reason to drop a gate here: the commit that
+      # publishes need not be the commit CI saw. check-release.mjs compares the two command sets
+      # exactly and fails on any gate this path omits, on any duplicate, and on any step that runs
+      # without blocking.
       - run: pnpm build
+      - run: node scripts/check-ci-gates.mjs
       - run: pnpm typecheck
       - run: pnpm check
       - run: pnpm test
-      - run: pnpm check:publint && pnpm check:attw
-      - run: pnpm check:api
+      - run: pnpm test:coverage
+      - run: pnpm check:contrast
       - run: pnpm check:client-boundary
       - run: pnpm check:pack
+      - run: pnpm check:api
+      - run: pnpm check:publint && pnpm check:attw
       - run: pnpm size
-      - run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
-      - run: pnpm size
+      - run: pnpm test:mutation
+      - run: pnpm audit --audit-level=high --prod
       - run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
 
       - name: Version or publish

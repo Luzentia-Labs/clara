@@ -44,8 +44,13 @@ for (const { dir, kind, manifest } of readWorkspace(root)) {
     })
   } catch (error) {
     const out = String(error.stdout ?? '') + String(error.stderr ?? '')
-    // The report differing from the committed one is the gate firing, not a tool failure.
-    const diff = out.match(/The API report is not up to date[^\n]*/)
+    // The report differing from the committed one is the gate firing, not a tool failure. The
+    // previous pattern was /The API report is not up to date/, which api-extractor never emits -
+    // the branch was dead, so a real surface change reported as a generic tool failure and the
+    // "run pnpm api:update" advice was unreachable (review H7). Matched against what it actually
+    // prints, with the older wording kept as an alternative.
+    const diff = out.match(/You have changed the API signature[^\n]*/) ??
+      out.match(/The API report is not up to date[^\n]*/)
     problems.push(
       diff
         ? `${manifest.name}: ${diff[0]} Run \`pnpm api:update\` and commit the change - a public ` +
@@ -63,17 +68,58 @@ for (const { dir, kind, manifest } of readWorkspace(root)) {
   }
   reports.push(shortName)
 
-  // D0003: Radix must not leak into the public surface.
+  // The public surface contract (AGENTS.md "Code style", D0003, TRD ADR-004). A `@radix-ui` grep
+  // alone passed a surface declaring `asChild`, `onOpenChange`, `sneaky: any` and `variant: string`
+  // all at once (review H8) - every one of those is permanent once published, and neither of the
+  // gates nominally covering them can see them: `tsc` cannot flag an explicit `any`, and the lint
+  // gate is still pending.
   const report = readFileSync(reportPath, 'utf8')
-  if (/@radix-ui/.test(report)) {
-    const lines = report.split('\n').filter((l) => l.includes('@radix-ui')).slice(0, 3)
+  // Comments carry prose that would false-positive on every rule below.
+  const surface = report.split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n')
+
+  if (/@radix-ui/.test(surface)) {
+    const lines = surface.split('\n').filter((l) => l.includes('@radix-ui')).slice(0, 3)
     problems.push(
       `${manifest.name}: a Radix type reaches the public surface (D0003, TRD ADR-004): ` +
         `${lines.join(' | ')}. Radix is an implementation detail; \`as\` is Clara's single ` +
         'polymorphism idiom, and a leaked Radix type makes its whole contract permanent.',
     )
   }
+
+  // Radix prop names are never Clara API, however they got there.
+  for (const prop of ['asChild', 'onOpenChange', 'data-state']) {
+    const hit = surface.split('\n').find((l) => new RegExp(`\\b${prop.replace('-', '\\-')}\\b`).test(l))
+    if (hit) {
+      problems.push(
+        `${manifest.name}: \`${prop}\` is in the public surface - it is Radix's API, never Clara's ` +
+          `(AGENTS.md, Section 4 rules 7-8): ${hit.trim().slice(0, 100)}`,
+      )
+    }
+  }
+
+  // No `any` in a public signature. This is gate 1's stated contract, and `tsc --noEmit` cannot
+  // enforce it - an explicit `any` is valid TypeScript.
+  for (const line of surface.split('\n')) {
+    if (/(?::|<|,|\()\s*any\b/.test(line) && !/\bas any\b/.test(line)) {
+      problems.push(
+        `${manifest.name}: \`any\` in a public signature (AGENTS.md): ${line.trim().slice(0, 100)}`,
+      )
+      break
+    }
+  }
+
+  // Prop types use literal unions, never bare `string`, wherever the value set is closed. Reported
+  // for a named review decision rather than auto-failed: an open-ended string prop is legitimate
+  // (a label, an id), so this names the line and asks for the union or an explicit exemption.
+  for (const line of surface.split('\n')) {
+    if (/\b(variant|size|tone|intent|density|align|justify|direction|status|placement)\??:\s*string\b/.test(line)) {
+      problems.push(
+        `${manifest.name}: a closed-set prop is typed as bare \`string\` (AGENTS.md): ` +
+          `${line.trim().slice(0, 100)} - use a literal union; widening later is fine, narrowing is breaking.`,
+      )
+    }
+  }
 }
 
 if (problems.length) fail('api-report', problems)
-pass('api-report', `${reports.length} public surface report(s) current [${reports.join(', ')}], no Radix leak`)
+pass('api-report', `${reports.length} public surface report(s) current [${reports.join(', ')}], no Radix leak, no forbidden prop, no \`any\`, no bare-string closed-set prop`)

@@ -37,3 +37,6 @@ packages/tokens/src/generated/
 # Stryker scratch
 .stryker-tmp/
 reports/
+
+# api-extractor scratch output
+packages/*/temp/

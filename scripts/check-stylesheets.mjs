@@ -103,10 +103,22 @@ for (const { dir, kind, manifest } of readWorkspace(root)) {
     const after = css
       .slice(css.indexOf(declarations[0]) + declarations[0].length)
       .replace(/\/\*[\s\S]*?\*\//g, '')
+    // Strings are skipped explicitly. A brace counter that does not know about quotes is not a CSS
+    // reader: one `content: "{"` - routine for separators and icon fonts - permanently unbalances
+    // `depth`, and every later top-level rule becomes invisible (review M3). Sixth hand-rolled
+    // parser in this repo to be broken by input it did not anticipate.
     let depth = 0
     let pending = ''
     let topLevelRule = null
-    for (const ch of after) {
+    let quote = null
+    for (let i = 0; i < after.length; i++) {
+      const ch = after[i]
+      if (quote) {
+        if (ch === '\\') { i++; continue }
+        if (ch === quote) quote = null
+        continue
+      }
+      if (ch === '"' || ch === "'") { quote = ch; continue }
       if (ch === '{') {
         if (depth === 0 && !/^\s*@layer/.test(pending)) topLevelRule ??= pending.trim().slice(0, 40)
         depth++
@@ -117,6 +129,9 @@ for (const { dir, kind, manifest } of readWorkspace(root)) {
       } else if (depth === 0) {
         pending += ch
       }
+    }
+    if (quote) {
+      problems.push(`${manifest.name}: ${rel} has an unterminated ${quote} string - the layer walk cannot be trusted`)
     }
     if (topLevelRule) {
       problems.push(

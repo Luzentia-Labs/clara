@@ -12,6 +12,7 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fail, pass } from './lib/workspace.mjs'
+import { exportedNames } from './lib/exports-read.mjs'
 
 const RULE = 'client-boundary'
 const pkg = 'packages/react'
@@ -34,13 +35,14 @@ for (const c of doc.components) {
 const dist = join(pkg, 'dist/index.js')
 if (!existsSync(dist)) fail(RULE, [`${dist} is missing - build before checking the classification`])
 const esm = readFileSync(dist, 'utf8')
-const exported = new Set()
-for (const m of esm.matchAll(/^export\s*\{([^}]*)\}/gm)) {
-  for (const part of m[1].split(',')) {
-    const name = (part.includes(' as ') ? part.split(' as ')[1] : part).trim()
-    // Components are PascalCase; hooks and types are not what this gate classifies.
-    if (/^[A-Z][A-Za-z0-9]*$/.test(name)) exported.add(name)
-  }
+const exported = exportedNames(esm)
+
+// A guard that reads nothing exits 0 exactly like a guard that reads everything. If the package
+// has a built surface, the reader must find it; if it has none, say so rather than printing a
+// confident line about zero (review H5).
+const hasSurface = /\bexport\b/.test(esm)
+if (hasSurface && !exported.size) {
+  errors.push(`${dist} contains exports but the reader extracted none - the classification check would be vacuous`)
 }
 
 const classified = new Map(doc.components.map((c) => [c.name, c]))

@@ -39,7 +39,11 @@ process.on('exit', sweep)
 function stageWorkspace ({ withOutput = false } = {}) {
   const stage = mkdtempSync(join(tmpdir(), 'clara-prove-'))
   staged.add(stage)
-  for (const rel of ['pnpm-workspace.yaml', 'LICENSE', 'package.json', 'design/foundations.md']) {
+  for (const rel of [
+    'pnpm-workspace.yaml', 'LICENSE', 'package.json', 'design/foundations.md',
+    'ci-gates.json', '.github/workflows/ci.yml', '.github/workflows/release.yml',
+    'sdlc-studio/trd.md', 'sdlc-studio/stories/_index.md', 'CONTRIBUTING.md',
+  ]) {
     if (!existsSync(join(root, rel))) continue
     mkdirSync(dirname(join(stage, rel)), { recursive: true })
     copyFileSync(join(root, rel), join(stage, rel))
@@ -300,6 +304,114 @@ const OUTPUT_CASES = [
     guard: 'check-client-boundary.mjs',
     expect: /boundary must be server\|client/,
     stage: patch('packages/react/client-boundary.json', (m) => { m.components[0].boundary = 'maybe' }),
+  },
+  // --- Guards the review found had NO fail-proof at all. Every one of them was broken on the
+  // first attempt, which is the argument for this file: "a guard that has never been observed
+  // failing is indistinguishable from a guard that cannot fail" was true of these three. ---
+  {
+    // C1: the substring + `.some()` defeat. `pnpm check` is the only step running nine
+    // deterministic guards, including the sole enforcement point for the exports-wildcard rule.
+    name: 'ci.yml drops the step running every deterministic guard',
+    guard: 'check-ci-gates.mjs',
+    expect: /does not run|which .* does not run/,
+    stage: (stage) => {
+      const f = join(stage, '.github/workflows/ci.yml')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(/ *- name: Gates 12[^\n]*\n *run: pnpm check\n/, ''))
+    },
+  },
+  {
+    // H2: three legal ways to make a gate advisory, none of which a line regex models.
+    name: 'a wired gate made advisory with continue-on-error',
+    guard: 'check-ci-gates.mjs',
+    expect: /does not block/,
+    stage: (stage) => {
+      const f = join(stage, '.github/workflows/ci.yml')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(
+        /( *)- name: Gate 1 - typecheck\n/, '$1- name: Gate 1 - typecheck\n$1  continue-on-error: true\n'))
+    },
+  },
+  {
+    name: 'a wired gate whose exit code is discarded with || true',
+    guard: 'check-ci-gates.mjs',
+    expect: /does not block|exit code discarded/,
+    stage: (stage) => {
+      const f = join(stage, '.github/workflows/ci.yml')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('run: pnpm size', 'run: pnpm size || true'))
+    },
+  },
+  {
+    // H3: the omission a count cannot see.
+    name: 'a TRD Section 9 gate dropped from the manifest',
+    guard: 'check-ci-gates.mjs',
+    expect: /is claimed by no row/,
+    stage: patch('ci-gates.json', (m) => { m.gates = m.gates.filter((g) => g.trd !== 7) }),
+  },
+  {
+    // C2: the anchored-regex defeat. Rewriting a step as a block scalar emptied BOTH command sets,
+    // and with no vacuity floor the comparison passed over nothing.
+    name: 'the publish path drops the full check suite',
+    guard: 'check-release.mjs',
+    expect: /does not run "pnpm check"/,
+    stage: (stage) => {
+      const f = join(stage, '.github/workflows/release.yml')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(/ *- run: pnpm check\n/, ''))
+    },
+  },
+  {
+    // C3: "main-only" held by a string, not a property.
+    name: 'workflow_dispatch added so publish can run from any branch',
+    guard: 'check-release.mjs',
+    expect: /publish from a branch|no job-level guard/,
+    stage: (stage) => {
+      const f = join(stage, '.github/workflows/release.yml')
+      let y = readFileSync(f, 'utf8')
+      y = y.replace(/^on:\n/m, 'on:\n  workflow_dispatch:\n')
+      y = y.replace(/^ *if: github\.ref == 'refs\/heads\/main'\n/m, '')
+      writeFileSync(f, y)
+    },
+  },
+  {
+    // M5: the publish command lives in a `with:` key a run:-only reader never saw. Switching to
+    // npm publish ships workspace:* to every consumer, permanently, with every guard green.
+    name: 'publish switched to npm, which does not rewrite workspace:',
+    guard: 'check-release.mjs',
+    expect: /EUNSUPPORTEDPROTOCOL|Only pnpm rewrites/,
+    stage: (stage) => {
+      const f = join(stage, '.github/workflows/release.yml')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('publish: pnpm changeset publish', 'publish: npm publish'))
+    },
+  },
+  {
+    name: 'a gate duplicated in the publish path',
+    guard: 'check-release.mjs',
+    expect: /times - every publish pays/,
+    stage: (stage) => {
+      const f = join(stage, '.github/workflows/release.yml')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('      - run: pnpm size\n', '      - run: pnpm size\n      - run: pnpm size\n'))
+    },
+  },
+  {
+    // M3: one `{` inside a quoted value permanently unbalanced the brace walk, making every later
+    // top-level rule invisible. Routine CSS - separators, icon fonts.
+    name: 'a rogue rule hidden behind a brace inside a quoted content value',
+    guard: 'check-stylesheets.mjs',
+    expect: /outside any @layer/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/styles.css')
+      writeFileSync(f, '@layer clara.reset, clara.tokens, clara.components;\n' +
+        '@layer clara.components{.a::after{content:"{"}}\n.rogue{color:red}\n')
+    },
+  },
+  {
+    // H4: `^export` under /m needs a line start, so a minified bundle reported zero exports and
+    // passed while unclassified components shipped. This build minifies.
+    name: 'unclassified components exported from a minified one-line bundle',
+    guard: 'check-client-boundary.mjs',
+    expect: /exported but unclassified/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/index.js')
+      writeFileSync(f, 'const Rogue=()=>null;const Other=()=>null;export{Rogue,Other};\n')
+    },
   },
 ]
 

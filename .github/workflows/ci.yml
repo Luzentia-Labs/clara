@@ -1,10 +1,10 @@
-# Clara CI - the fourteen blocking gates (TRD Section 9, TSD).
+# Clara CI - the blocking gate set (TRD Section 9, TSD).
 #
-# D0038: all fourteen are enumerated in `ci-gates.json`. The ones with a runnable command execute
+# D0038: every gate is enumerated in `ci-gates.json`, each mapped to its TRD Section 9 number. The ones with a runnable command execute
 # here and block the merge; the rest name the open story that lands them, and
 # `scripts/check-ci-gates.mjs` fails if a pending gate names no open story or if a wired gate is
-# missing from this file. A gate that reports without blocking is not a gate, and a fourteen-gate
-# contract must not read as an eight-gate one.
+# missing from this file. A gate that reports without blocking is not a gate, and the gate count is read from
+# ci-gates.json rather than written into prose, because every hand-written count here drifted.
 #
 # No `continue-on-error` appears anywhere in this workflow, by design.
 name: CI

@@ -10,6 +10,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { fail, pass, readWorkspace } from './lib/workspace.mjs'
+import { readWorkflow, commandSet, commandsIn, advisoryReasons } from './lib/workflow.mjs'
 
 const root = process.cwd()
 const problems = []
@@ -17,40 +18,99 @@ const RELEASE = '.github/workflows/release.yml'
 const CI = '.github/workflows/ci.yml'
 
 if (!existsSync(RELEASE)) fail('release', [`${RELEASE} does not exist - there is no publish path`])
-const release = readFileSync(RELEASE, 'utf8')
-const ci = existsSync(CI) ? readFileSync(CI, 'utf8') : ''
+if (!existsSync(CI)) fail('release', [`${CI} does not exist - there is nothing to compare the publish path against`])
+const release = readWorkflow(RELEASE)
+const ci = readWorkflow(CI)
+const releaseCommands = commandSet(release)
+const ciCommands = commandSet(ci)
 
-// Every gate CI runs must also run before publish.
-// Matches both `- run:` and `run:` forms. A first version anchored on `run:` alone and missed
-// every `- run:` line, so dropping `pnpm check` from the publish path went undetected - the guard
-// was reading a fraction of the workflow it claimed to compare.
-const ciCommands = [...ci.matchAll(/^\s*(?:-\s*)?run:\s*(pnpm [^\n]+)$/gm)].map((m) => m[1].trim())
-// Compare extracted command LISTS, not substrings. `release.includes('pnpm check')` was true
-// because release.yml contains `pnpm check:api` - so dropping the `pnpm check` step entirely went
-// undetected. A substring test cannot distinguish a command from a prefix of another command.
-const extract = (yaml) =>
-  new Set([...yaml.matchAll(/^\s*(?:-\s*)?run:\s*(pnpm [^\n]+)$/gm)].flatMap((m) =>
-    m[1].split('&&').map((c) => c.trim()),
-  ))
-const releaseCommands = extract(release)
-// Gates the publish path legitimately does not repeat: browser and long-running suites CI owns, and
-// changeset status, which is a PR-time question rather than a publish-time one.
-const NOT_REQUIRED_AT_PUBLISH = /playwright|changeset status|audit|test:coverage|test:mutation|check:contrast|check:ci-gates|install --frozen/
-const skipped = [...extract(ci)].filter((cmd) => !releaseCommands.has(cmd) && !NOT_REQUIRED_AT_PUBLISH.test(cmd))
-for (const cmd of skipped) {
+// A comparison over an empty set proves nothing and exits 0. The previous version read `run:` with
+// an anchored regex, so rewriting any step as a `run: |` block scalar - ordinary YAML the moment a
+// step grows a second line - emptied BOTH sides and the guard passed while the publish path ran
+// nothing (review C2). Floors first, then the comparison.
+if (!ciCommands.size) problems.push(`${CI} parsed to zero commands - the gate comparison would be vacuous`)
+if (!releaseCommands.size) problems.push(`${RELEASE} parsed to zero commands - it publishes without gates`)
+
+// Gates the publish path legitimately does not repeat: suites CI owns at PR time, and changeset
+// status, which is a PR-time question rather than a publish-time one. Anchored, not loose: the old
+// pattern matched `audit` and `playwright` anywhere in a command.
+// Deliberately short. Coverage, mutation score and contrast were exempted by a loose regex before
+// (review Low); on an immutable artifact "CI already ran it on the PR" is not a reason to skip a
+// gate, because the commit that publishes need not be the commit CI saw.
+const NOT_REQUIRED_AT_PUBLISH = new Set([
+  // A PR-time question: there is no pending changeset left to find once the release job runs.
+  'pnpm changeset status --since=origin/main',
+])
+for (const cmd of ciCommands) {
+  if (releaseCommands.has(cmd) || NOT_REQUIRED_AT_PUBLISH.has(cmd)) continue
   problems.push(
     `release.yml does not run "${cmd}", which ci.yml does. A gate the publish path skips is ` +
       'advisory, and a release cannot be taken back.',
   )
 }
 
-if (!/branches:\s*\[main\]/.test(release)) {
-  problems.push('release.yml is not restricted to main - publishing from a branch is not recoverable')
+// A gate that runs but cannot fail the publish is not a gate.
+// The job-level `github.ref == main` guard is the main-only restriction itself, not an advisory
+// condition - it must not be reported as one.
+const MAIN_GUARD = /github\.ref\s*==\s*'refs\/heads\/main'/
+for (const step of release.steps) {
+  const advisory = advisoryReasons(step).filter((r) => !MAIN_GUARD.test(r))
+  const gating = commandsIn(step.run).filter((c) => ciCommands.has(c))
+  if (advisory.length && gating.length) {
+    problems.push(`release.yml runs "${gating[0]}" without blocking - ${advisory.join('; ')}`)
+  }
 }
-if (!/id-token:\s*write/.test(release)) {
+
+// A step repeated in the publish path costs a full run for nothing. Set comparison cannot see it.
+const seen = new Map()
+for (const step of release.steps) {
+  for (const cmd of commandsIn(step.run)) seen.set(cmd, (seen.get(cmd) ?? 0) + 1)
+}
+for (const [cmd, n] of seen) {
+  if (n > 1) problems.push(`release.yml runs "${cmd}" ${n} times - every publish pays for it twice`)
+}
+
+// "Main-only" is a PROPERTY of the trigger set, not a string in the file. The old test was
+// /branches:\s*\[main\]/, which a `workflow_dispatch:` addition satisfied while publishing from
+// any branch (review C3) - the very thing release.yml's own comment warns about.
+const triggers = Object.keys(release.triggers ?? {})
+const jobGuards = Object.values(release.jobs).map((j) => String(j?.if ?? ''))
+const guardedToMain = jobGuards.some((g) => /github\.ref\s*==\s*'refs\/heads\/main'/.test(g))
+for (const trigger of triggers) {
+  if (trigger === 'push') {
+    const branches = release.triggers.push?.branches ?? []
+    if (JSON.stringify(branches) !== JSON.stringify(['main'])) {
+      problems.push(`release.yml triggers on push to ${JSON.stringify(branches)} - publishing from a branch is not recoverable`)
+    }
+  } else if (!guardedToMain) {
+    problems.push(
+      `release.yml can be triggered by "${trigger}" with no job-level guard that github.ref is ` +
+        'refs/heads/main - that is a way to publish from a branch',
+    )
+  }
+}
+if (!triggers.length) problems.push('release.yml declares no trigger')
+
+// The publish command itself. It lives in a `with:` key, so a `run:`-only reader never saw it:
+// changing it to `npm publish` would ship `workspace:*` to every consumer, permanently, with every
+// guard still green (review M5).
+const publishSteps = release.steps.filter((s) => s.with?.publish)
+if (!publishSteps.length) problems.push('release.yml declares no publish command')
+for (const step of publishSteps) {
+  const cmd = String(step.with.publish)
+  if (!/^pnpm\b/.test(cmd)) {
+    problems.push(
+      `release.yml publishes with "${cmd}". Only pnpm rewrites the workspace: protocol - npm ships ` +
+        'it verbatim and every consumer install then fails with EUNSUPPORTEDPROTOCOL (D0040).',
+    )
+  }
+}
+
+const releaseText = readFileSync(RELEASE, 'utf8')
+if (!/id-token:\s*write/.test(releaseText)) {
   problems.push('release.yml lacks `id-token: write`, so npm provenance cannot be attested')
 }
-if (!/NPM_CONFIG_PROVENANCE/.test(release) && !/provenance/.test(release)) {
+if (!/NPM_CONFIG_PROVENANCE/.test(releaseText) && !/provenance/.test(releaseText)) {
   problems.push('release.yml does not enable provenance')
 }
 
