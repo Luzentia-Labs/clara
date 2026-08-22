@@ -40,8 +40,8 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@luzentialabs/clara-icons": "workspace:*",
-    "@luzentialabs/clara-tokens": "workspace:*"
+    "@luzentialabs/clara-icons": "workspace:^",
+    "@luzentialabs/clara-tokens": "workspace:^"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",

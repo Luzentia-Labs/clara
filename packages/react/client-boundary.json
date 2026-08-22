@@ -205,12 +205,12 @@
     {
       "name": "Table",
       "boundary": "server",
-      "status": "built"
+      "status": "planned"
     },
     {
       "name": "TableSortButton",
       "boundary": "client",
-      "status": "built"
+      "status": "planned"
     }
   ]
 }

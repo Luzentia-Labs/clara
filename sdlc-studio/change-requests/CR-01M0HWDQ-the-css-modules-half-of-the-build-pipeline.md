@@ -1,6 +1,7 @@
 # CR-01M0HWDQ: The CSS Modules half of the build pipeline is not yet proven end to end
 
-> **Status:** inbox
+> **Status:** Approved
+> **Triaged-by:** Richard Dale Umayan; human; v1
 > **Priority:** Medium
 > **Type:** Improvement
 > **Size:** S

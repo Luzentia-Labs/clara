@@ -91,7 +91,7 @@ importers:
   packages/icons:
     dependencies:
       '@luzentialabs/clara-tokens':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../tokens
     devDependencies:
       '@types/node':
@@ -116,10 +116,10 @@ importers:
   packages/react:
     dependencies:
       '@luzentialabs/clara-icons':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../icons
       '@luzentialabs/clara-tokens':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../tokens
     devDependencies:
       '@types/node':

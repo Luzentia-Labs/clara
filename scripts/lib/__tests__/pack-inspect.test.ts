@@ -53,3 +53,25 @@ describe('exportTargets', () => {
     expect(exportTargets(undefined)).toEqual([])
   })
 })
+
+describe('internal dependency ranges (D0049)', () => {
+  it('accepts a caret on an internal dependency', () => {
+    expect(inspectTarball('p', { dependencies: { '@luzentialabs/clara-tokens': '^1.2.0' } }, listing)).toEqual([])
+  })
+
+  // workspace:* rewrites to an exact version, so a consumer on a later patch installs both copies.
+  it('rejects an exact pin on an internal dependency', () => {
+    const errors = inspectTarball('p', { dependencies: { '@luzentialabs/clara-tokens': '1.2.0' } }, listing)
+    expect(errors[0]).toContain('an exact pin')
+    expect(errors[1]).toContain('dedupe')
+  })
+
+  it('leaves third-party ranges alone - pinning those is the consumer\'s business', () => {
+    expect(inspectTarball('p', { dependencies: { 'some-lib': '1.2.0' } }, listing)).toEqual([])
+  })
+
+  it.each(['~1.2.0', '>=1.0.0 <2.0.0', '1.x'])('does not flag the non-exact range %s', (range) => {
+    const errors = inspectTarball('p', { dependencies: { '@luzentialabs/clara-tokens': range } }, listing)
+    expect(errors.filter((e) => e.includes('exact pin'))).toEqual([])
+  })
+})

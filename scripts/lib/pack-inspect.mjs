@@ -21,6 +21,21 @@ export function inspectTarball (name, shipped, listing) {
     }
   }
 
+  // D0049: an internal dependency ships as a caret, never an exact pin. `workspace:*` rewrites to
+  // the exact version, so every published clara-react would hard-pin ONE build of clara-tokens and
+  // a consumer on a later patch installs both copies - duplicate custom properties, duplicate
+  // stylesheet, and size budgets that no longer describe what ships. Checked on the SHIPPED range,
+  // because the on-disk `workspace:` protocol is not what a consumer resolves.
+  for (const [dep, range] of Object.entries(shipped.dependencies ?? {})) {
+    if (!dep.startsWith('@luzentialabs/')) continue
+    // "Exact" means a bare semver and nothing else. `1.x`, `~1.2.0` and `>=1.0.0 <2.0.0` all let a
+    // consumer dedupe, so only a fully-pinned version is a problem.
+    if (/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(String(range).trim())) {
+      errors.push(`${name}: ships dependencies.${dep} = "${range}", an exact pin`)
+      errors.push('  declare it `workspace:^` so a consumer can dedupe within the major (D0049)')
+    }
+  }
+
   const inTarball = new Set(listing.map((f) => f.replace(/^package\//, '')))
   for (const target of new Set(exportTargets(shipped.exports))) {
     const rel = target.replace(/^\.\//, '')

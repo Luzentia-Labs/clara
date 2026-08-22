@@ -31,16 +31,6 @@ export interface ButtonProps {
     variant?: 'primary' | 'secondary';
 }
 
-// Warning: (ae-forgotten-export) The symbol "TableProps" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export function Table(input: TableProps): JSX_2.Element;
-
-// Warning: (ae-forgotten-export) The symbol "TableSortButtonProps" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export function TableSortButton(input: TableSortButtonProps): JSX_2.Element;
-
 // (No @packageDocumentation comment for this package)
 
 ```

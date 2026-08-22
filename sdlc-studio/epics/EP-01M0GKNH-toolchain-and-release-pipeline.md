@@ -59,6 +59,7 @@ Establish the buildable and testable scaffold: pnpm workspaces, Vite library bui
 - [ ] [US-01M0GM0R: Server and client boundary classification](../stories/US-01M0GM0R-server-and-client-boundary-classification.md)
 - [ ] [US-01M0GMDV: Consumer verification apps](../stories/US-01M0GMDV-consumer-verification-apps.md)
 - [ ] [US-01M0MQYN: Manual chunks so the use client directive survives bundling](../stories/US-01M0MQYN-manual-chunks-so-the-use-client-directive-survives.md)
+- [ ] [US-01M0NJZN: One chunk per client component so budgets are real](../stories/US-01M0NJZN-one-chunk-per-client-component-so-budgets-are.md)
 
 ## Risks
 

@@ -1,6 +1,7 @@
 # CR-01M0MND5: Internal dependency range is exact-pinned by default, not by decision
 
-> **Status:** inbox
+> **Status:** Complete
+> **Triaged-by:** Richard Dale Umayan; human; v1
 > **Priority:** Medium
 > **Type:** Architecture
 > **Size:** S
