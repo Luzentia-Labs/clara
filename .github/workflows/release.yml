@@ -1,0 +1,78 @@
+# Publish to npm. CI-only, main-only, on a green gate, with provenance.
+#
+# Releases are IMMUTABLE (AGENTS.md): a bad release is fixed forward with a patch, never unpublished.
+# That is why publishing runs only after the full gate set, and only from main - there is no
+# opportunity to take a mistake back.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false   # never cancel a publish mid-flight
+
+permissions:
+  contents: write       # changesets opens the version PR and tags
+  pull-requests: write
+  id-token: write       # npm provenance requires an OIDC token
+
+jobs:
+  release:
+    # Belt and braces: the `on:` trigger already restricts this, but a workflow_dispatch added later
+    # must not become a way to publish from a branch.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The publish path runs the SAME gates as CI. A release that skipped a gate CI enforces would
+      # make the gate advisory, and an immutable artifact is the worst place to learn that.
+      #
+      # "CI already ran this on the PR" is not a reason to drop a gate here: the commit that
+      # publishes need not be the commit CI saw. check-release.mjs compares the two command sets
+      # exactly and fails on any gate this path omits, on any duplicate, and on any step that runs
+      # without blocking.
+      - run: pnpm build
+      - run: node scripts/check-ci-gates.mjs
+      - run: pnpm typecheck
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm test:coverage
+      - run: pnpm check:contrast
+      - run: pnpm check:client-boundary
+      - run: pnpm check:pack
+      - run: pnpm check:api
+      - run: pnpm check:publint && pnpm check:attw
+      - run: pnpm size
+      - run: pnpm test:mutation
+      - run: pnpm audit --audit-level=high --prod
+      - run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
+
+      - name: Version or publish
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset version
+          publish: pnpm changeset publish
+          commit: "Release: version packages"
+          title: "Release: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # provenance is declared per package in publishConfig; the OIDC token above is what makes
+          # it verifiable.
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"

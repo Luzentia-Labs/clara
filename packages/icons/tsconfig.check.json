@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "../..",
+    "types": [
+      "node",
+      "@testing-library/jest-dom"
+    ]
+  },
+  "include": [
+    "src",
+    "vite.config.ts",
+    "../../test"
+  ],
+  "exclude": []
+}

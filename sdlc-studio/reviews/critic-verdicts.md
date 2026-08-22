@@ -7,3 +7,16 @@
 | Unit | Verdict | Reviewer | Author | Date | Brief | Tier | Issues |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | US01M0GMPJ | APPROVE | anton-reis | sdlc-studio | 2026-08-21 | 082325d27d56 | light | [new] typescript is a phantom tool dependency - three typecheck scripts invoke tsc with no `typescript` in any manifest or the lockfile (packages/tokens/package.json:25, packages/icons/package.json:27, packages/react/package.json:30); [new] .npmrc:5-7 comment describes phantom-dependency/store-layout protection but the setting is `resolution-mode=highest`, which does neither and restates pnpm's default; [new] check-peers.mjs:19 uses OR where its own message says AND, so narrowing the react peer to `^18.2.0` and dropping React 19 passes (mutation M11 SURVIVED, exit 0); [new] check-peers.mjs:11-16 cannot detect a missing peer - deleting `peerDependencies` entirely still prints "react is peer-only" (M10 SURVIVED), and optionalDependencies plus bundleDependencies are unread (M13, M14 SURVIVED); [new] check-layers.mjs:8,17,20 hardcodes the three package names, so a cycle through any fourth package reports "PASS 4 package(s), no cycle" (M5 SURVIVED, confirmed in isolation) and renaming a package drops it from the guard (M16 SURVIVED); [new] packages/{tokens,icons,react}/package.json:12 share one `index.d.ts` across import and require under `"type":"module"` - attw FalseCJS, which TRD Section 9 gate 10 fails on; [new] no guard detects a `./*` exports wildcard - all three checks exit 0 with one present (M15), and TRD:206 requires CI to fail on it; [new] scripts/lib/workspace.mjs:7 hardcodes ['packages','apps'] instead of reading pnpm-workspace.yaml globs, so a new workspace glob is invisible to all three guards; [new] repository.url names GitHub org "Luzentia-Labs" in three published manifests (packages/*/package.json:6) with no decision or doc recording it; [new] files:["dist"] with no per-package LICENSE means published tarballs ship without a license file; [new] package.json:15 `pnpm lint` exits 0 over zero packages; [new] plan deviation - PL-01M0HRA0 Phase 2 requires `"private": false` on each package manifest, none declares it (behaviorally equivalent); [pre-existing] TRD:195 lists `tokens.pairings.json` in the published surface but the closed exports table at TRD:203 omits it, so it is unreachable |
+| US01M0GM9N | REJECT | anton-reis | sdlc-studio | 2026-08-21 | - | - | - |
+| US01M0GMFB | REJECT | anton-reis | sdlc-studio | 2026-08-21 | - | - | - |
+| US01M0GM9N | REJECT | anton-reis | sdlc-studio | 2026-08-21 | - | - | - |
+| US01M0GMFB | REJECT | anton-reis | sdlc-studio | 2026-08-21 | - | - | - |
+| US01M0GM9N | REJECT | anton-reis | sdlc-studio | 2026-08-21 | - | - | - |
+| US01M0GMFB | REJECT | anton-reis | sdlc-studio | 2026-08-21 | - | - | - |
+| US01M0GMFB | APPROVE | anton-reis | sdlc-studio | 2026-08-21 | - | - | - |
+| US01M0GM9N | REJECT | anton-reis | sdlc-studio | 2026-08-21 | - | - | - |
+| US01M0GM3X | REJECT | anton-reis | sdlc-studio | 2026-08-21 | - | - | - |
+| US01M0GM9N | REJECT | anton-reis | sdlc-studio | 2026-08-22 | - | - | - |
+| US01M0GM3X | REJECT | anton-reis | sdlc-studio | 2026-08-22 | - | - | - |
+| US01M0GM9N | REJECT | anton-reis | sdlc-studio | 2026-08-22 | - | - | - |
+| US01M0GM3X | REJECT | anton-reis | sdlc-studio | 2026-08-22 | - | - | - |

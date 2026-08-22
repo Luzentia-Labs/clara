@@ -1,0 +1,58 @@
+{
+  "semantic": {
+    "surface": {
+      "default": {
+        "value": "{color.neutral.900}",
+        "type": "color"
+      },
+      "subtle": {
+        "value": "{color.neutral.800}",
+        "type": "color"
+      }
+    },
+    "text": {
+      "default": {
+        "value": "{color.neutral.0}",
+        "type": "color"
+      },
+      "muted": {
+        "value": "{color.neutral.300}",
+        "type": "color"
+      },
+      "onAccent": {
+        "value": "{color.neutral.900}",
+        "type": "color"
+      }
+    },
+    "border": {
+      "default": {
+        "value": "{color.neutral.500}",
+        "type": "color"
+      }
+    },
+    "action": {
+      "primary": {
+        "value": "{color.accent.500}",
+        "type": "color"
+      },
+      "primaryHover": {
+        "value": "{color.accent.400}",
+        "type": "color"
+      },
+      "danger": {
+        "value": "{color.danger.500}",
+        "type": "color"
+      }
+    },
+    "focus": {
+      "ring": {
+        "value": "{color.neutral.0}",
+        "type": "color"
+      },
+      "offset": {
+        "value": "{color.neutral.900}",
+        "type": "color"
+      }
+    }
+  }
+}

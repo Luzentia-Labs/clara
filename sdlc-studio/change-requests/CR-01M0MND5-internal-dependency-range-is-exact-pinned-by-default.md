@@ -1,0 +1,514 @@
+# CR-01M0MND5: Internal dependency range is exact-pinned by default, not by decision
+
+> **Status:** Complete
+> **Triaged-by:** Richard Dale Umayan; human; v1
+> **Priority:** Medium
+> **Type:** Architecture
+> **Size:** S
+> **Affects:** packages/react/package.json, packages/icons/package.json, scripts/check-pack.mjs, CONTRIBUTING.md
+> **Date:** 2026-08-22
+> **Created-by:** sdlc-studio file
+> **Raised-by:** sdlc-studio; agent; v1
+> **Raised-in-batch:** none open - raised outside a delivery batch
+
+## Summary
+
+`pnpm pack` rewrites `workspace:*` to the EXACT version (`"0.0.0"`), not a caret range. Every published `@luzentialabs/clara-react` therefore hard-pins one exact build of `clara-tokens` and `clara-icons`. A consumer who ends up with clara-react@1.2.0 and clara-tokens@1.2.1 gets BOTH copies of the tokens package installed - duplicate CSS custom properties, duplicate stylesheet, and a size budget that no longer describes what ships.
+
+Found by the adversarial review of RUN-01M0MFXJ as a Low finding. Not decided either way here: exact pinning is defensible for a design system where the token values and the components that consume them are versioned together, and it is what makes a Clara release atomic. But it is currently the DEFAULT rather than a choice, nobody has written down which we want, and it becomes permanent for every version already published.
+
+The alternative is declaring the internal dependency as `^0.0.0` (or `workspace:^`, which pnpm rewrites to a caret) so a consumer can dedupe within a major.
+
+## Impact
+
+Affects every published version, and cannot be changed retroactively for versions already out. Cheap now (nothing is published), permanent later. Interacts with the size budgets, which measure one copy.
+
+## Acceptance Criteria
+
+- [ ] -
+- [ ]  
+- [ ] *
+- [ ] *
+- [ ] A
+- [ ] C
+- [ ] 1
+- [ ] :
+- [ ] *
+- [ ] *
+- [ ]  
+- [ ] T
+- [ ] h
+- [ ] e
+- [ ]  
+- [ ] i
+- [ ] n
+- [ ] t
+- [ ] e
+- [ ] r
+- [ ] n
+- [ ] a
+- [ ] l
+- [ ]  
+- [ ] d
+- [ ] e
+- [ ] p
+- [ ] e
+- [ ] n
+- [ ] d
+- [ ] e
+- [ ] n
+- [ ] c
+- [ ] y
+- [ ]  
+- [ ] r
+- [ ] a
+- [ ] n
+- [ ] g
+- [ ] e
+- [ ]  
+- [ ] i
+- [ ] s
+- [ ]  
+- [ ] a
+- [ ]  
+- [ ] r
+- [ ] e
+- [ ] c
+- [ ] o
+- [ ] r
+- [ ] d
+- [ ] e
+- [ ] d
+- [ ]  
+- [ ] d
+- [ ] e
+- [ ] c
+- [ ] i
+- [ ] s
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ] ,
+- [ ]  
+- [ ] n
+- [ ] o
+- [ ] t
+- [ ]  
+- [ ] a
+- [ ]  
+- [ ] d
+- [ ] e
+- [ ] f
+- [ ] a
+- [ ] u
+- [ ] l
+- [ ] t
+- [ ]  
+- [ ] -
+- [ ]  
+- [ ] e
+- [ ] i
+- [ ] t
+- [ ] h
+- [ ] e
+- [ ] r
+- [ ]  
+- [ ] e
+- [ ] x
+- [ ] a
+- [ ] c
+- [ ] t
+- [ ]  
+- [ ] p
+- [ ] i
+- [ ] n
+- [ ] n
+- [ ] i
+- [ ] n
+- [ ] g
+- [ ]  
+- [ ] w
+- [ ] i
+- [ ] t
+- [ ] h
+- [ ]  
+- [ ] i
+- [ ] t
+- [ ] s
+- [ ]  
+- [ ] r
+- [ ] a
+- [ ] t
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ] a
+- [ ] l
+- [ ] e
+- [ ] ,
+- [ ]  
+- [ ] o
+- [ ] r
+- [ ]  
+- [ ] a
+- [ ]  
+- [ ] c
+- [ ] a
+- [ ] r
+- [ ] e
+- [ ] t
+- [ ]  
+- [ ] w
+- [ ] i
+- [ ] t
+- [ ] h
+- [ ]  
+- [ ] i
+- [ ] t
+- [ ] s
+- [ ]  
+- [ ] r
+- [ ] a
+- [ ] t
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ] a
+- [ ] l
+- [ ] e
+- [ ] .
+- [ ] 
+
+- [ ] -
+- [ ]  
+- [ ] *
+- [ ] *
+- [ ] A
+- [ ] C
+- [ ] 2
+- [ ] :
+- [ ] *
+- [ ] *
+- [ ]  
+- [ ] `
+- [ ] c
+- [ ] h
+- [ ] e
+- [ ] c
+- [ ] k
+- [ ] -
+- [ ] p
+- [ ] a
+- [ ] c
+- [ ] k
+- [ ] `
+- [ ]  
+- [ ] a
+- [ ] s
+- [ ] s
+- [ ] e
+- [ ] r
+- [ ] t
+- [ ] s
+- [ ]  
+- [ ] t
+- [ ] h
+- [ ] e
+- [ ]  
+- [ ] c
+- [ ] h
+- [ ] o
+- [ ] s
+- [ ] e
+- [ ] n
+- [ ]  
+- [ ] r
+- [ ] a
+- [ ] n
+- [ ] g
+- [ ] e
+- [ ]  
+- [ ] s
+- [ ] h
+- [ ] a
+- [ ] p
+- [ ] e
+- [ ] ,
+- [ ]  
+- [ ] s
+- [ ] o
+- [ ]  
+- [ ] t
+- [ ] h
+- [ ] e
+- [ ]  
+- [ ] d
+- [ ] e
+- [ ] c
+- [ ] i
+- [ ] s
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ]  
+- [ ] c
+- [ ] a
+- [ ] n
+- [ ] n
+- [ ] o
+- [ ] t
+- [ ]  
+- [ ] s
+- [ ] i
+- [ ] l
+- [ ] e
+- [ ] n
+- [ ] t
+- [ ] l
+- [ ] y
+- [ ]  
+- [ ] r
+- [ ] e
+- [ ] v
+- [ ] e
+- [ ] r
+- [ ] t
+- [ ]  
+- [ ] w
+- [ ] h
+- [ ] e
+- [ ] n
+- [ ]  
+- [ ] s
+- [ ] o
+- [ ] m
+- [ ] e
+- [ ] o
+- [ ] n
+- [ ] e
+- [ ]  
+- [ ] e
+- [ ] d
+- [ ] i
+- [ ] t
+- [ ] s
+- [ ]  
+- [ ] a
+- [ ]  
+- [ ] m
+- [ ] a
+- [ ] n
+- [ ] i
+- [ ] f
+- [ ] e
+- [ ] s
+- [ ] t
+- [ ] .
+- [ ] 
+
+- [ ] -
+- [ ]  
+- [ ] *
+- [ ] *
+- [ ] A
+- [ ] C
+- [ ] 3
+- [ ] :
+- [ ] *
+- [ ] *
+- [ ]  
+- [ ] I
+- [ ] f
+- [ ]  
+- [ ] e
+- [ ] x
+- [ ] a
+- [ ] c
+- [ ] t
+- [ ]  
+- [ ] p
+- [ ] i
+- [ ] n
+- [ ] n
+- [ ] i
+- [ ] n
+- [ ] g
+- [ ]  
+- [ ] i
+- [ ] s
+- [ ]  
+- [ ] c
+- [ ] h
+- [ ] o
+- [ ] s
+- [ ] e
+- [ ] n
+- [ ] ,
+- [ ]  
+- [ ] t
+- [ ] h
+- [ ] e
+- [ ]  
+- [ ] d
+- [ ] u
+- [ ] p
+- [ ] l
+- [ ] i
+- [ ] c
+- [ ] a
+- [ ] t
+- [ ] e
+- [ ] -
+- [ ] i
+- [ ] n
+- [ ] s
+- [ ] t
+- [ ] a
+- [ ] l
+- [ ] l
+- [ ]  
+- [ ] c
+- [ ] o
+- [ ] n
+- [ ] s
+- [ ] e
+- [ ] q
+- [ ] u
+- [ ] e
+- [ ] n
+- [ ] c
+- [ ] e
+- [ ]  
+- [ ] i
+- [ ] s
+- [ ]  
+- [ ] d
+- [ ] o
+- [ ] c
+- [ ] u
+- [ ] m
+- [ ] e
+- [ ] n
+- [ ] t
+- [ ] e
+- [ ] d
+- [ ]  
+- [ ] i
+- [ ] n
+- [ ]  
+- [ ] C
+- [ ] O
+- [ ] N
+- [ ] T
+- [ ] R
+- [ ] I
+- [ ] B
+- [ ] U
+- [ ] T
+- [ ] I
+- [ ] N
+- [ ] G
+- [ ] .
+- [ ] m
+- [ ] d
+- [ ]  
+- [ ] u
+- [ ] n
+- [ ] d
+- [ ] e
+- [ ] r
+- [ ]  
+- [ ] t
+- [ ] h
+- [ ] e
+- [ ]  
+- [ ] u
+- [ ] p
+- [ ] g
+- [ ] r
+- [ ] a
+- [ ] d
+- [ ] e
+- [ ]  
+- [ ] g
+- [ ] u
+- [ ] i
+- [ ] d
+- [ ] a
+- [ ] n
+- [ ] c
+- [ ] e
+- [ ] ,
+- [ ]  
+- [ ] b
+- [ ] e
+- [ ] c
+- [ ] a
+- [ ] u
+- [ ] s
+- [ ] e
+- [ ]  
+- [ ] a
+- [ ]  
+- [ ] c
+- [ ] o
+- [ ] n
+- [ ] s
+- [ ] u
+- [ ] m
+- [ ] e
+- [ ] r
+- [ ]  
+- [ ] n
+- [ ] e
+- [ ] e
+- [ ] d
+- [ ] s
+- [ ]  
+- [ ] t
+- [ ] o
+- [ ]  
+- [ ] k
+- [ ] n
+- [ ] o
+- [ ] w
+- [ ]  
+- [ ] t
+- [ ] o
+- [ ]  
+- [ ] u
+- [ ] p
+- [ ] g
+- [ ] r
+- [ ] a
+- [ ] d
+- [ ] e
+- [ ]  
+- [ ] t
+- [ ] h
+- [ ] e
+- [ ]  
+- [ ] p
+- [ ] a
+- [ ] c
+- [ ] k
+- [ ] a
+- [ ] g
+- [ ] e
+- [ ] s
+- [ ]  
+- [ ] t
+- [ ] o
+- [ ] g
+- [ ] e
+- [ ] t
+- [ ] h
+- [ ] e
+- [ ] r
+- [ ] .
+
+## Revision History
+
+| Date | Author | Change |
+| --- | --- | --- |
+| 2026-08-22 | sdlc-studio | Raised |

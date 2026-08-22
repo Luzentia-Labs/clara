@@ -27,3 +27,16 @@ blob-report/
 
 # Turborepo
 .turbo/
+
+# Generated token sources (Style Dictionary output, rebuilt by the tokens build)
+packages/tokens/src/generated/
+
+# Throwaway fixture written by scripts/prove-coverage-gate.mjs (never committed)
+.coverage-fixture/
+
+# Stryker scratch
+.stryker-tmp/
+reports/
+
+# api-extractor scratch output
+packages/*/temp/

@@ -1,0 +1,6 @@
+{"id": "US01M0GM0R", "tokens": 75000, "points": 3, "estimator": "unattributed", "size_gate": "compulsory", "constants": {"TOKENS_PER_POINT": 25000}, "planned_at": "2026-08-22T10:21:05Z", "project": "clara"}
+{"id": "US01M0GM16", "tokens": 75000, "points": 3, "estimator": "unattributed", "size_gate": "compulsory", "constants": {"TOKENS_PER_POINT": 25000}, "planned_at": "2026-08-22T10:21:05Z", "project": "clara"}
+{"id": "US01M0GMDV", "tokens": 75000, "points": 3, "estimator": "unattributed", "size_gate": "compulsory", "constants": {"TOKENS_PER_POINT": 25000}, "planned_at": "2026-08-22T10:21:05Z", "project": "clara"}
+{"id": "US01M0GMKD", "tokens": 200000, "points": 8, "estimator": "unattributed", "size_gate": "compulsory", "constants": {"TOKENS_PER_POINT": 25000}, "planned_at": "2026-08-22T10:21:05Z", "project": "clara"}
+{"id": "US01M0GMWF", "tokens": 125000, "points": 5, "estimator": "unattributed", "size_gate": "compulsory", "constants": {"TOKENS_PER_POINT": 25000}, "planned_at": "2026-08-22T10:21:05Z", "project": "clara"}
+{"id": "US01M0GMYH", "tokens": 75000, "points": 3, "estimator": "unattributed", "size_gate": "compulsory", "constants": {"TOKENS_PER_POINT": 25000}, "planned_at": "2026-08-22T10:21:05Z", "project": "clara"}

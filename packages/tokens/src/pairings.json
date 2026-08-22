@@ -1,0 +1,45 @@
+{
+  "_comment": "Legal foreground/background pairings for the contrast gate (US-01M0GM66). BUILD-TIME INPUT ONLY - written to build/, never dist/, so it can never reach a published tarball (D0029).",
+  "pairings": [
+    {
+      "foreground": "semantic.text.default",
+      "background": "semantic.surface.default",
+      "minRatio": 4.5
+    },
+    {
+      "foreground": "semantic.text.muted",
+      "background": "semantic.surface.default",
+      "minRatio": 4.5
+    },
+    {
+      "foreground": "semantic.text.onAccent",
+      "background": "semantic.action.primary",
+      "minRatio": 4.5
+    },
+    {
+      "foreground": "semantic.text.default",
+      "background": "semantic.surface.subtle",
+      "minRatio": 4.5
+    },
+    {
+      "foreground": "semantic.text.onAccent",
+      "background": "semantic.action.danger",
+      "minRatio": 4.5
+    },
+    {
+      "foreground": "semantic.border.default",
+      "background": "semantic.surface.default",
+      "minRatio": 3.0
+    },
+    {
+      "foreground": "semantic.focus.ring",
+      "background": "semantic.surface.default",
+      "minRatio": 3.0
+    },
+    {
+      "foreground": "semantic.focus.offset",
+      "background": "semantic.action.primary",
+      "minRatio": 3.0
+    }
+  ]
+}

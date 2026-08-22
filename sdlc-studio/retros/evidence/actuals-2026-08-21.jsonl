@@ -1,1 +1,8 @@
 {"id": "PL-01M0HRA0", "type": "plan", "project": "clara"}
+{"id": "BG-01M0HTRM", "type": "bug", "project": "clara"}
+{"id": "CR-01M0HT8N", "type": "cr", "project": "clara"}
+{"id": "CR-01M0HTB4", "type": "cr", "project": "clara"}
+{"id": "PL-01M0HVR8", "type": "plan", "project": "clara"}
+{"id": "PL-01M0HXNX", "type": "plan", "project": "clara"}
+{"id": "PL-01M0HZ74", "type": "plan", "project": "clara"}
+{"id": "US-01M0GMFB", "type": "story", "critic_verdict": "APPROVE", "project": "clara"}

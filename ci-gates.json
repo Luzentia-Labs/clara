@@ -1,0 +1,150 @@
+{
+  "_comment": "Every gate in TRD Section 9 is enumerated here, mapped by its `trd` number rather than by position - the manifest renumbers, so a positional comparison silently misleads. A `trd` of null marks a gate this project added beyond the TRD. check-ci-gates.mjs fails if any TRD gate number is unclaimed, if a wired gate's exact command is absent from ci.yml, if a wired gate runs without blocking (if:, continue-on-error, || true), or if a pending gate names no open story.",
+  "gates": [
+    {
+      "n": 1,
+      "gate": "Typecheck; no `any` in a public signature",
+      "status": "wired",
+      "run": "pnpm typecheck",
+      "trd": 1
+    },
+    {
+      "n": 2,
+      "gate": "Lint; token-tier and literal rules in component CSS",
+      "status": "pending",
+      "story": "US-01M0GME0",
+      "trd": 2
+    },
+    {
+      "n": 3,
+      "gate": "Unit + interaction tests pass",
+      "status": "wired",
+      "run": "pnpm test",
+      "trd": 3
+    },
+    {
+      "n": 4,
+      "gate": "Statement coverage >= 90%; branch coverage >= 85%",
+      "status": "wired",
+      "run": "pnpm test:coverage",
+      "trd": 3
+    },
+    {
+      "n": 5,
+      "gate": "axe: zero serious or critical violations",
+      "status": "pending",
+      "story": "US-01M0GM69",
+      "trd": 4
+    },
+    {
+      "n": 6,
+      "gate": "Keyboard interaction suite, incl. focus-identity assertions",
+      "status": "pending",
+      "story": "US-01M0GM69",
+      "trd": 5
+    },
+    {
+      "n": 7,
+      "gate": "Visual regression: no unreviewed diffs",
+      "status": "pending",
+      "story": "US-01M0GMZW",
+      "trd": 6
+    },
+    {
+      "n": 8,
+      "gate": "Token contrast, both themes, row count matched",
+      "status": "wired",
+      "run": "pnpm check:contrast",
+      "trd": 7
+    },
+    {
+      "n": 9,
+      "gate": "Computed geometry: heights, target size, type floors",
+      "status": "pending",
+      "story": "US-01M0GMC6",
+      "trd": null
+    },
+    {
+      "n": 10,
+      "gate": "Mutation score >= 70% on changed files",
+      "status": "wired",
+      "run": "pnpm test:mutation",
+      "trd": null
+    },
+    {
+      "n": 11,
+      "gate": "API report diff clean",
+      "status": "wired",
+      "run": "pnpm check:api",
+      "trd": 9
+    },
+    {
+      "n": 12,
+      "gate": "publint, attw, no exports wildcard",
+      "status": "wired",
+      "run": "pnpm check:publint && pnpm check:attw && pnpm check",
+      "trd": 10
+    },
+    {
+      "n": 13,
+      "gate": "Size budgets",
+      "status": "wired",
+      "run": "pnpm size",
+      "trd": 11
+    },
+    {
+      "n": 14,
+      "gate": "Consumer verification: Vite + Next.js builds, no hydration warnings",
+      "status": "pending",
+      "story": "US-01M0GMDV",
+      "trd": 13
+    },
+    {
+      "n": 15,
+      "gate": "Server/client boundary: every exported component is classified",
+      "status": "wired",
+      "run": "pnpm check:client-boundary",
+      "trd": null
+    },
+    {
+      "n": 16,
+      "gate": "Tarball install-safety: no workspace/link protocol, every exports target shipped",
+      "status": "wired",
+      "run": "pnpm check:pack",
+      "trd": null
+    },
+    {
+      "n": 17,
+      "trd": 8,
+      "gate": "Public token reference: docs or examples reference a non-tier-2 token",
+      "status": "pending",
+      "blocked_by": "US-01M0GMMX"
+    },
+    {
+      "n": 18,
+      "trd": 12,
+      "gate": "Changeset present on any packages/ change",
+      "status": "wired",
+      "run": "pnpm changeset status --since=origin/main"
+    },
+    {
+      "n": 19,
+      "trd": 14,
+      "gate": "pnpm audit: no high or critical CVE in a runtime dependency",
+      "status": "wired",
+      "run": "pnpm audit --audit-level=high --prod"
+    }
+  ],
+  "plus": [
+    {
+      "gate": "A changeset is present on any packages/ change",
+      "status": "wired",
+      "run": "pnpm changeset status --since=origin/main"
+    },
+    {
+      "gate": "pnpm audit clean of high/critical CVEs",
+      "status": "wired",
+      "run": "pnpm audit --audit-level=high --prod"
+    }
+  ]
+}

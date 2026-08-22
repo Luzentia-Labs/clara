@@ -3,13 +3,36 @@
   "version": "0.0.0",
   "description": "Clara components for React: accessible, token-driven, built for enterprise web applications.",
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/Luzentia-Labs/clara.git", "directory": "packages/react" },
-  "publishConfig": { "access": "public", "provenance": true },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luzentia-Labs/clara.git",
+    "directory": "packages/react"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "type": "module",
-  "sideEffects": ["*.css"],
-  "files": ["dist"],
+  "sideEffects": [
+    "*.css"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "files": [
+    "dist"
+  ],
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/index.cjs" },
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
@@ -17,16 +40,27 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@luzentialabs/clara-icons": "workspace:*",
-    "@luzentialabs/clara-tokens": "workspace:*"
+    "@luzentialabs/clara-icons": "workspace:^",
+    "@luzentialabs/clara-tokens": "workspace:^"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
     "react-dom": "^18.2.0 || ^19.0.0"
   },
   "scripts": {
-    "build": "echo \"not yet implemented - see the package build story\" && exit 1",
+    "build": "pnpm clean && vite build && node ../../scripts/lib/finalize-dual.mjs .",
     "test": "echo \"no tests yet\" && exit 0",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.check.json",
+    "clean": "node -e \"for(const d of ['dist','build'])require('fs').rmSync(d,{recursive:true,force:true})\""
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.3",
+    "vite-plugin-dts": "^5.0.3"
   }
 }

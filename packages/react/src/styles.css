@@ -1,0 +1,19 @@
+/*
+ * The seed of Clara's single stylesheet.
+ *
+ * `./styles.css` is a promised subpath in the closed exports map (TRD Section 5), so the build
+ * must emit dist/styles.css or that export resolves to nothing and publint fails. Until the first
+ * component ships, this file is what makes the promise true.
+ *
+ * It is a PLAIN stylesheet, not a CSS Module, and that is forced rather than chosen: Vite
+ * compiles a CSS Module to a JS module whose default export is the class map, so a CSS Module
+ * imported only for its side effect is removed by the bundler and emits nothing. A CSS Module
+ * needs a consuming component, and components are not this story (US-01M0GM9N builds the
+ * pipeline). The first component story replaces this seed with real module-scoped CSS.
+ *
+ * No `@layer clara.components` wrapper here: US-01M0GM16 owns the cascade layer guarantee and
+ * applies it to every stylesheet at once. Adding it piecemeal here would pre-empt that.
+ */
+:root {
+  --clara-stylesheet-present: 1;
+}

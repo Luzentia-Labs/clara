@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8" /><title>Clara harness fixture</title></head>
+  <body>
+    <!--
+      A static fixture, deliberately NOT Storybook.
+
+      The TSD specifies "Playwright against built Storybook", but apps/storybook is a stub with no
+      build (US-01M0GMK4 owns it). This page proves the runner, the browser, and the reporter work
+      so later stories inherit a working harness. The Storybook-backed keyboard and geometry suites
+      arrive with Storybook itself - nothing here should be read as covering them.
+    -->
+    <main>
+      <h1>Clara harness</h1>
+      <button type="button" id="probe">Probe</button>
+    </main>
+  </body>
+</html>

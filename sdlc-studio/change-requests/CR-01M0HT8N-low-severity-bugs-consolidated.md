@@ -1,6 +1,9 @@
 # CR-01M0HT8N: Low-severity bugs (consolidated)
 
-> **Status:** inbox
+> **Status:** Superseded
+> **Superseded-by:** US-01M0GMFB (AC6), US-01M0GMKD (AC5)
+> **Triage-severity:** Low
+> **Triaged-by:** Richard Dale Umayan; human; v1
 > **Priority:** Low
 > **Type:** Improvement
 > **Date:** 2026-08-21

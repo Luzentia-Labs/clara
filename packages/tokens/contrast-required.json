@@ -1,0 +1,140 @@
+{
+  "_comment": "The pairings PRD Section 7 REQUIRES. Committed, and not written by the build - the same reasoning as tokens.public.lock.json. check-contrast.mjs asserts the declared table covers this list, so a pairing cannot be quietly dropped to make the gate green. Entries the tier 2 layer cannot yet express are waived below, each keyed to the story that closes it.",
+  "text": [
+    {
+      "fg": "fg-default",
+      "bg": "bg-canvas"
+    },
+    {
+      "fg": "fg-default",
+      "bg": "bg-surface"
+    },
+    {
+      "fg": "fg-default",
+      "bg": "bg-subtle"
+    },
+    {
+      "fg": "fg-muted",
+      "bg": "bg-canvas"
+    },
+    {
+      "fg": "fg-muted",
+      "bg": "bg-surface"
+    },
+    {
+      "fg": "fg-link",
+      "bg": "bg-canvas"
+    },
+    {
+      "fg": "fg-link",
+      "bg": "bg-surface"
+    },
+    {
+      "fg": "fg-on-emphasis",
+      "bg": "bg-accent-emphasis"
+    },
+    {
+      "fg": "fg-on-emphasis",
+      "bg": "bg-danger-emphasis"
+    },
+    {
+      "fg": "fg-on-emphasis",
+      "bg": "bg-success-emphasis"
+    },
+    {
+      "fg": "fg-on-emphasis",
+      "bg": "bg-warning-emphasis"
+    },
+    {
+      "fg": "fg-on-emphasis",
+      "bg": "bg-info-emphasis"
+    },
+    {
+      "fg": "fg-readonly",
+      "bg": "bg-surface"
+    }
+  ],
+  "nonText": [
+    {
+      "fg": "border-default",
+      "bg": "bg-canvas"
+    },
+    {
+      "fg": "border-default",
+      "bg": "bg-surface"
+    },
+    {
+      "fg": "border-strong",
+      "bg": "bg-canvas"
+    },
+    {
+      "fg": "border-strong",
+      "bg": "bg-surface"
+    },
+    {
+      "fg": "border-focus",
+      "bg": "bg-canvas"
+    },
+    {
+      "fg": "border-focus",
+      "bg": "bg-surface"
+    },
+    {
+      "fg": "border-focus",
+      "bg": "bg-subtle"
+    },
+    {
+      "fg": "border-focus",
+      "bg": "bg-accent-emphasis"
+    },
+    {
+      "fg": "border-focus",
+      "bg": "bg-danger-emphasis"
+    },
+    {
+      "fg": "border-focus",
+      "bg": "bg-success-emphasis"
+    },
+    {
+      "fg": "border-focus",
+      "bg": "bg-warning-emphasis"
+    },
+    {
+      "fg": "border-focus",
+      "bg": "bg-info-emphasis"
+    },
+    {
+      "fg": "border-selected",
+      "bg": "bg-selected"
+    },
+    {
+      "fg": "border-selected",
+      "bg": "bg-surface"
+    }
+  ],
+  "waived": {
+    "_why": "The tier 2 families PRD Section 7 names do not exist yet - the delivered placeholder set is surface/text/border/action/spacing (CR-01M0J0Z6). Every entry above is waived until US-01M0GMAE builds the real semantic layer. The waiver is ENUMERATED and dated so the gap is countable rather than implied; it may only shrink.",
+    "until": "US-01M0GMAE",
+    "recorded": "2026-08-22",
+    "count": 27,
+    "highWaterMark": 27
+  },
+  "declaredLock": {
+    "_why": "The pairings declared today. May only GROW until the semantic layer lands.",
+    "pairs": [
+      "semantic-border-default|semantic-surface-default",
+      "semantic-focus-offset|semantic-action-primary",
+      "semantic-focus-ring|semantic-surface-default",
+      "semantic-text-default|semantic-surface-default",
+      "semantic-text-default|semantic-surface-subtle",
+      "semantic-text-muted|semantic-surface-default",
+      "semantic-text-on-accent|semantic-action-danger",
+      "semantic-text-on-accent|semantic-action-primary"
+    ]
+  },
+  "thresholds": {
+    "text": 4.5,
+    "nonText": 3.0,
+    "_why": "PRD Section 7. Committed here, NOT in src/pairings.json (review X3)."
+  }
+}

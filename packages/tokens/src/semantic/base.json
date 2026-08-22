@@ -1,0 +1,76 @@
+{
+  "semantic": {
+    "surface": {
+      "default": {
+        "value": "{color.neutral.0}",
+        "type": "color"
+      },
+      "subtle": {
+        "value": "{color.neutral.100}",
+        "type": "color"
+      }
+    },
+    "text": {
+      "default": {
+        "value": "{color.neutral.900}",
+        "type": "color"
+      },
+      "muted": {
+        "value": "{color.neutral.600}",
+        "type": "color"
+      },
+      "onAccent": {
+        "value": "{color.neutral.0}",
+        "type": "color"
+      }
+    },
+    "border": {
+      "default": {
+        "value": "{color.neutral.500}",
+        "type": "color"
+      }
+    },
+    "action": {
+      "primary": {
+        "value": "{color.accent.600}",
+        "type": "color"
+      },
+      "primaryHover": {
+        "value": "{color.accent.700}",
+        "type": "color"
+      },
+      "danger": {
+        "value": "{color.danger.600}",
+        "type": "color"
+      }
+    },
+    "focus": {
+      "ring": {
+        "value": "{color.neutral.900}",
+        "type": "color"
+      },
+      "offset": {
+        "value": "{color.neutral.0}",
+        "type": "color"
+      }
+    },
+    "spacing": {
+      "xs": {
+        "value": "{space.2}",
+        "type": "dimension"
+      },
+      "sm": {
+        "value": "{space.3}",
+        "type": "dimension"
+      },
+      "md": {
+        "value": "{space.4}",
+        "type": "dimension"
+      },
+      "lg": {
+        "value": "{space.5}",
+        "type": "dimension"
+      }
+    }
+  }
+}

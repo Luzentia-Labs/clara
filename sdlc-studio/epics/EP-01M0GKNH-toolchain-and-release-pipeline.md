@@ -50,14 +50,16 @@ Establish the buildable and testable scaffold: pnpm workspaces, Vite library bui
 
 - [x] [US-01M0GMPJ: pnpm workspace and repository scaffold](../stories/US-01M0GMPJ-pnpm-workspace-and-repository-scaffold.md)
 - [ ] [US-01M0GM9N: Package builds: Vite library mode and the tokens pipeline](../stories/US-01M0GM9N-package-builds-vite-library-mode-and-the-tokens.md)
-- [ ] [US-01M0GMFB: Dual publishing with a closed exports map](../stories/US-01M0GMFB-dual-publishing-with-a-closed-exports-map.md)
-- [ ] [US-01M0GM16: Cascade layers and the consumer override guarantee](../stories/US-01M0GM16-cascade-layers-and-the-consumer-override-guarantee.md)
-- [ ] [US-01M0GMKD: CI pipeline: the fourteen blocking gates](../stories/US-01M0GMKD-ci-pipeline-the-fourteen-blocking-gates.md)
+- [x] [US-01M0GMFB: Dual publishing with a closed exports map](../stories/US-01M0GMFB-dual-publishing-with-a-closed-exports-map.md)
+- [x] [US-01M0GM16: Cascade layers and the consumer override guarantee](../stories/US-01M0GM16-cascade-layers-and-the-consumer-override-guarantee.md)
+- [x] [US-01M0GMKD: CI pipeline: the fourteen blocking gates](../stories/US-01M0GMKD-ci-pipeline-the-fourteen-blocking-gates.md)
 - [ ] [US-01M0GM3X: Test harness: Vitest, RTL, axe, Playwright, Stryker, size-limit](../stories/US-01M0GM3X-test-harness-vitest-rtl-axe-playwright-stryker-size.md)
-- [ ] [US-01M0GMYH: API surface report gate](../stories/US-01M0GMYH-api-surface-report-gate.md)
-- [ ] [US-01M0GMWF: Changesets, semver policy, and automated publish](../stories/US-01M0GMWF-changesets-semver-policy-and-automated-publish.md)
+- [x] [US-01M0GMYH: API surface report gate](../stories/US-01M0GMYH-api-surface-report-gate.md)
+- [x] [US-01M0GMWF: Changesets, semver policy, and automated publish](../stories/US-01M0GMWF-changesets-semver-policy-and-automated-publish.md)
 - [ ] [US-01M0GM0R: Server and client boundary classification](../stories/US-01M0GM0R-server-and-client-boundary-classification.md)
 - [ ] [US-01M0GMDV: Consumer verification apps](../stories/US-01M0GMDV-consumer-verification-apps.md)
+- [ ] [US-01M0MQYN: Manual chunks so the use client directive survives bundling](../stories/US-01M0MQYN-manual-chunks-so-the-use-client-directive-survives.md)
+- [ ] [US-01M0NJZN: One chunk per client component so budgets are real](../stories/US-01M0NJZN-one-chunk-per-client-component-so-budgets-are.md)
 
 ## Risks
 
