@@ -7,11 +7,11 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 79 |
+| Draft | 78 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
-| Review | 5 |
+| Review | 6 |
 | Done | 2 |
 | **Total** | **86** |
 
@@ -31,7 +31,7 @@
 | [US-01M0GMKD](US-01M0GMKD-ci-pipeline-the-fourteen-blocking-gates.md) | CI pipeline: the fourteen blocking gates | EP-01M0GKNH | Review | 8 | -- |
 | [US-01M0GM3X](US-01M0GM3X-test-harness-vitest-rtl-axe-playwright-stryker-size.md) | Test harness: Vitest, RTL, axe, Playwright, Stryker, size-limit | EP-01M0GKNH | Review | 8 | -- |
 | [US-01M0GMYH](US-01M0GMYH-api-surface-report-gate.md) | API surface report gate | EP-01M0GKNH | Review | 3 | -- |
-| [US-01M0GMWF](US-01M0GMWF-changesets-semver-policy-and-automated-publish.md) | Changesets, semver policy, and automated publish | EP-01M0GKNH | Draft | 5 | -- |
+| [US-01M0GMWF](US-01M0GMWF-changesets-semver-policy-and-automated-publish.md) | Changesets, semver policy, and automated publish | EP-01M0GKNH | Review | 5 | -- |
 | [US-01M0GM0R](US-01M0GM0R-server-and-client-boundary-classification.md) | Server and client boundary classification | EP-01M0GKNH | Draft | 3 | -- |
 | [US-01M0GMDV](US-01M0GMDV-consumer-verification-apps.md) | Consumer verification apps | EP-01M0GKNH | Draft | 3 | -- |
 | [US-01M0GMN0](US-01M0GMN0-f00-foundations-pass-decide-the-visual-language.md) | F00 foundations pass: decide the visual language | EP-01M0GKNG | Draft | 8 | -- |

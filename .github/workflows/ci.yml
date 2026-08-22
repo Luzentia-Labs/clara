@@ -73,5 +73,8 @@ jobs:
       - name: Dependency audit
         run: pnpm audit --audit-level=high --prod
 
+      - name: Changeset present on any packages/ change
+        run: pnpm changeset status --since=origin/main
+
       - name: Browser suite
         run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e

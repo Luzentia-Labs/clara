@@ -89,8 +89,8 @@
   "plus": [
     {
       "gate": "A changeset is present on any packages/ change",
-      "status": "pending",
-      "story": "US-01M0GMWF"
+      "status": "wired",
+      "run": "pnpm changeset status --since=origin/main"
     },
     {
       "gate": "pnpm audit clean of high/critical CVEs",
