@@ -17,7 +17,7 @@
     "check:layers": "node scripts/check-layers.mjs",
     "check:private": "node scripts/check-private.mjs",
     "check:peers": "node scripts/check-peers.mjs",
-    "check": "pnpm check:layers && pnpm check:private && pnpm check:peers && pnpm check:exports && pnpm check:license && pnpm check:bundled-peers && pnpm check:token-output && pnpm check:stylesheets && pnpm check:contrast && pnpm check:foundations && pnpm check:mutation-config && pnpm check:coverage-gate && pnpm check:api && pnpm check:ci-gates && pnpm check:release && pnpm check:prove-guards",
+    "check": "pnpm check:layers && pnpm check:private && pnpm check:peers && pnpm check:exports && pnpm check:license && pnpm check:bundled-peers && pnpm check:token-output && pnpm check:stylesheets && pnpm check:contrast && pnpm check:foundations && pnpm check:mutation-config && pnpm check:coverage-gate && pnpm check:api && pnpm check:ci-gates && pnpm check:release && pnpm check:client-boundary && pnpm check:prove-guards",
     "check:exports": "node scripts/check-exports.mjs",
     "check:license": "node scripts/check-license.mjs",
     "check:bundled-peers": "node scripts/check-bundled-peers.mjs",
@@ -41,7 +41,8 @@
     "check:ci-gates": "node scripts/check-ci-gates.mjs",
     "changeset": "changeset",
     "release:check": "node scripts/check-release.mjs",
-    "check:release": "node scripts/check-release.mjs"
+    "check:release": "node scripts/check-release.mjs",
+    "check:client-boundary": "node scripts/check-client-boundary.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",

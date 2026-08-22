@@ -1,0 +1,206 @@
+{
+  "$comment": "Build input, not documentation. The rule is TRD Section 7: a component is client-only if its public props include a function, or if it uses state, effects, refs, or browser APIs internally. Everything else is server-capable and carries NO directive. check-client-boundary.mjs fails on any exported component missing from this file, so a new component cannot ship unclassified.",
+  "rule": "client if public props include a function, or it uses state/effects/refs/browser APIs; else server",
+  "trdSection": "7",
+  "special": {
+    "Table": "Static parts are server-capable; interactive parts (sort, select, resize) are client.",
+    "Alert": "Non-dismissible is server-capable; a dismissible Alert takes onDismiss and is therefore client."
+  },
+  "components": [
+    {
+      "name": "Avatar",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Badge",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Box",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Card",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "DescriptionList",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Divider",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "EmptyState",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Grid",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Heading",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Inline",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Skeleton",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Stack",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Tag",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Text",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Button",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "ButtonGroup",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Checkbox",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Combobox",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "DatePicker",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "DateRangePicker",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Dialog",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Drawer",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "DropdownMenu",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Field",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "IconButton",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Input",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Menu",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "MultiSelect",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Pagination",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Popover",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Radio",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "RadioGroup",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Select",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Switch",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Tabs",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Textarea",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "TimePicker",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Toast",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
+      "name": "Tooltip",
+      "boundary": "client",
+      "status": "planned"
+    }
+  ]
+}

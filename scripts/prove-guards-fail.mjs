@@ -60,7 +60,7 @@ function stageWorkspace ({ withOutput = false } = {}) {
       // precondition could not see it (review X14).
       for (const sub of [
         'dist', 'build', 'src', 'vite.config.ts', 'generate-ramps.mjs',
-        'tokens.public.lock.json', 'contrast-required.json',
+        'tokens.public.lock.json', 'contrast-required.json', 'client-boundary.json',
       ]) {
         const from = join(root, dir, sub)
         if (existsSync(from)) cpSync(from, join(stage, dir, sub), { recursive: true })
@@ -266,6 +266,40 @@ const OUTPUT_CASES = [
     expect: /no exports subpath reaches it/,
     guard: 'check-stylesheets.mjs',
     stage: (stage) => writeFileSync(join(stage, 'packages/react/dist/rogue.css'), '.x{color:red}\n'),
+  },
+  {
+    // The classification is driven by what is EXPORTED, not by the list, so the mutation that
+    // matters adds an export rather than editing the file. A guard keyed off the list would
+    // report a happy 39-classified PASS while an unclassified component shipped.
+    name: 'a component exported without a boundary classification',
+    guard: 'check-client-boundary.mjs',
+    expect: /exported but unclassified/,
+    stage: (stage) => {
+      const dist = join(stage, 'packages/react/dist/index.js')
+      writeFileSync(dist, readFileSync(dist, 'utf8') + '\nexport { Rogue };\n')
+    },
+  },
+  {
+    // The directive branch. Vite DROPS `use client` and only warns (CR-01M0MK20), so this is the
+    // failure that would otherwise reach a consumer as a server-render crash.
+    name: 'a built client component whose "use client" did not survive',
+    guard: 'check-client-boundary.mjs',
+    expect: /no "use client" survives/,
+    stage: (stage) => {
+      const file = join(stage, 'packages/react/client-boundary.json')
+      const doc = JSON.parse(readFileSync(file, 'utf8'))
+      const button = doc.components.find((c) => c.name === 'Button')
+      button.status = 'built'
+      writeFileSync(file, JSON.stringify(doc, null, 2) + '\n')
+      const dist = join(stage, 'packages/react/dist/index.js')
+      writeFileSync(dist, readFileSync(dist, 'utf8') + '\nexport { Button };\n')
+    },
+  },
+  {
+    name: 'a classification entry with an invalid boundary',
+    guard: 'check-client-boundary.mjs',
+    expect: /boundary must be server\|client/,
+    stage: patch('packages/react/client-boundary.json', (m) => { m.components[0].boundary = 'maybe' }),
   },
 ]
 

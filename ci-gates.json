@@ -84,6 +84,12 @@
       "gate": "Consumer verification: Vite + Next.js builds, no hydration warnings",
       "status": "pending",
       "story": "US-01M0GMDV"
+    },
+    {
+      "n": 15,
+      "gate": "Server/client boundary: every exported component is classified",
+      "status": "wired",
+      "run": "pnpm check:client-boundary"
     }
   ],
   "plus": [
