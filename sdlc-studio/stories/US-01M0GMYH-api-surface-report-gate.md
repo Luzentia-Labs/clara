@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** ./api-extractor.json, packages/*/etc/*.api.md, packages/react/etc/clara-react.api.md
+> **Affects:** api-extractor.json, packages/react/etc/clara-react.api.md, scripts/api-report.mjs
 > **Points:** 3
 
 ## User Story

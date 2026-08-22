@@ -8,7 +8,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** .github/workflows/ci.yml, @changesets/cli, origin/main, scripts/lib/workspace.mjs
+> **Affects:** .github/workflows/ci.yml, scripts/lib/workspace.mjs
 > **Points:** 8
 
 ## User Story

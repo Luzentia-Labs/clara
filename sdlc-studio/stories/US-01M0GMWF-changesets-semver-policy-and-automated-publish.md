@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** .changeset/, .github/workflows/release.yml, @changesets/cli, CONTRIBUTING.md
+> **Affects:** .changeset/, .github/workflows/release.yml, CONTRIBUTING.md
 > **Points:** 5
 
 ## User Story
