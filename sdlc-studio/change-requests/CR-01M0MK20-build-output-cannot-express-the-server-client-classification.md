@@ -1,6 +1,6 @@
 # CR-01M0MK20: Build output cannot express the server/client classification
 
-> **Status:** Approved
+> **Status:** Complete
 > **Triaged-by:** Richard Dale Umayan; human; v1
 > **Priority:** High
 > **Type:** Architecture

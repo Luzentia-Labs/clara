@@ -20,7 +20,7 @@
     {
       "name": "Box",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Card",
@@ -80,7 +80,7 @@
     {
       "name": "Button",
       "boundary": "client",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "ButtonGroup",

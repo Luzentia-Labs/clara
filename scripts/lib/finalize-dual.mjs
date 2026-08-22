@@ -17,6 +17,8 @@
  */
 import { readdirSync, renameSync, copyFileSync, rmSync, existsSync, statSync, readFileSync, writeFileSync } from 'node:fs'
 import { applyCascadeLayer } from './cascade-layer.mjs'
+import { prependDirective, rewriteCjsSpecifiers, USE_CLIENT } from './directive.mjs'
+import { CLIENT_CHUNK, SERVER_CHUNK } from './chunk-plan.mjs'
 import { join, resolve } from 'node:path'
 
 const walkCss = (dir) =>
@@ -70,6 +72,57 @@ if (!existsSync(dts)) {
 }
 copyFileSync(dts, join(dist, 'index.d.cts'))
 
+// D0041: the `"use client"` directive is stamped on the client chunk and NOWHERE else.
+//
+// Done here rather than in the bundler because Rollup drops module-level directives and only
+// warns - the source cannot carry it. Stamping the chunk is what makes `client-boundary.json`
+// load-bearing build input: the list cuts the chunk, and the chunk is what gets marked, so the
+// classification and the shipped output cannot disagree.
+//
+// The entry is deliberately NOT stamped. That is what keeps the package server-capable: a
+// consumer importing Box never crosses a client boundary, and one importing Button crosses it
+// exactly at the import. TRD Section 7 requires both halves.
+let stamped = 0
+for (const ext of ['js', 'cjs']) {
+  const clientChunk = join(dist, `${CLIENT_CHUNK}.${ext}`)
+  if (!existsSync(clientChunk)) continue
+  const before = readFileSync(clientChunk, 'utf8')
+  const after = prependDirective(before)
+  if (after !== before) {
+    writeFileSync(clientChunk, after)
+    stamped++
+  }
+}
+
+// Anything the rename step left pointing at a `.js` that no longer exists. The build names CJS
+// chunks `.cjs` directly, so this is normally a no-op - it is here because the failure mode is
+// MODULE_NOT_FOUND on a consumer's first require, and a silent no-op costs nothing.
+for (const name of readdirSync(dist)) {
+  if (!name.endsWith('.cjs')) continue
+  const file = join(dist, name)
+  const before = readFileSync(file, 'utf8')
+  const after = rewriteCjsSpecifiers(before)
+  if (after !== before) writeFileSync(file, after)
+}
+
+// The server chunk must carry no directive, or the classification is a lie in the other
+// direction: every consumer is forced into a client boundary, which is what F23 exists to prevent.
+for (const ext of ['js', 'cjs']) {
+  const serverChunk = join(dist, `${SERVER_CHUNK}.${ext}`)
+  if (existsSync(serverChunk) && /use client/.test(readFileSync(serverChunk, 'utf8'))) {
+    console.error(`FAIL [finalize] ${SERVER_CHUNK}.${ext} carries a "use client" directive`)
+    console.error('  Server-capable components carry NO directive (TRD Section 7). A directive here')
+    console.error('  forces every consumer into a client boundary.')
+    process.exit(1)
+  }
+}
+const entry = join(dist, 'index.js')
+if (existsSync(entry) && new RegExp(USE_CLIENT.replace(/[".;]/g, '.')).test(readFileSync(entry, 'utf8').slice(0, 200))) {
+  console.error('FAIL [finalize] the entry carries a "use client" directive')
+  console.error('  The entry must stay server-capable so the boundary forms at the component import.')
+  process.exit(1)
+}
+
 // D0005 / TRD:318: every emitted Clara stylesheet is wrapped in the cascade layer. Done HERE, in
 // the step every package already runs last, rather than in each bundler's own hooks - a Vite plugin
 // ran before Vite's own CSS emit and silently did nothing, and a per-pipeline mechanism is one more
@@ -87,5 +140,6 @@ for (const file of walkCss(dist)) {
 
 console.log(
   `PASS [finalize] ${renamed} file(s) -> .cjs, dual output present, index.d.cts written` +
-    (layered ? `, ${layered} stylesheet(s) wrapped in clara.components` : ''),
+    (layered ? `, ${layered} stylesheet(s) wrapped in clara.components` : '') +
+    `, ${stamped} client chunk(s) stamped "use client", server chunk and entry clean`,
 )

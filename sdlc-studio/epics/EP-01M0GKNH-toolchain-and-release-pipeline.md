@@ -58,6 +58,7 @@ Establish the buildable and testable scaffold: pnpm workspaces, Vite library bui
 - [x] [US-01M0GMWF: Changesets, semver policy, and automated publish](../stories/US-01M0GMWF-changesets-semver-policy-and-automated-publish.md)
 - [ ] [US-01M0GM0R: Server and client boundary classification](../stories/US-01M0GM0R-server-and-client-boundary-classification.md)
 - [ ] [US-01M0GMDV: Consumer verification apps](../stories/US-01M0GMDV-consumer-verification-apps.md)
+- [ ] [US-01M0MQYN: Manual chunks so the use client directive survives bundling](../stories/US-01M0MQYN-manual-chunks-so-the-use-client-directive-survives.md)
 
 ## Risks
 

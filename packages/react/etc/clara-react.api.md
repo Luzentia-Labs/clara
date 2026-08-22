@@ -4,6 +4,33 @@
 
 ```ts
 
+import { JSX as JSX_2 } from 'react';
+import { ReactNode } from 'react';
+
+// @public (undocumented)
+export function Box(input: BoxProps): JSX_2.Element;
+
+// @public
+export interface BoxProps {
+    // (undocumented)
+    children?: ReactNode;
+    // (undocumented)
+    padding?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+// @public (undocumented)
+export function Button(input: ButtonProps): JSX_2.Element;
+
+// @public
+export interface ButtonProps {
+    // (undocumented)
+    children?: ReactNode;
+    // (undocumented)
+    onClick?: () => void;
+    // (undocumented)
+    variant?: 'primary' | 'secondary';
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```

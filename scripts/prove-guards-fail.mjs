@@ -284,19 +284,62 @@ const OUTPUT_CASES = [
     },
   },
   {
-    // The directive branch. Vite DROPS `use client` and only warns (CR-01M0MK20), so this is the
-    // failure that would otherwise reach a consumer as a server-render crash.
-    name: 'a built client component whose "use client" did not survive',
+    // The directive branch (D0041). Vite DROPS module-level directives and only warns, so this is
+    // the failure that would otherwise reach a consumer as a server-render crash.
+    name: 'the directive stripped from the ESM client chunk',
     guard: 'check-client-boundary.mjs',
-    expect: /no "use client" survives/,
+    expect: /carries no "use client"/,
     stage: (stage) => {
-      const file = join(stage, 'packages/react/client-boundary.json')
-      const doc = JSON.parse(readFileSync(file, 'utf8'))
-      const button = doc.components.find((c) => c.name === 'Button')
-      button.status = 'built'
-      writeFileSync(file, JSON.stringify(doc, null, 2) + '\n')
-      const dist = join(stage, 'packages/react/dist/index.js')
-      writeFileSync(dist, readFileSync(dist, 'utf8') + '\nexport { Button };\n')
+      const f = join(stage, 'packages/react/dist/clara-client.js')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(/^["']use client["'];?\r?\n/, ''))
+    },
+  },
+  {
+    // Both formats, separately: PRD F23 requires the directive in ESM *and* CJS, and an earlier
+    // build genuinely emitted one format correctly while clobbering the other.
+    name: 'the directive stripped from the CJS client chunk',
+    guard: 'check-client-boundary.mjs',
+    expect: /carries no "use client"/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/clara-client.cjs')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(/^["']use client["'];?\r?\n/, ''))
+    },
+  },
+  {
+    // The OTHER half of TRD Section 7, and the one a "is the directive present" check misses
+    // entirely: marking everything client passes that test and defeats the whole feature.
+    name: 'a directive added to the server chunk',
+    guard: 'check-client-boundary.mjs',
+    expect: /server-capable components carry none/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/clara-server.js')
+      writeFileSync(f, '"use client";\n' + readFileSync(f, 'utf8'))
+    },
+  },
+  {
+    name: 'a directive added to the entry, making the whole package client',
+    guard: 'check-client-boundary.mjs',
+    expect: /the entry .* carries a "use client"/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/index.js')
+      writeFileSync(f, '"use client";\n' + readFileSync(f, 'utf8'))
+    },
+  },
+  {
+    name: 'the client chunk missing while a client component is built',
+    guard: 'check-client-boundary.mjs',
+    expect: /does not exist/,
+    stage: (stage) => rmSync(join(stage, 'packages/react/dist/clara-client.js')),
+  },
+  {
+    // The bundle record must not forgive anything except the directive prepend. A post-build step
+    // that could re-derive hashes freely would reopen the hole the record exists to close.
+    name: 'the client chunk edited beyond the permitted directive stamp',
+    guard: 'check-bundled-peers.mjs',
+    expect: /does not match its bundle record/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/clara-client.js')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\nglobalThis.__sneaky = 1;\n')
     },
   },
   {

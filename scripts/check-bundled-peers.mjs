@@ -120,7 +120,19 @@ for (const { dir, kind, manifest } of readWorkspace(root)) {
       )
       continue
     }
-    const actual = createHash('sha256').update(readFileSync(file, 'utf8')).digest('hex')
+    const text = readFileSync(file, 'utf8')
+    const sha = (t) => createHash('sha256').update(t).digest('hex')
+    let actual = sha(text)
+    // finalize-dual stamps `"use client"` on the client chunk AFTER Rollup has hashed it (D0041),
+    // so an exact match is impossible for that one file. The record is NOT re-derived from the
+    // final bytes - that would let any post-build step launder arbitrary changes through, which is
+    // the whole hole this record exists to close. Instead the ONE permitted transformation is
+    // undone and the result must reproduce the recorded hash exactly. A directive prepend is
+    // forgiven; anything else that happened to the file is not.
+    if (actual !== chunk.sha256) {
+      const undone = text.replace(/^\s*["']use client["'];?\r?\n/, '')
+      if (undone !== text && sha(undone) === chunk.sha256) actual = chunk.sha256
+    }
     if (actual !== chunk.sha256) {
       problems.push(
         `${manifest.name}: dist/${name} does not match its bundle record (recorded ` +

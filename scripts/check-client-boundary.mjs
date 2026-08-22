@@ -13,6 +13,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fail, pass } from './lib/workspace.mjs'
 import { exportedNames } from './lib/exports-read.mjs'
+import { CLIENT_CHUNK, SERVER_CHUNK } from './lib/chunk-plan.mjs'
 
 const RULE = 'client-boundary'
 const pkg = 'packages/react'
@@ -56,17 +57,40 @@ if (unclassified.length) {
 const mislabelled = [...exported].filter((n) => classified.get(n)?.status === 'planned')
 if (mislabelled.length) errors.push(`exported but still marked planned: ${mislabelled.join(', ')}`)
 
-// The directive half. Only meaningful once a client component is actually built.
+// The directive half (D0041). The output is cut into a client chunk and a server chunk, so this
+// asks three questions, not one - a guard that only checked "is the directive present somewhere"
+// would pass a build that marked EVERYTHING client, which forces every consumer into a client
+// boundary and is exactly what PRD F23 exists to prevent.
 const builtClients = doc.components.filter((c) => c.boundary === 'client' && c.status === 'built')
+const builtServers = doc.components.filter((c) => c.boundary === 'server' && c.status === 'built')
+
+const DIRECTIVE = /^\s*["']use client["']/
+
 if (builtClients.length) {
-  const cjs = join(pkg, 'dist/index.cjs')
-  if (!existsSync(cjs)) errors.push(`${cjs} is missing - the directive must survive in BOTH formats`)
-  else {
-    for (const [label, text] of [['ESM', esm], ['CJS', readFileSync(cjs, 'utf8')]]) {
-      if (!/^\s*['"]use client['"]/m.test(text)) {
-        errors.push(`${label}: ${builtClients.length} client component(s) built but no "use client" survives`)
-        errors.push('  Vite drops module-level directives and only warns - see CR-01M0MK20')
-      }
+  for (const [label, ext] of [['ESM', 'js'], ['CJS', 'cjs']]) {
+    const chunk = join(pkg, `dist/${CLIENT_CHUNK}.${ext}`)
+    if (!existsSync(chunk)) {
+      errors.push(`${label}: ${builtClients.length} client component(s) built but ${CLIENT_CHUNK}.${ext} does not exist`)
+      errors.push('  the classification drives the chunking - a client component with no client chunk means the build ignored it')
+      continue
+    }
+    if (!DIRECTIVE.test(readFileSync(chunk, 'utf8'))) {
+      errors.push(`${label}: ${CLIENT_CHUNK}.${ext} carries no "use client" as its first statement`)
+      errors.push('  a directive is only a directive at the top; Rollup drops it and only warns (D0041)')
+    }
+  }
+}
+
+// The other half of TRD Section 7, and the half that is easy to lose: server-capable components
+// carry NO directive. Checked on the entry as well, because the entry is what a consumer imports -
+// if IT were marked, the whole package would be client regardless of how the chunks are cut.
+for (const [label, ext] of [['ESM', 'js'], ['CJS', 'cjs']]) {
+  for (const [what, rel] of [['the entry', `dist/index.${ext}`], ['the server chunk', `dist/${SERVER_CHUNK}.${ext}`]]) {
+    const file = join(pkg, rel)
+    if (!existsSync(file)) continue
+    if (DIRECTIVE.test(readFileSync(file, 'utf8'))) {
+      errors.push(`${label}: ${what} (${rel}) carries a "use client" directive`)
+      errors.push('  server-capable components carry none (TRD Section 7); this forces every consumer into a client boundary')
     }
   }
 }
@@ -76,4 +100,5 @@ const counts = { server: 0, client: 0 }
 for (const c of doc.components) counts[c.boundary]++
 const built = doc.components.filter((c) => c.status === 'built').length
 pass(RULE, `${doc.components.length} classified (${counts.server} server, ${counts.client} client), ` +
-  `${built} built, ${exported.size} exported, 0 unclassified`)
+  `${built} built (${builtClients.length} client, ${builtServers.length} server), ` +
+  `${exported.size} exported, 0 unclassified, directive on the client chunk only`)

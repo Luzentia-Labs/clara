@@ -34,15 +34,26 @@ const cleanup = () => rmSync(dir, { recursive: true, force: true })
 for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => { cleanup(); process.exit(130) })
 process.on('exit', () => { cleanup(); rmSync(join(root, '.coverage-fixture'), { recursive: true, force: true }) })
 
+// The fixture is deliberately LARGE, and that is not arbitrary.
+//
+// It used to be one four-branch function - about five statements. That trips a 90% threshold only
+// while the codebase is small: the gate needs uncovered/(covered+uncovered) > 10%, so as real code
+// accumulates a fixed-size fixture stops being able to move the ratio at all. This prover would
+// then pass forever without proving anything, which is the exact failure it exists to detect, one
+// level up. Caught when the first two components landed and the fixture could no longer breach
+// the threshold.
+//
+// Sizing it in the hundreds means the assertion holds regardless of how large the project grows,
+// and costs nothing: the file is never imported, only measured.
+const UNCOVERED_FUNCTIONS = 400
 writeFileSync(
   join(dir, 'uncovered.ts'),
-  `export function neverCalled(n: number): string {
+  Array.from({ length: UNCOVERED_FUNCTIONS }, (_, i) => `export function neverCalled${i} (n: number): string {
   if (n > 10) return 'big'
   if (n > 5) return 'medium'
   if (n > 0) return 'small'
   return 'none'
-}
-`,
+}`).join('\n') + '\n',
 )
 
 // The shipped `coverage.include` must ALSO be exercised, not overridden. Passing an include on the
