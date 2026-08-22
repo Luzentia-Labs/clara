@@ -7,11 +7,11 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 80 |
+| Draft | 79 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
-| Review | 4 |
+| Review | 5 |
 | Done | 2 |
 | **Total** | **86** |
 
@@ -28,7 +28,7 @@
 | [US-01M0GM9N](US-01M0GM9N-package-builds-vite-library-mode-and-the-tokens.md) | Package builds: Vite library mode and the tokens pipeline | EP-01M0GKNH | Review | 5 | -- |
 | [US-01M0GMFB](US-01M0GMFB-dual-publishing-with-a-closed-exports-map.md) | Dual publishing with a closed exports map | EP-01M0GKNH | Done | 5 | -- |
 | [US-01M0GM16](US-01M0GM16-cascade-layers-and-the-consumer-override-guarantee.md) | Cascade layers and the consumer override guarantee | EP-01M0GKNH | Review | 3 | -- |
-| [US-01M0GMKD](US-01M0GMKD-ci-pipeline-the-fourteen-blocking-gates.md) | CI pipeline: the fourteen blocking gates | EP-01M0GKNH | Draft | 8 | -- |
+| [US-01M0GMKD](US-01M0GMKD-ci-pipeline-the-fourteen-blocking-gates.md) | CI pipeline: the fourteen blocking gates | EP-01M0GKNH | Review | 8 | -- |
 | [US-01M0GM3X](US-01M0GM3X-test-harness-vitest-rtl-axe-playwright-stryker-size.md) | Test harness: Vitest, RTL, axe, Playwright, Stryker, size-limit | EP-01M0GKNH | Review | 8 | -- |
 | [US-01M0GMYH](US-01M0GMYH-api-surface-report-gate.md) | API surface report gate | EP-01M0GKNH | Review | 3 | -- |
 | [US-01M0GMWF](US-01M0GMWF-changesets-semver-policy-and-automated-publish.md) | Changesets, semver policy, and automated publish | EP-01M0GKNH | Draft | 5 | -- |

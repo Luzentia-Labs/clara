@@ -1,0 +1,101 @@
+{
+  "_comment": "The fourteen blocking gates TRD Section 9 / TSD define. D0038: all fourteen are enumerated here. `wired` gates run in .github/workflows/ci.yml and block. `pending` gates have no runnable command yet and MUST name an open story - scripts/check-ci-gates.mjs fails if one does not, or if a wired gate is missing from the workflow. A fourteen-gate contract must not read as a seven-gate one, and a listed-but-unenforced gate must never read as passing.",
+  "gates": [
+    {
+      "n": 1,
+      "gate": "Typecheck; no `any` in a public signature",
+      "status": "wired",
+      "run": "pnpm typecheck"
+    },
+    {
+      "n": 2,
+      "gate": "Lint; token-tier and literal rules in component CSS",
+      "status": "pending",
+      "story": "US-01M0GME0"
+    },
+    {
+      "n": 3,
+      "gate": "Unit + interaction tests pass",
+      "status": "wired",
+      "run": "pnpm test"
+    },
+    {
+      "n": 4,
+      "gate": "Statement coverage >= 90%; branch coverage >= 85%",
+      "status": "wired",
+      "run": "pnpm test:coverage"
+    },
+    {
+      "n": 5,
+      "gate": "axe: zero serious or critical violations",
+      "status": "pending",
+      "story": "US-01M0GM69"
+    },
+    {
+      "n": 6,
+      "gate": "Keyboard interaction suite, incl. focus-identity assertions",
+      "status": "pending",
+      "story": "US-01M0GM69"
+    },
+    {
+      "n": 7,
+      "gate": "Visual regression: no unreviewed diffs",
+      "status": "pending",
+      "story": "US-01M0GMZW"
+    },
+    {
+      "n": 8,
+      "gate": "Token contrast, both themes, row count matched",
+      "status": "wired",
+      "run": "pnpm check:contrast"
+    },
+    {
+      "n": 9,
+      "gate": "Computed geometry: heights, target size, type floors",
+      "status": "pending",
+      "story": "US-01M0GMC6"
+    },
+    {
+      "n": 10,
+      "gate": "Mutation score >= 70% on changed files",
+      "status": "wired",
+      "run": "pnpm test:mutation"
+    },
+    {
+      "n": 11,
+      "gate": "API report diff clean",
+      "status": "wired",
+      "run": "pnpm check:api"
+    },
+    {
+      "n": 12,
+      "gate": "publint, attw, no exports wildcard",
+      "status": "wired",
+      "run": "pnpm check:publint && pnpm check:attw && pnpm check"
+    },
+    {
+      "n": 13,
+      "gate": "Size budgets",
+      "status": "wired",
+      "run": "pnpm size"
+    },
+    {
+      "n": 14,
+      "gate": "Consumer verification: Vite + Next.js builds, no hydration warnings",
+      "status": "pending",
+      "story": "US-01M0GMDV"
+    }
+  ],
+  "plus": [
+    {
+      "gate": "A changeset is present on any packages/ change",
+      "status": "pending",
+      "story": "US-01M0GMWF"
+    },
+    {
+      "gate": "pnpm audit clean of high/critical CVEs",
+      "status": "wired",
+      "run": "pnpm audit --audit-level=high --prod"
+    }
+  ]
+}

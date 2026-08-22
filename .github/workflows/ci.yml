@@ -1,0 +1,77 @@
+# Clara CI - the fourteen blocking gates (TRD Section 9, TSD).
+#
+# D0038: all fourteen are enumerated in `ci-gates.json`. The ones with a runnable command execute
+# here and block the merge; the rest name the open story that lands them, and
+# `scripts/check-ci-gates.mjs` fails if a pending gate names no open story or if a wired gate is
+# missing from this file. A gate that reports without blocking is not a gate, and a fourteen-gate
+# contract must not read as an eight-gate one.
+#
+# No `continue-on-error` appears anywhere in this workflow, by design.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # changesets and mutation scope need history
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Pinned to the floor the packages declare. D0033: three test tools shipped majors that
+          # raised their own Node floor above this, and are pinned below latest for that reason.
+          node-version: 20.19.0
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The gate manifest is itself gated: a pending gate must name an open story.
+      - name: Gate manifest is honest
+        run: node scripts/check-ci-gates.mjs
+
+      - run: pnpm build
+
+      - name: Gate 1 - typecheck
+        run: pnpm typecheck
+
+      - name: Gates 12 + deterministic guards
+        run: pnpm check
+
+      - name: Gate 3 - unit, interaction and axe tests
+        run: pnpm test
+
+      - name: Gate 4 - coverage thresholds
+        run: pnpm test:coverage
+
+      - name: Gate 8 - token contrast, both themes
+        run: pnpm check:contrast
+
+      - name: Gate 11 - API surface report diff
+        run: pnpm check:api
+
+      - name: Gate 12 - publint and attw
+        run: pnpm check:publint && pnpm check:attw
+
+      - name: Gate 13 - size budgets
+        run: pnpm size
+
+      - name: Gate 10 - mutation score
+        run: pnpm test:mutation
+
+      - name: Dependency audit
+        run: pnpm audit --audit-level=high --prod
+
+      - name: Browser suite
+        run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
