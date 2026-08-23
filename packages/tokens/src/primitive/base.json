@@ -388,5 +388,39 @@
       "value": "200ms",
       "type": "duration"
     }
+  },
+  "layer": {
+    "0": {
+      "value": "0",
+      "type": "number"
+    },
+    "1": {
+      "value": "10",
+      "type": "number"
+    },
+    "2": {
+      "value": "1000",
+      "type": "number"
+    },
+    "3": {
+      "value": "1100",
+      "type": "number"
+    },
+    "4": {
+      "value": "1200",
+      "type": "number"
+    },
+    "5": {
+      "value": "1300",
+      "type": "number"
+    },
+    "6": {
+      "value": "1400",
+      "type": "number"
+    },
+    "7": {
+      "value": "1500",
+      "type": "number"
+    }
   }
 }

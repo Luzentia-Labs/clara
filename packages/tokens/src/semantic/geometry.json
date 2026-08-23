@@ -84,5 +84,47 @@
       "value": "{font.size.2xl}",
       "type": "dimension"
     }
+  },
+  "layer": {
+    "base": {
+      "value": "{layer.0}",
+      "type": "number",
+      "comment": "Page content. Everything below is measured from here."
+    },
+    "raised": {
+      "value": "{layer.1}",
+      "type": "number",
+      "comment": "A sticky table header or a raised card - still in the document, just above its siblings."
+    },
+    "dropdown": {
+      "value": "{layer.2}",
+      "type": "number",
+      "comment": "A menu or listbox anchored to a control. Above content, below anything modal."
+    },
+    "overlay": {
+      "value": "{layer.3}",
+      "type": "number",
+      "comment": "A modal's scrim. Above every dropdown, so opening a Modal covers an open menu."
+    },
+    "modal": {
+      "value": "{layer.4}",
+      "type": "number",
+      "comment": "Modal and Drawer surfaces, above their own scrim."
+    },
+    "popover": {
+      "value": "{layer.5}",
+      "type": "number",
+      "comment": "A Popover, a Select listbox or a menu opened FROM INSIDE a Modal. Above modal on purpose - see the note below."
+    },
+    "tooltip": {
+      "value": "{layer.6}",
+      "type": "number",
+      "comment": "A Tooltip describes whatever is on top, so it sits above all of it."
+    },
+    "toast": {
+      "value": "{layer.7}",
+      "type": "number",
+      "comment": "Toasts are the last thing that must never be covered: they may be the only report that something failed."
+    }
   }
 }

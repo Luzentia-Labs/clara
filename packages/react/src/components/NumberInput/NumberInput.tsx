@@ -127,26 +127,23 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
   // full APG key set travels WITH THE ROLE - which means it is absent when there is no role, and
   // an unbounded control keeps ordinary text-field key behaviour.
   /**
-   * A typed value can sit OUTSIDE the declared bounds.
+   * The control does NOT detect errors, deliberately.
    *
-   * `min`/`max`/`step` never reach the DOM - they are destructured out - so the browser enforces
-   * nothing and clamping applies only to stepping. That is deliberate: clamping as the user types
-   * fights them mid-entry, and rejecting the keystroke loses a paste. But it means the control could
-   * announce `aria-valuenow="500"` beside `aria-valuemax="10"`, which is a contradiction a screen
-   * reader reads out in one breath. So an out-of-range value is announced as INVALID - the value
-   * stays truthful and the state is honest. It is set unconditionally: when the Field is ALSO
-   * invalid both sources say `true`, so the override is idempotent and the Field's
-   * `aria-errormessage` survives untouched. An earlier version of this note claimed a deferral the
-   * code does not implement.
+   * An earlier version set `aria-invalid` whenever the typed value sat outside `min`/`max`. A
+   * two-seat consult took it apart and it was wrong in four ways at once. It fired on VALID entry:
+   * typing 500 into a `min={100}` field reports an error on the first two keystrokes, which is
+   * D0062's own objection to clamping mid-entry ("it fights them mid-entry") arriving by another
+   * route. It never removed the contradiction it was added for - `aria-valuenow` and `aria-valuemax`
+   * are both in the tree either way. It was announced to assistive technology and to nobody else,
+   * because the only invalid styling in the library hangs off the Field's error - meaning carried in
+   * one channel and absent from the others, which is the colour-alone failure from the other
+   * direction. And once the control detects an error itself, WCAG 2.2 SC 3.3.1 obliges it to
+   * describe that error IN TEXT, which it has no honest way to write: in an ERP the real constraint
+   * on a quantity is the remaining amount on the order, not `max`.
    *
-   * KNOWN GAP: out of range inside a VALID Field, the control announces invalid with no message
-   * attached - there is no error text to point `aria-errormessage` at. That is a plausible WCAG 2.2
-   * SC 3.3.1 shortfall which axe cannot see structurally, and it is a UX call rather than a coding
-   * one: the alternative is announcing a contradiction. Recorded on the verification record.
+   * So detection belongs to the form, which is running it anyway, and the Field stays the single
+   * source of invalidity - as it already is for every other control. See D0086.
    */
-  const outOfRange = Number.isFinite(asNumber) &&
-    ((min !== undefined && asNumber < min) || (max !== undefined && asNumber > max))
-
   const spinbuttonAria = numeric
     ? {
         role: 'spinbutton',
@@ -159,11 +156,6 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 
   return (
     <span className="clara-number">
-      {/*
-        * `aria-invalid` for an out-of-range value is spread AFTER the field wiring, not inside
-        * `spinbuttonAria`: that spread sets `aria-invalid: undefined` when the Field is valid, and
-        * silently erased it. When the Field IS invalid its own value already stands.
-        */}
       <input
         ref={(node) => {
           inner.current = node
@@ -188,7 +180,6 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
           onChange?.(event)
         }}
         {...fieldAriaProps(wiring, 'text', disabled)}
-        {...(outOfRange ? { 'aria-invalid': true } : {})}
         {...rest}
       />
       {unit ? <span className="clara-number__unit">{unit}</span> : null}

@@ -3,10 +3,19 @@
 A numeric entry control for quantities, amounts and codes.
 
 ```tsx
-<Field label="Quantity">
-  <NumberInput min={0} max={999} step={1} value={qty} onChange={onQty} />
+<Field
+  label="Quantity"
+  description="Between 1 and the remaining quantity on the order"
+  error={errors.qty}
+>
+  <NumberInput min={1} max={remaining} step={1} value={qty} onChange={onQty} />
 </Field>
 ```
+
+Note what the example shows and why. **A bounded NumberInput belongs in a Field that supplies the
+error**, because the control does not detect errors itself - see below. And the range is in the
+`description`, where every user can read it: `min` and `max` alone reach only a screen reader user
+who focuses the field.
 
 ## Why it is not `type="number"`
 
@@ -34,6 +43,22 @@ A `step` with no bounds is an ordinary case (a quantity with no maximum), so it 
 
 Steps are rounded to the precision `step` implies, so a `0.1` step does not write
 `0.30000000000000004` into a currency field.
+
+## The bounds are not enforced against typing, and the control does not flag it
+
+`min` and `max` never reach the DOM, so the browser blocks nothing: clamping as the user types
+fights them mid-entry, and rejecting a keystroke loses a paste. They clamp STEPPING, and they are
+announced.
+
+The control also does not mark itself invalid when a typed value falls outside them, and that is a
+deliberate reversal. An earlier version did, and it fired while the user was typing correctly - a
+valid `500` in a `min={100}` field passes through `5` and `50` on the way. It was also invisible to
+sighted users, and once a control detects an error WCAG 2.2 SC 3.3.1 obliges it to describe that
+error **in text** - which Clara has no honest way to write, because the real constraint on a
+quantity in an ERP is the remaining amount on the order, not `max`.
+
+So detection stays with your form, which is running it anyway, and the Field stays the single source
+of invalidity. Supply `error` when the value is wrong.
 
 ## Keys
 

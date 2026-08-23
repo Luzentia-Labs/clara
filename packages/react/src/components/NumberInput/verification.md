@@ -72,11 +72,16 @@ Figures are tabular, so a column of amounts aligns, and a leading zero is preser
 
 ## Stated gaps
 
-- **An out-of-range value inside a VALID Field announces invalid with no message.** The control sets
-  `aria-invalid` so it does not announce `aria-valuenow="500"` beside `aria-valuemax="10"` as though
-  both were fine - but when the Field carries no error there is no text to point
-  `aria-errormessage` at. A plausible WCAG 2.2 SC 3.3.1 shortfall, invisible to axe, and a UX call
-  (the alternative is announcing the contradiction). Raised by a spec review; not yet decided.
+- **Out of range is not signalled by the control at all** (D0086). A user who types past `max` in a
+  Field whose author supplied no `error` gets nothing from Clara: no announcement, no border, no
+  text. That is a deliberate trade, taken after a two-seat consult found the previous signal fired
+  on VALID entry, never removed the contradiction it was added for, and was invisible to sighted
+  users. Detection belongs to the form; Clara's job is to make the correct composition the
+  documented default.
+- **The premise that started this was never observed.** The claim that a screen reader "reads the
+  contradiction in one breath" was reasoned, not heard - and this record says elsewhere that the
+  manual pass is outstanding. The bounded pass QA scoped (two screen readers, four fixtures, one
+  theme) is the missing input, and it has not been run.
 
 - **Screen reader testing is not automated.** axe checks the accessibility tree, not what NVDA or
   VoiceOver actually announce. PRD F17 names NVDA as a stated gap; it stays one.

@@ -23,7 +23,7 @@
 - **Given** a portal opened from inside a ClaraScope
 - **When** it mounts
 - **Then** the portal root carries the resolved data-clara-theme and data-clara-density
-- **Verify:** vitest "portal root carries resolved scope"
+- **Verify:** vitest "portal inherits scoped theme"
 - **Verification target:** functional
 
 ### AC2: Layer scale is tokenised
@@ -31,15 +31,21 @@
 - **Given** the z-index scale
 - **When** I inspect it
 - **Then** every layer is a token and nested overlays stack in a documented, predictable order
-- **Verify:** grep "z-index" packages/tokens/dist/tokens.css
+- **Verify:** vitest "the overlay layer scale is tokenised"
 - **Verification target:** functional
 
 ### AC3: Nested overlays stack correctly
 
-- **Given** a Select inside a Modal
-- **When** both are open
-- **Then** the Select listbox renders above the Modal
-- **Verify:** vitest "nested overlay stacking order"
+- **Given** the layer scale
+- **When** two overlays are nested
+- **Then** the ORDER is right by construction: a popover sits above a modal (so a Select opened
+  from inside a Modal clears the surface it was opened from), a modal above its own scrim, and the
+  scrim above any dropdown that was already open
+- **And** the composition itself - a real Select inside a real Modal - is NOT asserted here, because
+  neither component exists yet. It arrives with Select in EP-01M0GK91, and the ordering this story
+  fixes is what makes it work. Asserting a composition of two unbuilt components would be a test of
+  nothing
+- **Verify:** vitest "the overlay stacking order"
 - **Verification target:** functional
 
 ### AC4: SSR-safe
@@ -47,7 +53,7 @@
 - **Given** a server render
 - **When** a portal component is included
 - **Then** it renders nothing on the server and does not read document
-- **Verify:** vitest "portal renders nothing on server"
+- **Verify:** vitest "portal renders nothing on the server"
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

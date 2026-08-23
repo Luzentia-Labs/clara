@@ -117,3 +117,41 @@ describe('no theme flash on hydration', () => {
     expect(html).toContain('data-clara-theme="light"')
   })
 })
+
+describe('portal renders nothing on the server', () => {
+  // The host element is created in an effect precisely so that `document` is never touched during
+  // render. A component that reads it while rendering throws on the server, and an overlay has
+  // nowhere to go before there is a document anyway - so rendering nothing is the correct output,
+  // not a limitation.
+  it('produces empty markup and does not touch document', () => {
+    const html = renderToStaticMarkup(
+      <ClaraProvider theme="dark">
+        <ClaraPortal><span>should not appear</span></ClaraPortal>
+      </ClaraProvider>,
+    )
+    expect(html).not.toContain('should not appear')
+  })
+
+  it('throws nothing when document is unavailable during render', () => {
+    // The assertion that matters is not "the markup is empty" but "rendering did not reach for a
+    // browser global". A component reading `document` in render would throw here, not return ''.
+    const { document: real } = globalThis
+    // @ts-expect-error - deliberately removing a global to prove the render path never reads it
+    delete globalThis.document
+    try {
+      expect(() => renderToStaticMarkup(
+        <ClaraProvider><ClaraPortal><span>x</span></ClaraPortal></ClaraProvider>,
+      )).not.toThrow()
+    } finally {
+      globalThis.document = real
+    }
+  })
+
+  it('mounts into the document once there IS one', async () => {
+    render(<ClaraProvider theme="dark"><ClaraPortal><span data-testid="late">here</span></ClaraPortal></ClaraProvider>)
+    const el = await screen.findByTestId('late')
+    expect(el.closest('[data-clara-theme]')).toHaveAttribute('data-clara-theme', 'dark')
+    // and it landed outside the React root, which is what makes it a portal
+    expect(document.body.contains(el)).toBe(true)
+  })
+})

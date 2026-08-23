@@ -60,12 +60,11 @@ story is mostly about not inheriting either.
   and a leading zero is preserved
 - **And** the bounds are NOT enforced against typing. They are deliberately kept off the DOM, so the
   browser blocks nothing: clamping as the user types fights them mid-entry, and rejecting a
-  keystroke loses a paste. A typed value outside the bounds is announced as INVALID - the value
-  stays truthful and the state is honest - and rejecting it is the form's decision, not the
-  control's. An earlier version of this criterion said the bounds were "enforced", which was false
-  of the shipped control and concealed the contradiction of announcing `aria-valuenow="500"` beside
-  `aria-valuemax="10"`
-- **Verify:** vitest "NumberInput constraints and formatting|arrow keys step and clamp|does not announce a value its own bounds contradict"
+  keystroke loses a paste. Nor does the control mark itself invalid: that fired on VALID entry (a
+  correct `500` passes through `5` and `50` in a `min={100}` field), was invisible to sighted users,
+  and would oblige Clara under SC 3.3.1 to write error text it has no honest basis for. Detection is
+  the form's job, and the Field stays the single source of invalidity (D0086)
+- **Verify:** vitest "NumberInput constraints and formatting|arrow keys step and clamp|does not detect errors of its own"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -228,7 +227,7 @@ story is mostly about not inheriting either.
 | Criterion | Mutant - the production change this test must fail on | Title |
 | --- | --- | --- |
 | AC1 | Change `type="text"` to `type="number"`, which is what makes the wheel harmless. Deleting the old `onWheel` blur handler proves nothing, which is why that handler was removed. | No wheel mutation |
-| AC2 | Stop marking an out-of-range typed value `aria-invalid`, or delete `font-variant-numeric` from `.clara-input--numeric` (the shape contract catches that one), or let a leading zero be stripped. | Constraints and formatting |
+| AC2 | Re-introduce `aria-invalid` for an out-of-range typed value (it fires while a correct value is part-typed), or delete `font-variant-numeric` from `.clara-input--numeric`, or let a leading zero be stripped. | Constraints and formatting |
 | AC3 | Make Arrow Up a no-op, or disable `clamp()`. Both die under this criterion; the Home/End and precision mutants belong to the bounds criterion below. | Keyboard stepping |
 | AC4 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
 | AC5 | Rename the theme or density attribute. | Both themes and densities |

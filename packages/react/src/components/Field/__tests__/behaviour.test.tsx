@@ -1192,34 +1192,40 @@ describe('every text control forwards its ref to the real element', () => {
   })
 })
 
-describe('NumberInput does not announce a value its own bounds contradict', () => {
-  // `min`/`max`/`step` never reach the DOM, so the browser enforces nothing and clamping applies
-  // only to stepping - deliberately, because clamping as the user types fights them mid-entry and
-  // rejecting the keystroke loses a paste. But the control was then announcing `aria-valuenow=500`
-  // beside `aria-valuemax=10`, a contradiction a screen reader reads out in one breath.
-  it('marks an out-of-range value invalid, keeping the announced value truthful', async () => {
+describe('NumberInput does not detect errors of its own', () => {
+  // The previous behaviour here set `aria-invalid` whenever the typed value was out of bounds, and
+  // a two-seat consult found it wrong four ways: it fired on VALID entry (see the next test), it
+  // never removed the contradiction it was added for, it was invisible to sighted users, and once
+  // the control detects an error SC 3.3.1 obliges it to describe that error in text - which it
+  // cannot honestly write, because in an ERP the real constraint is rarely `max`.
+  it('leaves invalidity to the Field, as every other control does', async () => {
     inField(<NumberInput min={0} max={10} />)
     const el = screen.getByRole('spinbutton')
     await userEvent.type(el, '500')
+    expect(el).not.toHaveAttribute('aria-invalid')
+    // The value and its constraints are still announced - which is what a spinbutton is for.
     expect(el).toHaveAttribute('aria-valuenow', '500')
     expect(el).toHaveAttribute('aria-valuemax', '10')
-    expect(el).toHaveAttribute('aria-invalid', 'true')
   })
 
-  it('says nothing about validity while the value is within bounds', async () => {
-    inField(<NumberInput min={0} max={10} />)
+  it('says nothing while a CORRECT value is part-typed', async () => {
+    // The finding that killed the old behaviour. Entering a valid 500 into a `min={100}` field
+    // passes through 5 and 50, both below the minimum - so the control reported an input error on
+    // three of the five keystrokes of an ordinary amount, and went quiet when it became correct.
+    inField(<NumberInput min={100} max={999} />)
     const el = screen.getByRole('spinbutton')
-    await userEvent.type(el, '7')
-    expect(el).not.toHaveAttribute('aria-invalid')
+    for (const ch of '500') {
+      await userEvent.type(el, ch)
+      expect(el).not.toHaveAttribute('aria-invalid')
+    }
+    expect(el).toHaveValue('500')
   })
 
-  it('defers to the Field, which owns the error message', async () => {
-    // Two sources of invalidity on one control is one too many, and the Field's carries text.
+  it('still reports invalid when the FIELD says so', () => {
     inField(<NumberInput min={0} max={10} />, { error: 'Enter a quantity between 0 and 10' })
     const el = screen.getByRole('spinbutton')
-    await userEvent.type(el, '500')
+    expect(el).toHaveAttribute('aria-invalid', 'true')
     expect(el).toHaveAttribute('aria-errormessage')
-    expect(el.getAttribute('aria-invalid')).toBe('true')
   })
 })
 
