@@ -156,7 +156,17 @@ a Server Component cannot.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC12: Definition of done
+### AC12: Disabled suppresses the interaction
+
+- **Given** a disabled Field around any control
+- **When** the user clicks or presses Space, steps a NumberInput, or presses a clear or reveal button
+- **Then** no consumer handler runs by any route - `onChange` or `onClick` - and no value, checked
+  state, or masked value changes
+- **Verify:** vitest "a disabled Field suppresses the interaction by pointer and keyboard alike|a disabled control runs no consumer handler by any route"
+- **Verified:** yes (2026-08-23)
+- **Verification target:** functional
+
+### AC13: Definition of done
 
 - **Given** the Field framework story
 - **When** it is proposed for export

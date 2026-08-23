@@ -272,7 +272,10 @@ describe('accessibility: axe on every control in every state', () => {
 
   it.each(STATES)('RadioGroup in the %s state has no blocking violations', async (_s, props) => {
     const { container } = render(
-      <Field label="Terms" {...props}>
+      // `labelFor="group"` is the SHIPPING composition - htmlFor cannot target a fieldset. The
+      // fixture previously used the default, so the axe gate cited by both group verification
+      // records had never run over the markup Clara actually tells consumers to write.
+      <Field label="Payment terms" labelFor="group" {...props}>
         <RadioGroup name="terms" legend="Payment terms" options={[
           { value: '30', label: 'Net 30' }, { value: '60', label: 'Net 60' },
         ]} />
@@ -283,7 +286,7 @@ describe('accessibility: axe on every control in every state', () => {
 
   it.each(STATES)('CheckboxGroup in the %s state has no blocking violations', async (_s, props) => {
     const { container } = render(
-      <Field label="Channels" {...props}>
+      <Field label="Notify by" labelFor="group" {...props}>
         <CheckboxGroup name="ch" legend="Notify by" options={[
           { value: 'email', label: 'Email' }, { value: 'post', label: 'Post' },
         ]} />

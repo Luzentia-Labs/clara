@@ -22,6 +22,8 @@ readonly keeps the surface and changes only the text colour.
 | Tab | Enters and leaves the field. |
 | Any printing key | Types, unless readonly or disabled. |
 | Tab, when readonly | Still reaches it; the value stays selectable and copyable. |
+| Tab, with `clearable` and a value | Reaches the clear button after the field. It is absent when the field is empty, so there is no dead stop. |
+| Enter / Space on clear | Clears and returns focus to the input. No-op when the Field is disabled. |
 
 ## Recorded manual keyboard pass
 

@@ -46,7 +46,7 @@ export interface NumberInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
  * floating point, and writing seventeen significant digits into a currency field is a defect the
  * user has to clean up by hand.
  */
-function atStepPrecision (n: number, step: number): number {
+function atStepPrecision (n: number, step: number): string {
   // `String(step)` switches to exponential notation below 1e-6 - `String(1e-7)` is "1e-7" - so
   // splitting on "." returned undefined and rounding silently stopped for exactly the small steps
   // that need it most. An FX rate at seven or eight decimals is an ordinary ERP case.
@@ -54,8 +54,13 @@ function atStepPrecision (n: number, step: number): number {
   const exponent = /e-(\d+)$/i.exec(text)
   const mantissa = exponent ? (text.split('e')[0]?.split('.')[1] ?? '').length : 0
   const decimals = exponent ? Number(exponent[1]) + mantissa : (text.split('.')[1] ?? '').length
-  // toFixed accepts 0-100; anything beyond that is past double precision anyway.
-  return decimals ? Number(n.toFixed(Math.min(decimals, 100))) : n
+  // Returns a STRING, and formats it here rather than letting the caller do `String(n)`. Rounding
+  // to 8 decimals and then stringifying gives back "1.5e-7", because `String` re-exponentiates any
+  // small number - so the user would see scientific notation in a currency field. toFixed accepts
+  // 0-100; beyond that is past double precision anyway.
+  if (!decimals) return String(n)
+  // Trim the zeros toFixed pads with, so a 0.1 step on 0.2 reads "0.3" and not "0.3000000".
+  return n.toFixed(Math.min(decimals, 100)).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput (
@@ -90,7 +95,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
     // Set through the native setter so React's onChange fires - assigning `.value` directly does
     // not, and a controlled consumer would never see the step.
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
-    setter?.call(el, String(next))
+    setter?.call(el, next)
     el.dispatchEvent(new Event('input', { bubbles: true }))
   }
 

@@ -62,12 +62,12 @@ export function CheckboxGroup ({
         * fieldset's own caption but is visually hidden, because a fieldset with no legend is worse
         * markup than one whose legend is not painted.
         *
-        * `(required)` is appended as TEXT rather than as aria-required: a `<fieldset>` is
-        * role=group, which does not support that property, and the Field's asterisk is aria-hidden
-        * - so without this the required state was announced nowhere at all.
+        * The requirement is NOT appended here. `aria-labelledby` outranks a native legend in
+        * accessible-name computation, so text added to the legend never reaches the name; the Field
+        * puts it inside the element it names the group with instead.
         */}
       <legend className={cx('clara-checkbox-group__legend', wiring?.labelFor === 'group' && 'clara-visually-hidden')}>
-        {legend}{wiring?.required ? ' (required)' : ''}
+        {legend}
       </legend>
       {options.map((option) => {
         const id = `${base}-${option.value}`

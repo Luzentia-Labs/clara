@@ -790,6 +790,33 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // Three keyboard-reachable buttons shipped with no ring at all, under a comment claiming the
+    // indicator covered "every other control"; and deleting the whole focus block left every gate
+    // green. jsdom computes no layout, so this is the only place a missing ring can be caught.
+    name: 'a focusable control with no focus-visible rule',
+    guard: 'check-component-css.mjs',
+    expect: /is focusable and has no `:focus-visible` rule/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('.clara-search__clear:focus-visible,\n', ''))
+    },
+  },
+  {
+    // The decorated Input draws its whole visible box on the group, not the inner control - so the
+    // group carries the same shape obligation, and did not until a review deleted it and watched
+    // every gate stay green.
+    name: 'the decorated input group stripped of its box',
+    guard: 'check-component-css.mjs',
+    expect: /\.clara-input-group declares no `border`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      const text = readFileSync(f, 'utf8')
+      const at = text.indexOf('.clara-input-group {')
+      const end = text.indexOf('}', at)
+      writeFileSync(f, text.slice(0, at) + '.clara-input-group { display: inline-flex; }' + text.slice(end + 1))
+    },
+  },
+  {
     name: 'an icon exported but absent from the committed list',
     guard: 'check-icons.mjs',
     expect: /absent from ICONS\.md|not declared/,

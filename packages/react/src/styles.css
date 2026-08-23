@@ -191,11 +191,20 @@
 .clara-input--numeric { font-variant-numeric: tabular-nums; text-align: right; }
 .clara-textarea { min-height: var(--clara-space-section); resize: vertical; }
 
-/* The two-part focus indicator (D0054), same as every other control. */
+/* The two-part focus indicator (D0054), on EVERY focusable thing this stylesheet renders.
+ *
+ * The list previously stopped at the four form controls while claiming to be "same as every other
+ * control", and the three buttons Clara renders inside fields - the search clear, the input clear
+ * and the password reveal - are all keyboard reachable and had no ring at all. A control that can
+ * be tabbed to and cannot be seen when it is focused is unusable by the people the tab stop was
+ * kept for (D0058). */
 .clara-input:focus-visible,
 .clara-checkbox:focus-visible,
 .clara-radio:focus-visible,
-.clara-switch:focus-visible {
+.clara-switch:focus-visible,
+.clara-search__clear:focus-visible,
+.clara-input-group__clear:focus-visible,
+.clara-password__toggle:focus-visible {
   outline: var(--clara-border-width-focus) solid var(--clara-color-border-focus);
   outline-offset: var(--clara-border-width-focus);
   box-shadow: 0 0 0 var(--clara-border-width-focus) var(--clara-color-border-focus-offset);

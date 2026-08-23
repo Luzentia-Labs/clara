@@ -422,9 +422,14 @@ const CONTROLS = [
 
 describe.each(CONTROLS)('%s theme and density matrix', (name, control) => {
   it.each(MATRIX)('renders inside the themed scope and passes axe in %s / %s', async (theme, density) => {
+    // A group is labelled differently from a single control, and the fixture has to render the
+    // composition that ships - otherwise the matrix passes over markup no consumer is told to write.
+    const isGroup = name === 'RadioGroup' || name === 'CheckboxGroup'
     const { container } = render(
       <ClaraProvider theme={theme} density={density}>
-        <Field label="Account code" description="hint">{control}</Field>
+        <Field label="Account code" description="hint" {...(isGroup ? { labelFor: 'group' as const } : {})}>
+          {control}
+        </Field>
       </ClaraProvider>,
     )
     const scope = container.querySelector('[data-clara-theme]')!
@@ -528,6 +533,17 @@ describe('CheckboxGroup error associates with the group', () => {
 })
 
 describe('Checkbox indeterminate survives interaction', () => {
+  it('re-applies on a render the prop did not cause', () => {
+    // The effect has no dependency array so that ANY render re-asserts the property. Keyed on
+    // [indeterminate] it would not run again after something else cleared the DOM property - and
+    // that half survived deletion, because only the click path was covered.
+    const { container, rerender } = inField(<Checkbox indeterminate />)
+    const box = container.querySelector('input') as HTMLInputElement
+    box.indeterminate = false                      // something else clears it - a form reset, say
+    rerender(<Field label="Value"><Checkbox indeterminate /></Field>)
+    expect(box.indeterminate).toBe(true)
+  })
+
   it('stays mixed-consistent after a click, rather than showing a tick while announcing mixed', async () => {
     const { container } = inField(<Checkbox indeterminate />)
     const box = container.querySelector('input') as HTMLInputElement
@@ -572,6 +588,33 @@ describe('Field labelFor group names the group instead of orphaning a label', ()
     }
   })
 
+  // Each mechanism is asserted on BOTH groups. Coverage was previously split - aria-labelledby was
+  // proven on CheckboxGroup only, the hidden legend on RadioGroup only - so each component had a
+  // mechanism that survived deletion, which is the same as not having it tested at all.
+  it.each([
+    ['RadioGroup', <RadioGroup name="t" legend="Terms" options={[{ value: '30', label: 'Net 30' }]} />, 'radiogroup'],
+    ['CheckboxGroup', <CheckboxGroup name="c" legend="Terms" options={[{ value: '30', label: 'Net 30' }]} />, 'group'],
+  ])('%s takes its name from the Field label', (_n, control, role) => {
+    render(<Field label="Payment terms" labelFor="group">{control}</Field>)
+    expect(screen.getByRole(role)).toHaveAccessibleName('Payment terms')
+  })
+
+  it.each([
+    ['RadioGroup', <RadioGroup name="t" legend="Payment terms" options={[{ value: '30', label: 'Net 30' }]} />],
+    ['CheckboxGroup', <CheckboxGroup name="c" legend="Payment terms" options={[{ value: '30', label: 'Net 30' }]} />],
+  ])('%s hides its own legend when the Field already names it', (_n, control) => {
+    const { container } = render(<Field label="Payment terms" labelFor="group">{control}</Field>)
+    expect(container.querySelector('legend')?.className).toContain('clara-visually-hidden')
+  })
+
+  it.each([
+    ['RadioGroup', <RadioGroup name="t" legend="Terms" options={[{ value: '30', label: 'Net 30' }]} />],
+    ['CheckboxGroup', <CheckboxGroup name="c" legend="Terms" options={[{ value: '30', label: 'Net 30' }]} />],
+  ])('%s shows its own legend when there is no Field to name it', (_n, control) => {
+    const { container } = render(<>{control}</>)
+    expect(container.querySelector('legend')?.className ?? '').not.toContain('clara-visually-hidden')
+  })
+
   it('names the group with the Field label, through aria-labelledby', () => {
     const { container } = render(
       <Field label="Payment terms" labelFor="group">
@@ -596,14 +639,12 @@ describe('Field labelFor group names the group instead of orphaning a label', ()
     expect(legend).toBeInTheDocument()
   })
 
-  it('announces required as text, because role=group cannot carry aria-required', () => {
-    // The Field's asterisk is aria-hidden, so without this the required state reached nobody.
+  it('does not put aria-required on a role=group, which cannot carry it', () => {
     render(
       <Field label="Notify by" labelFor="group" required>
         <CheckboxGroup name="c" legend="Notify by" options={[{ value: 'a', label: 'Email' }]} />
       </Field>,
     )
-    expect(screen.getByRole('group').textContent).toContain('(required)')
     expect(screen.getByRole('group')).not.toHaveAttribute('aria-required')
   })
 })
@@ -760,6 +801,17 @@ describe('NumberInput keyboard stepping reaches every documented key', () => {
     expect(el.value).toBe('10')
   })
 
+  it('rounds an exponential step that also has a mantissa', () => {
+    // `String(1.5e-7)` is "1.5e-7": the exponent is 7 and the mantissa adds one more decimal, so
+    // the precision is 8. Testing only `1e-7` left the mantissa term unexercised - it survived
+    // deletion, and a step like this would have rounded one digit short.
+    inField(<NumberInput defaultValue="0" step={1.5e-7} />)
+    const el = screen.getByRole('textbox') as HTMLInputElement
+    el.focus()
+    fireEvent.keyDown(el, { key: 'ArrowUp' })
+    expect(el.value).toBe('0.00000015')
+  })
+
   it('rounds a step smaller than 1e-6, where String(step) turns exponential', () => {
     // String(1e-7) is "1e-7", so splitting on "." found no decimals and rounding silently stopped -
     // for exactly the small steps that need it. An FX rate at seven decimals is an ordinary case.
@@ -783,5 +835,80 @@ describe('SearchInput imposes no delay of its own', () => {
     await userEvent.type(screen.getByRole('searchbox'), 'abc')
     expect(onChange).toHaveBeenCalledTimes(3)
     expect(seen).toEqual(['a', 'ab', 'abc'])
+  })
+})
+
+describe('a disabled control runs no consumer handler by any route', () => {
+  // The click guard survived deletion with every gate green: the change guard alone keeps the DOM
+  // correct, so `not.toBeChecked()` could not see the difference. What the click guard uniquely
+  // does is suppress the consumer's own onClick, and nothing asserted it.
+  it('does not call a Checkbox consumer onClick', async () => {
+    const onClick = vi.fn()
+    inField(<Checkbox onClick={onClick} />, { disabled: true })
+    await userEvent.click(screen.getByRole('checkbox'))
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('does not call a Switch consumer onClick', async () => {
+    const onClick = vi.fn()
+    inField(<Switch onClick={onClick} />, { disabled: true })
+    await userEvent.click(screen.getByRole('switch'))
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('does not reveal a disabled password', async () => {
+    // Deleting the guard here does not merely allow a click - it reveals the value.
+    const { container } = inField(<PasswordInput defaultValue="hunter2" />, { disabled: true })
+    const field = container.querySelector('input') as HTMLInputElement
+    expect(field.type).toBe('password')
+    await userEvent.click(screen.getByRole('button'))
+    expect(field.type).toBe('password')
+    expect(screen.getByRole('button', { name: 'Show password' })).toBeInTheDocument()
+  })
+
+  it('does not select a disabled RadioGroup option by click', async () => {
+    const onChange = vi.fn()
+    render(
+      <Field label="Terms" labelFor="group" disabled>
+        <RadioGroup name="t" legend="Terms" onChange={onChange}
+          options={[{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }]} />
+      </Field>,
+    )
+    await userEvent.click(screen.getByRole('radio', { name: 'B' }))
+    expect(screen.getByRole('radio', { name: 'B' })).not.toBeChecked()
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('does not toggle a disabled CheckboxGroup option by click', async () => {
+    const onChange = vi.fn()
+    render(
+      <Field label="Notify" labelFor="group" disabled>
+        <CheckboxGroup name="c" legend="Notify" onChange={onChange}
+          options={[{ value: 'a', label: 'Email' }]} />
+      </Field>,
+    )
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Email' }))
+    expect(screen.getByRole('checkbox', { name: 'Email' })).not.toBeChecked()
+    expect(onChange).not.toHaveBeenCalled()
+  })
+})
+
+describe('a required group announces the requirement in its NAME', () => {
+  // Asserting `textContent` was a proxy: it includes visually-hidden text and text that
+  // `aria-labelledby` has overridden, so it reported success while the accessible name said nothing
+  // about the requirement and no route conveyed it at all.
+  it.each([
+    ['CheckboxGroup', <CheckboxGroup name="c" legend="Notify by" options={[{ value: 'a', label: 'Email' }]} />, 'group'],
+    ['RadioGroup', <RadioGroup name="t" legend="Terms" options={[{ value: 'a', label: 'A' }]} />, 'radiogroup'],
+  ])('%s carries it in the accessible name, not merely in the DOM text', (_n, control, role) => {
+    render(<Field label="Notify by" labelFor="group" required>{control}</Field>)
+    expect(screen.getByRole(role)).toHaveAccessibleName(/\(required\)/)
+  })
+
+  it('does not double-announce it on a single control, which has aria-required', () => {
+    inField(<Input />, { required: true })
+    const el = screen.getByRole('textbox')
+    expect(el).toHaveAttribute('aria-required', 'true')
+    expect(el).toHaveAccessibleName('Value')
   })
 })

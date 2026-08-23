@@ -85,9 +85,41 @@ if (files.length && !declarations) {
  */
 const SHAPE_CONTRACT = [
   ['.clara-input', ['width', 'min-height', 'border', 'background', 'color', 'padding']],
+  // The decorated Input strips the inner control's box and draws it on the group instead, so the
+  // group carries the same obligation - without this entry a decorated Input could lose its entire
+  // visible boundary with every gate green.
+  ['.clara-input-group', ['width', 'min-height', 'border', 'background', 'color', 'padding']],
   ['.clara-checkbox', ['appearance']],
   ['.clara-switch', ['appearance']],
 ]
+
+/**
+ * Every focusable thing this stylesheet renders must have a `:focus-visible` rule.
+ *
+ * A review deleted the whole `.clara-input:focus-visible` block and every gate stayed green - and
+ * separately found three keyboard-reachable buttons that had never had a ring, under a comment
+ * claiming the indicator applied to "every other control". A control that can be tabbed to and
+ * cannot be seen when focused is unusable by exactly the people the tab stop was kept for (D0058),
+ * and jsdom cannot see it, so this is the only place it can be caught.
+ */
+const FOCUSABLE = [
+  '.clara-input', '.clara-checkbox', '.clara-radio', '.clara-switch',
+  '.clara-search__clear', '.clara-input-group__clear', '.clara-password__toggle',
+]
+
+const focusRings = new Set()
+for (const file of files) {
+  postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+    for (const sel of rule.selectors ?? []) {
+      if (sel.endsWith(':focus-visible')) focusRings.add(sel.slice(0, -':focus-visible'.length))
+    }
+  })
+}
+for (const selector of FOCUSABLE) {
+  if (!focusRings.has(selector)) {
+    problems.push(`${selector} is focusable and has no \`:focus-visible\` rule - a control that can be tabbed to and not seen is unusable`)
+  }
+}
 
 for (const [selector, required] of SHAPE_CONTRACT) {
   const declared = new Set()

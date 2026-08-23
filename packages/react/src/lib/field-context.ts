@@ -66,14 +66,19 @@ export function fieldAriaProps (wiring: FieldWiring | null, kind: 'text' | 'togg
  * Suppress an interaction on a control that is `aria-disabled`. The native attribute would do this
  * for free; the cost of keeping the control reachable is doing it explicitly, as Button does.
  *
- * It must be installed on BOTH `onClick` and `onChange`, and that is not belt-and-braces. React
- * derives a checkbox's change from the same native click, and queues both listeners before either
- * runs - so `preventDefault()` in the click handler reverts the DOM toggle while the queued change
- * still fires, reporting `checked === true`. Installed on click alone, a disabled toggle in the
- * idiomatic controlled form flips the consumer's state, looks right for exactly one frame, and then
- * paints the tick on the next unrelated render: the "select all lies about what a bulk action will
- * affect" failure, reintroduced by the fix for it. Guarding the click and not the change is a proxy
- * for guarding the interaction (D0065).
+ * It is installed on BOTH `onClick` and `onChange`, and they do different jobs.
+ *
+ * The CHANGE guard is what stops the toggle. React binds a checkbox's change to the same native
+ * click, so cancelling there cancels the DOM toggle as well as suppressing the consumer's handler.
+ * Guarding the click ALONE was the original defect: `preventDefault()` reverted the DOM while the
+ * queued change still fired reporting `checked === true`, which in the idiomatic controlled form
+ * flips the consumer's state, looks right for one frame, and paints the tick on the next unrelated
+ * render.
+ *
+ * The CLICK guard's remaining job is narrower and still real: suppressing the consumer's own
+ * `onClick`. A disabled control must not run the handler attached to it by either route. An earlier
+ * version of this comment justified the click guard with the change guard's reason, which was
+ * simply wrong - and no test covered the click path, so nothing contradicted it.
  */
 export function fieldChangeGuard<E extends { preventDefault (): void }> (
   wiring: FieldWiring | null,
