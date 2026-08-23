@@ -8,7 +8,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKGS
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Button/**, packages/react/src/components/Button/verification.md
+> **Affects:** packages/react/src/components/Button, packages/react/src/styles.css, packages/react/src/components/__tests__/matrix.test.tsx, packages/react/src/components/__tests__/primitives.test.tsx
 > **Points:** 5
 
 > **NOT READY - do not start.** `PL-01M0J6TB` checked this story's prerequisites against the

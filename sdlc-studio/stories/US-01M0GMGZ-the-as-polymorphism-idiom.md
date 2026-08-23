@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKGS
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/etc/clara-react.api.md, packages/react/src/utils/polymorphic.ts
+> **Affects:** packages/react/src/lib/polymorphic.ts, packages/react/src/lib/polymorphic.type-test.tsx, packages/react/src/components/__tests__/primitives.test.tsx
 > **Points:** 3
 
 ## User Story

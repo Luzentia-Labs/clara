@@ -58,6 +58,7 @@ jobs:
       - run: pnpm check:component-css
       - run: pnpm check:geometry
       - run: pnpm check:axe
+      - run: pnpm check:keyboard
       - run: pnpm check:client-boundary
       - run: pnpm check:pack
       - run: pnpm verify:consumers

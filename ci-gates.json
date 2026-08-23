@@ -39,9 +39,9 @@
     {
       "n": 6,
       "gate": "Keyboard interaction suite, incl. focus-identity assertions",
-      "status": "pending",
-      "story": "US-01M0GM69",
-      "trd": 5
+      "status": "wired",
+      "trd": 5,
+      "run": "pnpm check:keyboard"
     },
     {
       "n": 7,

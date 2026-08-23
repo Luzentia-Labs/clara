@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKGS
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/icons/**, packages/icons/ICONS.md, scripts/check-icons.mjs
+> **Affects:** packages/icons/svg, packages/icons/icons.json, packages/icons/ICONS.md, packages/icons/generate-icons.mjs, packages/icons/src, scripts/check-icons.mjs, packages/icons/src/__tests__/icons.test.tsx
 > **Points:** 5
 
 ## User Story
