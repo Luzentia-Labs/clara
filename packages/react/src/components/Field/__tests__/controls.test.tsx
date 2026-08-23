@@ -160,9 +160,16 @@ describe('RadioGroup keyboard and grouping', () => {
 
   // The legend is what makes a screen reader announce the QUESTION on entry and the ANSWER as the
   // user arrows through. A labelled div gives the answers with no question attached.
-  it('is a fieldset whose legend names the question', () => {
-    inField(<RadioGroup name="t" legend="Payment terms" options={options} />)
+  it('is a fieldset whose legend names the question when it stands alone', () => {
+    render(<RadioGroup name="t" legend="Payment terms" options={options} />)
     expect(screen.getByRole('radiogroup', { name: 'Payment terms' })).toBeInTheDocument()
+  })
+
+  it('takes its name from the Field when there is one, rather than doubling it', () => {
+    // Inside a Field the Field's label names the group through aria-labelledby, and the legend is
+    // hidden - otherwise the same words are painted twice and announced twice.
+    inField(<RadioGroup name="t" legend="Payment terms" options={options} />)
+    expect(screen.getByRole('radiogroup', { name: 'Value' })).toBeInTheDocument()
   })
 
   it('is one tab stop, with arrow keys choosing - the browser\'s behaviour, not ours', async () => {
@@ -213,9 +220,14 @@ describe('CheckboxGroup', () => {
     { value: 'post', label: 'Post', description: 'Slower' },
   ]
 
-  it('is a fieldset whose legend names the question', () => {
-    inField(<CheckboxGroup name="c" legend="Notify by" options={options} />)
+  it('is a fieldset whose legend names the question when it stands alone', () => {
+    render(<CheckboxGroup name="c" legend="Notify by" options={options} />)
     expect(screen.getByRole('group', { name: 'Notify by' })).toBeInTheDocument()
+  })
+
+  it('takes its name from the Field when there is one, rather than doubling it', () => {
+    inField(<CheckboxGroup name="c" legend="Notify by" options={options} />)
+    expect(screen.getByRole('group', { name: 'Value' })).toBeInTheDocument()
   })
 
   // Independent decisions, so every box is its own tab stop - unlike a radio group, where arrowing

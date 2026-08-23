@@ -104,7 +104,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
     if (!el || bound === undefined || fieldDisabled(wiring)) return
     event.preventDefault()
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
-    setter?.call(el, String(bound))
+    // Same formatting as stepBy: `String(1e-7)` is "1e-7", and scientific notation in a
+    // currency field is not a value the user can work with.
+    setter?.call(el, atStepPrecision(bound, step))
     el.dispatchEvent(new Event('input', { bubbles: true }))
   }
 

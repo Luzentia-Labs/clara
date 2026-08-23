@@ -57,7 +57,7 @@ story is mostly about not inheriting either.
 - **Given** a NumberInput
 - **When** I configure min, max and step
 - **Then** min, max and step are enforced, figures are tabular, and a leading zero is preserved
-- **Verify:** vitest "NumberInput constraints and formatting|keyboard stepping"
+- **Verify:** vitest "NumberInput constraints and formatting|arrow keys step and clamp"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -66,7 +66,7 @@ story is mostly about not inheriting either.
 - **Given** a focused NumberInput
 - **When** I press arrow keys
 - **Then** the value steps by the configured step and announces
-- **Verify:** vitest "NumberInput keyboard stepping"
+- **Verify:** vitest "NumberInput arrow keys step and clamp"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -75,7 +75,7 @@ story is mostly about not inheriting either.
 - **Given** the NumberInput stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell node scripts/check-component-css.mjs
+- **Verify:** shell node scripts/check-component-css.mjs --component NumberInput
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -97,7 +97,7 @@ story is mostly about not inheriting either.
 - **Given** a bounded NumberInput
 - **When** the user presses Home, End, PageUp or PageDown
 - **Then** the value jumps to the bound or steps by ten, and a fractional step writes no float noise
-- **Verify:** vitest "NumberInput keyboard stepping reaches every documented key"
+- **Verify:** vitest "NumberInput keyboard reaches the bounds and holds precision"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -106,9 +106,13 @@ story is mostly about not inheriting either.
 - **Given** the NumberInput story
 - **When** it is proposed for export
 - **Then** the artefacts that CAN exist today do: unit and interaction tests using accessible
-  queries, an axe assertion over default and error states, a docs page, a documented keyboard table
-  and a recorded manual keyboard pass - all checked by `check-verification.mjs`, which fails on a
-  missing one and on a section with no content
+  queries, an axe assertion over default and error states, a docs page and a documented keyboard
+  table - all checked by `check-verification.mjs`, which fails on a missing one and on a section
+  with no content
+- **And** the manual keyboard pass is **outstanding, and says so in the record**. An earlier version
+  of this criterion claimed one had been recorded, and an identical fabricated paragraph sat in all
+  23 verification records. The guard now requires that section to state either a real pass - naming
+  the browsers it was walked in - or that it is outstanding, and a record saying "Not done." fails
 - **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
   belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
   records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five

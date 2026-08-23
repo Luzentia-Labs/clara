@@ -42,7 +42,7 @@ const REQUIRED_SECTIONS = [
   { heading: '## Accessibility', minBullets: 0, needsTable: false },
   { heading: '## What is verified automatically', minBullets: 3, needsTable: false },
   { heading: '## Stated gaps', minBullets: 1, needsTable: false },
-  { heading: '## Recorded manual keyboard pass', minBullets: 0, needsTable: false },
+  { heading: '## Recorded manual keyboard pass', minBullets: 0, needsTable: false, manualPass: true },
 ]
 
 /** The body of one `## Section`, up to the next heading of the same level. */
@@ -225,7 +225,7 @@ for (const name of inScope) {
   // silently covers a component nobody documented.
   if (!text.includes(name)) problems.push(`${where}: does not mention ${name}, which it is the record for`)
 
-  for (const { heading, minBullets, needsTable } of REQUIRED_SECTIONS) {
+  for (const { heading, minBullets, needsTable, manualPass } of REQUIRED_SECTIONS) {
     const body = sectionBody(text, heading)
     if (body === null) { problems.push(`${where}: missing section "${heading}"`); continue }
     const bullets = (body.match(/^\s*[-*] \S/gm) ?? []).length
@@ -235,6 +235,30 @@ for (const name of inScope) {
     // The TSD's definition of done asks for a documented keyboard table, per component.
     if (needsTable && !/^\|\s*Key\s*\|/m.test(body)) {
       problems.push(`${where}: "${heading}" has no | Key | Result | table - the definition of done requires a documented keyboard table`)
+    }
+
+    /**
+     * The manual pass must state a REAL pass or say plainly that it is outstanding.
+     *
+     * This is the one artefact automation cannot supply, and it was the one that got fabricated:
+     * an identical paragraph - same date, same OS, same two browsers, same "one observation that is
+     * not a defect" - was written into all 23 records including one for a component that is a stub.
+     * The section requirement at the time was mere presence, so the guard reported PASS on it, and
+     * on "Not done." too. A gate that cannot distinguish a walk from a sentence about a walk is
+     * worse than no gate, because the record it blesses reads like evidence.
+     *
+     * Neither branch can be satisfied by silence, and only the first by a claim: recording a pass
+     * requires naming the browsers it was walked in, which is a specific enough claim to be wrong.
+     */
+    if (manualPass) {
+      const outstanding = /\*\*Not performed|is outstanding\b/i.test(body)
+      const recorded = /\b(walked|verified)\b/i.test(body) && /\b(Safari|Chrome|Firefox|Edge|NVDA|VoiceOver)\b/.test(body)
+      if (!outstanding && !recorded) {
+        problems.push(
+          `${where}: "${heading}" neither records a pass (name the browsers it was walked in) ` +
+          'nor states that it is outstanding - and those are the only two honest states',
+        )
+      }
     }
   }
 

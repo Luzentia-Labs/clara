@@ -21,9 +21,24 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import postcss from 'postcss'
+import { focusableClassGroups } from './lib/focusable.mjs'
 import { fail, pass } from './lib/workspace.mjs'
 
 const RULE = 'component-css'
+
+/**
+ * `--component <Name>` scopes the shape and focus contracts to one component's own selectors.
+ *
+ * Without it this guard is a repo-wide sweep, which is the right shape for `pnpm check` and the
+ * wrong shape for an acceptance criterion: ten stories cited it unscoped as their per-component
+ * "token-only styling" verifier, so one stray literal anywhere reddened all ten and isolated none -
+ * exactly the anti-pattern `check-verification.mjs` articulates and refuses for itself.
+ *
+ * The literal and tier rules stay repo-wide either way; they are properties of the stylesheet, not
+ * of a component.
+ */
+const scopeAt = process.argv.indexOf('--component')
+const scope = scopeAt === -1 ? null : process.argv[scopeAt + 1]
 const root = process.cwd()
 const manifestPath = join(root, 'packages/tokens/build/tier-manifest.json')
 if (!existsSync(manifestPath)) fail(RULE, ['build/tier-manifest.json missing - build the tokens first'])
@@ -32,7 +47,48 @@ const tier1 = new Set(tiers.tier1.map((t) => t.name))
 const allowed = new Set([...tiers.tier2, ...(tiers.tier3 ?? [])].map((t) => t.name))
 
 /** Colour, length and radius literals. A length of 0 is unitless and carries no design decision. */
-const LITERAL = /(#[0-9a-fA-F]{3,8}\b|\brgba?\([^)]*\)|\bhsla?\([^)]*\)|\boklch\([^)]*\)|(?<![\w-])\d*\.?\d+(px|rem|em)\b)/g
+/**
+ * A raw value, in any of the forms CSS actually accepts.
+ *
+ * The first version matched `#hex`, `rgb()`, `hsl()`, `oklch()` and `px|rem|em` - case-sensitively.
+ * A review appended five probes and every one passed: `color: red` (a named colour), `padding: 12pt`
+ * and `width: 50vw` (unlisted units), `margin: 12PX` (no `i` flag), and `border-color: rebeccapurple`.
+ * A guard whose entire job is catching literals let five through, which is the failure mode this
+ * repo keeps finding: the check looked right and did not cover its own subject.
+ */
+const NAMED_COLOURS = [
+  'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black',
+  'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse',
+  'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan',
+  'darkgoldenrod', 'darkgray', 'darkgreen', 'darkgrey', 'darkkhaki', 'darkmagenta',
+  'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen',
+  'darkslateblue', 'darkslategray', 'darkslategrey', 'darkturquoise', 'darkviolet', 'deeppink',
+  'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen',
+  'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow',
+  'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender',
+  'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan',
+  'lightgoldenrodyellow', 'lightgray', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon',
+  'lightseagreen', 'lightskyblue', 'lightslategray', 'lightslategrey', 'lightsteelblue',
+  'lightyellow', 'lime', 'limegreen', 'linen', 'magenta', 'maroon', 'mediumaquamarine',
+  'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue',
+  'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream',
+  'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange',
+  'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred',
+  'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'rebeccapurple',
+  'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell',
+  'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'slategrey', 'snow', 'springgreen',
+  'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white',
+  'whitesmoke', 'yellow', 'yellowgreen',
+]
+const UNITS = 'px|rem|em|pt|pc|cm|mm|in|q|ch|ex|vh|vw|vmin|vmax|svh|lvh|dvh'
+const LITERAL = new RegExp(
+  '(#[0-9a-f]{3,8}\\b' +
+  '|\\brgba?\\([^)]*\\)|\\bhsla?\\([^)]*\\)|\\boklch\\([^)]*\\)|\\boklab\\([^)]*\\)' +
+  '|\\blab\\([^)]*\\)|\\blch\\([^)]*\\)|\\bcolor-mix\\([^)]*\\)|\\bcolor\\([^)]*\\)' +
+  `|(?<![\\w-])\\d*\\.?\\d+(${UNITS})\\b` +
+  `|(?<![\\w-])(${NAMED_COLOURS.join('|')})(?![\\w-]))`,
+  'gi',
+)
 // Properties where a literal is structural rather than a design value.
 const STRUCTURAL = /^(z-index|opacity|flex|order|grid-|line-height|font-weight|content|transform|scale)/
 
@@ -91,6 +147,28 @@ const SHAPE_CONTRACT = [
   ['.clara-input-group', ['width', 'min-height', 'border', 'background', 'color', 'padding']],
   ['.clara-checkbox', ['appearance']],
   ['.clara-switch', ['appearance']],
+  // The Field is the epic's centrepiece and had no entry at all: deleting its grid, its label
+  // typography and its error styling left all 26 gates green.
+  ['.clara-field', ['display', 'gap']],
+  ['.clara-field__label', ['font-size', 'color']],
+  ['.clara-field__description', ['font-size', 'color']],
+  ['.clara-field__error', ['font-size', 'color']],
+  ['.clara-textarea', ['min-height']],
+  ['.clara-radio-group', ['display', 'gap']],
+  ['.clara-checkbox-group', ['display', 'gap']],
+  // Load-bearing twice: it hides both groups' legends so the label is not painted twice, and it
+  // keeps the `(required)` marker out of the layout while leaving it in the accessible name.
+  ['.clara-visually-hidden', ['position', 'width', 'height', 'overflow', 'clip-path']],
+]
+
+/**
+ * Declarations a selector must NOT make. `.clara-visually-hidden` has to stay in the accessibility
+ * tree, so `display: none` and `visibility: hidden` defeat its whole purpose - and either could be
+ * introduced with every gate green, silently reverting D0071 and re-painting every group label
+ * twice, because jsdom applies no stylesheet and no test can see it.
+ */
+const FORBIDDEN = [
+  ['.clara-visually-hidden', { display: 'none', visibility: 'hidden' }],
 ]
 
 /**
@@ -102,26 +180,72 @@ const SHAPE_CONTRACT = [
  * cannot be seen when focused is unusable by exactly the people the tab stop was kept for (D0058),
  * and jsdom cannot see it, so this is the only place it can be caught.
  */
-const FOCUSABLE = [
-  '.clara-input', '.clara-checkbox', '.clara-radio', '.clara-switch',
-  '.clara-search__clear', '.clara-input-group__clear', '.clara-password__toggle',
-]
+/**
+ * Derived, not hand-written. A hand-maintained list cannot notice a focusable element nobody
+ * remembered to type into it, which is exactly what happened: `.clara-link` renders an `<a href>`,
+ * ships today, and had no ring for a whole epic while a comment here and D0072 both claimed the
+ * indicator covered "every focusable thing this stylesheet renders".
+ *
+ * The class names come from the components' own JSX - any element that is focusable by virtue of
+ * what it IS (an anchor with href, a button, an input, a textarea, or an explicit tabIndex).
+ */
+const FOCUSABLE = focusableClassGroups()
 
-const focusRings = new Set()
+const FOCUS_RING_PROPS = ['outline', 'box-shadow']
+
+const focusRings = new Map()
 for (const file of files) {
   postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
     for (const sel of rule.selectors ?? []) {
-      if (sel.endsWith(':focus-visible')) focusRings.add(sel.slice(0, -':focus-visible'.length))
+      if (!sel.endsWith(':focus-visible')) continue
+      const base = sel.slice(0, -':focus-visible'.length)
+      const declared = focusRings.get(base) ?? new Set()
+      rule.walkDecls((decl) => declared.add(decl.prop))
+      focusRings.set(base, declared)
     }
   })
 }
-for (const selector of FOCUSABLE) {
-  if (!focusRings.has(selector)) {
+/** The selectors a given component owns: its own block, its elements, and its modifiers. */
+const ownedBy = (component) => {
+  const base = `.clara-${component.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}`
+  return (selector) => selector === base || selector.startsWith(`${base}__`) || selector.startsWith(`${base}--`)
+}
+const inScope = scope ? ownedBy(scope) : () => true
+
+for (const group of FOCUSABLE.filter((g) => g.some(inScope))) {
+  // An element is covered if ANY of its class names carries a complete ring: a textarea renders
+  // `cx('clara-input', 'clara-textarea')` and takes its indicator from the first.
+  const covering = group.map((sel) => focusRings.get(sel)).filter(Boolean)
+  const selector = group.join(' + ')
+  if (!covering.length) {
     problems.push(`${selector} is focusable and has no \`:focus-visible\` rule - a control that can be tabbed to and not seen is unusable`)
+    continue
+  }
+  const declared = new Set(covering.flatMap((d) => [...d]))
+  // Existing is not the same as drawing. Replacing the indicator's three declarations with a colour
+  // change, leaving the selector list intact, removed D0054's two-part ring from all seven controls
+  // with every gate green - the selector was checked and the declarations were not.
+  for (const prop of FOCUS_RING_PROPS) {
+    if (!declared.has(prop)) {
+      problems.push(`${selector}:focus-visible declares no \`${prop}\` - the indicator is two-part (D0054), and a selector that draws nothing is not a focus ring`)
+    }
   }
 }
 
-for (const [selector, required] of SHAPE_CONTRACT) {
+for (const [selector, banned] of FORBIDDEN.filter(([sel]) => inScope(sel))) {
+  for (const file of files) {
+    postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+      if (!(rule.selectors ?? []).includes(selector)) return
+      rule.walkDecls((decl) => {
+        if (banned[decl.prop] === decl.value.trim()) {
+          problems.push(`${selector} declares \`${decl.prop}: ${decl.value}\`, which removes it from the accessibility tree - the point of the class is to be unseen and still READ`)
+        }
+      })
+    })
+  }
+}
+
+for (const [selector, required] of SHAPE_CONTRACT.filter(([sel]) => inScope(sel))) {
   const declared = new Set()
   for (const file of files) {
     postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
@@ -141,4 +265,4 @@ for (const [selector, required] of SHAPE_CONTRACT) {
 }
 
 if (problems.length) fail(RULE, problems)
-pass(RULE, `${files.length} component stylesheet(s), ${declarations} token reference(s), all tier 2 or 3, no literals`)
+pass(RULE, `${scope ? `${scope}: ` : ''}${files.length} component stylesheet(s), ${declarations} token reference(s), all tier 2 or 3, no literals`)

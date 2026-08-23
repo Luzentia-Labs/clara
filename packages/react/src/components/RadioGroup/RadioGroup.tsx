@@ -38,6 +38,8 @@ export function RadioGroup ({
 }: RadioGroupProps) {
   const wiring = useFieldWiring()
   const base = useId()
+  // `radiogroup` supports aria-required, so the requirement travels as the PROPERTY and the marker
+  // is deliberately not composed into the name - both would announce it twice.
   return (
     // `radiogroup` rather than the bare fieldset's implicit `group`: it is the correct role for a
     // set of mutually exclusive options, and it is the one that SUPPORTS aria-required. Putting
@@ -45,7 +47,11 @@ export function RadioGroup ({
     <fieldset
       role="radiogroup"
       className={cx('clara-radio-group', `clara-radio-group--${orientation}`, className)}
-      aria-labelledby={wiring?.labelFor === 'group' ? wiring.labelId : undefined}
+      // The fieldset adopts the Field's control id so a `labelFor="control"` label resolves to a
+      // real element instead of dangling. It cannot LABEL a fieldset - that is what aria-labelledby
+      // is for - but an `htmlFor` pointing at nothing is a defect no automated check can see.
+      id={wiring?.id}
+      aria-labelledby={wiring ? wiring.labelId : undefined}
       aria-describedby={wiring?.describedBy}
       aria-required={wiring?.required || undefined}
       aria-invalid={wiring?.invalid || undefined}
@@ -62,7 +68,7 @@ export function RadioGroup ({
         * accessible-name computation, so text added to the legend never reaches the name; the Field
         * puts it inside the element it names the group with instead.
         */}
-      <legend className={cx('clara-radio-group__legend', wiring?.labelFor === 'group' && 'clara-visually-hidden')}>
+      <legend className={cx('clara-radio-group__legend', wiring != null && 'clara-visually-hidden')}>
         {legend}
       </legend>
       {options.map((option) => {

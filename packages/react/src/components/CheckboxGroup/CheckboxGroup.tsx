@@ -44,7 +44,13 @@ export function CheckboxGroup ({
   return (
     <fieldset
       className={cx('clara-checkbox-group', `clara-checkbox-group--${orientation}`, className)}
-      aria-labelledby={wiring?.labelFor === 'group' ? wiring.labelId : undefined}
+      // The fieldset adopts the Field's control id so a `labelFor="control"` label resolves to a
+      // real element instead of dangling. It cannot LABEL a fieldset - that is what aria-labelledby
+      // is for - but an `htmlFor` pointing at nothing is a defect no automated check can see.
+      id={wiring?.id}
+      // A `<fieldset>` is role=group, which does not support aria-required - so the requirement has
+      // to reach the user through the NAME, and this is the only route it has.
+      aria-labelledby={wiring ? [wiring.labelId, wiring.requiredMarkerId].filter(Boolean).join(' ') : undefined}
       aria-describedby={wiring?.describedBy}
       aria-invalid={wiring?.invalid || undefined}
       aria-errormessage={wiring?.invalid ? wiring.errorId : undefined}
@@ -66,7 +72,7 @@ export function CheckboxGroup ({
         * accessible-name computation, so text added to the legend never reaches the name; the Field
         * puts it inside the element it names the group with instead.
         */}
-      <legend className={cx('clara-checkbox-group__legend', wiring?.labelFor === 'group' && 'clara-visually-hidden')}>
+      <legend className={cx('clara-checkbox-group__legend', wiring != null && 'clara-visually-hidden')}>
         {legend}
       </legend>
       {options.map((option) => {

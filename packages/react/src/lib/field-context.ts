@@ -14,6 +14,18 @@ export interface FieldWiring {
   labelId: string
   /** Whether the Field's label names a single control or a group. See `FieldProps.labelFor`. */
   labelFor: 'control' | 'group'
+  /**
+   * The id of a visually-hidden "(required)" marker, present only when the Field is required.
+   *
+   * A control that CANNOT carry `aria-required` - a `<fieldset>`, which is role=group - composes it
+   * into its own `aria-labelledby` so the requirement is announced. A control that can carry the
+   * property ignores this and uses the property, or it is announced twice.
+   *
+   * The decision belongs to the control because only the control knows its role, and it cannot be
+   * made by the Field at render time: React renders the parent's label before any child reports in,
+   * so a callback from the child is always one render too late.
+   */
+  requiredMarkerId: string | undefined
   /** Space-separated ids for `aria-describedby`, or undefined when there is nothing to describe. */
   describedBy: string | undefined
   /** The error message's id, for `aria-errormessage`. */
@@ -53,6 +65,9 @@ export function fieldAriaProps (wiring: FieldWiring | null, kind: 'text' | 'togg
   if (!wiring) return {}
   return {
     id: wiring.id,
+    // Always, for every control. `htmlFor` alone made the name depend on the consumer choosing the
+    // right `labelFor`, and a wrong choice produced a control with no accessible name at all.
+    'aria-labelledby': wiring.labelId,
     'aria-describedby': wiring.describedBy,
     'aria-invalid': wiring.invalid || undefined,
     'aria-errormessage': wiring.invalid ? wiring.errorId : undefined,

@@ -57,7 +57,7 @@ cannot see the action they are about to take.
 - **Given** the Textarea stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell node scripts/check-component-css.mjs
+- **Verify:** shell node scripts/check-component-css.mjs --component Textarea
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -79,7 +79,7 @@ cannot see the action they are about to take.
 - **Given** a Textarea in a form
 - **When** the user presses Enter, then Tab
 - **Then** Enter inserts a newline and does not submit; Tab leaves the control rather than indenting
-- **Verify:** vitest "Textarea auto-resize respects maxRows, and its keyboard keys behave"
+- **Verify:** vitest "Textarea keyboard keys behave"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -88,9 +88,13 @@ cannot see the action they are about to take.
 - **Given** the Textarea story
 - **When** it is proposed for export
 - **Then** the artefacts that CAN exist today do: unit and interaction tests using accessible
-  queries, an axe assertion over default and error states, a docs page, a documented keyboard table
-  and a recorded manual keyboard pass - all checked by `check-verification.mjs`, which fails on a
-  missing one and on a section with no content
+  queries, an axe assertion over default and error states, a docs page and a documented keyboard
+  table - all checked by `check-verification.mjs`, which fails on a missing one and on a section
+  with no content
+- **And** the manual keyboard pass is **outstanding, and says so in the record**. An earlier version
+  of this criterion claimed one had been recorded, and an identical fabricated paragraph sat in all
+  23 verification records. The guard now requires that section to state either a real pass - naming
+  the browsers it was walked in - or that it is outstanding, and a record saying "Not done." fails
 - **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
   belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
   records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five
@@ -130,7 +134,7 @@ cannot see the action they are about to take.
 | `maxRows` is omitted | No auto-resize at all. The behaviour is opt-in, so an existing fixed-height textarea does not silently start moving. |
 | Enter is pressed | A newline is inserted; the form is not submitted. |
 | Tab is pressed | Focus leaves the control rather than indenting. |
-| Content is removed | The control shrinks back, down to its `rows` floor, rather than keeping the height it once needed. |
+| Content is removed | The control shrinks back, down to its `rows` floor, rather than keeping the height it once needed. Covered by the resize tests: `resize()` measures from `height: auto` on every change, so shrinking is the same code path as growing. |
 
 
 ## Test Scenarios

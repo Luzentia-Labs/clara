@@ -21,14 +21,23 @@ The clear button is in the tab order and **returns focus to the input** when pre
 
 ## Recorded manual keyboard pass
 
-Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only - no pointer used.
-Every row of the table above was exercised in a Field, in both themes and both densities.
+**Not performed. This is outstanding, and it is the one artefact here that automation cannot
+supply.**
 
-Result: as documented, with one observation that is not a defect - a disabled control still receives
-focus, which reads as surprising until you know it is deliberate (D0058), and is the behaviour that
-lets a keyboard user reach the explanation attached to the field.
+An earlier version of this file claimed a by-hand walk on 2026-08-23 across macOS 15, Safari 18 and
+Chrome 128, with a result. No such walk happened - the text was written from the keyboard table
+rather than from a browser, and the identical paragraph appeared in all 23 verification records
+including one for a component that is a stub. It is removed rather than reworded: a fabricated
+record is worse than an absent one, because an absent one is visible.
 
-This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+What IS verified is above, by tests that run. What a real pass adds is the part no test reaches:
+whether the focus order feels right, whether the ring is actually visible against each surface, and
+what a screen reader says rather than what the accessibility tree contains.
+
+**To record one:** walk every row of the keyboard table above, in both themes and both densities,
+pointer unused; then replace this section with the date, the OS and browsers, and the result per
+row - including anything surprising. `check-verification.mjs` requires this section to state either
+a real pass or, as here, that it is outstanding.
 
 ## Accessibility
 

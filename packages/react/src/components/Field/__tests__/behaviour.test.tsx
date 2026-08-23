@@ -92,7 +92,7 @@ describe('Input uses native change convention', () => {
   })
 })
 
-describe('Textarea auto-resize respects maxRows, and its keyboard keys behave', () => {
+describe('Textarea auto-resize respects maxRows', () => {
   // jsdom computes no layout, so `scrollHeight` is 0 for every element and every assertion about
   // the resulting height is a constant - the first version of these tests asserted `height` was
   // truthy ("0px") and called it growth, and asserted overflow was 'hidden' under a name that said
@@ -139,6 +139,9 @@ describe('Textarea auto-resize respects maxRows, and its keyboard keys behave', 
     restore()
   })
 
+})
+
+describe('Textarea keyboard keys behave', () => {
   it('inserts a newline on Enter rather than submitting', async () => {
     const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault())
     render(<form onSubmit={onSubmit}><Field label="Notes"><Textarea /></Field></form>)
@@ -214,7 +217,7 @@ describe('NumberInput constraints and formatting', () => {
   })
 })
 
-describe('NumberInput keyboard stepping', () => {
+describe('NumberInput arrow keys step and clamp', () => {
   it('steps up and down, and reports through onChange', async () => {
     function Controlled () {
       const [v, setV] = useState('10')
@@ -241,16 +244,6 @@ describe('NumberInput keyboard stepping', () => {
     expect(el).toHaveValue('10')
   })
 
-  it('reaches the bounds with Home and End, as a spinbutton must', () => {
-    // A spinbutton that announces bounds but offers no way to reach them is half a contract.
-    inField(<NumberInput min={0} max={99} defaultValue="5" />)
-    const el = screen.getByRole('spinbutton') as HTMLInputElement
-    el.focus()
-    fireEvent.keyDown(el, { key: 'End' })
-    expect(el.value).toBe('99')
-    fireEvent.keyDown(el, { key: 'Home' })
-    expect(el.value).toBe('0')
-  })
 
   it('does not write float noise for a fractional step', () => {
     // 0.1 + 0.1 + 0.1 is 0.30000000000000004 in binary floating point, and seventeen significant
@@ -407,9 +400,17 @@ describe('the theme and density scope is the one the stylesheets select on', () 
 const MATRIX = [
   ['light', 'comfortable'], ['light', 'compact'], ['dark', 'comfortable'], ['dark', 'compact'],
 ] as const
+/** Which fixtures are a fieldset, declared once beside them rather than inferred from a name. */
+const GROUP_FIXTURES = new Set(['RadioGroup', 'CheckboxGroup'])
+/**
+ * `isGroup` travels WITH the fixture rather than being inferred from the display name. A name test
+ * silently reverts the composition fix for any control that is renamed or added - the same
+ * category-from-a-name failure the repo keeps finding (D0051, D0067).
+ */
 const CONTROLS = [
   ['Field framework', <Input />],
   ['Input', <Input />],
+  ['Input (decorated)', <Input prefix="£" suffix="/unit" clearable maxCount={20} defaultValue="10" />],
   ['Textarea', <Textarea />],
   ['NumberInput', <NumberInput unit="GBP" />],
   ['PasswordInput', <PasswordInput />],
@@ -424,7 +425,7 @@ describe.each(CONTROLS)('%s theme and density matrix', (name, control) => {
   it.each(MATRIX)('renders inside the themed scope and passes axe in %s / %s', async (theme, density) => {
     // A group is labelled differently from a single control, and the fixture has to render the
     // composition that ships - otherwise the matrix passes over markup no consumer is told to write.
-    const isGroup = name === 'RadioGroup' || name === 'CheckboxGroup'
+    const isGroup = GROUP_FIXTURES.has(name)
     const { container } = render(
       <ClaraProvider theme={theme} density={density}>
         <Field label="Account code" description="hint" {...(isGroup ? { labelFor: 'group' as const } : {})}>
@@ -773,13 +774,21 @@ describe('Input affixes, clear and counter', () => {
     expect(document.querySelector('.clara-input-group__count--over')).not.toBeNull()
   })
 
-  it('stays quiet until the user is near the limit', async () => {
-    // A live region that fires on every keystroke is unusable.
-    inField(<Input maxCount={10} />)
+  it('says nothing until there is something worth saying, and the count itself is not live', async () => {
+    // A live region that rewrites on every keystroke is unusable, and one that APPEARS in the same
+    // commit as its first text is commonly not announced at all - so the announcer is always
+    // present and empty, and the visible count is reached through aria-describedby instead.
+    inField(<Input maxCount={4} />)
+    const announcer = document.querySelector('[aria-live="polite"]')!
+    const count = document.querySelector('.clara-input-group__count')!
+    expect(count).not.toHaveAttribute('aria-live')
+    expect(announcer.textContent).toBe('')
     await userEvent.type(screen.getByRole('textbox'), 'ab')
-    expect(document.querySelector('.clara-input-group__count')).toHaveAttribute('aria-live', 'off')
-    await userEvent.type(screen.getByRole('textbox'), 'cdefghi')
-    expect(document.querySelector('.clara-input-group__count')).toHaveAttribute('aria-live', 'polite')
+    expect(announcer.textContent).toBe('')
+    await userEvent.type(screen.getByRole('textbox'), 'cd')
+    expect(announcer.textContent).toBe('limit reached')
+    await userEvent.type(screen.getByRole('textbox'), 'ef')
+    expect(announcer.textContent).toBe('2 over the limit')
   })
 
   it('does not clear a disabled decorated Input', async () => {
@@ -789,7 +798,18 @@ describe('Input affixes, clear and counter', () => {
   })
 })
 
-describe('NumberInput keyboard stepping reaches every documented key', () => {
+describe('NumberInput keyboard reaches the bounds and holds precision', () => {
+  it('reaches the bounds with Home and End, as a spinbutton must', () => {
+    // A spinbutton that announces bounds but offers no way to reach them is half a contract.
+    inField(<NumberInput min={0} max={99} defaultValue="5" />)
+    const el = screen.getByRole('spinbutton') as HTMLInputElement
+    el.focus()
+    fireEvent.keyDown(el, { key: 'End' })
+    expect(el.value).toBe('99')
+    fireEvent.keyDown(el, { key: 'Home' })
+    expect(el.value).toBe('0')
+  })
+
   it('steps by ten with PageUp and PageDown', () => {
     // Documented in the keyboard table and claimed by an AC; no test mentioned either key.
     inField(<NumberInput defaultValue="10" step={2} min={0} max={100} />)
@@ -893,22 +913,103 @@ describe('a disabled control runs no consumer handler by any route', () => {
   })
 })
 
-describe('a required group announces the requirement in its NAME', () => {
+describe('a required group announces the requirement exactly once', () => {
   // Asserting `textContent` was a proxy: it includes visually-hidden text and text that
   // `aria-labelledby` has overridden, so it reported success while the accessible name said nothing
-  // about the requirement and no route conveyed it at all.
-  it.each([
-    ['CheckboxGroup', <CheckboxGroup name="c" legend="Notify by" options={[{ value: 'a', label: 'Email' }]} />, 'group'],
-    ['RadioGroup', <RadioGroup name="t" legend="Terms" options={[{ value: 'a', label: 'A' }]} />, 'radiogroup'],
-  ])('%s carries it in the accessible name, not merely in the DOM text', (_n, control, role) => {
-    render(<Field label="Notify by" labelFor="group" required>{control}</Field>)
-    expect(screen.getByRole(role)).toHaveAccessibleName(/\(required\)/)
+  // about the requirement. Asserting BOTH groups carry it in the NAME was the opposite error -
+  // RadioGroup carries `aria-required`, so putting it in the name too announces it twice.
+  it('CheckboxGroup composes it into the name, because role=group cannot carry the property', () => {
+    render(
+      <Field label="Regions" labelFor="group" required>
+        <CheckboxGroup name="c" legend="Regions" options={[{ value: 'a', label: 'A' }]} />
+      </Field>,
+    )
+    const group = screen.getByRole('group')
+    expect(group).toHaveAccessibleName(/Regions.\(required\)/)
+    expect(group).not.toHaveAttribute('aria-required')
   })
 
-  it('does not double-announce it on a single control, which has aria-required', () => {
+  it('RadioGroup uses the property and keeps its name clean', () => {
+    render(
+      <Field label="Delivery" labelFor="group" required>
+        <RadioGroup name="t" legend="Delivery" options={[{ value: 'a', label: 'A' }]} />
+      </Field>,
+    )
+    const group = screen.getByRole('radiogroup')
+    expect(group).toHaveAttribute('aria-required', 'true')
+    expect(group).toHaveAccessibleName('Delivery')
+  })
+
+  it('does not double-announce on a single control, which has aria-required', () => {
     inField(<Input />, { required: true })
     const el = screen.getByRole('textbox')
     expect(el).toHaveAttribute('aria-required', 'true')
     expect(el).toHaveAccessibleName('Value')
+  })
+})
+
+describe('every labelFor and child combination produces a named control', () => {
+  // Two of the four were broken and nothing warned. `labelFor="group"` around a single control gave
+  // it NO accessible name at all (axe: critical `label`); `labelFor="control"` around a group left
+  // an `htmlFor` resolving to nothing - which axe has no rule for - and painted the label twice.
+  // The association no longer depends on the consumer picking the right word: `aria-labelledby`
+  // names the control in every combination, and `labelFor` only decides whether a clickable
+  // `<label htmlFor>` is rendered. Getting it wrong now costs a click target, never a name.
+  it.each([
+    ['control', 'single', <Input />, 'textbox'],
+    ['group', 'single', <Input />, 'textbox'],
+    ['group', 'group', <RadioGroup name="t" legend="Terms" options={[{ value: 'a', label: 'A' }]} />, 'radiogroup'],
+    ['control', 'group', <RadioGroup name="t" legend="Terms" options={[{ value: 'a', label: 'A' }]} />, 'radiogroup'],
+  ] as const)('labelFor=%s around a %s child still names it', async (labelFor, _kind, control, role) => {
+    const { container } = render(
+      <Field label="Supplier" labelFor={labelFor}>{control}</Field>,
+    )
+    expect(screen.getByRole(role)).toHaveAccessibleName('Supplier')
+    // and no label points at an id that does not exist
+    for (const label of container.querySelectorAll('label[for]')) {
+      expect(container.querySelector(`#${CSS.escape(label.getAttribute('for')!)}`)).not.toBeNull()
+    }
+    await expect(runAxe(container)).resolves.toHaveNoBlockingViolations()
+  })
+
+  it('never paints the label text twice, in any combination', () => {
+    for (const labelFor of ['control', 'group'] as const) {
+      const { container, unmount } = render(
+        <Field label="Delivery" labelFor={labelFor}>
+          <RadioGroup name="t" legend="Delivery" options={[{ value: 'a', label: 'A' }]} />
+        </Field>,
+      )
+      // Count only what is PAINTED. `clara-visually-hidden` keeps its text in the DOM on purpose,
+      // so `textContent` counts the hidden legend too - it is a proxy for what the user sees, and
+      // proxies are what this epic keeps getting caught by.
+      const painted = [...container.querySelectorAll('*')]
+        .filter((el) => !el.closest('.clara-visually-hidden'))
+        .filter((el) => el.children.length === 0 && el.textContent === 'Delivery')
+      expect(painted).toHaveLength(1)
+      unmount()
+    }
+  })
+
+  it('announces required exactly once, whichever route the control has', () => {
+    // RadioGroup carries aria-required itself (role=radiogroup supports it) and must NOT also get
+    // the label marker; CheckboxGroup cannot carry it and must. Gating on the labelling mode gave
+    // RadioGroup both - the very double-announcement the gate existed to prevent.
+    const radio = render(
+      <Field label="Delivery" labelFor="group" required>
+        <RadioGroup name="t" legend="Delivery" options={[{ value: 'a', label: 'A' }]} />
+      </Field>,
+    )
+    expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-required', 'true')
+    expect(screen.getByRole('radiogroup')).toHaveAccessibleName('Delivery')
+    radio.unmount()
+
+    render(
+      <Field label="Regions" labelFor="group" required>
+        <CheckboxGroup name="c" legend="Regions" options={[{ value: 'a', label: 'A' }]} />
+      </Field>,
+    )
+    const group = screen.getByRole('group')
+    expect(group).not.toHaveAttribute('aria-required')
+    expect(group).toHaveAccessibleName(/Regions.\(required\)/)
   })
 })

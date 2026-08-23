@@ -137,7 +137,6 @@
 
 .clara-icon-button__icon { display: inline-flex; }
 
-.clara-link { color: var(--clara-color-fg-link); }
 .clara-link__external { margin-inline-start: var(--clara-space-control-gap); font-size: var(--clara-font-caption); }
 
 /*
@@ -204,7 +203,8 @@
 .clara-switch:focus-visible,
 .clara-search__clear:focus-visible,
 .clara-input-group__clear:focus-visible,
-.clara-password__toggle:focus-visible {
+.clara-password__toggle:focus-visible,
+.clara-link:focus-visible {
   outline: var(--clara-border-width-focus) solid var(--clara-color-border-focus);
   outline-offset: var(--clara-border-width-focus);
   box-shadow: 0 0 0 var(--clara-border-width-focus) var(--clara-color-border-focus-offset);

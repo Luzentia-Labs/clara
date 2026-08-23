@@ -817,6 +817,66 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // The manual pass is the one artefact automation cannot supply, and it is the one that got
+    // fabricated - an identical paragraph, same date and browsers, in all 23 records including one
+    // for a stub. Presence was the only requirement, so "Not done." passed too.
+    name: 'a manual keyboard pass that neither records a walk nor admits it is outstanding',
+    guard: 'check-verification.mjs',
+    expect: /neither records a pass .* nor states that it is outstanding/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Switch/verification.md')
+      const text = readFileSync(f, 'utf8')
+      const at = text.indexOf('## Recorded manual keyboard pass')
+      writeFileSync(f, text.slice(0, at) + '## Recorded manual keyboard pass\n\nNot done.\n')
+    },
+  },
+  {
+    // Replacing the indicator's declarations while leaving the selector list intact removed D0054's
+    // two-part ring from all seven controls with every gate green: the selector was checked, the
+    // declarations were not.
+    name: 'a focus-visible rule that exists and draws nothing',
+    guard: 'check-component-css.mjs',
+    expect: /focus-visible declares no `outline`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      const text = readFileSync(f, 'utf8')
+      writeFileSync(f, text.replace(/(\.clara-link:focus-visible \{)[^}]*\}/, '$1 color: var(--clara-color-fg-default); }'))
+    },
+  },
+  {
+    // `.clara-visually-hidden` hides both groups' legends and keeps the required marker out of the
+    // layout while leaving it in the accessible name. `display: none` removes it from the tree and
+    // silently reverts D0071, and no test can see it - jsdom applies no stylesheet.
+    name: 'the visually-hidden class taken out of the accessibility tree',
+    guard: 'check-component-css.mjs',
+    expect: /removes it from the accessibility tree/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-visually-hidden { display: none; }\n')
+    },
+  },
+  {
+    // The epic's centrepiece had no shape entry: deleting the Field's grid left every gate green.
+    name: 'the Field stripped of its own layout',
+    guard: 'check-component-css.mjs',
+    expect: /\.clara-field declares no `display`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('.clara-field { display: grid; gap: var(--clara-space-control-gap); }', '.clara-field { color: var(--clara-color-fg-default); }'))
+    },
+  },
+  {
+    // A named colour is a literal. The first regex had no `i` flag, only px|rem|em, and no colour
+    // names - five probes went straight through the guard whose whole job is catching them.
+    name: 'a named colour in component CSS',
+    guard: 'check-component-css.mjs',
+    expect: /uses the literal rebeccapurple/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.probe { border-color: rebeccapurple; }\n')
+    },
+  },
+  {
     name: 'an icon exported but absent from the committed list',
     guard: 'check-icons.mjs',
     expect: /absent from ICONS\.md|not declared/,

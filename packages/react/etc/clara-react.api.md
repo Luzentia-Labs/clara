@@ -196,6 +196,7 @@ export interface FieldWiring {
     labelId: string;
     // (undocumented)
     required: boolean;
+    requiredMarkerId: string | undefined;
 }
 
 // @public (undocumented)

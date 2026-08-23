@@ -45,9 +45,11 @@ export interface FieldProps {
 }
 
 export function Field ({ children, label, description, error, required = false, disabled = false, labelFor = 'control', className }: FieldProps) {
+
   const base = useId()
   const id = `${base}-control`
   const labelId = `${base}-label`
+  const requiredMarkerId = required ? `${base}-required` : undefined
   const descriptionId = description ? `${base}-description` : undefined
   const errorId = error ? `${base}-error` : undefined
 
@@ -56,7 +58,7 @@ export function Field ({ children, label, description, error, required = false, 
   // because AC5 requires the order to BE documented, not merely to exist.
   const describedBy = [descriptionId, errorId].filter(Boolean).join(' ') || undefined
 
-  const wiring: FieldWiring = { id, labelId, describedBy, errorId, invalid: Boolean(error), required, disabled, labelFor }
+  const wiring: FieldWiring = { id, labelId, describedBy, errorId, invalid: Boolean(error), required, disabled, labelFor, requiredMarkerId }
 
   return (
     <FieldContext.Provider value={wiring}>
@@ -75,7 +77,7 @@ export function Field ({ children, label, description, error, required = false, 
                 * reported success. In control mode this is absent, because `aria-required` on the
                 * control already carries it and both would announce it twice.
                 */}
-              {required ? <span className="clara-visually-hidden"> (required)</span> : null}
+
             </span>
             )
           : (
@@ -84,6 +86,9 @@ export function Field ({ children, label, description, error, required = false, 
               {required ? <span className="clara-field__required" aria-hidden="true">*</span> : null}
             </label>
             )}
+        {requiredMarkerId
+          ? <span className="clara-visually-hidden" id={requiredMarkerId}>(required)</span>
+          : null}
         {description ? <p className="clara-field__description" id={descriptionId}>{description}</p> : null}
         {children}
         {/*

@@ -115,14 +115,33 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input (
         : null}
       {maxCount !== undefined
         ? (
-          <span
-            id={countId}
-            className={cx('clara-input-group__count', over && 'clara-input-group__count--over')}
-            // Polite, and only near the limit: announcing a count on every keystroke is unusable.
-            aria-live={current.length >= maxCount * 0.9 ? 'polite' : 'off'}
-          >
-            {current.length} of {maxCount}
-          </span>
+          <>
+            {/*
+              * The visible count is NOT a live region. It is read on demand through
+              * `aria-describedby`, which is how a count should be reached.
+              */}
+            <span
+              id={countId}
+              className={cx('clara-input-group__count', over && 'clara-input-group__count--over')}
+            >
+              {current.length} of {maxCount}
+            </span>
+            {/*
+              * A separate announcer, always present so assistive technology has registered it, and
+              * empty until there is something worth saying. Toggling `aria-live` on the count
+              * itself was wrong twice over: a region that appears in the same commit as its text
+              * is commonly not announced at all - so the boundary crossing, the one announcement
+              * that matters, was the likeliest to be silent - and past the threshold every
+              * keystroke rewrote it, which is the behaviour the docs page calls unusable.
+              */}
+            <span className="clara-visually-hidden" aria-live="polite">
+              {over
+                ? `${current.length - maxCount} over the limit`
+                : current.length === maxCount
+                  ? 'limit reached'
+                  : ''}
+            </span>
+          </>
           )
         : null}
     </span>
