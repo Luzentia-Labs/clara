@@ -38,7 +38,7 @@ for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
 process.on('exit', sweep)
 
 /** A throwaway workspace holding only what the guards read: manifests, the workspace file, LICENSE. */
-function stageWorkspace ({ withOutput = false, withGit = false } = {}) {
+function stageWorkspace ({ withOutput = false, withGit = false, withStories = false } = {}) {
   const stage = mkdtempSync(join(tmpdir(), 'clara-prove-'))
   staged.add(stage)
   for (const rel of [
@@ -77,6 +77,20 @@ function stageWorkspace ({ withOutput = false, withGit = false } = {}) {
       }
     }
   }
+  if (withStories) {
+    // `check-story-verifiers.mjs` reads the story files AND the declared test names, so both have
+    // to be real in the staged copy - a guard proven against an empty suite proves nothing.
+    cpSync(join(root, 'sdlc-studio/stories'), join(stage, 'sdlc-studio/stories'), { recursive: true })
+    for (const pkg of ['packages', 'test', 'scripts']) {
+      if (existsSync(join(root, pkg))) {
+        cpSync(join(root, pkg), join(stage, pkg), {
+          recursive: true,
+          filter: (src) => !/node_modules|[/\\]dist([/\\]|$)/.test(src),
+        })
+      }
+    }
+  }
+
   // Last, so every staged file is in the index and only the mutation's own file is untracked.
   if (withGit) {
     // A real git index in the staged copy. `check-tracked.mjs` asks git what is tracked, and
@@ -1045,6 +1059,19 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // `vitest -t` exits 0 when its pattern matches nothing, so a renamed describe turns a
+    // `Verified: yes` criterion into a green check that ran no test. Raised by a review seat that
+    // proved the vacuity by hand.
+    name: 'a verified criterion whose test selector matches no test in the suite',
+    guard: 'check-story-verifiers.mjs',
+    withStories: true,
+    expect: /matches no test name in the suite/,
+    stage: (stage) => {
+      const f = join(stage, 'sdlc-studio/stories/US-01M0GM9E-switch.md')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('vitest "Switch uses role switch"', 'vitest "Switch uses a role that no test declares"'))
+    },
+  },
+  {
     name: 'an icon exported but absent from the committed list',
     guard: 'check-icons.mjs',
     expect: /absent from ICONS\.md|not declared/,
@@ -1084,8 +1111,8 @@ const OUTPUT_CASES = [
   },
 ]
 
-for (const { name, guard, stage: corrupt, expect, args = [], withGit = false } of OUTPUT_CASES) {
-  const stage = stageWorkspace({ withOutput: true, withGit })
+for (const { name, guard, stage: corrupt, expect, args = [], withGit = false, withStories = false } of OUTPUT_CASES) {
+  const stage = stageWorkspace({ withOutput: true, withGit, withStories })
   try {
     const clean = runGuard(guard, stage, args)
     if (clean.code !== 0) {

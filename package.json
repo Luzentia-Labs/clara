@@ -17,7 +17,7 @@
     "check:layers": "node scripts/check-layers.mjs",
     "check:private": "node scripts/check-private.mjs",
     "check:peers": "node scripts/check-peers.mjs",
-    "check": "pnpm check:tracked && pnpm check:layers && pnpm check:private && pnpm check:peers && pnpm check:exports && pnpm check:license && pnpm check:bundled-peers && pnpm check:token-output && pnpm check:stylesheets && pnpm check:contrast && pnpm check:foundations && pnpm check:mutation-config && pnpm check:coverage-gate && pnpm check:api && pnpm check:ci-gates && pnpm check:release && pnpm check:client-boundary && pnpm check:pack && pnpm check:size-budgets && pnpm check:public-tokens && pnpm check:component-css && pnpm check:geometry && pnpm check:axe && pnpm check:icons && pnpm check:verification && pnpm check:keyboard && pnpm check:prove-guards",
+    "check": "pnpm check:tracked && pnpm check:layers && pnpm check:private && pnpm check:peers && pnpm check:exports && pnpm check:license && pnpm check:bundled-peers && pnpm check:token-output && pnpm check:stylesheets && pnpm check:contrast && pnpm check:foundations && pnpm check:mutation-config && pnpm check:coverage-gate && pnpm check:api && pnpm check:ci-gates && pnpm check:release && pnpm check:client-boundary && pnpm check:pack && pnpm check:size-budgets && pnpm check:public-tokens && pnpm check:component-css && pnpm check:geometry && pnpm check:axe && pnpm check:icons && pnpm check:verification && pnpm check:story-verifiers && pnpm check:keyboard && pnpm check:prove-guards",
     "check:exports": "node scripts/check-exports.mjs",
     "check:license": "node scripts/check-license.mjs",
     "check:bundled-peers": "node scripts/check-bundled-peers.mjs",
@@ -57,7 +57,8 @@
     "preflight": "node scripts/check-ci-gates.mjs && pnpm build && pnpm typecheck && pnpm check && pnpm check:component-css && pnpm test && pnpm test:coverage && pnpm check:contrast && pnpm check:geometry && pnpm check:axe && pnpm check:keyboard && pnpm check:public-tokens && pnpm check:pack && pnpm check:client-boundary && pnpm check:api && pnpm size && pnpm check:latest",
     "latest:sync": "node scripts/sync-latest-numbers.mjs",
     "check:latest": "node scripts/sync-latest-numbers.mjs --check",
-    "check:tracked": "node scripts/check-tracked.mjs"
+    "check:tracked": "node scripts/check-tracked.mjs",
+    "check:story-verifiers": "node scripts/check-story-verifiers.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",
