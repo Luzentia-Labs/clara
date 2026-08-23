@@ -1,6 +1,6 @@
 # US-01M0GMAE: Semantic token layer
 
-> **Status:** Draft
+> **Status:** Done
 > **Plan:** PL-01M0M9FC
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
@@ -8,7 +8,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNG
 > **Serves:** Sofia Marchetti
-> **Affects:** @luzentialabs/clara-tokens, packages/tokens/dist/tokens.css, packages/tokens/src/semantic/*.json
+> **Affects:** packages/tokens/generate-semantic.mjs, packages/tokens/src/semantic/color.json, packages/tokens/src/themes/dark.json, packages/tokens/src/pairings.json, packages/tokens/contrast-required.json, packages/tokens/tokens.public.lock.json, scripts/lib/row-surface.mjs
 > **Points:** 8
 
 ## User Story
@@ -195,9 +195,18 @@ US-01M0GMWF. That asymmetry is the reason this story is worth slowing down for.
 
 ## Open Questions
 
-- [ ] **Does `selected` need a full `fg`/`bg`/`border` set, or only `bg` and `border`?** - Owner:
-  operator/Idris. PRD:245 names only `bg` and `border`; a selected row may still need a foreground
-  if the selected background is dark enough. Resolvable by measurement once the palette is in.
+None.
+
+## Resolved Questions
+
+- **Does `selected` need a full `fg`/`bg`/`border` set, or only `bg` and `border`?** -
+  **RESOLVED 2026-08-23 by measurement, which is how the question asked to be settled.** Only `bg`
+  and `border`, as PRD:245 says. `fg-default` clears 4.5:1 on every selected surface in both
+  themes with room to spare - light 14.54:1 on `bg-selected` and 12.47:1 on `bg-selected-hover`,
+  dark 11.74:1 and 7.43:1. The worst case is 7.43:1 against a 4.5:1 floor, so a dedicated
+  `fg-selected` would add a permanent public token (D0007) that no pairing needs. Both pairings are
+  in the enumerated table and measured by the gate, so if a future palette change erodes that
+  margin, CI fails rather than the question quietly reopening.
 
 Settled, recorded so they are not re-litigated:
 

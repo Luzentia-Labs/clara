@@ -7,12 +7,12 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 76 |
+| Draft | 73 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
 | Review | 0 |
-| Done | 12 |
+| Done | 15 |
 | Blocked | 0 |
 | **Total** | **88** |
 
@@ -37,9 +37,9 @@
 | [US-01M0GMDV](US-01M0GMDV-consumer-verification-apps.md) | Consumer verification apps | EP-01M0GKNH | Done | 3 | -- |
 | [US-01M0GMN0](US-01M0GMN0-f00-foundations-pass-decide-the-visual-language.md) | F00 foundations pass: decide the visual language | EP-01M0GKNG | Draft | 8 | -- |
 | [US-01M0GME0](US-01M0GME0-token-pipeline-and-tier-enforcement.md) | Token pipeline and tier enforcement | EP-01M0GKNG | Draft | 5 | -- |
-| [US-01M0GMAE](US-01M0GMAE-semantic-token-layer.md) | Semantic token layer | EP-01M0GKNG | Draft | 8 | -- |
-| [US-01M0GM66](US-01M0GM66-legal-pairing-table-and-the-contrast-gate.md) | Legal pairing table and the contrast gate | EP-01M0GKNG | Draft | 5 | -- |
-| [US-01M0GMMX](US-01M0GMMX-public-token-manifest-and-reference-gate.md) | Public token manifest and reference gate | EP-01M0GKNG | Draft | 2 | -- |
+| [US-01M0GMAE](US-01M0GMAE-semantic-token-layer.md) | Semantic token layer | EP-01M0GKNG | Done | 8 | -- |
+| [US-01M0GM66](US-01M0GM66-legal-pairing-table-and-the-contrast-gate.md) | Legal pairing table and the contrast gate | EP-01M0GKNG | Done | 5 | -- |
+| [US-01M0GMMX](US-01M0GMMX-public-token-manifest-and-reference-gate.md) | Public token manifest and reference gate | EP-01M0GKNG | Done | 2 | -- |
 | [US-01M0GM5M](US-01M0GM5M-theming-light-dark-and-context-based-scoping.md) | Theming: light, dark, and context-based scoping | EP-01M0GKNG | Draft | 8 | -- |
 | [US-01M0GMC6](US-01M0GMC6-density-modes-with-computed-geometry-assertions.md) | Density modes with computed geometry assertions | EP-01M0GKNG | Draft | 5 | -- |
 | [US-01M0GMT2](US-01M0GMT2-typography-scale-and-tabular-numerals.md) | Typography scale and tabular numerals | EP-01M0GKNG | Draft | 3 | -- |

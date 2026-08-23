@@ -47,9 +47,9 @@ Decide Clara's visual identity inside a hard 5-day box, then build the three-tie
 
 - [ ] [US-01M0GMN0: F00 foundations pass: decide the visual language](../stories/US-01M0GMN0-f00-foundations-pass-decide-the-visual-language.md)
 - [ ] [US-01M0GME0: Token pipeline and tier enforcement](../stories/US-01M0GME0-token-pipeline-and-tier-enforcement.md)
-- [ ] [US-01M0GMAE: Semantic token layer](../stories/US-01M0GMAE-semantic-token-layer.md)
-- [ ] [US-01M0GM66: Legal pairing table and the contrast gate](../stories/US-01M0GM66-legal-pairing-table-and-the-contrast-gate.md)
-- [ ] [US-01M0GMMX: Public token manifest and reference gate](../stories/US-01M0GMMX-public-token-manifest-and-reference-gate.md)
+- [x] [US-01M0GMAE: Semantic token layer](../stories/US-01M0GMAE-semantic-token-layer.md)
+- [x] [US-01M0GM66: Legal pairing table and the contrast gate](../stories/US-01M0GM66-legal-pairing-table-and-the-contrast-gate.md)
+- [x] [US-01M0GMMX: Public token manifest and reference gate](../stories/US-01M0GMMX-public-token-manifest-and-reference-gate.md)
 - [ ] [US-01M0GM5M: Theming: light, dark, and context-based scoping](../stories/US-01M0GM5M-theming-light-dark-and-context-based-scoping.md)
 - [ ] [US-01M0GMC6: Density modes with computed geometry assertions](../stories/US-01M0GMC6-density-modes-with-computed-geometry-assertions.md)
 - [ ] [US-01M0GMT2: Typography scale and tabular numerals](../stories/US-01M0GMT2-typography-scale-and-tabular-numerals.md)
