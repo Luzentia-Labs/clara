@@ -1,6 +1,6 @@
 # US-01M0GM9N: Package builds: Vite library mode and the tokens pipeline
 
-> **Status:** Review
+> **Status:** Done
 > **Verification depth:** deep
 > **Author:** sdlc-studio; agent; v1
 > **Plan:** PL-01M0HVR8
@@ -10,7 +10,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** @arethetypeswrong/cli, packages/*/vite.config.ts, packages/react, packages/react/dist/index.js, packages/tokens/dist/tokens.css, packages/tokens/style-dictionary.config.js
+> **Affects:** packages/react/vite.config.ts, packages/tokens/style-dictionary.config.js, scripts/lib/finalize-dual.mjs, scripts/lib/bundle-record.mjs, packages/tokens/generate-ramps.mjs
 > **Points:** 5
 
 ## User Story

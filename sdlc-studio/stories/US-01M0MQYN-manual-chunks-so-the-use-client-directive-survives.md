@@ -1,6 +1,6 @@
 # US-01M0MQYN: Manual chunks so the use client directive survives bundling
 
-> **Status:** Review
+> **Status:** Done
 > **Template:** full
 > **Created:** 2026-08-22
 > **Created-by:** sdlc-studio new

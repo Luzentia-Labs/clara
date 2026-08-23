@@ -1,6 +1,6 @@
 # US-01M0NJZN: One chunk per client component so budgets are real
 
-> **Status:** Review
+> **Status:** Done
 > **Template:** full
 > **Created:** 2026-08-23
 > **Created-by:** sdlc-studio new

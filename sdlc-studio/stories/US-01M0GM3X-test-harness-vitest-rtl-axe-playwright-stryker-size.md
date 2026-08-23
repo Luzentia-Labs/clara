@@ -1,6 +1,6 @@
 # US-01M0GM3X: Test harness: Vitest, RTL, axe, Playwright, Stryker, size-limit
 
-> **Status:** Review
+> **Status:** Done
 > **Verification depth:** deep
 > **Author:** sdlc-studio; agent; v1
 > **Plan:** PL-01M0HZ74
@@ -218,8 +218,15 @@ outside the build `include`, so no tarball content changes. Reversal is `git rev
 
 ## Open Questions
 
-- [x] **Re-size 5 -> 8, or split Playwright + size-limit?** - **RESOLVED 2026-08-21 by operator:
-  re-size to 8, do not split.** Phase 4 remains the relief valve if it runs long.
+None.
+
+## Resolved Questions
+
+- **Re-size 5 -> 8, or split Playwright + size-limit?** - **RESOLVED 2026-08-21 by operator:
+  re-size to 8, do not split.** Phase 4 remains the relief valve if it runs long. Moved here from
+  Open Questions on 2026-08-23: a tick is not a ruling, and the terminal-status gate is right to
+  say so - a ticked item pointing at nothing is how an artefact reaches Done still carrying a
+  question nobody answered.
 
 Settled during planning, recorded so they are not re-litigated:
 
