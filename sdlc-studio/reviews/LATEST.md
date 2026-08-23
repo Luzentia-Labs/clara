@@ -19,7 +19,7 @@ sign-off, because the author never records their own verdict.
 - `pnpm check` runs **28 guards**; `prove-guards-fail` kills **82 mutations** on a staged copy.
 - **846 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **85 decisions**. Stories: **31 Done of 88**. `main` is the only branch - this project is
+- **85 decisions**. Stories: **38 Done of 88**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line
@@ -99,7 +99,9 @@ skill rather than here.
 
 | Blocker | Blocks | Note |
 | --- | --- | --- |
-| **Operator sign-off** | Transitioning the ten form stories to Done | Every AC passes; the author never records their own verdict. Evidence: `reviews/RV-2026-08-23-ep-01m0gkm2.md`. |
-| **The review rounds** | The same | Six rounds run, each rejecting the previous round's work. By round 6 every behavioural mechanism deleted went red; what remained were guards with no witness and prose drifting from code. |
+| **A VoiceOver session** | Field reaching Done | Field AC6 asks for the announced strings for a description plus an error, recorded before export. Nobody has run it. The DOM order and de-duplication it depends on ARE verified (AC5); what a screen reader SAYS is not. |
+| **An autofill check in Chrome and Safari** | Input reaching Done | Input AC4. Note the feature it would check does not exist: no `:-webkit-autofill` rule is in the repo, and the criterion now says so. What needs confirming is that an autofilled field stays usable and readable with the browser's own colour. |
+| **A manual keyboard pass** | Nothing, today | Outstanding on all 23 records and each says so. It is not a Done gate; it is the thing no automated check reaches. |
+| **The review rounds** | (closed) | Six rounds run, each rejecting the previous round's work. By round 6 every behavioural mechanism deleted went red; what remained were guards with no witness and prose drifting from code. |
 | **US-01M0GMZW** | Gate 7, and the two definition-of-done artefacts named above | Storybook workspace + visual regression. |
 | **`NPM_TOKEN`** | Any publish | Unset on the repo, deliberately, until a release is actually wanted. |

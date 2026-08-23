@@ -46,14 +46,14 @@ The Field framework and the basic inputs. ERP applications are mostly forms, and
 
 - [ ] [US-01M0GM3D: Field framework](../stories/US-01M0GM3D-field-framework.md)
 - [ ] [US-01M0GMBM: Input](../stories/US-01M0GMBM-input.md)
-- [ ] [US-01M0GM2K: Textarea](../stories/US-01M0GM2K-textarea.md)
+- [x] [US-01M0GM2K: Textarea](../stories/US-01M0GM2K-textarea.md)
 - [ ] [US-01M0GMF3: NumberInput](../stories/US-01M0GMF3-numberinput.md)
-- [ ] [US-01M0GMMM: PasswordInput](../stories/US-01M0GMMM-passwordinput.md)
-- [ ] [US-01M0GM2X: SearchInput](../stories/US-01M0GM2X-searchinput.md)
-- [ ] [US-01M0GMAG: Checkbox](../stories/US-01M0GMAG-checkbox.md)
-- [ ] [US-01M0GM0D: CheckboxGroup](../stories/US-01M0GM0D-checkboxgroup.md)
-- [ ] [US-01M0GMQT: RadioGroup](../stories/US-01M0GMQT-radiogroup.md)
-- [ ] [US-01M0GM9E: Switch](../stories/US-01M0GM9E-switch.md)
+- [x] [US-01M0GMMM: PasswordInput](../stories/US-01M0GMMM-passwordinput.md)
+- [x] [US-01M0GM2X: SearchInput](../stories/US-01M0GM2X-searchinput.md)
+- [x] [US-01M0GMAG: Checkbox](../stories/US-01M0GMAG-checkbox.md)
+- [x] [US-01M0GM0D: CheckboxGroup](../stories/US-01M0GM0D-checkboxgroup.md)
+- [x] [US-01M0GMQT: RadioGroup](../stories/US-01M0GMQT-radiogroup.md)
+- [x] [US-01M0GM9E: Switch](../stories/US-01M0GM9E-switch.md)
 
 ## Risks
 
