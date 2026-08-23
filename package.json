@@ -23,7 +23,7 @@
     "check:bundled-peers": "node scripts/check-bundled-peers.mjs",
     "check:token-output": "node scripts/check-token-output.mjs",
     "check:prove-guards": "node scripts/prove-guards-fail.mjs",
-    "check:attw": "npx --yes @arethetypeswrong/cli --pack packages/tokens --profile node16 --exclude-entrypoints ./tokens.css ./themes/dark.css && npx --yes @arethetypeswrong/cli --pack packages/icons --profile node16 && npx --yes @arethetypeswrong/cli --pack packages/react --profile node16 --exclude-entrypoints ./styles.css",
+    "check:attw": "npx --yes @arethetypeswrong/cli --pack packages/tokens --profile node16 --exclude-entrypoints ./tokens.css ./themes/dark.css ./themes/compact.css ./tokens.json ./tokens.public.json && npx --yes @arethetypeswrong/cli --pack packages/icons --profile node16 && npx --yes @arethetypeswrong/cli --pack packages/react --profile node16 --exclude-entrypoints ./styles.css",
     "check:publint": "npx --yes publint packages/tokens && npx --yes publint packages/icons && npx --yes publint packages/react",
     "check:stylesheets": "node scripts/check-stylesheets.mjs",
     "test:watch": "vitest",
