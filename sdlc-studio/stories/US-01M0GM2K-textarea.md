@@ -204,3 +204,11 @@ cannot see the action they are about to take.
 
 | Date | Author | Change |
 | --- | --- | --- |
+
+## Deferred, deliberately
+
+**PRD F09 asks for the manual resize handle as an OPTION; it ships always-on.** `resize: vertical`
+is in the stylesheet unconditionally, with no prop to turn it off. That is a deliberate simplification
+- a handle a user can always reach is rarely wrong, and a prop to remove it is a request nobody has
+made - but it is a deviation from the PRD and it was silent. Making it optional is a change request
+when someone needs it, not a gap to fill speculatively.

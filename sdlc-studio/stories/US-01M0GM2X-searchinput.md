@@ -213,3 +213,12 @@ browser's, and Clara does not debounce (D0062).
 
 | Date | Author | Change |
 | --- | --- | --- |
+
+## Deferred, deliberately
+
+**The search icon is not rendered** (PRD F09), although `SearchIcon` already ships in
+`@luzentialabs/clara-icons`. Adding it is small; deciding it is not. An icon inside the field has to
+be positioned without eating the text's padding, hidden from assistive technology (the control is
+already announced as a search field), and it competes for the same edge as the clear button. That is
+a layout decision for the whole input family, not a detail of this control, and it was dropped
+rather than deferred until a spec review noticed.

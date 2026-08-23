@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
-import { useState } from 'react'
+import { cloneElement, useState } from 'react'
 import { createEvent, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { runAxe } from '../../../../../../test/axe'
@@ -1169,5 +1169,25 @@ describe('RadioGroup is a single tab stop', () => {
     expect(screen.getByRole('checkbox', { name: 'Email' })).toHaveFocus()
     await userEvent.tab()
     expect(screen.getByRole('checkbox', { name: 'SMS' })).toHaveFocus()
+  })
+})
+
+describe('every text control forwards its ref to the real element', () => {
+  // The decorated Input is the case that can break: it renders a wrapper span, and a ref that
+  // stops there breaks focus management and every form library that measures or focuses the field.
+  it.each([
+    ['Input', <Input />, 'INPUT'],
+    ['Input (decorated)', <Input prefix="£" clearable maxCount={10} />, 'INPUT'],
+    ['Textarea', <Textarea />, 'TEXTAREA'],
+    ['NumberInput', <NumberInput min={0} max={9} />, 'INPUT'],
+    ['PasswordInput', <PasswordInput />, 'INPUT'],
+    ['SearchInput', <SearchInput />, 'INPUT'],
+  ] as const)('%s', (_name, control, tag) => {
+    const ref = { current: null as HTMLElement | null }
+    render(<Field label="Value">{cloneElement(control as React.ReactElement, { ref })}</Field>)
+    expect(ref.current?.tagName).toBe(tag)
+    // and it is the element the user actually types into, not a wrapper that happens to be one
+    ref.current?.focus()
+    expect(document.activeElement).toBe(ref.current)
   })
 })

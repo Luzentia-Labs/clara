@@ -235,3 +235,9 @@ describes. Formatting a value while it is being typed has to preserve the caret 
 insertion, deletion and paste, and an implementation that gets that wrong is worse than none: the
 caret jumps mid-entry and the user retypes the field. It is a story of its own, not a clause in this
 one. Today, format for display outside the control; the docs page says so.
+
+**Stepper buttons are not built either** (PRD F09). The control offers keyboard stepping and no
+visible `+`/`-`. A stepper is two more tab stops on every numeric field in a dense form, which is a
+real cost to the keyboard user the rest of this story is written for; and a stepper that is not also
+a spinbutton misleads, so it has to arrive with the role, the bounds and the announcements together.
+It was DROPPED rather than deferred until a spec review noticed - which is what this section is for.

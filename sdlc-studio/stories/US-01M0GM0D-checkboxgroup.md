@@ -139,14 +139,14 @@ model.
 | Scenario | Expected Behaviour |
 | --- | --- |
 | The user tabs through the group | Every box is its own tab stop, unlike RadioGroup. That is correct: the options are independent, so each is a separate decision. |
-| The group has a legend | A `<fieldset>` whose `<legend>` names the question, announced before each answer. |
+| The group has a legend | A `<fieldset>` with a `<legend>`. **Standalone**, the legend names the question. **Inside a Field**, the Field's label names it through `aria-labelledby` - which outranks a native legend - and the legend is visually hidden so the same words are not painted twice. |
 | A box is checked | Each box carries its own label; the legend names the question and the label names the answer. |
 | The group is in error | The error is associated with the fieldset, for the same reason as RadioGroup. |
 
 
 ## Test Scenarios
 
-- [x] Renders a fieldset whose legend names the question
+- [x] Renders a fieldset named by its legend standalone, and by the Field's label inside one
 - [x] Every option is independently reachable and toggleable
 - [x] axe clean in all four theme x density combinations
 

@@ -45,8 +45,12 @@ what the toggle is called.
 ### AC1: Toggle is operable and labelled
 
 - **Given** a PasswordInput
-- **When** I reach the reveal toggle by keyboard
-- **Then** it activates and its label reflects the current state
+- **When** I reach the reveal toggle by keyboard and activate it with Enter or Space
+- **Then** it activates, and its accessible name states the ACTION it will perform - "Show
+  password" while hidden, "Hide password" while revealed - never the state it is in. A name that
+  reports state is read at the wrong moment and tells the user the opposite of what pressing it
+  does. (This criterion previously said "reflects the current state", which described the defect;
+  it was satisfied by the mutant and violated by the shipped component, and stamped verified.)
 - **Verify:** vitest "PasswordInput reveal toggle state label"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

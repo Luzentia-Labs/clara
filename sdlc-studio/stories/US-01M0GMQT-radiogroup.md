@@ -47,6 +47,11 @@ belongs when the thing that is wrong is that nothing was chosen.
 - **Given** a RadioGroup
 - **When** I tab in and press arrow keys
 - **Then** the group is one tab stop and arrows move and select per WAI-ARIA
+- **And** what is ASSERTED is the mechanism the browser's rule keys on - one shared `name`, no
+  explicit `tabIndex` - not the tab journey itself. `userEvent.tab()` implements radio grouping in
+  its own right, so a test written against the outcome passes even with `tabIndex={0}` on every
+  radio, which is the single edit that destroys the grouping. The outcome belongs in Playwright and
+  is recorded as an open gap on the verification record
 - **Verify:** vitest "RadioGroup roving focus|RadioGroup is a single tab stop"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

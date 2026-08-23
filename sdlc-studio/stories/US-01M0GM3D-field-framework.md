@@ -169,7 +169,16 @@ a Server Component cannot.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC13: Definition of done
+### AC13: Required is announced, by whichever route the control has
+
+- **Given** a required Field
+- **When** it wraps a single control, a RadioGroup, or a CheckboxGroup
+- **Then** the requirement reaches the user exactly once - `aria-required` where the role supports it (a single control, a `radiogroup`), and a visually-hidden marker composed into the name where it does not (a `<fieldset>`, which is role=group). The visible asterisk is `aria-hidden` either way and is never the only signal
+- **Verify:** vitest "a required group announces the requirement exactly once"
+- **Verified:** yes (2026-08-23)
+- **Verification target:** functional
+
+### AC14: Definition of done
 
 - **Given** the Field framework story
 - **When** it is proposed for export

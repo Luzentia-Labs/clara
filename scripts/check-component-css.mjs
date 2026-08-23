@@ -146,7 +146,9 @@ const SHAPE_CONTRACT = [
   // group carries the same obligation - without this entry a decorated Input could lose its entire
   // visible boundary with every gate green.
   ['.clara-input-group', ['width', 'min-height', 'border', 'background', 'color', 'padding']],
-  ['.clara-checkbox', ['appearance']],
+  // Asserted by Checkbox AC3 ("a 24x24 hit area in compact"): without a size the control has no hit
+  // area at all, and no test in this repo can see one.
+  ['.clara-checkbox', ['appearance', 'min-width', 'min-height']],
   ['.clara-switch', ['appearance']],
   // The Field is the epic's centrepiece and had no entry at all: deleting its grid, its label
   // typography and its error styling left all 26 gates green.
@@ -154,7 +156,11 @@ const SHAPE_CONTRACT = [
   ['.clara-field__label', ['font-size', 'color']],
   ['.clara-field__description', ['font-size', 'color']],
   ['.clara-field__error', ['font-size', 'color']],
-  ['.clara-textarea', ['min-height']],
+  // Input AC2: readonly text keeps FULL contrast - Clara does not take WCAG's exemption. Without a
+  // colour there is nothing to measure and the criterion rests on nothing.
+  ['.clara-input[readonly]:not([aria-disabled="true"])', ['color']],
+  // `resize` is asserted by the Textarea story; deleting it left every criterion green.
+  ['.clara-textarea', ['min-height', 'resize']],
   ['.clara-radio-group', ['display', 'gap']],
   ['.clara-checkbox-group', ['display', 'gap']],
   // Load-bearing twice: it hides both groups' legends so the label is not painted twice, and it

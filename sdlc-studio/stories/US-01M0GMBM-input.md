@@ -102,7 +102,16 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC7: Definition of done
+### AC7: The ref reaches the real control
+
+- **Given** any Clara text control
+- **When** a consumer passes a ref - directly, or spread from `register()`
+- **Then** it lands on the underlying element, not on a wrapper, even when the control renders a decorated group; a ref that stops at a wrapper breaks focus management and every form library that measures or focuses the field
+- **Verify:** vitest "every text control forwards its ref to the real element"
+- **Verified:** yes (2026-08-23)
+- **Verification target:** functional
+
+### AC8: Definition of done
 
 - **Given** the Input story
 - **When** it is proposed for export
