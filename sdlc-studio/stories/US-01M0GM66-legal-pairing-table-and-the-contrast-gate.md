@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNG
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/tokens/dist/tokens.pairings.json, packages/tokens/src/pairings.json, packages/tokens/test/contrast.test.ts
+> **Affects:** scripts/check-contrast.mjs, packages/tokens/contrast-required.json, packages/tokens/src/pairings.json, packages/tokens/src/__tests__/pairings.test.ts, packages/tokens/generate-semantic.mjs
 > **Points:** 5
 
 ## User Story
