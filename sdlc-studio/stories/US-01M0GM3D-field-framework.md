@@ -1,10 +1,10 @@
 # US-01M0GM3D: Field framework
 
-> **Status:** Draft
+> **Status:** Ready
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** packages/react/src/components/Field/**, packages/react/src/components/Field/verification.md, scripts/check-component-css.mjs
@@ -16,6 +16,35 @@
 **I want** label, description, error and required state wired to every control automatically
 **So that** shipping a form field with broken accessibility is not possible by construction
 
+## Context
+
+### Persona Reference
+
+**Idris Vale** - UX amigo - owns inclusive design decisions; accessibility is decided here and proved by QA
+[Seat detail](../personas/seats/idris-vale.md)
+
+### Background
+
+Every control in this epic inherits its accessibility from the Field, so the Field is where the
+wiring is either right once or wrong nine times. An ERP form is the densest accessibility surface
+Clara has: dozens of controls, each needing a label, a description, an error, and the associations
+between them. Doing that per control guarantees drift; doing it in one place makes it checkable.
+
+Reclassified to client-only during implementation (D0060): a Field renders a context Provider, and
+a Server Component cannot.
+
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| Epic | Accessibility | WCAG 2.2 AA, zero serious or critical axe violations | The theme x density matrix AC runs axe in all four combinations |
+| Epic | Boundary | Field and every control are client-only (D0060) | `client-boundary.json` classifies them client; `check:client-boundary` fails if one is unclassified |
+| PRD | Performance | Per-component JS budget, 5 kB gzipped (D0053) | `.size-limit.json` is generated from the classification, so a control cannot ship unbudgeted |
+| PRD | Security | The library reads no environment variables and makes no network calls | No AC introduces either; nothing here has a runtime configuration surface |
+| PRD F01 | API stability | Tier 2 tokens and every exported name are public API | The token-only styling AC forbids tier 1 reads and raw literals |
+
 ## Acceptance Criteria
 
 ### AC1: Compound composition
@@ -24,6 +53,7 @@
 - **When** I compose Label, Control, Description and Error
 - **Then** each part renders and associates without manual wiring
 - **Verify:** vitest "Field compound composition"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: ARIA is automatic and SSR-safe
@@ -32,6 +62,7 @@
 - **When** it renders on the server and hydrates
 - **Then** id, aria-describedby, aria-invalid and aria-errormessage are wired with stable generated ids
 - **Verify:** vitest "Field ARIA wiring is SSR-stable"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Real label, never a placeholder
@@ -40,6 +71,7 @@
 - **When** it renders
 - **Then** the label is a real element associated with the control; there is no placeholder-as-label pattern anywhere
 - **Verify:** vitest "Field always renders a real label"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Error announces once
@@ -48,13 +80,29 @@
 - **When** it renders
 - **Then** aria-invalid is set, the message is linked by aria-errormessage, and role=alert announces it once
 - **Verify:** vitest "Field error announces once"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC5: Description and error coexist
+### AC5: Description and error coexist, in a documented order
+
+- **Given** a Field with both a description and an error
+- **When** it renders
+- **Then** `aria-describedby` lists the description first and the error second, both ids resolve,
+  and neither is listed twice
+- **Verify:** vitest "Field description and error coexist"
+- **Verification target:** functional
+
+> Split from the announcement criterion below. The ORDER and the de-duplication are properties of
+> the DOM and were already asserted by a test that no AC selected - so an automatable half was
+> sitting behind a manual verifier, which is how a manual AC becomes a place things go to stop being
+> checked.
+
+### AC5b: Both are actually announced
 
 - **Given** a Field with both
 - **When** a screen reader reads it
-- **Then** both are announced, in a documented order, neither dropped nor doubled - verified on VoiceOver and recorded before export
+- **Then** both are announced, neither dropped nor doubled - verified on VoiceOver and the strings
+  recorded in `packages/react/src/components/Field/verification.md` before export
 - **Verify:** manual VoiceOver: record announced strings for description plus error
 - **Verification target:** conversational
 
@@ -64,6 +112,7 @@
 - **When** it is used with native submission and with React Hook Form
 - **Then** both work with no wrapper component required
 - **Verify:** vitest "Field works uncontrolled and with RHF"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC7: Token-only styling
@@ -72,22 +121,47 @@
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC8: Both themes and densities
 
 - **Given** a Field framework
 - **When** it renders in dark theme and compact density
-- **Then** it holds its visual baseline in all four combinations
-- **Verify:** vitest "Field framework theme and density matrix"
+- **Then** it renders inside the themed scope in all four combinations, the attributes it stamps
+  are the ones the emitted theme stylesheets select on, and axe reports no blocking violation
+- **And** its APPEARANCE is explicitly NOT covered here: visual regression is gate 7, unwired,
+  tracked by US-01M0GMZW. Contrast is measured against real token values by `check:contrast`,
+  because jsdom computes no layout
+- **Verify:** vitest "Field framework theme and density matrix|stylesheets select on"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC9: Definition of done
+### AC10: Disabled stays reachable
+
+- **Given** a disabled Field
+- **When** it renders
+- **Then** the control is aria-disabled and readOnly, NOT natively disabled - it keeps its tab stop, so the reason attached to it can be reached (D0058, D0028)
+- **Verify:** vitest "Input readonly is distinct from disabled and full contrast"
+- **Verified:** yes (2026-08-23)
+- **Verification target:** functional
+
+### AC11: A wrapped control is still wired
+
+- **Given** a control nested inside a wrapper rather than a direct child
+- **When** the Field renders
+- **Then** the wiring still reaches it, because it travels by context and not by cloning children
+- **Verify:** vitest "Field compound composition"
+- **Verified:** yes (2026-08-23)
+- **Verification target:** functional
+
+### AC12: Definition of done
 
 - **Given** the Field framework story
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
-- **Verify:** file packages/react/src/components/Field/verification.md
+- **Verify:** shell node scripts/check-verification.mjs --component Field
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
@@ -112,6 +186,73 @@
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Edge Cases & Error Handling
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| A control is wrapped - in a Tooltip, a layout primitive, a fragment | The wiring still reaches it. This is why the Field passes by CONTEXT rather than cloning children: `React.Children.map` sees only the immediate child, so cloning would silently skip exactly the compositions a real form is built from (D0060). |
+| A Field has both a description and an error | `aria-describedby` lists description then error, in that DOM order, so the hint is heard before the correction rather than after it. |
+| A Field has no error | The error region is not rendered at all. Rendering it empty makes `role="alert"` fire on mount, announcing nothing, and trains the user to ignore it. |
+| The same form renders on the server and hydrates | Ids come from `useId()`, so server and client markup agree; a random id re-wires `aria-describedby` at hydration and the association is lost. |
+| A consumer passes their own `id` | It wins, and the wiring is built from it, so an existing form's ids are not fought over. |
+| A Field is given no label | It does not compile. There is no placeholder-as-label path. |
+
+
+## Test Scenarios
+
+- [x] Compound composition renders label, control, description and error in DOM order
+- [x] Ids are stable across a server render and hydration
+- [x] A wrapped control still receives the wiring through context
+- [x] The error region appears only when there is an error, and announces on appearance
+- [x] Works uncontrolled, and under react-hook-form's register
+- [x] axe reports zero serious or critical violations in all four theme x density combinations
+
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| -- | -- | This story IS the framework the others depend on | -- |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| React 18 / 19 (`useId`, `useContext`) | Peer | Available |
+| Tier 2 geometry and colour tokens (D0056) | Internal | Available |
+
+## Estimation
+
+**Points:** 8
+**Complexity:** High
+
+> **Points** are a RELATIVE size on the modified Fibonacci scale (1, 2, 3, 5, 8, 13, 20) - not
+> "how long will this take" but "is this bigger than that one", sized against stories already
+> delivered. The gaps widen deliberately, because uncertainty grows with size: it is much harder
+> to argue a story is a 7 rather than an 8 than to choose between a 5 and an 8. A value off the
+> scale is REFUSED, never rounded - the scale IS the estimate. Above 8, SPLIT the story;
+> estimator consistency collapses beyond it, so a bigger number is a triage failure rather than
+> a harder estimate. This is the one size vocabulary: the planner, the forecast and the measured
+> velocity all read this field.
+
+## Rollback Envelope
+
+> Required when `affects_production_runtime: true`; optional otherwise. See `reference-story.md#rollback-envelope`.
+
+**Affects production runtime:** false
+
+| Component | Reversal | Expected time |
+| --- | --- | --- |
+| -- | -- | -- |
+
+*Not applicable - this is a library with no deployed runtime. A released version is reverted by publishing a patch forward; releases are immutable and never unpublished.*
+
+## Open Questions
+
+- None open.
 
 ## Revision History
 

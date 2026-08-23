@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { cx } from '../../lib/cx'
 import { useFieldWiring } from '../../lib/field-context'
 
@@ -34,16 +34,28 @@ export function CheckboxGroup ({
   const wiring = useFieldWiring()
   const base = useId()
   const controlled = value !== undefined
-  const selected = value ?? defaultValue ?? []
+  // Uncontrolled needs STATE. With `selected = value ?? defaultValue ?? []` the uncontrolled set
+  // was frozen at the initial value, so every onChange was computed from it: ticking A then B
+  // reported ["b"] rather than ["a","b"], while the boxes on screen stayed correct. A form reading
+  // onChange therefore submitted a different set from the one the user could see.
+  const [internal, setInternal] = useState<string[]>(() => defaultValue ?? [])
+  const selected = value ?? internal
 
   return (
     <fieldset
       className={cx('clara-checkbox-group', `clara-checkbox-group--${orientation}`, className)}
+      aria-labelledby={wiring?.labelFor === 'group' ? wiring.labelId : undefined}
       aria-describedby={wiring?.describedBy}
       aria-invalid={wiring?.invalid || undefined}
       aria-errormessage={wiring?.invalid ? wiring.errorId : undefined}
-      disabled={wiring?.disabled || undefined}
+      aria-disabled={wiring?.disabled || undefined}
     >
+      {/*
+        * No aria-required. A `<fieldset>` is role=group, which does not support it - emitting it
+        * anyway is invalid ARIA and axe reports it as critical. There is also nothing for it to
+        * mean: each box is independently optional, and "at least one of these" is a form-level
+        * rule, not a property of the group. A required choice belongs in the label or description.
+        */}
       <legend className="clara-checkbox-group__legend">{legend}</legend>
       {options.map((option) => {
         const id = `${base}-${option.value}`
@@ -64,6 +76,7 @@ export function CheckboxGroup ({
                 const next = event.currentTarget.checked
                   ? [...selected, option.value]
                   : selected.filter((v) => v !== option.value)
+                if (!controlled) setInternal(next)
                 onChange?.(next)
               }}
             />

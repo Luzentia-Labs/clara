@@ -1,6 +1,6 @@
-import { forwardRef, type InputHTMLAttributes } from 'react'
+import { forwardRef, useId, type InputHTMLAttributes } from 'react'
 import { cx } from '../../lib/cx'
-import { fieldAriaProps, useFieldWiring } from '../../lib/field-context'
+import { fieldAriaProps, fieldChangeGuard, useFieldWiring } from '../../lib/field-context'
 
 /**
  * An on/off switch.
@@ -15,18 +15,33 @@ export interface SwitchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
 }
 
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch (
-  { label, className, ...rest }, ref,
+  { label, className, onClick, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
+  const ownId = useId()
+  // Inside a Field, the FIELD's label is the accessible name. Rendering our own as well points two
+  // labels at one control, and the name becomes both of them concatenated - which axe reports as
+  // `form-field-multiple-labels`, and only as "incomplete", so it sat below every threshold.
+  const ownLabel = label !== undefined && !wiring
   const input = (
     <input
       ref={ref}
       type="checkbox"
       role="switch"
       className={cx('clara-switch', className)}
-      {...fieldAriaProps(wiring)}
+      {...fieldAriaProps(wiring, 'toggle')}
+      // See Checkbox: aria-disabled does not stop a toggle by itself (D0058).
+      onClick={fieldChangeGuard(wiring, onClick)}
+      {...(ownLabel ? { id: ownId } : {})}
       {...rest}
     />
   )
-  return label ? <span className="clara-choice">{input}<span className="clara-choice__label">{label}</span></span> : input
+  return ownLabel
+    ? (
+      <span className="clara-choice">
+        {input}
+        <label className="clara-choice__label" htmlFor={ownId}>{label}</label>
+      </span>
+      )
+    : input
 })

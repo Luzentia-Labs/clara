@@ -71,5 +71,42 @@ if (files.length && !declarations) {
   problems.push(`${files.length} stylesheet(s) but no --clara- token reference - this gate checked nothing`)
 }
 
+/**
+ * The shape contract: declarations a component's CSS must actually make.
+ *
+ * An adversarial review removed `width`, `min-height` and `border` from `.clara-input` and the
+ * ENTIRE suite stayed green - every test, every guard, axe and the geometry gate included. jsdom
+ * computes no layout, so nothing running there can see an input with no box, and the token gate
+ * measures tokens rather than the rules consuming them. This is the cheapest check that can see it:
+ * the declarations must exist. They are already forced through tier 2 by the loop above.
+ *
+ * It is NOT a substitute for visual regression (gate 7, US-01M0GMZW). It cannot see what a control
+ * looks like - only that the rules giving it a shape are present.
+ */
+const SHAPE_CONTRACT = [
+  ['.clara-input', ['width', 'min-height', 'border', 'background', 'color', 'padding']],
+  ['.clara-checkbox', ['appearance']],
+  ['.clara-switch', ['appearance']],
+]
+
+for (const [selector, required] of SHAPE_CONTRACT) {
+  const declared = new Set()
+  for (const file of files) {
+    postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+      if (!(rule.selectors ?? []).includes(selector)) return
+      rule.walkDecls((decl) => declared.add(decl.prop))
+    })
+  }
+  if (!declared.size) {
+    problems.push(`${selector} has no rule of its own - the shape contract cannot be checked, so it is not checked`)
+    continue
+  }
+  for (const prop of required) {
+    if (!declared.has(prop)) {
+      problems.push(`${selector} declares no \`${prop}\`: a control with no ${prop} is invisible to every test that runs in jsdom`)
+    }
+  }
+}
+
 if (problems.length) fail(RULE, problems)
 pass(RULE, `${files.length} component stylesheet(s), ${declarations} token reference(s), all tier 2 or 3, no literals`)

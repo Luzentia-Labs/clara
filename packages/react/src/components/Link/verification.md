@@ -16,7 +16,7 @@ Underlined, so colour is not the only distinction (WCAG 1.4.1). External links a
 ## What is verified automatically
 
 - axe (serious and critical) in all four theme x density combinations - `check:axe`
-- Keyboard behaviour above, in `__tests__/matrix.test.tsx` and `__tests__/primitives.test.tsx`
+- Keyboard behaviour above, in `../__tests__/matrix.test.tsx` and `../__tests__/primitives.test.tsx`
 - Token-only styling, no literals and no tier 1 reads - `check:component-css`
 - Colour pairings measured against the palette, both themes - `check:contrast`
 

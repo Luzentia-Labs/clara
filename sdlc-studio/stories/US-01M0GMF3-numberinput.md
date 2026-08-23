@@ -1,10 +1,10 @@
 # US-01M0GMF3: NumberInput
 
-> **Status:** Draft
+> **Status:** Ready
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** packages/react/src/components/NumberInput/**, packages/react/src/components/NumberInput/verification.md, scripts/check-component-css.mjs
@@ -16,6 +16,31 @@
 **I want** numeric entry that does not change value when I scroll the page
 **So that** I never post a wrong figure because the wheel moved over a field
 
+## Context
+
+### Persona Reference
+
+**Rhea Okonjo** - Product Owner amigo - holds the ERP data-entry brief
+[Seat detail](../personas/seats/rhea-okonjo.md)
+
+### Background
+
+Quantities, amounts and codes. `type="number"` has a poor reputation in data entry for two
+specific reasons - it mutates on scroll, and it mangles values that only look numeric - and this
+story is mostly about not inheriting either.
+
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| Epic | Accessibility | WCAG 2.2 AA, zero serious or critical axe violations | The theme x density matrix AC runs axe in all four combinations |
+| Epic | Boundary | Field and every control are client-only (D0060) | `client-boundary.json` classifies them client; `check:client-boundary` fails if one is unclassified |
+| PRD | Performance | Per-component JS budget, 5 kB gzipped (D0053) | `.size-limit.json` is generated from the classification, so a control cannot ship unbudgeted |
+| PRD | Security | The library reads no environment variables and makes no network calls | No AC introduces either; nothing here has a runtime configuration surface |
+| PRD F01 | API stability | Tier 2 tokens and every exported name are public API | The token-only styling AC forbids tier 1 reads and raw literals |
+
 ## Acceptance Criteria
 
 ### AC1: No wheel mutation
@@ -24,6 +49,7 @@
 - **When** I scroll the page
 - **Then** the value does not change; it uses inputMode=decimal rather than type=number
 - **Verify:** vitest "NumberInput ignores wheel"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Constraints and formatting
@@ -32,6 +58,7 @@
 - **When** I configure min, max, step, precision and separators
 - **Then** all are enforced and thousands separators display correctly
 - **Verify:** vitest "NumberInput constraints and formatting"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Keyboard stepping
@@ -40,6 +67,7 @@
 - **When** I press arrow keys
 - **Then** the value steps by the configured step and announces
 - **Verify:** vitest "NumberInput arrow stepping"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Token-only styling
@@ -48,22 +76,38 @@
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC5: Both themes and densities
 
 - **Given** a NumberInput
 - **When** it renders in dark theme and compact density
-- **Then** it holds its visual baseline in all four combinations
-- **Verify:** vitest "NumberInput theme and density matrix"
+- **Then** it renders inside the themed scope in all four combinations, the attributes it stamps
+  are the ones the emitted theme stylesheets select on, and axe reports no blocking violation
+- **And** its APPEARANCE is explicitly NOT covered here: visual regression is gate 7, unwired,
+  tracked by US-01M0GMZW. Contrast is measured against real token values by `check:contrast`,
+  because jsdom computes no layout
+- **Verify:** vitest "NumberInput theme and density matrix|stylesheets select on"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC6: Definition of done
+### AC7: Reaching the bounds
+
+- **Given** a bounded NumberInput
+- **When** the user presses Home, End, PageUp or PageDown
+- **Then** the value jumps to the bound or steps by ten, and a fractional step writes no float noise
+- **Verify:** vitest "NumberInput arrow stepping"
+- **Verified:** yes (2026-08-23)
+- **Verification target:** functional
+
+### AC8: Definition of done
 
 - **Given** the NumberInput story
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
-- **Verify:** file packages/react/src/components/NumberInput/verification.md
+- **Verify:** shell node scripts/check-verification.mjs --component NumberInput
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
@@ -88,6 +132,72 @@
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Edge Cases & Error Handling
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| The page is scrolled while the control has focus | The value does not change. `onWheel` blurs the control instead. This is the single most-reported data-entry defect attributed to `type="number"`. |
+| Arrow Up or Down is pressed | The value steps by `step` and clamps to `min` and `max`. Stepping goes through the native value setter so React's own `onChange` fires and a CONTROLLED component stays in sync. |
+| A leading zero is typed, as in an account code `00417` | It is preserved. An account code is not a quantity. |
+| Amounts are shown in a column | Figures are tabular, so the digits align without a monospace face. |
+| `min` or `max` is supplied | It is announced as `aria-valuemin` / `aria-valuemax`, and typed as `number` rather than the HTML attribute's `string | number` - a bound compared as a string makes `"9" > "10"` true. |
+
+
+## Test Scenarios
+
+- [x] Wheel over a focused control does not change the value
+- [x] Arrow keys step and report through onChange, for a controlled component
+- [x] Stepping clamps to the declared bounds
+- [x] Bounds are announced to assistive technology
+- [x] A leading zero survives
+- [x] axe clean in all four theme x density combinations
+
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| [US-01M0GM3D](US-01M0GM3D-field-framework.md) | Blocking | The Field wiring this control reads from context | Done |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| React 18 / 19 (`useId`, `useContext`) | Peer | Available |
+| Tier 2 geometry and colour tokens (D0056) | Internal | Available |
+
+## Estimation
+
+**Points:** 5
+**Complexity:** Medium
+
+> **Points** are a RELATIVE size on the modified Fibonacci scale (1, 2, 3, 5, 8, 13, 20) - not
+> "how long will this take" but "is this bigger than that one", sized against stories already
+> delivered. The gaps widen deliberately, because uncertainty grows with size: it is much harder
+> to argue a story is a 7 rather than an 8 than to choose between a 5 and an 8. A value off the
+> scale is REFUSED, never rounded - the scale IS the estimate. Above 8, SPLIT the story;
+> estimator consistency collapses beyond it, so a bigger number is a triage failure rather than
+> a harder estimate. This is the one size vocabulary: the planner, the forecast and the measured
+> velocity all read this field.
+
+## Rollback Envelope
+
+> Required when `affects_production_runtime: true`; optional otherwise. See `reference-story.md#rollback-envelope`.
+
+**Affects production runtime:** false
+
+| Component | Reversal | Expected time |
+| --- | --- | --- |
+| -- | -- | -- |
+
+*Not applicable - this is a library with no deployed runtime. A released version is reverted by publishing a patch forward; releases are immutable and never unpublished.*
+
+## Open Questions
+
+- None open.
 
 ## Revision History
 

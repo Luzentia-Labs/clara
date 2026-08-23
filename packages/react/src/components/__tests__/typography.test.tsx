@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Heading } from '../Heading/Heading'
 import { Text } from '../Text/Text'
+import { ClaraProvider } from '../../theme/ClaraProvider'
+import { runAxe } from '../../../../../test/axe'
 
 describe('heading level and size are independent', () => {
   // The point of the separation: a level 3 heading can look large without becoming an h1, so the
@@ -66,5 +68,26 @@ describe('truncated value recoverable by keyboard', () => {
     const el = screen.getByLabelText('the whole thing')
     expect(el.textContent).toBe('the who…')
     expect(el).toHaveAttribute('title', 'the whole thing')
+  })
+})
+
+describe('accessibility: axe on typography', () => {
+  // These components cite `check:axe` in their verification records, and until the guard started
+  // checking script coverage they cited a gate that ran no test touching them. Either the claim
+  // goes or the coverage arrives; this is the coverage.
+  it('a heading outline and body text have no blocking violations', async () => {
+    const { container } = render(
+      <ClaraProvider>
+        <article>
+          <Heading level={1} size="lg">Purchase order</Heading>
+          <Text>Supplier details follow.</Text>
+          <Heading level={2} size="md">Lines</Heading>
+          <Text numeric>1,240.00</Text>
+          <Text truncate fullValue="A very long supplier reference that does not fit">A very long…</Text>
+          <Text tone="muted" size="caption">Draft</Text>
+        </article>
+      </ClaraProvider>,
+    )
+    await expect(runAxe(container)).resolves.toHaveNoBlockingViolations()
   })
 })

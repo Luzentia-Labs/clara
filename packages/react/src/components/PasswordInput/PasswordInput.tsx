@@ -20,7 +20,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(fu
 ) {
   const wiring = useFieldWiring()
   const [revealed, setRevealed] = useState(false)
-  const labelId = useId()
+  const toggleId = useId()
   return (
     <span className="clara-password">
       <input
@@ -32,7 +32,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(fu
       />
       <button
         type="button"
-        id={labelId}
+        id={toggleId}
         className="clara-password__toggle"
         onClick={() => setRevealed((v) => !v)}
         disabled={wiring?.disabled}

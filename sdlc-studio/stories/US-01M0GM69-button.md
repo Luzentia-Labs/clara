@@ -118,7 +118,7 @@ The most-used control in the library. Its disabled state is where D0028 is decid
 - **Given** the Button story
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
-- **Verify:** file packages/react/src/components/Button/verification.md
+- **Verify:** shell node scripts/check-verification.mjs --component Button
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 

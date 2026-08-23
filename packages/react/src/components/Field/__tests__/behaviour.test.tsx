@@ -1,0 +1,539 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { describe, it, expect, vi } from 'vitest'
+import { useState } from 'react'
+import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { runAxe } from '../../../../../../test/axe'
+import { ClaraProvider } from '../../../theme/ClaraProvider'
+import { claraAttributes } from '../../../theme/resolve'
+import { Field } from '../Field'
+import { Input } from '../../Input/Input'
+import { Textarea } from '../../Textarea/Textarea'
+import { NumberInput } from '../../NumberInput/NumberInput'
+import { PasswordInput } from '../../PasswordInput/PasswordInput'
+import { SearchInput } from '../../SearchInput/SearchInput'
+import { Checkbox } from '../../Checkbox/Checkbox'
+import { Switch } from '../../Switch/Switch'
+import { RadioGroup } from '../../RadioGroup/RadioGroup'
+import { CheckboxGroup } from '../../CheckboxGroup/CheckboxGroup'
+
+const inField = (control: React.ReactNode, props = {}) =>
+  render(<Field label="Value" {...props}>{control}</Field>)
+
+describe('Input affordances', () => {
+  it('is a real textbox that carries the Clara input contract', () => {
+    inField(<Input />)
+    const el = screen.getByRole('textbox')
+    expect(el.tagName).toBe('INPUT')
+    expect(el.className).toContain('clara-input')
+  })
+
+  it('takes the size it is given, and md when it is given none', () => {
+    // Density does NOT change this class - it rescales the tokens the class resolves through
+    // (D0056). An earlier version of this test rendered at compact density and asserted
+    // `clara-input--md`, which is the DEFAULT PROP echoed back: it passed identically at
+    // comfortable density, and with the provider removed altogether. The target-size floor it
+    // claimed to prove is measured against real token values by `check:geometry`
+    // (packages/tokens/src/__tests__/density.test.ts, "target size floor in compact"), which is
+    // the only place in this repo that can measure it - jsdom computes no layout.
+    const { rerender } = inField(<Input />)
+    expect(screen.getByRole('textbox').className).toContain('clara-input--md')
+    rerender(<Field label="Value"><Input size="sm" /></Field>)
+    expect(screen.getByRole('textbox').className).toContain('clara-input--sm')
+    expect(screen.getByRole('textbox').className).not.toContain('clara-input--md')
+  })
+})
+
+describe('Input readonly is distinct from disabled and full contrast', () => {
+  // Two different states that look alike if you are careless. Readonly text must be READ - Clara
+  // does not take WCAG's contrast exemption for it (F09) - and it stays in the tab order.
+  it('keeps readonly focusable and copyable', async () => {
+    inField(<Input readOnly defaultValue="PO-4417" />)
+    const el = screen.getByRole('textbox')
+    expect(el).toHaveAttribute('readonly')
+    expect(el).not.toBeDisabled()
+    await userEvent.tab()
+    expect(el).toHaveFocus()
+  })
+
+  it('is not the same state as disabled, and disabled stays REACHABLE', () => {
+    // D0058/D0028: a natively disabled control leaves the tab order, so a keyboard user can never
+    // reach it - and an ERP form is frequently mostly disabled, with the REASON attached to the
+    // control they cannot reach. The first version of this framework used the native attribute and
+    // this test asserted that as correct.
+    const { rerender } = inField(<Input readOnly defaultValue="x" />)
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-disabled')
+    rerender(<Field label="Value" description="approved records cannot be edited" disabled><Input defaultValue="x" /></Field>)
+    const el = screen.getByRole('textbox')
+    expect(el).toHaveAttribute('aria-disabled', 'true')
+    expect(el).not.toHaveAttribute('disabled')
+    expect(el).toHaveAttribute('readonly')
+    el.focus()
+    expect(el).toHaveFocus()
+  })
+})
+
+describe('Input uses native change convention', () => {
+  it('reports through onChange with the event, not a bare value', async () => {
+    const onChange = vi.fn()
+    inField(<Input onChange={onChange} />)
+    await userEvent.type(screen.getByRole('textbox'), 'x')
+    expect(onChange.mock.calls[0]?.[0]).toHaveProperty('currentTarget')
+  })
+})
+
+describe('Textarea auto-resize respects maxRows', () => {
+  // jsdom computes no layout, so `scrollHeight` is 0 for every element and every assertion about
+  // the resulting height is a constant - the first version of these tests asserted `height` was
+  // truthy ("0px") and called it growth, and asserted overflow was 'hidden' under a name that said
+  // it scrolled. Both passed against a control collapsed to nothing. Standing in a content height
+  // is what makes the branch reachable: the component reads `scrollHeight` and `lineHeight`, so
+  // supplying both exercises the real arithmetic rather than a fixed 0.
+  const withContentHeight = (px: number) => {
+    const proto = Object.getPrototypeOf(document.createElement('textarea'))
+    const original = Object.getOwnPropertyDescriptor(proto, 'scrollHeight')
+    Object.defineProperty(proto, 'scrollHeight', { configurable: true, get: () => px })
+    vi.spyOn(window, 'getComputedStyle').mockReturnValue({ lineHeight: '20px' } as CSSStyleDeclaration)
+    return () => {
+      vi.mocked(window.getComputedStyle).mockRestore()
+      if (original) Object.defineProperty(proto, 'scrollHeight', original)
+      else delete (proto as Record<string, unknown>).scrollHeight
+    }
+  }
+
+  it('grows to the content height while it is under the cap', () => {
+    const restore = withContentHeight(60)          // 3 lines at 20px
+    inField(<Textarea maxRows={4} />)              // cap is 80px
+    const el = screen.getByRole('textbox') as HTMLTextAreaElement
+    expect(el.style.height).toBe('60px')
+    expect(el.style.overflowY).toBe('hidden')
+    restore()
+  })
+
+  it('stops at the cap and scrolls once the content exceeds it', () => {
+    // The cap is the whole point of the feature: an unbounded textarea grows until the submit
+    // button is off screen, and the user cannot see the action they are about to take.
+    const restore = withContentHeight(200)         // 10 lines of content
+    inField(<Textarea maxRows={2} />)              // cap is 40px
+    const el = screen.getByRole('textbox') as HTMLTextAreaElement
+    expect(el.style.height).toBe('40px')
+    expect(el.style.overflowY).toBe('auto')
+    restore()
+  })
+
+  it('stays a fixed height when maxRows is omitted', () => {
+    const restore = withContentHeight(200)
+    inField(<Textarea rows={3} />)
+    const el = screen.getByRole('textbox') as HTMLTextAreaElement
+    expect(el.style.height).toBe('')
+    restore()
+  })
+
+  it('inserts a newline on Enter rather than submitting', async () => {
+    const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault())
+    render(<form onSubmit={onSubmit}><Field label="Notes"><Textarea /></Field></form>)
+    const el = screen.getByRole('textbox') as HTMLTextAreaElement
+    await userEvent.type(el, 'one{enter}two')
+    expect(el.value).toBe('one\ntwo')
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('leaves the control on Tab rather than indenting', async () => {
+    inField(<Textarea />)
+    const el = screen.getByRole('textbox') as HTMLTextAreaElement
+    el.focus()
+    await userEvent.tab()
+    expect(el).not.toHaveFocus()
+    expect(el.value).not.toContain('\t')
+  })
+})
+
+describe('NumberInput ignores wheel', () => {
+  // A scroll aimed at the PAGE must never edit a figure the user is not looking at. Clara's
+  // control is `type="text"` with `inputmode="decimal"`, so it would not step on wheel in any
+  // case - which means asserting "the value did not change" proves nothing and passes with the
+  // handler deleted. The behaviour that exists is that the control BLURS, so a wheel event
+  // reaching a focused numeric field cannot be captured by it at all; that is what is asserted.
+  it('is never type="number", which is what makes the wheel harmless', () => {
+    // The guarantee is structural, not a handler. An earlier version blurred the control on wheel,
+    // which protected against nothing (a text input does not step on wheel anywhere) and stole
+    // focus from anyone scrolling a long form - so the test asserting "the value did not change"
+    // passed with the mechanism deleted. This asserts the mechanism itself.
+    inField(<NumberInput defaultValue="100" />)
+    const el = screen.getByRole('textbox') as HTMLInputElement
+    expect(el.type).toBe('text')
+    expect(el.inputMode).toBe('decimal')
+    el.focus()
+    el.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, bubbles: true }))
+    expect(el.value).toBe('100')
+    // and the scroll gesture does NOT cost the user their place in the form
+    expect(el).toHaveFocus()
+  })
+})
+
+describe('NumberInput constraints and formatting', () => {
+  it('announces its bounds through the only role that supports them', () => {
+    // aria-valuemin/max on the implicit `textbox` role is invalid ARIA: nothing announces it, and
+    // axe reports it as a critical `aria-allowed-attr` violation. The bounds are only real when the
+    // role is `spinbutton`, so supplying a bound is what turns the control into one.
+    inField(<NumberInput min={0} max={100} defaultValue="40" />)
+    const el = screen.getByRole('spinbutton')
+    expect(el).toHaveAttribute('aria-valuemin', '0')
+    expect(el).toHaveAttribute('aria-valuemax', '100')
+    expect(el).toHaveAttribute('aria-valuenow', '40')
+  })
+
+  it('is a plain textbox with no aria-value* when it has no bounds', () => {
+    // An account code is not a value in a range, so it must not claim to be one.
+    inField(<NumberInput defaultValue="00417" />)
+    const el = screen.getByRole('textbox')
+    expect(el).not.toHaveAttribute('aria-valuemin')
+    expect(el).not.toHaveAttribute('aria-valuenow')
+    expect(screen.queryByRole('spinbutton')).toBeNull()
+  })
+
+  it('keeps figures tabular so a column of amounts lines up', () => {
+    inField(<NumberInput />)
+    expect(screen.getByRole('textbox').className).toContain('clara-input--numeric')
+  })
+
+  it('preserves a leading zero, because an account code is not a quantity', async () => {
+    inField(<NumberInput />)
+    await userEvent.type(screen.getByRole('textbox'), '00417')
+    expect(screen.getByRole('textbox')).toHaveValue('00417')
+  })
+})
+
+describe('NumberInput arrow stepping', () => {
+  it('steps up and down, and reports through onChange', async () => {
+    function Controlled () {
+      const [v, setV] = useState('10')
+      return <Field label="Qty"><NumberInput value={v} step={5} onChange={(e) => setV(e.currentTarget.value)} /></Field>
+    }
+    render(<Controlled />)
+    const el = screen.getByRole('textbox')
+    el.focus()
+    await userEvent.keyboard('{ArrowUp}')
+    expect(el).toHaveValue('15')
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    expect(el).toHaveValue('5')
+  })
+
+  it('clamps to the declared bounds', async () => {
+    function Controlled () {
+      const [v, setV] = useState('9')
+      return <Field label="Qty"><NumberInput value={v} min={0} max={10} onChange={(e) => setV(e.currentTarget.value)} /></Field>
+    }
+    render(<Controlled />)
+    const el = screen.getByRole('spinbutton')
+    el.focus()
+    await userEvent.keyboard('{ArrowUp}{ArrowUp}{ArrowUp}')
+    expect(el).toHaveValue('10')
+  })
+
+  it('reaches the bounds with Home and End, as a spinbutton must', () => {
+    // A spinbutton that announces bounds but offers no way to reach them is half a contract.
+    inField(<NumberInput min={0} max={99} defaultValue="5" />)
+    const el = screen.getByRole('spinbutton') as HTMLInputElement
+    el.focus()
+    fireEvent.keyDown(el, { key: 'End' })
+    expect(el.value).toBe('99')
+    fireEvent.keyDown(el, { key: 'Home' })
+    expect(el.value).toBe('0')
+  })
+
+  it('does not write float noise for a fractional step', () => {
+    // 0.1 + 0.1 + 0.1 is 0.30000000000000004 in binary floating point, and seventeen significant
+    // digits in a currency field is a defect the user has to clean up by hand.
+    inField(<NumberInput step={0.1} defaultValue="0" />)
+    const el = screen.getByRole('textbox') as HTMLInputElement
+    el.focus()
+    fireEvent.keyDown(el, { key: 'ArrowUp' })
+    fireEvent.keyDown(el, { key: 'ArrowUp' })
+    fireEvent.keyDown(el, { key: 'ArrowUp' })
+    expect(el.value).toBe('0.3')
+  })
+})
+
+describe('PasswordInput reveal toggle state label', () => {
+  it('names the action it will perform, not the state it is in', async () => {
+    inField(<PasswordInput />)
+    expect(screen.getByRole('button', { name: 'Show password' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button'))
+    expect(screen.getByRole('button', { name: 'Hide password' })).toBeInTheDocument()
+  })
+})
+
+describe('SearchInput clear returns focus', () => {
+  // A clear button that keeps focus strands a keyboard user on a control that has just gone.
+  it('clears the value and puts focus back in the input', async () => {
+    function Controlled () {
+      const [v, setV] = useState('acme')
+      return <Field label="Search"><SearchInput value={v} onChange={(e) => setV(e.currentTarget.value)} /></Field>
+    }
+    render(<Controlled />)
+    await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+    const input = screen.getByRole('searchbox')
+    expect(input).toHaveValue('')
+    expect(input).toHaveFocus()
+  })
+})
+
+describe('Checkbox state is not colour alone', () => {
+  // WCAG 1.4.1. The mechanism is that the NATIVE control draws a tick and `accent-color` only
+  // tints it, so the mark carries the meaning and colour reinforces it. The single edit that
+  // breaks that is `appearance: none`, which erases the tick and leaves the box a coloured
+  // rectangle - so that is what this asserts. Asserting `type === "checkbox"` and `checked` (the
+  // earlier version) passes against exactly that broken implementation.
+  const stylesheet = readFileSync(resolve(__dirname, '../../../styles.css'), 'utf8')
+
+  const declarationsFor = (selector: string) => {
+    const rules = [...stylesheet.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+    return rules.filter(([, sel]) => (sel ?? '').includes(selector)).map(([, , body]) => body ?? '').join(';')
+  }
+
+  it('does not neutralise the native control, which is what draws the mark', () => {
+    const declared = declarationsFor('.clara-checkbox')
+    expect(declared).not.toMatch(/appearance:\s*none/)
+    expect(declared).toMatch(/appearance:\s*auto/)
+  })
+
+  it('the checked state is reflected on the control, not only in a colour', () => {
+    const { container } = inField(<Checkbox defaultChecked />)
+    const box = container.querySelector('input') as HTMLInputElement
+    expect(box.checked).toBe(true)
+    expect(box.matches(':checked')).toBe(true)
+  })
+})
+
+describe('Checkbox label is a click target', () => {
+  it('toggles when the label text is clicked, not only the 16px box', async () => {
+    render(<Checkbox label="Include cancelled" />)
+    await userEvent.click(screen.getByText('Include cancelled'))
+    expect(screen.getByRole('checkbox')).toBeChecked()
+  })
+})
+
+describe('Switch uses role switch', () => {
+  it('is announced as a switch rather than a checkbox', () => {
+    render(<Switch label="Email alerts" />)
+    expect(screen.getByRole('switch', { name: 'Email alerts' })).toBeInTheDocument()
+  })
+
+  it('has a clickable label too', async () => {
+    render(<Switch label="Email alerts" />)
+    await userEvent.click(screen.getByText('Email alerts'))
+    expect(screen.getByRole('switch')).toBeChecked()
+  })
+})
+
+describe('RadioGroup error associates with group', () => {
+  // The error belongs to the QUESTION, not to one answer - it is described on the fieldset.
+  it('describes the fieldset, not an individual radio', () => {
+    inField(<RadioGroup name="t" legend="Terms" options={[{ value: '30', label: 'Net 30' }]} />, { error: 'Choose one' })
+    // `radiogroup`, not `group` - see RadioGroup.tsx: it is the role that supports aria-required.
+    const group = screen.getByRole('radiogroup', { name: 'Terms' })
+    expect(group).toHaveAttribute('aria-invalid', 'true')
+    const errId = group.getAttribute('aria-errormessage')
+    expect(document.getElementById(errId!)?.textContent).toBe('Choose one')
+    expect(screen.getByRole('radio')).not.toHaveAttribute('aria-invalid')
+  })
+})
+
+describe('RadioGroup roving focus', () => {
+  it('is one tab stop with arrow keys choosing - the browser\'s own behaviour', async () => {
+    const options = [{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }]
+    inField(<RadioGroup name="t" legend="Q" options={options} defaultValue="a" />)
+    await userEvent.tab()
+    expect(screen.getByRole('radio', { name: 'A' })).toHaveFocus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(screen.getByRole('radio', { name: 'B' })).toBeChecked()
+  })
+})
+
+describe('CheckboxGroup group semantics', () => {
+  it('is a fieldset whose legend names the question', () => {
+    inField(<CheckboxGroup name="c" legend="Notify by" options={[{ value: 'e', label: 'Email' }]} />)
+    expect(screen.getByRole('group', { name: 'Notify by' })).toBeInTheDocument()
+  })
+})
+
+// Every control, in all four theme x density combinations.
+//
+// The earlier version of this block asserted that the scope element carried the theme and density
+// it had just been given, which is ClaraProvider echoing its own props back - tautological with
+// respect to the control under test, and it passed with the MATRIX rows all set to one combination.
+// What can actually break is the SEAM: `resolve.ts` stamps the attributes, and the emitted theme
+// stylesheets select on them. Rename either side and every dark or compact page silently renders
+// in the base theme, with no test failing. That is what these assertions are for.
+//
+// Contrast is NOT measured here - jsdom computes no layout, so `check:contrast` measures it against
+// real token values instead. Neither is appearance: visual regression (gate 7, US-01M0GMZW) is not
+// wired, so nothing in this file proves how any of this LOOKS.
+const themeCss = readFileSync(resolve(__dirname, '../../../../../tokens/dist/themes/dark.css'), 'utf8')
+const densityCss = readFileSync(resolve(__dirname, '../../../../../tokens/dist/themes/compact.css'), 'utf8')
+
+describe('the theme and density scope is the one the stylesheets select on', () => {
+  it('stamps the attribute the dark theme selects on', () => {
+    const attrs = claraAttributes({ theme: 'dark', density: 'comfortable' })
+    const [name, value] = Object.entries(attrs).find(([k]) => k.includes('theme'))!
+    expect(themeCss).toContain(`[${name}="${value}"]`)
+  })
+
+  it('stamps the attribute the compact density selects on', () => {
+    const attrs = claraAttributes({ theme: 'light', density: 'compact' })
+    const [name, value] = Object.entries(attrs).find(([k]) => k.includes('density'))!
+    expect(densityCss).toContain(`[${name}="${value}"]`)
+  })
+
+  it('the two themes actually declare different values, so the override is not empty', () => {
+    // A theme file that redeclares nothing is a theme that does not exist. This is the vacuity
+    // floor: without it the seam assertions above would pass against an empty override block.
+    expect(themeCss.match(/--clara-[\w-]+:/g)?.length ?? 0).toBeGreaterThan(10)
+    expect(densityCss.match(/--clara-[\w-]+:/g)?.length ?? 0).toBeGreaterThan(3)
+  })
+})
+
+const MATRIX = [
+  ['light', 'comfortable'], ['light', 'compact'], ['dark', 'comfortable'], ['dark', 'compact'],
+] as const
+const CONTROLS = [
+  ['Field framework', <Input />],
+  ['Input', <Input />],
+  ['Textarea', <Textarea />],
+  ['NumberInput', <NumberInput unit="GBP" />],
+  ['PasswordInput', <PasswordInput />],
+  ['SearchInput', <SearchInput />],
+  ['Checkbox', <Checkbox label="One" />],
+  ['Switch', <Switch label="One" />],
+  ['RadioGroup', <RadioGroup name="r" legend="Q" options={[{ value: 'a', label: 'A' }]} />],
+  ['CheckboxGroup', <CheckboxGroup name="c" legend="Q" options={[{ value: 'a', label: 'A' }]} />],
+] as const
+
+describe.each(CONTROLS)('%s theme and density matrix', (name, control) => {
+  it.each(MATRIX)('renders inside the themed scope and passes axe in %s / %s', async (theme, density) => {
+    const { container } = render(
+      <ClaraProvider theme={theme} density={density}>
+        <Field label="Account code" description="hint">{control}</Field>
+      </ClaraProvider>,
+    )
+    const scope = container.querySelector('[data-clara-theme]')!
+    // The control must be a DESCENDANT of the scope, or the theme's custom properties never cascade
+    // to it. A control that portals out of the scope renders unthemed, and the previous assertion -
+    // reading the attribute off the scope itself - could not see that.
+    const control_ = container.querySelector('input, textarea, fieldset')!
+    expect(scope.contains(control_)).toBe(true)
+    expect(scope.getAttribute('data-clara-theme')).toBe(theme)
+    expect(scope.getAttribute('data-clara-density')).toBe(density)
+    await expect(runAxe(container)).resolves.toHaveNoBlockingViolations()
+  })
+})
+
+describe('PasswordInput reveal keeps the user where they were', () => {
+  it('is operable with Enter and Space, not only clickable', async () => {
+    inField(<PasswordInput />)
+    const toggle = screen.getByRole('button')
+    toggle.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(screen.getByRole('button', { name: 'Hide password' })).toBeInTheDocument()
+    await userEvent.keyboard(' ')
+    expect(screen.getByRole('button', { name: 'Show password' })).toBeInTheDocument()
+  })
+
+  it('does not eject the user from the field they were typing in', async () => {
+    // Revealing is a glance, not a departure. If focus leaves the field the user has to find their
+    // way back to it, having pressed a button whose whole purpose was to help them keep typing.
+    const { container } = inField(<PasswordInput />)
+    const field = container.querySelector('input') as HTMLInputElement
+    await userEvent.click(screen.getByRole('button'))
+    expect(document.activeElement === field || document.activeElement === screen.getByRole('button')).toBe(true)
+    expect(container.contains(document.activeElement)).toBe(true)
+  })
+})
+
+describe('SearchInput clear appears only when there is something to clear', () => {
+  it('renders no clear button for an empty field', () => {
+    // A permanent clear button on an empty field is a tab stop that does nothing - and every search
+    // field in an ERP starts empty.
+    inField(<SearchInput />)
+    expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
+  })
+
+  it('appears once there is a value, and works uncontrolled', async () => {
+    inField(<SearchInput />)
+    await userEvent.type(screen.getByRole('searchbox'), 'acme')
+    const clear = screen.getByRole('button', { name: 'Clear search' })
+    await userEvent.click(clear)
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    expect(screen.getByRole('searchbox')).toHaveFocus()
+    expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
+  })
+
+  it('calls onClear after the value is gone', async () => {
+    const onClear = vi.fn()
+    inField(<SearchInput defaultValue="acme" onClear={onClear} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+    expect(onClear).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('CheckboxGroup accumulates every choice', () => {
+  it('reports the full set when uncontrolled, not just the last box touched', async () => {
+    // With the selected set derived from defaultValue alone, every onChange was computed from the
+    // FROZEN initial set: ticking A then B reported ["b"], while both boxes showed ticked. A form
+    // reading onChange submitted a set the user could not see.
+    const onChange = vi.fn()
+    render(
+      <CheckboxGroup name="c" legend="Notify by" onChange={onChange}
+        options={[{ value: 'a', label: 'Email' }, { value: 'b', label: 'SMS' }]} />,
+    )
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Email' }))
+    await userEvent.click(screen.getByRole('checkbox', { name: 'SMS' }))
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'])
+  })
+
+  it('removes from the accumulated set, not from the initial one', async () => {
+    const onChange = vi.fn()
+    render(
+      <CheckboxGroup name="c" legend="Notify by" defaultValue={['a']} onChange={onChange}
+        options={[{ value: 'a', label: 'Email' }, { value: 'b', label: 'SMS' }]} />,
+    )
+    await userEvent.click(screen.getByRole('checkbox', { name: 'SMS' }))
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Email' }))
+    expect(onChange).toHaveBeenLastCalledWith(['b'])
+  })
+
+  it('associates its error with the fieldset, as RadioGroup does', () => {
+    // The two stories share this edge case and only one guarded it.
+    inField(<CheckboxGroup name="c" legend="Notify by" options={[{ value: 'a', label: 'Email' }]} />, { error: 'Pick one' })
+    const group = screen.getByRole('group', { name: 'Notify by' })
+    expect(group).toHaveAttribute('aria-invalid', 'true')
+    const errId = group.getAttribute('aria-errormessage')
+    expect(document.getElementById(errId!)?.textContent).toBe('Pick one')
+    expect(screen.getByRole('checkbox')).not.toHaveAttribute('aria-invalid')
+  })
+})
+
+describe('Checkbox indeterminate survives interaction', () => {
+  it('stays mixed-consistent after a click, rather than showing a tick while announcing mixed', async () => {
+    const { container } = inField(<Checkbox indeterminate />)
+    const box = container.querySelector('input') as HTMLInputElement
+    expect(box.indeterminate).toBe(true)
+    await userEvent.click(box)
+    // The prop has not changed, so the control must still be indeterminate: the DOM property is
+    // cleared natively by the click, and re-asserted on render.
+    expect(box.indeterminate).toBe(true)
+    expect(box).toHaveAttribute('aria-checked', 'mixed')
+  })
+})
+
+describe('Switch has no third state', () => {
+  it('does not expose an indeterminate prop, because a third state means Checkbox', () => {
+    // RadioGroup guards its equivalent ("no bare Radio in the public API"); this is the same
+    // guard for the same class of misuse.
+    const api = readFileSync(resolve(__dirname, '../../../../etc/clara-react.api.md'), 'utf8')
+    const block = api.slice(api.indexOf('export interface SwitchProps'))
+    expect(block.slice(0, block.indexOf('}'))).not.toMatch(/indeterminate/)
+  })
+})

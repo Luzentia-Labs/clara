@@ -206,11 +206,14 @@
 
 /* Readonly and disabled stay readable. Clara does not take WCAG's contrast exemption for
  * disabled text: an ERP form is frequently mostly disabled and the user still has to read it. */
-.clara-input:disabled {
+.clara-input[aria-disabled="true"] {
   background: var(--clara-color-bg-disabled);
   color: var(--clara-color-fg-disabled);
 }
-.clara-input:read-only { color: var(--clara-color-fg-readonly); }
+/* A disabled control also carries `readonly` (it is how aria-disabled stops editing while keeping
+ * the caret), so the readonly rule has to exclude it - otherwise the later rule wins the cascade
+ * and a disabled field is painted in the readonly colour. */
+.clara-input[readonly]:not([aria-disabled="true"]) { color: var(--clara-color-fg-readonly); }
 
 .clara-choice { display: inline-flex; align-items: center; gap: var(--clara-space-control-gap); }
 .clara-choice__label { font-size: var(--clara-font-body); color: var(--clara-color-fg-default); }
@@ -250,3 +253,39 @@
   text-decoration: underline;
   min-height: var(--clara-size-target-min);
 }
+
+/*
+ * Checked state is never colour alone (WCAG 1.4.1). The native control draws a tick, and
+ * `accent-color` only tints it - so the mark is the signal and the colour reinforces it. A custom
+ * box drawn with CSS would have to redraw the tick, which is how the mark gets lost.
+ */
+.clara-checkbox, .clara-radio { appearance: auto; }
+.clara-choice__label { cursor: pointer; }
+
+.clara-search { display: inline-flex; align-items: center; gap: var(--clara-space-control-gap); width: 100%; }
+.clara-search__clear {
+  font: inherit;
+  font-size: var(--clara-font-caption);
+  color: var(--clara-color-fg-link);
+  background: none;
+  border: var(--clara-box-padding-none);
+  cursor: pointer;
+  text-decoration: underline;
+  min-height: var(--clara-size-target-min);
+}
+
+/*
+ * Suppress the browser's own search-cancel affordance. Clara ships its own clear button, and the
+ * native one is unstyled, absent in Firefox, and not keyboard reachable in Safari - so leaving it
+ * in place gives Chrome and Safari users two clear controls side by side, only one of which the
+ * keyboard can reach. The docs page claims the clear is Clara's own; this is what makes that true.
+ */
+.clara-input--search::-webkit-search-cancel-button,
+.clara-input--search::-webkit-search-decoration { appearance: none; display: none; }
+
+/*
+ * The switch is a native checkbox re-roled, so it inherits the checkbox's drawn mark rather than a
+ * custom track. That is deliberate for the same reason as the checkbox (WCAG 1.4.1): the mark is
+ * what carries on/off, and a CSS track has to redraw it.
+ */
+.clara-switch { appearance: auto; min-width: var(--clara-size-target-min); }

@@ -87,7 +87,7 @@
 - **Given** the DatePicker story
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
-- **Verify:** file packages/react/src/components/DatePicker/verification.md
+- **Verify:** shell node scripts/check-verification.mjs --component DatePicker
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

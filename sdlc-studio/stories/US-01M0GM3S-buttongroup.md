@@ -81,7 +81,7 @@ A set of related buttons navigated as one control. Roving focus with a single ta
 - **Given** the ButtonGroup story
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
-- **Verify:** file packages/react/src/components/ButtonGroup/verification.md
+- **Verify:** shell node scripts/check-verification.mjs --component ButtonGroup
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 

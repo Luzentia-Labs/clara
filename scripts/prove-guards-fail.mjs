@@ -623,6 +623,112 @@ const OUTPUT_CASES = [
     }),
   },
   {
+    // PRD F17 asks for a record per component precisely so a blanket accessibility claim cannot
+    // stand in for one. A new component with no record is the case that matters: the record gets
+    // written for the components someone remembered.
+    name: 'a built component with no verification record',
+    guard: 'check-verification.mjs',
+    expect: /built \(exported from Probe\/Probe\.tsx\) but has no verification\.md/,
+    stage: (stage) => {
+      const dir = join(stage, 'packages/react/src/components/Probe')
+      mkdirSync(dir, { recursive: true })
+      writeFileSync(join(dir, 'Probe.tsx'), 'export function Probe () { return null }\n')
+    },
+  },
+  {
+    // Two sources of truth about which components are client is how a directive lands on the wrong
+    // chunk. The record has to agree with the file the BUILD reads, not with itself.
+    name: 'a verification record whose boundary contradicts client-boundary.json',
+    guard: 'check-verification.mjs',
+    expect: /says "server" but client-boundary\.json says "client"/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Field/verification.md')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('**Boundary:** client-only', '**Boundary:** server-capable'))
+    },
+  },
+  {
+    // A record whose evidence has been renamed away reads exactly like one that still holds.
+    name: 'a verification record citing a test file that no longer exists',
+    guard: 'check-verification.mjs',
+    expect: /cites .*, which does not exist/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Input/verification.md')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('behaviour.test.tsx', 'moved-away.test.tsx'))
+    },
+  },
+  {
+    // US-01M0GM2X AC2: the docs page exists to settle that debouncing is the CALLER's decision.
+    // Deleting the passage leaves a page that is still a page and no longer says the thing.
+    name: 'the SearchInput docs page stripped of the debounce decision',
+    guard: 'check-verification.mjs',
+    expect: /does not document that Clara does not debounce/,
+    stage: (stage) => {
+      const f = join(stage, 'apps/docs/src/content/components/search-input.md')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(/\*\*Clara does not debounce\.\*\*/, 'It fires on every keystroke.'))
+    },
+  },
+  {
+    // The keyword version of this check was defeated by replacing the whole Debouncing section with
+    // one sentence saying the OPPOSITE - every keyword still appeared, so the guard stayed green.
+    name: 'the SearchInput docs page inverted to claim Clara debounces for you',
+    guard: 'check-verification.mjs',
+    expect: /contains a claim that Clara debounces/,
+    stage: (stage) => {
+      const f = join(stage, 'apps/docs/src/content/components/search-input.md')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n\nIn practice Clara debounces for you at 300ms.\n')
+    },
+  },
+  {
+    // A component defined in index.tsx, or a second component in a directory, was invisible to the
+    // filename-shape definition of "built" that this guard started with.
+    name: 'a built component declared in index.tsx rather than a same-named file',
+    guard: 'check-verification.mjs',
+    expect: /built \(exported from .*index\.tsx\) but has no verification\.md/,
+    stage: (stage) => {
+      const dir = join(stage, 'packages/react/src/components/Probe')
+      mkdirSync(dir, { recursive: true })
+      writeFileSync(join(dir, 'index.tsx'), 'export function Probe () { return null }\n')
+    },
+  },
+  {
+    // A record citing a GATE that does not run the component's tests is the shape that let 22
+    // records claim axe coverage from a gate running none of them.
+    name: 'a verification record citing a gate that runs none of its component\'s tests',
+    guard: 'check-verification.mjs',
+    expect: /cites `check:axe` as covering Field, but that script runs none of/,
+    stage: (stage) => {
+      const f = join(stage, 'package.json')
+      const pkg = JSON.parse(readFileSync(f, 'utf8'))
+      pkg.scripts['check:axe'] = 'npx vitest run packages/react/src/components/__tests__/primitives.test.tsx -t "axe"'
+      writeFileSync(f, JSON.stringify(pkg, null, 2) + '\n')
+    },
+  },
+  {
+    // D0001 / PRD:244 "no exceptions". Proving this one matters because the check was just rewritten
+    // from a substring match onto PostCSS: the regex read the SELECTOR
+    // `.clara-input--search::-webkit-search-cancel-button` as a declaration of `--search` and failed
+    // a clean build, so it had to be replaced - and a replaced guard that no longer catches the real
+    // case is worse than the false positive it fixed.
+    name: 'a custom property in component CSS without the --clara- prefix',
+    guard: 'check-stylesheets.mjs',
+    expect: /declares --brand, which is not --clara- prefixed/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/dist/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n@layer clara.components { .probe { --brand: red; } }\n')
+    },
+  },
+  {
+    // A review removed width, min-height and border from `.clara-input` and every test and guard
+    // stayed green: jsdom computes no layout, so an input with no box is invisible to all of them.
+    name: 'the input stripped of the declarations that give it a box',
+    guard: 'check-component-css.mjs',
+    expect: /\.clara-input declares no `min-height`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(/\n\s*min-height: var\(--clara-size-control-height\);/, ''))
+    },
+  },
+  {
     name: 'an icon exported but absent from the committed list',
     guard: 'check-icons.mjs',
     expect: /absent from ICONS\.md|not declared/,

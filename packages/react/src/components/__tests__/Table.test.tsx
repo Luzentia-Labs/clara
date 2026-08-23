@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Table } from '../Table/Table'
 import { TableSortButton } from '../Table/TableSortButton'
+import { ClaraProvider } from '../../theme/ClaraProvider'
+import { runAxe } from '../../../../../test/axe'
 
 /**
  * These two are unit-test fixtures. They are NOT exported, so they are not in the build graph and
@@ -43,5 +45,23 @@ describe('TableSortButton', () => {
   it('is operable with no handler', async () => {
     render(<TableSortButton />)
     await expect(userEvent.click(screen.getByRole('button'))).resolves.not.toThrow()
+  })
+})
+
+describe('accessibility: axe on the table', () => {
+  // The Table stub claims `check:axe` in its record. A table is the one place where correct markup
+  // is entirely the caller's - caption, scope, header cells - so this asserts the stub does not get
+  // in the way of markup that IS correct, and nothing more than that.
+  it('a correctly marked-up table has no blocking violations', async () => {
+    const { container } = render(
+      <ClaraProvider>
+        <Table>
+          <caption>Open purchase orders</caption>
+          <thead><tr><th scope="col">Reference</th><th scope="col">Supplier</th></tr></thead>
+          <tbody><tr><td>PO-4417</td><td>Acme</td></tr></tbody>
+        </Table>
+      </ClaraProvider>,
+    )
+    await expect(runAxe(container)).resolves.toHaveNoBlockingViolations()
   })
 })

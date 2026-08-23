@@ -20,6 +20,7 @@ import { join } from 'node:path'
 import { fail, pass, readWorkspace } from './lib/workspace.mjs'
 import { exportTargets } from './lib/pack-inspect.mjs'
 import { LAYER_DECLARATION, LAYER_NAMES } from './lib/cascade-layer.mjs'
+import postcss from 'postcss'
 
 const root = process.cwd()
 const problems = []
@@ -149,16 +150,20 @@ for (const { dir, kind, manifest } of readWorkspace(root)) {
   }
 
   // D0001 / PRD:244, repo-wide.
+  //
+  // Read with PostCSS, which is already parsing these files ten lines above. The regex this
+  // replaces matched `--[\w-]+\s*:` anywhere in the text, so the SELECTOR
+  // `.clara-input--search::-webkit-search-cancel-button` read as a declaration of `--search` and
+  // failed the build - a custom property that appears nowhere in the file. A declaration is a
+  // thing the parser can identify; it is not a substring.
   for (const sheet of sheets) {
-    for (const prop of readFileSync(sheet, 'utf8').match(/--[\w-]+\s*:/g) ?? []) {
-      const name = prop.replace(/\s*:$/, '')
-      if (!name.startsWith('--clara-')) {
-        problems.push(
-          `${manifest.name}: ${sheet.slice(root.length + 1)} declares ${name}, which is not ` +
-            '--clara- prefixed (D0001, PRD:244 - "no exceptions")',
-        )
-      }
-    }
+    postcss.parse(readFileSync(sheet, 'utf8'), { from: sheet }).walkDecls((decl) => {
+      if (!decl.prop.startsWith('--') || decl.prop.startsWith('--clara-')) return
+      problems.push(
+        `${manifest.name}: ${sheet.slice(root.length + 1)} declares ${decl.prop}, which is not ` +
+          '--clara- prefixed (D0001, PRD:244 - "no exceptions")',
+      )
+    })
   }
 }
 

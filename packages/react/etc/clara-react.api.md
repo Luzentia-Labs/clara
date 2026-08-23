@@ -178,6 +178,7 @@ export interface FieldProps {
     disabled?: boolean;
     error?: string | undefined;
     label: string;
+    labelFor?: 'control' | 'group';
     // (undocumented)
     required?: boolean;
 }
@@ -191,6 +192,8 @@ export interface FieldWiring {
     id: string;
     // (undocumented)
     invalid: boolean;
+    labelFor: 'control' | 'group';
+    labelId: string;
     // (undocumented)
     required: boolean;
 }
@@ -271,9 +274,12 @@ export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>,
 export const NumberInput: ForwardRefExoticComponent<NumberInputProps & RefAttributes<HTMLInputElement>>;
 
 // @public
-export interface NumberInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type' | 'size'> {
+export interface NumberInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type' | 'size' | 'min' | 'max' | 'step'> {
+    max?: number;
+    min?: number;
     // (undocumented)
     size?: 'sm' | 'md';
+    step?: number;
     unit?: string;
 }
 
@@ -302,8 +308,6 @@ export function RadioGroup(input: RadioGroupProps): JSX_2.Element;
 
 // @public
 export interface RadioGroupProps {
-    // (undocumented)
-    children?: ReactNode;
     // (undocumented)
     className?: string;
     // (undocumented)
@@ -337,6 +341,8 @@ export const SearchInput: ForwardRefExoticComponent<SearchInputProps & RefAttrib
 
 // @public
 export interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
+    clearable?: boolean;
+    onClear?: () => void;
 }
 
 // @public (undocumented)
@@ -371,6 +377,7 @@ export const Textarea: ForwardRefExoticComponent<TextareaProps & RefAttributes<H
 
 // @public
 export interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> {
+    maxRows?: number;
     // (undocumented)
     rows?: number;
 }

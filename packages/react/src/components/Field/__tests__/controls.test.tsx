@@ -22,9 +22,15 @@ describe('Input', () => {
     expect(screen.getByRole('textbox').className).toContain(`clara-input--${size}`)
   })
 
-  it('is disabled by the Field, not by its own prop', () => {
+  it('is disabled by the Field, not by its own prop - and stays reachable', () => {
+    // aria-disabled, never the native attribute (D0058). This test previously asserted the
+    // violation as correct, which is how an undiscussed divergence from an accepted decision
+    // survived a whole epic.
     inField(<Input />, { disabled: true })
-    expect(screen.getByRole('textbox')).toBeDisabled()
+    const el = screen.getByRole('textbox')
+    expect(el).toHaveAttribute('aria-disabled', 'true')
+    expect(el).not.toBeDisabled()
+    expect(el).toHaveAttribute('readonly')
   })
 
   it('accepts typing and reports its value', async () => {
@@ -99,7 +105,7 @@ describe('SearchInput', () => {
   })
 })
 
-describe('Checkbox', () => {
+describe('Checkbox indeterminate is aria-checked mixed', () => {
   it('toggles by click and by Space', async () => {
     inField(<Checkbox />)
     const box = screen.getByRole('checkbox')
@@ -156,7 +162,7 @@ describe('RadioGroup', () => {
   // user arrows through. A labelled div gives the answers with no question attached.
   it('is a fieldset whose legend names the question', () => {
     inField(<RadioGroup name="t" legend="Payment terms" options={options} />)
-    expect(screen.getByRole('group', { name: 'Payment terms' })).toBeInTheDocument()
+    expect(screen.getByRole('radiogroup', { name: 'Payment terms' })).toBeInTheDocument()
   })
 
   it('is one tab stop, with arrow keys choosing - the browser\'s behaviour, not ours', async () => {

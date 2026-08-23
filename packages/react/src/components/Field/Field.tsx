@@ -30,12 +30,24 @@ export interface FieldProps {
   error?: string | undefined
   required?: boolean
   disabled?: boolean
+  /**
+   * What the label names. `control` (the default) binds it with `htmlFor` to the single control
+   * inside. `group` is for a RadioGroup or CheckboxGroup, which is a `<fieldset>`: `htmlFor` cannot
+   * target a fieldset, so binding one produced a label pointing at nothing - it moved focus nowhere
+   * and named nothing, while looking correct on screen. In `group` mode the label is a plain element
+   * with an id, and the group references it with `aria-labelledby`.
+   *
+   * Explicit rather than detected: detecting it needs an effect, and an effect that swaps `<label>`
+   * for `<span>` after mount changes the markup between the server render and hydration.
+   */
+  labelFor?: 'control' | 'group'
   className?: string
 }
 
-export function Field ({ children, label, description, error, required = false, disabled = false, className }: FieldProps) {
+export function Field ({ children, label, description, error, required = false, disabled = false, labelFor = 'control', className }: FieldProps) {
   const base = useId()
   const id = `${base}-control`
+  const labelId = `${base}-label`
   const descriptionId = description ? `${base}-description` : undefined
   const errorId = error ? `${base}-error` : undefined
 
@@ -44,15 +56,24 @@ export function Field ({ children, label, description, error, required = false, 
   // because AC5 requires the order to BE documented, not merely to exist.
   const describedBy = [descriptionId, errorId].filter(Boolean).join(' ') || undefined
 
-  const wiring: FieldWiring = { id, describedBy, errorId, invalid: Boolean(error), required, disabled }
+  const wiring: FieldWiring = { id, labelId, describedBy, errorId, invalid: Boolean(error), required, disabled, labelFor }
 
   return (
     <FieldContext.Provider value={wiring}>
       <div className={cx('clara-field', disabled && 'clara-field--disabled', error && 'clara-field--invalid', className)}>
-        <label className="clara-field__label" htmlFor={id}>
-          {label}
-          {required ? <span className="clara-field__required" aria-hidden="true">*</span> : null}
-        </label>
+        {labelFor === 'group'
+          ? (
+            <span className="clara-field__label" id={labelId}>
+              {label}
+              {required ? <span className="clara-field__required" aria-hidden="true">*</span> : null}
+            </span>
+            )
+          : (
+            <label className="clara-field__label" id={labelId} htmlFor={id}>
+              {label}
+              {required ? <span className="clara-field__required" aria-hidden="true">*</span> : null}
+            </label>
+            )}
         {description ? <p className="clara-field__description" id={descriptionId}>{description}</p> : null}
         {children}
         {/*

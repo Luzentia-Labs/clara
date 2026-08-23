@@ -28,8 +28,23 @@ import { expect } from 'vitest'
  */
 const BLOCKING: ReadonlySet<string> = new Set(['serious', 'critical'])
 
+/**
+ * Rules that block REGARDLESS of impact, and whose `incomplete` results block too.
+ *
+ * The register above predicted the miss and the epic then shipped it: a Checkbox with its own
+ * `label` inside a `<Field label>` pointed two labels at one control, so the accessible name became
+ * both concatenated. axe reports that as `form-field-multiple-labels` - impact `moderate`, below
+ * the matcher, and returned as INCOMPLETE rather than as a violation, so it was invisible twice
+ * over. Both named rules are WCAG-conformance-tagged, so a gate claiming WCAG 2.2 AA cannot leave
+ * them unfailable; listing them here closes the two entries the register could name, without
+ * lowering the general threshold the TSD sets.
+ */
+const ALWAYS_BLOCKING: ReadonlySet<string> = new Set(['form-field-multiple-labels', 'aria-deprecated-role'])
+
 export interface AxeResult {
   readonly violations: readonly axe.Result[]
+  /** Results axe could not decide. Blocking only for the rules in ALWAYS_BLOCKING. */
+  readonly incomplete: readonly axe.Result[]
 }
 
 export async function runAxe(container: Element): Promise<AxeResult> {
@@ -38,12 +53,15 @@ export async function runAxe(container: Element): Promise<AxeResult> {
     // (US-01M0GM66) against real values instead of being silently reported as "incomplete" here.
     rules: { 'color-contrast': { enabled: false } },
   })
-  return { violations: results.violations }
+  return { violations: results.violations, incomplete: results.incomplete }
 }
 
 expect.extend({
   toHaveNoBlockingViolations(received: AxeResult) {
-    const blocking = received.violations.filter((v) => BLOCKING.has(v.impact ?? ''))
+    const blocking = [
+      ...received.violations.filter((v) => BLOCKING.has(v.impact ?? '') || ALWAYS_BLOCKING.has(v.id)),
+      ...received.incomplete.filter((v) => ALWAYS_BLOCKING.has(v.id)),
+    ]
     if (blocking.length === 0) {
       return { pass: true, message: () => 'expected blocking accessibility violations, found none' }
     }

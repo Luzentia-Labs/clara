@@ -39,7 +39,7 @@
 - **Given** every exported component
 - **When** it is exported
 - **Then** a manual keyboard pass is recorded, re-run on any change to focus behaviour or the keyboard table
-- **Verify:** file packages/react/src/components/Modal/verification.md
+- **Verify:** shell node scripts/check-verification.mjs --component Modal
 - **Verification target:** functional
 
 ### AC4: Focus identity assertions

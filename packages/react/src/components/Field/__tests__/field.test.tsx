@@ -2,7 +2,9 @@ import { describe, it, expect, vi } from 'vitest'
 import { createRef, useState } from 'react'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { renderToStaticMarkup } from 'react-dom/server'
+import { renderToStaticMarkup, renderToString } from 'react-dom/server'
+import { hydrateRoot } from 'react-dom/client'
+import { act } from 'react'
 import { runAxe } from '../../../../../../test/axe'
 import { Field } from '../Field'
 import { Input } from '../../Input/Input'
@@ -43,9 +45,34 @@ describe('Field compound composition', () => {
   })
 
   it.each(CONTROLS)('%s picks up its Field wiring', (_name, control) => {
-    render(<Field label="Value" description="hint">{control}</Field>)
-    const el = document.querySelector('.clara-input, .clara-checkbox, .clara-switch') as HTMLElement
-    expect(el.getAttribute('aria-describedby')).toBeTruthy()
+    const { container } = render(<Field label="Value" description="hint">{control}</Field>)
+    // Queried by ROLE, not by class name: a class query asserts a styling hook, and the wiring is
+    // a semantic contract. `toBeTruthy()` on the attribute was the other half of the same weakness
+    // - the string "undefined" is truthy, so a broken wiring passed. The id must RESOLVE to the
+    // description element and that element must carry the description text.
+    const el = container.querySelector('input, textarea') as HTMLElement
+    const describedBy = el.getAttribute('aria-describedby')
+    expect(describedBy).toBeTruthy()
+    const described = describedBy!.split(' ').map((id) => document.getElementById(id))
+    expect(described.every(Boolean)).toBe(true)
+    expect(described.map((n) => n!.textContent).join(' ')).toContain('hint')
+  })
+
+  it('wires a control that is WRAPPED, not a direct child', () => {
+    // The composition D0060 chose context for. React.Children.map sees only the immediate child,
+    // so a cloning implementation silently skips exactly the shapes a real form is built from -
+    // a control inside a layout primitive, a fragment, or a tooltip - and the association is lost
+    // with no error anywhere. Nothing tested this until the plan review pointed at the gap.
+    const { container } = render(
+      <Field label="Supplier" description="hint">
+        <div className="wrapper"><><span><Input /></span></></div>
+      </Field>,
+    )
+    const el = container.querySelector('input') as HTMLElement
+    const describedBy = el.getAttribute('aria-describedby')
+    expect(describedBy).toBeTruthy()
+    expect(document.getElementById(describedBy!.split(' ')[0]!)?.textContent).toContain('hint')
+    expect(screen.getByRole('textbox', { name: 'Supplier' })).toBe(el)
   })
 
   it('leaves a standalone control alone rather than throwing', () => {
@@ -64,15 +91,42 @@ describe('Field compound composition', () => {
 describe('Field ARIA wiring is SSR-stable', () => {
   // A counter-based id produces different values on the server and client passes, and the
   // mismatch shows up only in a real SSR consumer - as an association pointing at nothing.
-  it('produces the same ids on the server as in the browser', () => {
+  it('keeps the server ids through hydration, so the associations survive', async () => {
+    // HYDRATION is the property that matters, and it is not the same comparison as "a server
+    // render and a fresh client render agree" - those legitimately differ, because `useId` numbers
+    // each root independently. What must never happen is the ids CHANGING as the page hydrates,
+    // which silently repoints aria-describedby at an element that no longer exists.
     const tree = <Field label="Supplier" description="hint" error="bad"><Input /></Field>
-    const server = renderToStaticMarkup(tree)
-    const { container } = render(tree)
-    const idsIn = (html: string) => (html.match(/id="[^"]+"/g) ?? []).length
-    expect(idsIn(server)).toBe(idsIn(container.innerHTML))
-    // And they really are wired, not merely equal in number.
-    expect(server).toContain('aria-describedby=')
-    expect(server).toContain('aria-errormessage=')
+    const html = renderToString(tree)
+    const idsIn = (markup: string) => (markup.match(/\bid="([^"]+)"/g) ?? []).map((m) => m.slice(4, -1))
+    const refsIn = (markup: string) => (markup.match(/aria-(describedby|errormessage)="([^"]+)"/g) ?? [])
+
+    const serverIds = idsIn(html)
+    expect(serverIds.length).toBeGreaterThan(0)
+    expect(refsIn(html).length).toBeGreaterThan(0)
+
+    const host = document.createElement('div')
+    host.innerHTML = html
+    document.body.appendChild(host)
+    // React does NOT rewrite the server's attributes when hydration disagrees - it keeps the
+    // server DOM and reports the mismatch. So comparing the resulting markup cannot see an
+    // unstable id at all; the mismatch REPORT is the observable signal, and asserting on it is
+    // what makes this test fail when `useId` is swapped for anything render-unstable.
+    const mismatches: string[] = []
+    const spy = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+      mismatches.push(args.map(String).join(' '))
+    })
+    await act(async () => { hydrateRoot(host, tree) })
+    spy.mockRestore()
+    expect(mismatches.filter((m) => /hydrat|did not match|Text content does not match/i.test(m))).toEqual([])
+
+    expect(idsIn(host.innerHTML)).toEqual(serverIds)
+    expect(refsIn(host.innerHTML)).toEqual(refsIn(html))
+    // And the association resolves after hydration, not merely matches as a string.
+    const control = host.querySelector('input') as HTMLElement
+    const target = control.getAttribute('aria-describedby')!.split(' ')[0]!
+    expect(host.querySelector(`#${CSS.escape(target)}`)?.textContent).toContain('hint')
+    document.body.removeChild(host)
   })
 
   it('gives two Fields on one page distinct ids', () => {

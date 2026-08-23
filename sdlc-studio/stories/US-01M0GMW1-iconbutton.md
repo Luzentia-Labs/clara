@@ -81,7 +81,7 @@ An icon-only button with no accessible name is the most common accessibility def
 - **Given** the IconButton story
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
-- **Verify:** file packages/react/src/components/IconButton/verification.md
+- **Verify:** shell node scripts/check-verification.mjs --component IconButton
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 

@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react'
+import { useId } from 'react'
 import { cx } from '../../lib/cx'
 import { useFieldWiring } from '../../lib/field-context'
 
@@ -31,7 +31,6 @@ export interface RadioGroupProps {
   legend: string
   orientation?: 'vertical' | 'horizontal'
   className?: string
-  children?: ReactNode
 }
 
 export function RadioGroup ({
@@ -40,12 +39,18 @@ export function RadioGroup ({
   const wiring = useFieldWiring()
   const base = useId()
   return (
+    // `radiogroup` rather than the bare fieldset's implicit `group`: it is the correct role for a
+    // set of mutually exclusive options, and it is the one that SUPPORTS aria-required. Putting
+    // aria-required on a plain group is invalid ARIA, and axe reports it as critical.
     <fieldset
+      role="radiogroup"
       className={cx('clara-radio-group', `clara-radio-group--${orientation}`, className)}
+      aria-labelledby={wiring?.labelFor === 'group' ? wiring.labelId : undefined}
       aria-describedby={wiring?.describedBy}
+      aria-required={wiring?.required || undefined}
       aria-invalid={wiring?.invalid || undefined}
       aria-errormessage={wiring?.invalid ? wiring.errorId : undefined}
-      disabled={wiring?.disabled || undefined}
+      aria-disabled={wiring?.disabled || undefined}
     >
       <legend className="clara-radio-group__legend">{legend}</legend>
       {options.map((option) => {
