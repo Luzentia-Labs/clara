@@ -1,6 +1,6 @@
 # US-01M0GM2K: Textarea
 
-> **Status:** Ready
+> **Status:** Review
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
