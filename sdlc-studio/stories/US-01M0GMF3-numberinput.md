@@ -63,9 +63,14 @@ story is mostly about not inheriting either.
 
 ### AC3: Keyboard stepping
 
-- **Given** a focused NumberInput
-- **When** I press arrow keys
-- **Then** the value steps by the configured step and announces
+- **Given** a NumberInput that has opted into numeric semantics by naming a `min`, `max` or `step`
+- **When** I focus it and press Arrow Up or Arrow Down
+- **Then** the value steps by `step`, clamped to the bounds, reported through `onChange` so a
+  controlled consumer stays in sync, and announced through the spinbutton role
+- **And** a control that named NONE of the three does not step and does not swallow the key. That is
+  the account-code case: unconditional stepping rewrote `4417` to `4418` on Arrow Up and called
+  `preventDefault`, destroying caret navigation (D0077). This criterion previously read as though
+  stepping were unconditional, which described the removed defect as correct
 - **Verify:** vitest "NumberInput arrow keys step and clamp"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

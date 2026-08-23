@@ -68,5 +68,31 @@ for (const file of readdirSync(storiesDir).filter((f) => f.startsWith('US') && f
   }
 }
 
+/**
+ * A story with a Test Plan must have one row per criterion, aligned by number and title.
+ *
+ * Two criteria were added in the commit that introduced them and their rows were not, so the last
+ * row carried the NEXT criterion's mutant and the table was misnumbered from there - a Test Plan
+ * that names the wrong mutant for every row after the gap. `check:story-verifiers` passed and could
+ * not see it, which is this project's recurring shape: a guard shipped without being subject to the
+ * rule it enforces.
+ */
+for (const file of readdirSync(storiesDir).filter((f) => f.startsWith('US') && f.endsWith('.md'))) {
+  const text = readFileSync(join(storiesDir, file), 'utf8')
+  if (!text.includes('## Test Plan')) continue
+  const criteria = [...text.matchAll(/^### AC(\d+): (.+)$/gm)].map((m) => [Number(m[1]), m[2].trim()])
+  const rows = [...text.matchAll(/^\| AC(\d+) \| (.*?) \| (.*?) \|$/gm)].map((m) => [Number(m[1]), m[3].trim()])
+  if (rows.length !== criteria.length) {
+    problems.push(`${file}: ${criteria.length} criteria but ${rows.length} Test Plan row(s) - a criterion with no row names no mutant, and the rows after the gap describe the wrong ones`)
+    continue
+  }
+  for (const [i, [n, title]] of criteria.entries()) {
+    const [rowN, rowTitle] = rows[i]
+    if (rowN !== n || rowTitle !== title) {
+      problems.push(`${file}: Test Plan row ${i + 1} is "AC${rowN}: ${rowTitle}" but criterion ${i + 1} is "AC${n}: ${title}" - the table is misaligned, so rows name other criteria's mutants`)
+    }
+  }
+}
+
 if (problems.length) fail(RULE, problems)
 pass(RULE, `${checked} story verifier(s) across ${names.length} declared test name(s); every one selects a real test`)

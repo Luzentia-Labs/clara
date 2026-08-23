@@ -161,6 +161,9 @@ const SHAPE_CONTRACT = [
   ['.clara-input[readonly]:not([aria-disabled="true"])', ['color']],
   // `resize` is asserted by the Textarea story; deleting it left every criterion green.
   ['.clara-textarea', ['min-height', 'resize']],
+  // NumberInput AC2 asserts tabular figures, so a column of amounts lines up. Nothing else in the
+  // repo could see this declaration disappear.
+  ['.clara-input--numeric', ['font-variant-numeric']],
   ['.clara-radio-group', ['display', 'gap']],
   ['.clara-checkbox-group', ['display', 'gap']],
   // Load-bearing twice: it hides both groups' legends so the label is not painted twice, and it
@@ -229,7 +232,14 @@ if (scope && !OWNED.has(scope)) {
 }
 const owned = scope ? OWNED.get(scope) : null
 // A modifier belongs to whoever owns its base.
-const inScope = owned ? (selector) => owned.has(selector.split('--')[0]) : () => true
+/**
+ * A selector is in scope when the component owns its BASE class - stripping the modifier, and any
+ * attribute or pseudo qualifiers. `.clara-input[readonly]:not([aria-disabled="true"])` reduces to
+ * `.clara-input`, which Input owns; comparing the whole selector string left it outside every
+ * scoped run, so the criterion asserting readonly contrast could not fail on its own component.
+ */
+const baseClass = (selector) => (/^\.[\w-]+/.exec(selector)?.[0] ?? selector).split('--')[0]
+const inScope = owned ? (selector) => owned.has(baseClass(selector)) : () => true
 
 // A focusable element whose class list cannot be resolved statically is a blind spot, and a blind
 // spot reported to nobody is the same as none. `TableSortButton` rendered a class-less <button> and

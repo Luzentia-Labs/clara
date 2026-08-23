@@ -234,7 +234,8 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
 | AC4 | MANUAL. jsdom does not implement `:-webkit-autofill` and it is not drivable headless. | Autofill survives |
 | AC5 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
 | AC6 | Rename the theme or density attribute so it no longer matches the emitted stylesheet. | Both themes and densities |
-| AC7 | Delete the Input verification record or its docs page. | Definition of done |
+| AC7 | Stop forwarding the ref on the DECORATED path, so it lands on the wrapper span - the case that can actually break, since the plain path forwards trivially. | The ref reaches the real control |
+| AC8 | Delete the Input verification record or its docs page. | Definition of done |
 
 ## Revision History
 

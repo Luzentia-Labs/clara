@@ -304,7 +304,8 @@ a Server Component cannot.
 | AC10 | Emit the native `disabled` attribute instead of `aria-disabled` + `readOnly`; the control leaves the tab order and the focus assertion dies. | Disabled stays reachable |
 | AC11 | Pass the wiring by cloning children instead of by context - a wrapped control stops being wired. | A wrapped control is still wired |
 | AC12 | Delete the guard from `onClick` (consumer handler runs) or from `onChange` (the toggle happens). Both are covered separately. | Disabled suppresses the interaction |
-| AC13 | Delete a verification record, empty its Stated gaps, remove its keyboard table, or delete a docs page. | Definition of done |
+| AC13 | Drop the `requiredMarkerId` marker (kills the CheckboxGroup route), or `aria-required` from RadioGroup (kills the property route). Each half is asserted separately, because the deciding property is the role. | Required is announced, by whichever route the control has |
+| AC14 | Delete a verification record, empty its Stated gaps, remove its keyboard table, or delete a docs page. | Definition of done |
 
 ## Revision History
 

@@ -1072,6 +1072,22 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // Two criteria were added and their rows were not, so the last row carried the NEXT criterion's
+    // mutant and every row after the gap named the wrong one.
+    name: 'a criterion added without its Test Plan row',
+    guard: 'check-story-verifiers.mjs',
+    withStories: true,
+    expect: /criteria but \d+ Test Plan row\(s\)/,
+    stage: (stage) => {
+      const f = join(stage, 'sdlc-studio/stories/US-01M0GM9E-switch.md')
+      const text = readFileSync(f, 'utf8')
+      const at = text.indexOf('## Test Plan')
+      const firstRow = text.indexOf('| AC1 |', at)
+      const eol = text.indexOf('\n', firstRow)
+      writeFileSync(f, text.slice(0, firstRow) + text.slice(eol + 1))
+    },
+  },
+  {
     name: 'an icon exported but absent from the committed list',
     guard: 'check-icons.mjs',
     expect: /absent from ICONS\.md|not declared/,
