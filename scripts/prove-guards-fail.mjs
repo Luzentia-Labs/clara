@@ -42,6 +42,7 @@ function stageWorkspace ({ withOutput = false } = {}) {
   for (const rel of [
     'pnpm-workspace.yaml', 'LICENSE', 'package.json', 'design/foundations.md',
     'ci-gates.json', '.github/workflows/ci.yml', '.github/workflows/release.yml',
+    'apps/docs/src/content/foundations/tokens.md',
     'sdlc-studio/trd.md', 'sdlc-studio/stories/_index.md', 'CONTRIBUTING.md',
   ]) {
     if (!existsSync(join(root, rel))) continue
@@ -570,6 +571,27 @@ const OUTPUT_CASES = [
     stage: (stage) => {
       const dist = join(stage, 'packages/react/dist')
       renameSync(join(dist, 'clara-client-Button.js'), join(dist, 'clara-client.js'))
+    },
+  },
+  {
+    // TRD gate 8: a private token in a docs example becomes public by accident the moment someone
+    // copies it, and D0007 says tiers 1 and 3 may change in a minor.
+    name: 'a docs example referencing a tier 1 primitive',
+    guard: 'check-public-tokens.mjs',
+    expect: /tier 1 \(primitive\), not tier 2/,
+    stage: (stage) => {
+      const f = join(stage, 'apps/docs/src/content/foundations/tokens.md')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n`--clara-color-neutral-600`\n')
+    },
+  },
+  {
+    // A scan that matches nothing has verified nothing.
+    name: 'the docs stripped of every token reference',
+    guard: 'check-public-tokens.mjs',
+    expect: /this gate checked nothing/,
+    stage: (stage) => {
+      const f = join(stage, 'apps/docs/src/content/foundations/tokens.md')
+      writeFileSync(f, '# Design tokens\n\nNothing here.\n')
     },
   },
   {

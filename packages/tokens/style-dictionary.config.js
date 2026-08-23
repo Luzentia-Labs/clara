@@ -19,7 +19,12 @@ const SOURCE = ['src/primitive/**/*.json', 'src/semantic/**/*.json']
 const DARK_OVERRIDES = ['src/themes/dark.json']
 
 /** Tier 2 is the public surface (PRD F01). Tier 1 and tier 3 are private. */
-const isTier2 = (token) => token.path[0] === 'semantic'
+// Tier is decided by WHICH FILE a token came from, per the TRD's layout - not by its path prefix.
+// It used to be `token.path[0] === 'semantic'`, which was true only while tier 2 tokens happened to
+// be nested under a `semantic` key. D0044 renamed them to the TRD's scheme (`color.fg.default`),
+// and a prefix test would have silently reclassified every tier 2 token as tier 1 - quietly
+// emptying the public manifest that is the whole boundary between public and private (D0007).
+const isTier2 = (token) => /(^|\/)(semantic|themes)\//.test(token.filePath ?? '')
 
 StyleDictionary.registerFilter({
   name: 'clara/tier2',

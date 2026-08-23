@@ -58,6 +58,8 @@ jobs:
       - name: Gate 8 - token contrast, both themes
         run: pnpm check:contrast
 
+      - name: Gate 8 - public token reference
+        run: pnpm check:public-tokens
       - name: Gate 14 - consumer verification (Vite + Next App Router)
         run: pnpm verify:consumers
       - name: Gate 16 - tarball install-safety

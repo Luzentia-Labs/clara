@@ -44,6 +44,75 @@ export const ColorAccent800 = "#2f355d";
 export const ColorAccent900 = "#181c33";
 
 // @public (undocumented)
+export const ColorBgAccentEmphasis = "#616db7";
+
+// @public (undocumented)
+export const ColorBgAccentSubtle = "#f5f7fe";
+
+// @public (undocumented)
+export const ColorBgCanvas = "#ffffff";
+
+// @public (undocumented)
+export const ColorBgDangerEmphasis = "#ae5751";
+
+// @public (undocumented)
+export const ColorBgDangerSubtle = "#fef5f4";
+
+// @public (undocumented)
+export const ColorBgDisabled = "#f2f0ed";
+
+// @public (undocumented)
+export const ColorBgInfoEmphasis = "#0f7eae";
+
+// @public (undocumented)
+export const ColorBgInfoSubtle = "#f1f8fd";
+
+// @public (undocumented)
+export const ColorBgRowHover = "#f2f0ed";
+
+// @public (undocumented)
+export const ColorBgRowStriped = "#f8f7f4";
+
+// @public (undocumented)
+export const ColorBgSelected = "#eceffe";
+
+// @public (undocumented)
+export const ColorBgSelectedHover = "#d6defe";
+
+// @public (undocumented)
+export const ColorBgSubtle = "#f2f0ed";
+
+// @public (undocumented)
+export const ColorBgSuccessEmphasis = "#296539";
+
+// @public (undocumented)
+export const ColorBgSuccessSubtle = "#f3f9f4";
+
+// @public (undocumented)
+export const ColorBgSurface = "#ffffff";
+
+// @public (undocumented)
+export const ColorBgWarningEmphasis = "#9b690b";
+
+// @public (undocumented)
+export const ColorBgWarningSubtle = "#fbf6f0";
+
+// @public (undocumented)
+export const ColorBorderDefault = "#95928e";
+
+// @public (undocumented)
+export const ColorBorderFocus = "#48518b";
+
+// @public (undocumented)
+export const ColorBorderFocusOffset = "#ffffff";
+
+// @public (undocumented)
+export const ColorBorderSelected = "#48518b";
+
+// @public (undocumented)
+export const ColorBorderStrong = "#585654";
+
+// @public (undocumented)
 export const ColorDanger0 = "#ffffff";
 
 // @public (undocumented)
@@ -75,6 +144,39 @@ export const ColorDanger800 = "#582926";
 
 // @public (undocumented)
 export const ColorDanger900 = "#301513";
+
+// @public (undocumented)
+export const ColorFgAccent = "#48518b";
+
+// @public (undocumented)
+export const ColorFgDanger = "#843f3b";
+
+// @public (undocumented)
+export const ColorFgDefault = "#1f1e1d";
+
+// @public (undocumented)
+export const ColorFgDisabled = "#777471";
+
+// @public (undocumented)
+export const ColorFgInfo = "#045e84";
+
+// @public (undocumented)
+export const ColorFgLink = "#48518b";
+
+// @public (undocumented)
+export const ColorFgMuted = "#585654";
+
+// @public (undocumented)
+export const ColorFgOnEmphasis = "#ffffff";
+
+// @public (undocumented)
+export const ColorFgReadonly = "#585654";
+
+// @public (undocumented)
+export const ColorFgSuccess = "#296539";
+
+// @public (undocumented)
+export const ColorFgWarning = "#754e02";
 
 // @public (undocumented)
 export const ColorInfo0 = "#ffffff";
@@ -249,51 +351,6 @@ export const RadiusNone = "0";
 
 // @public (undocumented)
 export const RadiusSm = "2px";
-
-// @public (undocumented)
-export const SemanticActionDanger = "#ae5751";
-
-// @public (undocumented)
-export const SemanticActionPrimary = "#616db7";
-
-// @public (undocumented)
-export const SemanticActionPrimaryHover = "#48518b";
-
-// @public (undocumented)
-export const SemanticBorderDefault = "#95928e";
-
-// @public (undocumented)
-export const SemanticFocusOffset = "#ffffff";
-
-// @public (undocumented)
-export const SemanticFocusRing = "#1f1e1d";
-
-// @public (undocumented)
-export const SemanticSpacingLg = "16px";
-
-// @public (undocumented)
-export const SemanticSpacingMd = "12px";
-
-// @public (undocumented)
-export const SemanticSpacingSm = "8px";
-
-// @public (undocumented)
-export const SemanticSpacingXs = "4px";
-
-// @public (undocumented)
-export const SemanticSurfaceDefault = "#ffffff";
-
-// @public (undocumented)
-export const SemanticSurfaceSubtle = "#f2f0ed";
-
-// @public (undocumented)
-export const SemanticTextDefault = "#1f1e1d";
-
-// @public (undocumented)
-export const SemanticTextMuted = "#777471";
-
-// @public (undocumented)
-export const SemanticTextOnAccent = "#ffffff";
 
 // @public (undocumented)
 export const Space0 = "0";

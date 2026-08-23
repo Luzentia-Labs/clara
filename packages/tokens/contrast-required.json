@@ -1,135 +1,260 @@
 {
-  "_comment": "The pairings PRD Section 7 REQUIRES. Committed, and not written by the build - the same reasoning as tokens.public.lock.json. check-contrast.mjs asserts the declared table covers this list, so a pairing cannot be quietly dropped to make the gate green. Entries the tier 2 layer cannot yet express are waived below, each keyed to the story that closes it.",
+  "_comment": "The contract the contrast gate measures the BUILT tokens against. Authored from PRD Section 7 by hand and committed, deliberately NOT generated from the token source: a file produced by the same generator that builds the palette would let a broken palette regenerate its own contract, and the point of this file is to be an independent witness (review X3). The gate resolves each name against the built graph in BOTH themes, so a token that stops existing fails rather than passing vacuously. Entries name the EMITTED token (color-fg-default), not a family shorthand: the gate used to prepend a hardcoded `semantic-` prefix, which silently stopped matching anything the moment D0044 renamed tier 2 - and a coverage check that matches nothing reports every row as missing rather than as passing, which is at least loud, but the same bug in reverse would have been silent. A colour pair appears ONCE, in the stricter list: PRD Section 7 lists fg-{intent} on bg-{intent}-subtle both as intent text (4.5:1) and as a status icon (3:1), but that is two roles for one pair of colours - it either reaches 4.5:1 or it does not, and listing it twice made the row count ambiguous while adding no requirement.",
   "text": [
     {
-      "fg": "fg-default",
-      "bg": "bg-canvas"
+      "fg": "color-fg-default",
+      "bg": "color-bg-canvas"
     },
     {
-      "fg": "fg-default",
-      "bg": "bg-surface"
+      "fg": "color-fg-default",
+      "bg": "color-bg-surface"
     },
     {
-      "fg": "fg-default",
-      "bg": "bg-subtle"
+      "fg": "color-fg-default",
+      "bg": "color-bg-subtle"
     },
     {
-      "fg": "fg-muted",
-      "bg": "bg-canvas"
+      "fg": "color-fg-muted",
+      "bg": "color-bg-canvas"
     },
     {
-      "fg": "fg-muted",
-      "bg": "bg-surface"
+      "fg": "color-fg-muted",
+      "bg": "color-bg-surface"
     },
     {
-      "fg": "fg-link",
-      "bg": "bg-canvas"
+      "fg": "color-fg-link",
+      "bg": "color-bg-canvas"
     },
     {
-      "fg": "fg-link",
-      "bg": "bg-surface"
+      "fg": "color-fg-link",
+      "bg": "color-bg-surface"
     },
     {
-      "fg": "fg-on-emphasis",
-      "bg": "bg-accent-emphasis"
+      "fg": "color-fg-on-emphasis",
+      "bg": "color-bg-accent-emphasis"
     },
     {
-      "fg": "fg-on-emphasis",
-      "bg": "bg-danger-emphasis"
+      "fg": "color-fg-on-emphasis",
+      "bg": "color-bg-info-emphasis"
     },
     {
-      "fg": "fg-on-emphasis",
-      "bg": "bg-success-emphasis"
+      "fg": "color-fg-on-emphasis",
+      "bg": "color-bg-success-emphasis"
     },
     {
-      "fg": "fg-on-emphasis",
-      "bg": "bg-warning-emphasis"
+      "fg": "color-fg-on-emphasis",
+      "bg": "color-bg-warning-emphasis"
     },
     {
-      "fg": "fg-on-emphasis",
-      "bg": "bg-info-emphasis"
+      "fg": "color-fg-on-emphasis",
+      "bg": "color-bg-danger-emphasis"
     },
     {
-      "fg": "fg-readonly",
-      "bg": "bg-surface"
+      "fg": "color-fg-accent",
+      "bg": "color-bg-accent-subtle"
+    },
+    {
+      "fg": "color-fg-info",
+      "bg": "color-bg-info-subtle"
+    },
+    {
+      "fg": "color-fg-success",
+      "bg": "color-bg-success-subtle"
+    },
+    {
+      "fg": "color-fg-warning",
+      "bg": "color-bg-warning-subtle"
+    },
+    {
+      "fg": "color-fg-danger",
+      "bg": "color-bg-danger-subtle"
+    },
+    {
+      "fg": "color-fg-readonly",
+      "bg": "color-bg-surface"
+    },
+    {
+      "fg": "color-fg-default",
+      "bg": "color-bg-row-striped"
+    },
+    {
+      "fg": "color-fg-default",
+      "bg": "color-bg-row-hover"
+    },
+    {
+      "fg": "color-fg-default",
+      "bg": "color-bg-selected"
+    },
+    {
+      "fg": "color-fg-default",
+      "bg": "color-bg-selected-hover"
     }
   ],
   "nonText": [
     {
-      "fg": "border-default",
-      "bg": "bg-canvas"
+      "fg": "color-border-default",
+      "bg": "color-bg-canvas"
     },
     {
-      "fg": "border-default",
-      "bg": "bg-surface"
+      "fg": "color-border-default",
+      "bg": "color-bg-surface"
     },
     {
-      "fg": "border-strong",
-      "bg": "bg-canvas"
+      "fg": "color-border-strong",
+      "bg": "color-bg-canvas"
     },
     {
-      "fg": "border-strong",
-      "bg": "bg-surface"
+      "fg": "color-border-strong",
+      "bg": "color-bg-surface"
     },
     {
-      "fg": "border-focus",
-      "bg": "bg-canvas"
+      "fg": "color-border-focus",
+      "bg": "color-bg-canvas"
     },
     {
-      "fg": "border-focus",
-      "bg": "bg-surface"
+      "fg": "color-border-focus",
+      "bg": "color-bg-surface"
     },
     {
-      "fg": "border-focus",
-      "bg": "bg-subtle"
+      "fg": "color-border-focus",
+      "bg": "color-bg-subtle"
     },
     {
-      "fg": "border-focus",
-      "bg": "bg-accent-emphasis"
+      "fg": "color-border-focus-offset",
+      "bg": "color-border-focus"
     },
     {
-      "fg": "border-focus",
-      "bg": "bg-danger-emphasis"
+      "fg": "color-border-focus-offset",
+      "bg": "color-bg-accent-emphasis"
     },
     {
-      "fg": "border-focus",
-      "bg": "bg-success-emphasis"
+      "fg": "color-border-focus-offset",
+      "bg": "color-bg-info-emphasis"
     },
     {
-      "fg": "border-focus",
-      "bg": "bg-warning-emphasis"
+      "fg": "color-border-focus-offset",
+      "bg": "color-bg-success-emphasis"
     },
     {
-      "fg": "border-focus",
-      "bg": "bg-info-emphasis"
+      "fg": "color-border-focus-offset",
+      "bg": "color-bg-warning-emphasis"
     },
     {
-      "fg": "border-selected",
-      "bg": "bg-selected"
+      "fg": "color-border-focus-offset",
+      "bg": "color-bg-danger-emphasis"
     },
     {
-      "fg": "border-selected",
-      "bg": "bg-surface"
+      "fg": "color-border-selected",
+      "bg": "color-bg-selected"
+    },
+    {
+      "fg": "color-border-selected",
+      "bg": "color-bg-surface"
+    },
+    {
+      "fg": "color-fg-accent",
+      "bg": "color-bg-canvas"
+    },
+    {
+      "fg": "color-fg-accent",
+      "bg": "color-bg-surface"
+    },
+    {
+      "fg": "color-fg-info",
+      "bg": "color-bg-canvas"
+    },
+    {
+      "fg": "color-fg-info",
+      "bg": "color-bg-surface"
+    },
+    {
+      "fg": "color-fg-success",
+      "bg": "color-bg-canvas"
+    },
+    {
+      "fg": "color-fg-success",
+      "bg": "color-bg-surface"
+    },
+    {
+      "fg": "color-fg-warning",
+      "bg": "color-bg-canvas"
+    },
+    {
+      "fg": "color-fg-warning",
+      "bg": "color-bg-surface"
+    },
+    {
+      "fg": "color-fg-danger",
+      "bg": "color-bg-canvas"
+    },
+    {
+      "fg": "color-fg-danger",
+      "bg": "color-bg-surface"
+    },
+    {
+      "fg": "color-fg-disabled",
+      "bg": "color-bg-disabled"
     }
   ],
   "waived": {
-    "_why": "The tier 2 families PRD Section 7 names do not exist yet - the delivered placeholder set is surface/text/border/action/spacing (CR-01M0J0Z6). Every entry above is waived until US-01M0GMAE builds the real semantic layer. The waiver is ENUMERATED and dated so the gap is countable rather than implied; it may only shrink.",
-    "until": "US-01M0GMAE",
-    "recorded": "2026-08-22",
-    "count": 27,
+    "_why": "ZERO as of 2026-08-23 (US-01M0GMAE). Every pairing below is measured and passing in both themes. The 27 waived on 2026-08-22 were waived because the tier 2 families PRD Section 7 names did not exist yet; they do now. Idris's F00 condition was that contrast never ships waived - where a colour could not carry a pairing, the colour moved, which is what the step solver in generate-semantic.mjs does.",
+    "until": null,
+    "recorded": "2026-08-23",
+    "count": 0,
     "highWaterMark": 27
   },
   "declaredLock": {
-    "_why": "The pairings declared today. May only GROW until the semantic layer lands.",
+    "_why": "The pairings declared today. May only GROW. The placeholder-named pairs recorded before the semantic layer landed are superseded by D0044, which renamed tier 2 to the TRD's scheme - so those names describe tokens that no longer exist, and the ones below replace them one for one plus the two-part focus rows D0054 resolved. Grew by four on 2026-08-23: the row surfaces the precedence rule needs (D0055) carry table text, so they are reading pairings like any other background.",
+    "supersedes": "the semantic-* placeholder pairs recorded 2026-08-22, per D0044",
     "pairs": [
-      "semantic-border-default|semantic-surface-default",
-      "semantic-focus-offset|semantic-action-primary",
-      "semantic-focus-ring|semantic-surface-default",
-      "semantic-text-default|semantic-surface-default",
-      "semantic-text-default|semantic-surface-subtle",
-      "semantic-text-muted|semantic-surface-default",
-      "semantic-text-on-accent|semantic-action-danger",
-      "semantic-text-on-accent|semantic-action-primary"
+      "color-border-default|color-bg-canvas",
+      "color-border-default|color-bg-surface",
+      "color-border-focus-offset|color-bg-accent-emphasis",
+      "color-border-focus-offset|color-bg-danger-emphasis",
+      "color-border-focus-offset|color-bg-info-emphasis",
+      "color-border-focus-offset|color-bg-success-emphasis",
+      "color-border-focus-offset|color-bg-warning-emphasis",
+      "color-border-focus-offset|color-border-focus",
+      "color-border-focus|color-bg-canvas",
+      "color-border-focus|color-bg-subtle",
+      "color-border-focus|color-bg-surface",
+      "color-border-selected|color-bg-selected",
+      "color-border-selected|color-bg-surface",
+      "color-border-strong|color-bg-canvas",
+      "color-border-strong|color-bg-surface",
+      "color-fg-accent|color-bg-accent-subtle",
+      "color-fg-accent|color-bg-canvas",
+      "color-fg-accent|color-bg-surface",
+      "color-fg-danger|color-bg-canvas",
+      "color-fg-danger|color-bg-danger-subtle",
+      "color-fg-danger|color-bg-surface",
+      "color-fg-default|color-bg-canvas",
+      "color-fg-default|color-bg-row-hover",
+      "color-fg-default|color-bg-row-striped",
+      "color-fg-default|color-bg-selected",
+      "color-fg-default|color-bg-selected-hover",
+      "color-fg-default|color-bg-subtle",
+      "color-fg-default|color-bg-surface",
+      "color-fg-disabled|color-bg-disabled",
+      "color-fg-info|color-bg-canvas",
+      "color-fg-info|color-bg-info-subtle",
+      "color-fg-info|color-bg-surface",
+      "color-fg-link|color-bg-canvas",
+      "color-fg-link|color-bg-surface",
+      "color-fg-muted|color-bg-canvas",
+      "color-fg-muted|color-bg-surface",
+      "color-fg-on-emphasis|color-bg-accent-emphasis",
+      "color-fg-on-emphasis|color-bg-danger-emphasis",
+      "color-fg-on-emphasis|color-bg-info-emphasis",
+      "color-fg-on-emphasis|color-bg-success-emphasis",
+      "color-fg-on-emphasis|color-bg-warning-emphasis",
+      "color-fg-readonly|color-bg-surface",
+      "color-fg-success|color-bg-canvas",
+      "color-fg-success|color-bg-success-subtle",
+      "color-fg-success|color-bg-surface",
+      "color-fg-warning|color-bg-canvas",
+      "color-fg-warning|color-bg-surface",
+      "color-fg-warning|color-bg-warning-subtle"
     ]
   },
   "thresholds": {

@@ -47,9 +47,19 @@ const problems = []
  * 3.0 silently removed WCAG 1.4.3 for that pair, in the one field the docblock forgot (review X3).
  */
 const THRESHOLD = { text: required.thresholds?.text ?? 4.5, nonText: required.thresholds?.nonText ?? 3 }
-const nonTextTokens = /border|focus|icon/i
+// The threshold comes from WHICH LIST the pairing is declared in, not from a regex on its name.
+// It used to be `/border|focus|icon/i`, which called `fg-disabled` text and demanded 4.5:1 of a
+// pairing PRD Section 7 sets at 3:1 - and would have called a `border-` token non-text even where
+// it carried a label. Inferring a role from a name is the same mistake as inferring a component
+// from a name suffix, which this repo has already had to undo once.
+const roleThreshold = new Map()
+for (const [group, level] of [['text', 'text'], ['nonText', 'nonText']]) {
+  for (const { fg, bg } of required[group] ?? []) roleThreshold.set(`${fg}|${bg}`, level)
+}
 const thresholdFor = (p) =>
-  nonTextTokens.test(p.foreground?.token ?? '') ? THRESHOLD.nonText : THRESHOLD.text
+  // An undeclared pairing gets the STRICTER threshold: an unknown role must not be the cheap way
+  // to a lower bar.
+  THRESHOLD[roleThreshold.get(`${p.foreground?.token}|${p.background?.token}`) ?? 'text']
 
 // --- 1. every declared pairing passes, IN EVERY THEME --------------------------------------------
 let measured = 0
@@ -123,11 +133,9 @@ const waived = required.waived ?? {}
 const missing = []
 for (const [group, min] of [['text', 4.5], ['nonText', 3]]) {
   for (const { fg, bg } of required[group] ?? []) {
-    // Required entries name PRD family names; declared pairings use emitted token names. Match on
-    // the emitted form once the semantic layer exists.
-    const emittedFg = `semantic-${fg}`
-    const emittedBg = `semantic-${bg}`
-    if (!declared.has(`${emittedFg}|${emittedBg}`)) missing.push(`${fg} on ${bg} (${min}:1)`)
+    // Required entries name the emitted token directly (D0044). The previous version prepended a
+    // hardcoded `semantic-`, which stopped matching the instant tier 2 was renamed.
+    if (!declared.has(`${fg}|${bg}`)) missing.push(`${fg} on ${bg} (${min}:1)`)
   }
 }
 

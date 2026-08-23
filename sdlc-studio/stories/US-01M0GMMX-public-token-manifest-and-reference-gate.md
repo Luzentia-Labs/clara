@@ -23,7 +23,8 @@
 - **Given** the build
 - **When** it completes
 - **Then** `tokens.public.json` contains exactly the tier 2 set and nothing else
-- **Verify:** file packages/tokens/dist/tokens.public.json
+- **Verify:** shell node scripts/check-token-output.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Docs are policed
@@ -32,6 +33,7 @@
 - **When** it references a token outside the manifest
 - **Then** CI fails
 - **Verify:** shell node scripts/check-public-tokens.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Private tokens are documented as private
@@ -39,7 +41,8 @@
 - **Given** the docs
 - **When** a reader looks for tier 1 or tier 3
 - **Then** they are documented as unsupported and changeable in a minor (D0007)
-- **Verify:** grep "may change in a minor" apps/docs/src/content/foundations/tokens.md
+- **Verify:** shell node scripts/check-public-tokens.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

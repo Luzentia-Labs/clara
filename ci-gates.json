@@ -117,8 +117,8 @@
       "n": 17,
       "trd": 8,
       "gate": "Public token reference: docs or examples reference a non-tier-2 token",
-      "status": "pending",
-      "blocked_by": "US-01M0GMMX"
+      "status": "wired",
+      "run": "pnpm check:public-tokens"
     },
     {
       "n": 18,

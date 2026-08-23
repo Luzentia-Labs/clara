@@ -23,7 +23,8 @@
 - **Given** the token build
 - **When** it completes
 - **Then** `tokens.pairings.json` contains every pairing documented in PRD Section 7
-- **Verify:** file packages/tokens/dist/tokens.pairings.json
+- **Verify:** shell node scripts/check-contrast.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Thresholds are per role
@@ -31,7 +32,8 @@
 - **Given** the contrast test
 - **When** it runs
 - **Then** 4.5:1 for text, 3:1 for large text, 3:1 for borders, icons, control boundaries and the focus indicator
-- **Verify:** vitest "contrast thresholds per role"
+- **Verify:** shell npx vitest run packages/tokens/src/__tests__/pairings.test.ts -t "contrast thresholds per role"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Both themes are covered
@@ -39,7 +41,8 @@
 - **Given** the matrix
 - **When** the test runs
 - **Then** every pairing is asserted in light and dark
-- **Verify:** vitest "contrast in both themes"
+- **Verify:** shell npx vitest run packages/tokens/src/__tests__/pairings.test.ts -t "contrast in both themes"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Row count is asserted
@@ -47,7 +50,8 @@
 - **Given** the generator
 - **When** a pairing is silently dropped
 - **Then** the test fails on the count mismatch rather than passing vacuously
-- **Verify:** vitest "pairing row count matches documented table"
+- **Verify:** shell npx vitest run packages/tokens/src/__tests__/pairings.test.ts -t "pairing row count"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

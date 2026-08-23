@@ -58,7 +58,8 @@ of review added a fourth: `fg-on-emphasis` must be per-**theme** as well as per-
 - **Given** tier 2
 - **When** I read the semantic set
 - **Then** fg, bg and border are defined across neutral, accent, and the four status intents
-- **Verify:** grep "color-bg-accent-emphasis" packages/tokens/dist/tokens.css
+- **Verify:** shell node scripts/check-token-output.mjs && node scripts/check-contrast.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: The four missing families exist
@@ -66,7 +67,8 @@ of review added a fourth: `fg-on-emphasis` must be per-**theme** as well as per-
 - **Given** tier 2
 - **When** I read the semantic set
 - **Then** accent, selected (bg and border), fg-readonly, and focus ring plus offset are all present
-- **Verify:** grep "color-fg-readonly" packages/tokens/dist/tokens.css
+- **Verify:** shell node scripts/check-public-tokens.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: No dangling reference
@@ -75,6 +77,7 @@ of review added a fourth: `fg-on-emphasis` must be per-**theme** as well as per-
 - **When** the build runs
 - **Then** nothing references a semantic token that tier 2 does not define
 - **Verify:** shell pnpm --filter @luzentialabs/clara-tokens build
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Row precedence is defined
@@ -82,7 +85,8 @@ of review added a fourth: `fg-on-emphasis` must be per-**theme** as well as per-
 - **Given** a table row that is striped, hovered, selected and focused at once
 - **When** it renders
 - **Then** resolution is focus > selected > hover > striped, with selected and hover composing
-- **Verify:** vitest "row surface precedence"
+- **Verify:** shell npx vitest run packages/tokens/src/__tests__/pairings.test.ts -t "row surface precedence"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

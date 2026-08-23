@@ -86,14 +86,6 @@ if (selectors.length === 0) {
       'Any other selector that matches the root element overrides the light theme with no way back.',
   )
 }
-// It must override tier 2 only; re-declaring tier 1 is the same bug wearing a scoped selector.
-const darkPrimitives = (darkCss.match(/^\s*--clara-(?!semantic-)[\w-]+/gm) ?? []).length
-if (darkPrimitives > 0) {
-  problems.push(
-    `themes/dark.css re-declares ${darkPrimitives} tier 1 primitive(s); it must override tier 2 ` +
-      'semantic tokens only and reference tier 1 through var()',
-  )
-}
 
 // PRD F01: tokens.public.json IS the public API list.
 //
@@ -109,6 +101,22 @@ if (!existsSync(tierManifestPath)) {
 const tiers = JSON.parse(readFileSync(tierManifestPath, 'utf8'))
 const tier2Names = new Set(tiers.tier2.map((t) => t.name))
 const tier1Names = new Set(tiers.tier1.map((t) => t.name))
+
+// themes/dark.css must override tier 2 ONLY; re-declaring tier 1 is the same bug wearing a scoped
+// selector. Checked against the tier MANIFEST, not a name prefix: the rule used to be
+// `--clara-(?!semantic-)`, which defined "tier 2" as "spelled semantic-", so the moment D0044
+// renamed tier 2 to the TRD's scheme all 31 tier 2 overrides read as tier 1 primitives. Third
+// place in this build where a hardcoded name prefix stood in for a real tier lookup.
+const darkPrimitiveNames = (darkCss.match(/^\s*(--clara-[\w-]+)\s*:/gm) ?? [])
+  .map((m) => m.trim().replace(/\s*:$/, '').replace(/^--clara-/, ''))
+  .filter((name) => tier1Names.has(name))
+if (darkPrimitiveNames.length) {
+  problems.push(
+    `themes/dark.css re-declares ${darkPrimitiveNames.length} tier 1 primitive(s) ` +
+      `(${darkPrimitiveNames.slice(0, 3).join(', ')}); it must override tier 2 semantic tokens ` +
+      'only and reference tier 1 through var()',
+  )
+}
 
 const publicManifest = JSON.parse(readFileSync(join(tokens, 'dist/tokens.public.json'), 'utf8'))
 // Style Dictionary's json/flat format keys by the js-transformed name; map back through paths.
