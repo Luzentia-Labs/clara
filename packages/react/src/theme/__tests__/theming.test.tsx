@@ -1,0 +1,119 @@
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { ClaraProvider } from '../ClaraProvider'
+import { ClaraScope } from '../ClaraScope'
+import { ClaraPortal } from '../ClaraPortal'
+import { resolveTheme, resolveDensity } from '../resolve'
+
+/**
+ * Pretend the OS has a colour-scheme preference. jsdom has no matchMedia.
+ *
+ * Returns a handle that MUTATES the same query object the component subscribed to. Re-stubbing the
+ * global instead would leave the live listener holding the previous query, so a change would be
+ * announced and then read back as the old value - the test would pass or fail for reasons that
+ * have nothing to do with the component.
+ */
+function mockSystem (prefersDark: boolean) {
+  const listeners = new Set<() => void>()
+  const query = {
+    matches: prefersDark,
+    addEventListener: (_: string, fn: () => void) => listeners.add(fn),
+    removeEventListener: (_: string, fn: () => void) => listeners.delete(fn),
+  }
+  vi.stubGlobal('matchMedia', (q: string) => (q.includes('dark') ? query : { ...query, matches: false }))
+  return {
+    set (next: boolean) { query.matches = next; for (const fn of listeners) fn() },
+  }
+}
+afterEach(() => vi.unstubAllGlobals())
+
+describe('theme follows system preference', () => {
+  it.each([[true, 'dark'], [false, 'light']] as const)('prefers-color-scheme dark=%s resolves to %s', async (dark, expected) => {
+    mockSystem(dark)
+    const { container } = render(<ClaraProvider theme="system">x</ClaraProvider>)
+    await waitFor(() => {
+      expect(container.firstElementChild).toHaveAttribute('data-clara-theme', expected)
+    })
+  })
+
+  it('follows a later change of the system preference', async () => {
+    const system = mockSystem(false)
+    const { container } = render(<ClaraProvider theme="system">x</ClaraProvider>)
+    await waitFor(() => expect(container.firstElementChild).toHaveAttribute('data-clara-theme', 'light'))
+    system.set(true)
+    await waitFor(() => expect(container.firstElementChild).toHaveAttribute('data-clara-theme', 'dark'))
+  })
+})
+
+describe('explicit theme wins', () => {
+  it('ignores the system preference when a theme is given', async () => {
+    mockSystem(true)
+    const { container } = render(<ClaraProvider theme="light">x</ClaraProvider>)
+    await waitFor(() => expect(container.firstElementChild).toHaveAttribute('data-clara-theme', 'light'))
+  })
+
+  it.each([
+    [{ preference: 'dark', inherited: 'light', system: 'light' }, 'dark'],
+    [{ preference: 'system', inherited: 'light', system: 'dark' }, 'dark'],
+    [{ preference: undefined, inherited: 'dark', system: 'light' }, 'dark'],
+    [{ preference: undefined, inherited: undefined, system: undefined }, 'light'],
+  ] as const)('resolveTheme(%j) is %s', (input, expected) => {
+    expect(resolveTheme(input.preference, input.inherited, input.system)).toBe(expected)
+  })
+
+  it('inherits what a scope does not override', () => {
+    expect(resolveDensity(undefined, 'compact')).toBe('compact')
+    expect(resolveTheme(undefined, 'dark', undefined)).toBe('dark')
+  })
+})
+
+describe('portal inherits scoped theme', () => {
+  // The case DOM inheritance cannot handle: the portal leaves the themed subtree in the DOM but
+  // stays a descendant in the React tree, so only context can carry the setting to it.
+  it('renders portalled content with the theme of where it was written, not the page', async () => {
+    render(
+      <ClaraProvider theme="light" density="comfortable">
+        <ClaraScope theme="dark" density="compact">
+          <ClaraPortal><span data-testid="overlay">content</span></ClaraPortal>
+        </ClaraScope>
+      </ClaraProvider>,
+    )
+    const overlay = await screen.findByTestId('overlay')
+    const host = overlay.closest('[data-clara-theme]')
+    expect(host).toHaveAttribute('data-clara-theme', 'dark')
+    expect(host).toHaveAttribute('data-clara-density', 'compact')
+    // And it really did leave the provider's subtree - which is why this had to be context.
+    expect(overlay.closest('[data-clara-theme="light"]')).toBeNull()
+  })
+
+  it('a scope that changes only density keeps the inherited theme', async () => {
+    render(
+      <ClaraProvider theme="dark">
+        <ClaraScope density="compact"><ClaraPortal><span data-testid="o">c</span></ClaraPortal></ClaraScope>
+      </ClaraProvider>,
+    )
+    const host = (await screen.findByTestId('o')).closest('[data-clara-theme]')
+    expect(host).toHaveAttribute('data-clara-theme', 'dark')
+    expect(host).toHaveAttribute('data-clara-density', 'compact')
+  })
+})
+
+describe('no theme flash on hydration', () => {
+  // An explicit theme is resolved identically on the server and the client, so the first paint is
+  // already correct. That is the documented no-flash pattern: resolve on the server, pass it in.
+  it.each(['light', 'dark'] as const)('server-renders %s with the attribute already set', (theme) => {
+    const html = renderToStaticMarkup(<ClaraProvider theme={theme} density="compact">x</ClaraProvider>)
+    expect(html).toContain(`data-clara-theme="${theme}"`)
+    expect(html).toContain('data-clara-density="compact"')
+  })
+
+  it('server-renders without reading matchMedia, even for theme="system"', () => {
+    const touched: string[] = []
+    vi.stubGlobal('matchMedia', () => { touched.push('matchMedia'); return { matches: false, addEventListener () {}, removeEventListener () {} } })
+    const html = renderToStaticMarkup(<ClaraProvider theme="system">x</ClaraProvider>)
+    expect(touched).toEqual([])
+    // It falls back to light rather than guessing, so the markup is deterministic.
+    expect(html).toContain('data-clara-theme="light"')
+  })
+})

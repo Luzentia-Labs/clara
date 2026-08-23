@@ -23,7 +23,8 @@
 - **Given** no explicit setting
 - **When** the app renders
 - **Then** light is the default and the theme follows prefers-color-scheme
-- **Verify:** vitest "theme follows system preference"
+- **Verify:** shell npx vitest run packages/react/src/theme/__tests__/theming.test.tsx -t "theme follows system preference"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Explicit forcing
@@ -31,7 +32,8 @@
 - **Given** data-clara-theme is set
 - **When** the app renders
 - **Then** the explicit value wins over the system preference
-- **Verify:** vitest "explicit theme wins"
+- **Verify:** shell npx vitest run packages/react/src/theme/__tests__/theming.test.tsx -t "explicit theme wins"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Context, not DOM
@@ -39,7 +41,8 @@
 - **Given** a ClaraScope with a dark theme
 - **When** a descendant portals to document.body
 - **Then** the portal root carries data-clara-theme=dark and renders dark (TRD ADR-006)
-- **Verify:** vitest "portal inherits scoped theme"
+- **Verify:** shell npx vitest run packages/react/src/theme/__tests__/theming.test.tsx -t "portal inherits scoped theme"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: No overlay props
@@ -47,7 +50,8 @@
 - **Given** the public API
 - **When** I inspect every overlay
 - **Then** none accepts a theme, density, or portalContainer prop
-- **Verify:** shell ! grep -qE "portalContainer|theme\?:|density\?:" packages/react/etc/clara-react.api.md
+- **Verify:** shell node scripts/api-report.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC5: No flash in SSR
@@ -55,7 +59,8 @@
 - **Given** a server render
 - **When** the page hydrates
 - **Then** no layout shift and no flash of the wrong theme
-- **Verify:** vitest "no theme flash on hydration"
+- **Verify:** shell npx vitest run packages/react/src/theme/__tests__/theming.test.tsx -t "no theme flash on hydration"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

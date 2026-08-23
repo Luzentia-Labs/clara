@@ -28,5 +28,23 @@
     "path": "packages/react/dist/clara-client-Button.js",
     "limit": "5 kB",
     "gzip": true
+  },
+  {
+    "name": "ClaraPortal (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-ClaraPortal.js",
+    "limit": "5 kB",
+    "gzip": true
+  },
+  {
+    "name": "ClaraProvider (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-ClaraProvider.js",
+    "limit": "5 kB",
+    "gzip": true
+  },
+  {
+    "name": "ClaraScope (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-ClaraScope.js",
+    "limit": "5 kB",
+    "gzip": true
   }
 ]

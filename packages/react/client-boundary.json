@@ -4,7 +4,8 @@
   "trdSection": "7",
   "special": {
     "Table": "Static parts are server-capable; interactive parts (sort, select, resize) are client.",
-    "Alert": "Non-dismissible is server-capable; a dismissible Alert takes onDismiss and is therefore client."
+    "Alert": "Non-dismissible is server-capable; a dismissible Alert takes onDismiss and is therefore client.",
+    "ClaraProvider": "Client-only: resolves the system colour-scheme preference in an effect, and holds context state."
   },
   "components": [
     {
@@ -50,7 +51,7 @@
     {
       "name": "Heading",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Inline",
@@ -75,7 +76,7 @@
     {
       "name": "Text",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Button",
@@ -211,6 +212,21 @@
       "name": "TableSortButton",
       "boundary": "client",
       "status": "planned"
+    },
+    {
+      "name": "ClaraProvider",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "ClaraScope",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "ClaraPortal",
+      "boundary": "client",
+      "status": "built"
     }
   ]
 }

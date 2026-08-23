@@ -6,6 +6,7 @@
 
 import { JSX as JSX_2 } from 'react';
 import { ReactNode } from 'react';
+import { ReactPortal } from 'react';
 
 // @public (undocumented)
 export function Box(input: BoxProps): JSX_2.Element;
@@ -30,6 +31,75 @@ export interface ButtonProps {
     // (undocumented)
     variant?: 'primary' | 'secondary';
 }
+
+// @public
+export function ClaraPortal(input: ClaraPortalProps): ReactPortal | null;
+
+// @public (undocumented)
+export interface ClaraPortalProps {
+    // (undocumented)
+    children?: ReactNode;
+}
+
+// @public
+export function ClaraProvider(input: ClaraProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface ClaraProviderProps {
+    // (undocumented)
+    children?: ReactNode;
+    // Warning: (ae-forgotten-export) The symbol "Density" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    density?: Density;
+    // Warning: (ae-forgotten-export) The symbol "ThemePreference" needs to be exported by the entry point index.d.ts
+    theme?: ThemePreference;
+}
+
+// @public
+export function ClaraScope(input: ClaraScopeProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface ClaraScopeProps {
+    // (undocumented)
+    children?: ReactNode;
+    // (undocumented)
+    density?: Density;
+    // (undocumented)
+    theme?: ThemePreference;
+}
+
+// @public (undocumented)
+export function Heading(input: HeadingProps): JSX_2.Element;
+
+// @public
+export interface HeadingProps {
+    // (undocumented)
+    children?: ReactNode;
+    level: 1 | 2 | 3 | 4 | 5 | 6;
+    size?: 'sm' | 'md' | 'lg';
+}
+
+// @public (undocumented)
+function Text_2(input: TextProps): JSX_2.Element;
+export { Text_2 as Text }
+
+// @public
+export interface TextProps {
+    // (undocumented)
+    children?: ReactNode;
+    fullValue?: string;
+    numeric?: boolean;
+    size?: 'body' | 'body-lg' | 'caption';
+    // (undocumented)
+    tone?: 'default' | 'muted';
+    truncate?: boolean;
+}
+
+// Warning: (ae-forgotten-export) The symbol "ClaraSettings" needs to be exported by the entry point index.d.ts
+//
+// @public
+export function useClaraSettings(): ClaraSettings;
 
 // (No @packageDocumentation comment for this package)
 

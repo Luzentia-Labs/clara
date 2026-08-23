@@ -26,6 +26,7 @@ const geom = (group: string, key: string, density: 'comfortable' | 'compact') =>
  * these tests check the derivation still holds - not that somebody typed the same figure twice.
  */
 describe('density geometry', () => {
+  // AC4
   it.each([
     ['control-padding-y', 'compact', 4],
     ['control-padding-y', 'comfortable', 8],
@@ -64,6 +65,37 @@ describe('density geometry', () => {
         .toEqual({ key, compact: geom('space', key, 'compact'), comfortable: geom('space', key, 'comfortable') })
       expect(geom('space', key, 'compact')).toBeLessThan(geom('space', key, 'comfortable'))
     }
+  })
+
+  // AC1: a control must hold its text at either density, and never fall under the target floor.
+  it.each(['comfortable', 'compact'] as const)('control heights per density: %s', (density) => {
+    const height = geom('size', 'control-height', density)
+    expect(height).toBe(density === 'compact' ? 32 : 48)
+    expect(height).toBeGreaterThanOrEqual(geom('size', 'target-min', density))
+  })
+
+  // AC2: PRD:164 - interactive targets at or above 24x24 REGARDLESS of density. Compact is where
+  // that floor is under pressure, so it is asserted there specifically.
+  it('target size floor in compact', () => {
+    expect(geom('size', 'target-min', 'compact')).toBeGreaterThanOrEqual(24)
+  })
+
+  // AC3: the body type step does not shrink with density. Density changes spacing, not legibility -
+  // an ERP operator reading a dense table is the person who can least afford smaller text.
+  it('type floor holds in both densities', () => {
+    const body = px(semantic.font.body.value)
+    expect(body).toBeGreaterThanOrEqual(14)
+    expect(compact.font).toBeUndefined()
+  })
+
+  // AC5: density is an attribute-scoped override, so a subtree can be compact inside a comfortable
+  // page. A media query or a root-only selector could not do that (TRD ADR-006).
+  it('density scopes to subtree', () => {
+    const css = readFileSync(join(pkg, 'dist/themes/compact.css'), 'utf8')
+    expect(css).toContain('[data-clara-density="compact"]')
+    expect(css).not.toMatch(/^\s*:root\s*\{/m)
+    // It overrides tier 2 and references tier 1 through var(), like every theme file.
+    expect(css).toMatch(/--clara-space-control-padding-y:\s*var\(--clara-space-\d\)/)
   })
 
   // Every compact override must correspond to a token the base layer defines, or it is a token

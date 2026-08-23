@@ -23,7 +23,8 @@
 - **Given** the type system
 - **When** I read the tokens
 - **Then** at least seven steps, each with a paired line height
-- **Verify:** grep "font-size-" packages/tokens/dist/tokens.css
+- **Verify:** shell node scripts/check-token-output.mjs && node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Tabular numerals
@@ -31,7 +32,8 @@
 - **Given** a numeric table cell
 - **When** it renders
 - **Then** font-variant-numeric is tabular-nums by default
-- **Verify:** vitest "numeric cells use tabular numerals"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/typography.test.tsx -t "tabular numerals"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Heading semantics are decoupled
@@ -39,7 +41,8 @@
 - **Given** a Heading
 - **When** level and size are set independently
 - **Then** semantic heading order is preserved regardless of visual size
-- **Verify:** vitest "heading level and size are independent"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/typography.test.tsx -t "heading level and size are independent"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Truncation is recoverable by keyboard
@@ -47,7 +50,8 @@
 - **Given** a truncated value
 - **When** a keyboard-only user encounters it
 - **Then** the full value is recoverable without a pointer, since title and hover tooltips are unreachable on a non-focusable cell
-- **Verify:** vitest "truncated value recoverable by keyboard"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/typography.test.tsx -t "recoverable by keyboard"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

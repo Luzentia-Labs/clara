@@ -23,7 +23,8 @@
 - **Given** each density
 - **When** a control renders
 - **Then** comfortable is 40px and compact is 32px, asserted by computed style
-- **Verify:** vitest "control heights per density"
+- **Verify:** shell npx vitest run packages/tokens/src/__tests__/density.test.ts -t "control heights per density"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Target size floor
@@ -31,7 +32,8 @@
 - **Given** compact density
 - **When** any interactive target renders
 - **Then** its bounding box is at least 24x24px
-- **Verify:** vitest "target size floor in compact"
+- **Verify:** shell npx vitest run packages/tokens/src/__tests__/density.test.ts -t "target size floor in compact"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Type floor
@@ -39,7 +41,8 @@
 - **Given** either density
 - **When** body text renders
 - **Then** it is at least 14px; nothing renders below 12px and 12px is metadata only
-- **Verify:** vitest "type floor holds in both densities"
+- **Verify:** shell npx vitest run packages/tokens/src/__tests__/density.test.ts -t "type floor holds"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Padding and spacing floors
@@ -47,7 +50,8 @@
 - **Given** compact density
 - **When** adjacent interactive targets render
 - **Then** the minimum internal padding and adjacent-target spacing fixed in F00 both hold
-- **Verify:** vitest "compact padding and adjacent spacing floors"
+- **Verify:** shell npx vitest run packages/tokens/src/__tests__/density.test.ts -t "D0037"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC5: Scoped density
@@ -55,7 +59,8 @@
 - **Given** a ClaraScope with compact density
 - **When** it renders inside a comfortable page
 - **Then** only the scoped subtree and its portals are compact
-- **Verify:** vitest "density scopes to subtree"
+- **Verify:** shell npx vitest run packages/tokens/src/__tests__/density.test.ts -t "density scopes to subtree"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

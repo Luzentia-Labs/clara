@@ -23,7 +23,8 @@
 - **Given** the token source
 - **When** I run the build
 - **Then** tokens.css, tokens.ts and tokens.json are emitted from `src/{primitive,semantic,component}`
-- **Verify:** file packages/tokens/dist/tokens.ts
+- **Verify:** shell node scripts/check-token-output.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Tier references are validated
@@ -32,6 +33,7 @@
 - **When** it references a tier 1 token directly
 - **Then** the build fails
 - **Verify:** shell pnpm --filter @luzentialabs/clara-tokens build
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Component CSS is policed
@@ -39,7 +41,8 @@
 - **Given** a component stylesheet
 - **When** it references a tier 1 token or a raw colour, spacing, or radius literal
 - **Then** the lint rule fails the build
-- **Verify:** shell pnpm lint:css
+- **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Prefix is universal
@@ -47,7 +50,8 @@
 - **Given** every emitted custom property
 - **When** I scan tokens.css
 - **Then** all are prefixed `--clara-` with no exceptions
-- **Verify:** grep "^  --clara-" packages/tokens/dist/tokens.css
+- **Verify:** shell node scripts/check-token-output.mjs && node scripts/check-public-tokens.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

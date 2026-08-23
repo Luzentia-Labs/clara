@@ -60,3 +60,28 @@
   outline-offset: var(--clara-button-focus-width);
   box-shadow: 0 0 0 var(--clara-button-focus-width) var(--clara-color-border-focus-offset);
 }
+
+.clara-heading {
+  margin: var(--clara-box-padding-none);
+  font-weight: 600;
+}
+
+.clara-heading--sm { font-size: var(--clara-font-heading-sm); }
+.clara-heading--md { font-size: var(--clara-font-heading-md); }
+.clara-heading--lg { font-size: var(--clara-font-heading-lg); }
+
+.clara-text--body { font-size: var(--clara-font-body); }
+.clara-text--body-lg { font-size: var(--clara-font-body-lg); }
+.clara-text--caption { font-size: var(--clara-font-caption); }
+.clara-text--muted { color: var(--clara-color-fg-muted); }
+
+/* Tabular numerals: every digit the same advance width, so a column of figures aligns. */
+.clara-text--numeric { font-variant-numeric: tabular-nums; }
+
+.clara-text--truncate {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

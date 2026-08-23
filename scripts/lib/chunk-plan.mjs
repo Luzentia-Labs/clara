@@ -22,6 +22,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { componentsIn } from './module-exports.mjs'
+import { clientHooksUsed } from './client-signals.mjs'
 
 export const CLIENT_CHUNK = 'clara-client'
 export const SERVER_CHUNK = 'clara-server'
@@ -33,6 +34,12 @@ export const SERVER_CHUNK = 'clara-server'
 // RSC every export of a `"use client"` module is a client reference, so the server render throws.
 // A third chunk carries no directive, so both sides may import it and neither owns it.
 export const SHARED_CHUNK = 'clara-shared'
+// A module that defines no component but USES client-only React - a hook like `useClaraSettings`,
+// or the context it reads - cannot go in the undirectived shared chunk. Caught by the emitted-bytes
+// oracle on the first tree that had one: clara-shared.js held useState, useEffect and useContext
+// with no directive, which is a server-render crash for anything importing it. It carries the
+// directive, so it may be imported by client chunks and by nothing else.
+export const CLIENT_SHARED_CHUNK = 'clara-client-shared'
 
 /** Is this a module of ours, rather than a dependency or a bundler virtual? */
 export function isOwnSource (id) {
@@ -87,7 +94,11 @@ export function chunkFor (id, boundaries, read = defaultRead) {
         'component that ships unmarked crashes the server render of every App Router consumer.',
     )
   }
-  if (!known.length) return SHARED_CHUNK
+  if (!known.length) {
+    // Client-only React in a module with no component of its own still has to be behind the
+    // boundary; the shared chunk carries no directive by design.
+    return clientHooksUsed(source).length ? CLIENT_SHARED_CHUNK : SHARED_CHUNK
+  }
 
   const boundariesFound = new Set(known.map((n) => boundaries.get(n)))
   if (boundariesFound.size > 1) {
