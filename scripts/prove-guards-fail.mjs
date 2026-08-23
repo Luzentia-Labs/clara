@@ -421,7 +421,21 @@ const OUTPUT_CASES = [
     expect: /EUNSUPPORTEDPROTOCOL|Only pnpm rewrites/,
     stage: (stage) => {
       const f = join(stage, '.github/workflows/release.yml')
-      writeFileSync(f, readFileSync(f, 'utf8').replace('publish: pnpm changeset publish', 'publish: npm publish'))
+      writeFileSync(f, readFileSync(f, 'utf8').replace('pnpm changeset publish', 'npm publish'))
+    },
+  },
+  {
+    // D0052: `changeset publish` ships the version in the manifest. With a changeset still pending
+    // those versions are un-bumped, so publishing would ship the wrong one - permanently.
+    name: 'the pending-changeset guard removed from the publish step',
+    guard: 'check-release.mjs',
+    expect: /does not check for a pending changeset/,
+    stage: (stage) => {
+      const f = join(stage, '.github/workflows/release.yml')
+      const y = readFileSync(f, 'utf8')
+      const start = y.indexOf('        run: |\n          pending=')
+      const end = y.indexOf('          pnpm changeset publish')
+      writeFileSync(f, y.slice(0, start) + '        run: |\n' + y.slice(end))
     },
   },
   {

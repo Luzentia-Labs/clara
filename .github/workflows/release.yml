@@ -14,9 +14,10 @@ concurrency:
   cancel-in-progress: false   # never cancel a publish mid-flight
 
 permissions:
-  contents: write       # changesets opens the version PR and tags
-  pull-requests: write
+  contents: write       # changeset publish creates the git tags
   id-token: write       # npm provenance requires an OIDC token
+  # `pull-requests: write` is deliberately absent. Nothing here opens a PR any more (D0052), and
+  # the permission a workflow does not need is the one it cannot misuse.
 
 jobs:
   release:
@@ -62,17 +63,32 @@ jobs:
       - run: pnpm audit --audit-level=high --prod
       - run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
 
-      - name: Version or publish
-        uses: changesets/action@v1
-        with:
-          version: pnpm changeset version
-          publish: pnpm changeset publish
-          commit: "Release: version packages"
-          title: "Release: version packages"
+      # Trunk-based: no Version PR, no bot branch, no repo permission for Actions to open PRs.
+      #
+      # Cutting a release is a deliberate local act: run `pnpm changeset version`, review the
+      # computed versions and CHANGELOGs in the diff, commit to main, push. This job then finds no
+      # pending changeset and publishes.
+      #
+      # The guard below is the safety property, not a convenience. `changeset publish` publishes
+      # whatever version is in each manifest; with a changeset still pending, those versions have
+      # NOT been bumped, so it would publish over - or duplicate - the current version. Releases are
+      # immutable (AGENTS.md), so this must be impossible rather than unlikely.
+      #
+      # A pending changeset is the normal state of main between releases, so this SKIPS rather than
+      # fails: "not released yet" is not an error.
+      - name: Publish, only when no changeset is pending
+        run: |
+          pending=$(find .changeset -maxdepth 1 -name '*.md' ! -name 'README.md' | wc -l | tr -d ' ')
+          if [ "$pending" != "0" ]; then
+            echo "::notice::$pending changeset(s) pending - not a release commit."
+            echo "::notice::To release: pnpm changeset version, commit to main, push."
+            exit 0
+          fi
+          echo "No pending changesets - publishing."
+          pnpm changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # provenance is declared per package in publishConfig; the OIDC token above is what makes
           # it verifiable.
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"

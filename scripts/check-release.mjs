@@ -91,17 +91,37 @@ for (const trigger of triggers) {
 }
 if (!triggers.length) problems.push('release.yml declares no trigger')
 
-// The publish command itself. It lives in a `with:` key, so a `run:`-only reader never saw it:
-// changing it to `npm publish` would ship `workspace:*` to every consumer, permanently, with every
-// guard still green (review M5).
-const publishSteps = release.steps.filter((s) => s.with?.publish)
+// The publish command itself, wherever it lives - a `with:` key when changesets/action drives it,
+// or a `run:` step now that it does not. A `run:`-only reader missed the `with:` form (review M5);
+// a `with:`-only reader would miss this one. Both are checked.
+// A command that INVOKES a publisher, not a line that merely contains the word - an `echo
+// "publishing"` matched first and got reported as the publish command.
+const PUBLISH_INVOCATION = /^(?:pnpm|npm|npx|yarn)\b[^\n]*\bpublish\b/
+const publishSteps = release.steps.filter((s) =>
+  s.with?.publish || commandsIn(s.run).some((c) => PUBLISH_INVOCATION.test(c)))
 if (!publishSteps.length) problems.push('release.yml declares no publish command')
 for (const step of publishSteps) {
-  const cmd = String(step.with.publish)
+  const cmd = String(step.with?.publish ??
+    commandsIn(step.run).find((c) => PUBLISH_INVOCATION.test(c)) ?? '')
   if (!/^pnpm\b/.test(cmd)) {
     problems.push(
       `release.yml publishes with "${cmd}". Only pnpm rewrites the workspace: protocol - npm ships ` +
         'it verbatim and every consumer install then fails with EUNSUPPORTEDPROTOCOL (D0040).',
+    )
+  }
+
+  // The safety property of the trunk-based flow (D0052). `changeset publish` ships whatever
+  // version is in each manifest; with a changeset still pending those versions have NOT been
+  // bumped, so it would publish the wrong one - and a release cannot be withdrawn. The guard has
+  // to be present, not merely intended.
+  if (step.with?.publish) continue // changesets/action sequences version-then-publish itself
+  const body = String(step.run ?? '')
+  const guardsOnPending = /\.changeset/.test(body) && /exit 0|::notice|if /.test(body)
+  if (!guardsOnPending) {
+    problems.push(
+      'the publish step does not check for a pending changeset first. `changeset publish` ships ' +
+        'the version in the manifest, so publishing with one pending ships an un-bumped version, ' +
+        'permanently (D0052).',
     )
   }
 }

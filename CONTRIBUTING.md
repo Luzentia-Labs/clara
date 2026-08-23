@@ -66,7 +66,37 @@ Every change to `packages/**` carries a changeset. `pnpm changeset` writes it; C
 The changeset text is read by consumers deciding whether to upgrade, so write it for them - what
 changed and what they must do, not what the commit did.
 
-## Before you open a PR
+## How a release happens
+
+Clara is trunk-based: work lands on `main`, and there is no release branch and no bot-authored
+version PR. Publishing is automatic; deciding to publish is not.
+
+Every push to `main` runs the full gate set from `release.yml` - the same gates CI runs, because a
+gate the publish path skips is advisory. The last step then publishes **only if no changeset is
+pending**. Between releases there is always at least one pending, so ordinary pushes run the gates
+and stop there.
+
+To cut a release:
+
+```bash
+pnpm changeset version   # consumes the pending changesets, bumps versions, writes CHANGELOGs
+git diff                 # read it - these version numbers and changelog entries are permanent
+git commit -am "Release: version packages"
+git push
+```
+
+That push finds nothing pending and publishes.
+
+**Why the guard matters.** `changeset publish` ships whatever version is in each manifest. With a
+changeset still pending, those versions have not been bumped, so publishing would ship an
+un-bumped version - and a release cannot be withdrawn, only superseded. `check-release.mjs` fails
+if that guard is ever removed, and a mutation proves it can fail.
+
+**Read the diff before you push.** It is the only checkpoint between a computed version number and
+a permanent one. That is the job the version PR used to do, and it is why the version bump is a
+deliberate local act rather than something CI does on your behalf (D0052).
+
+## Before you push to main
 
 `pnpm check` runs the deterministic guards. CI runs the full gate set - see `ci-gates.json`, which
 enumerates every TRD Section 9 gate: the ones that run today, and the ones still pending with the open
