@@ -47,7 +47,7 @@ belongs when the thing that is wrong is that nothing was chosen.
 - **Given** a RadioGroup
 - **When** I tab in and press arrow keys
 - **Then** the group is one tab stop and arrows move and select per WAI-ARIA
-- **Verify:** vitest "RadioGroup roving focus"
+- **Verify:** vitest "RadioGroup roving focus|RadioGroup is a single tab stop"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 

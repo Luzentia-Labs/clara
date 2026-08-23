@@ -221,13 +221,19 @@ describe('Field description and error coexist', () => {
 
 describe('Field works uncontrolled and with RHF', () => {
   it('submits its value with native form submission, no wrapper needed', async () => {
+    // The value is CAPTURED in the handler and asserted after. Asserting inside it meant a failure
+    // surfaced as an uncaught exception - vitest reported all three tests as PASSED and printed
+    // "This might cause false positive tests". The gate held only because verify_ac reads the exit
+    // code; the assertion was attributed to no test.
+    let submitted: FormDataEntryValue | null = null
     const onSubmit = vi.fn((e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
-      expect(new FormData(e.currentTarget).get('supplier')).toBe('Acme')
+      submitted = new FormData(e.currentTarget).get('supplier')
     })
     render(<form onSubmit={onSubmit}><Field label="Supplier"><Input name="supplier" defaultValue="Acme" /></Field><button>Go</button></form>)
     await userEvent.click(screen.getByRole('button', { name: 'Go' }))
     expect(onSubmit).toHaveBeenCalledTimes(1)
+    expect(submitted).toBe('Acme')
   })
 
   // React Hook Form registers by spreading props including a ref and onChange. The control has to

@@ -220,7 +220,7 @@ a Server Component cannot.
 | A Field has both a description and an error | `aria-describedby` lists description then error, in that DOM order, so the hint is heard before the correction rather than after it. |
 | A Field has no error | The error region is not rendered at all. Rendering it empty makes `role="alert"` fire on mount, announcing nothing, and trains the user to ignore it. |
 | The same form renders on the server and hydrates | Ids come from `useId()`, so server and client markup agree; a random id re-wires `aria-describedby` at hydration and the association is lost. |
-| A consumer passes their own `id` | It wins, and the wiring is built from it, so an existing form's ids are not fought over. |
+| A consumer passes their own `id` | **They cannot.** `id` is omitted from `FieldProps` and from every control's props, deliberately: AC2 requires ids that are stable across server render and hydration, and a consumer-supplied id cannot be guaranteed unique on a page that renders the same form twice. An earlier version of this row promised the opposite. |
 | A Field is given no label | It does not compile. There is no placeholder-as-label path. |
 
 
