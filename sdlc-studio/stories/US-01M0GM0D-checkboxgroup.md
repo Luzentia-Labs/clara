@@ -69,7 +69,7 @@ model.
 - **And** its APPEARANCE is explicitly NOT covered here: visual regression is gate 7, unwired,
   tracked by US-01M0GMZW. Contrast is measured against real token values by `check:contrast`,
   because jsdom computes no layout
-- **Verify:** vitest "CheckboxGroup theme and density matrix|stylesheets select on"
+- **Verify:** vitest "^CheckboxGroup theme and density matrix|stylesheets select on"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -200,7 +200,7 @@ model.
 
 | Criterion | Mutant - the production change this test must fail on | Title |
 | --- | --- | --- |
-| AC1 | Drop the `<legend>`, so the fieldset has no accessible name. | Group semantics |
+| AC1 | Render the group as a `<div>` instead of a `<fieldset>`, so it has no group role. (Dropping the legend does NOT kill this one: inside a Field, `aria-labelledby` supplies the name.) | Group semantics |
 | AC2 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
 | AC3 | Rename the theme or density attribute. | Both themes and densities |
 | AC4 | Derive the selected set from `defaultValue` instead of state, so uncontrolled use reports only the last box touched. | Uncontrolled use accumulates |

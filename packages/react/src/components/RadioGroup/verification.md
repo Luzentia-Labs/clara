@@ -62,3 +62,9 @@ The error belongs to the QUESTION, so `aria-invalid` and `aria-errormessage` sit
   VoiceOver actually announce. PRD F17 names NVDA as a stated gap; it stays one.
 - **Visual regression is not yet wired** (gate 7), so the rendered appearance is unverified - only
   the markup, the tokens and the measured contrast are.
+- **The single tab stop is asserted as a MECHANISM, not as an outcome.** `userEvent.tab()`
+  implements radio-group semantics itself, so it walks the group correctly even when the markup
+  would not - a test written against the outcome passes with `tabIndex={0}` on every radio, which
+  is the one edit that destroys the grouping. What is asserted is the shared `name` and the absence
+  of an explicit `tabIndex`, which is what the browser's own rule keys on. The outcome belongs in
+  the Playwright suite and is not yet there.

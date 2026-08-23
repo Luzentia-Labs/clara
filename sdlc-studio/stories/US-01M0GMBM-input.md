@@ -76,7 +76,7 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
 
 - **Given** an Input
 - **When** the browser autofills it
-- **Then** the token-driven appearance is preserved in Chrome and Safari
+- **Then** the field remains usable and readable. Clara does NOT restyle it - an override was documented before it was implemented, and the honest statement is that the browser colour wins
 - **Verify:** manual verify autofill styling in Chrome and Safari
 - **Verification target:** conversational
 
@@ -98,7 +98,7 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
 - **And** its APPEARANCE is explicitly NOT covered here: visual regression is gate 7, unwired,
   tracked by US-01M0GMZW. Contrast is measured against real token values by `check:contrast`,
   because jsdom computes no layout
-- **Verify:** vitest "Input theme and density matrix|stylesheets select on"
+- **Verify:** vitest "^Input theme and density matrix|stylesheets select on"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -151,7 +151,7 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
 | --- | --- |
 | A field is readonly | It keeps its tab stop, stays selectable and copyable, and keeps FULL contrast. WCAG exempts disabled text from the contrast minimum; Clara does not extend that to readonly, because readonly text is there to be read. |
 | A field is disabled | It is a visibly different state from readonly, not a lighter one. |
-| The browser autofills the field | The UA stylesheet's background is overridden so the field still reads as a Clara control. Checked manually - jsdom does not implement it. |
+| The browser autofills the field | **Today: the browser's own background wins.** Clara does not override `:-webkit-autofill` - no such rule exists. The field still functions; it does not look like a Clara control while autofilled. Tracked as a gap, not a claim. |
 | A consumer passes `onChange` | It receives the native event, not a bare value. Clara does not invent a change convention where the platform has one. |
 | The field is in a compact-density subtree | It still meets the target-size floor; density scales padding, not the minimum. |
 
@@ -164,7 +164,9 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
   cannot see the result. Previously ticked, which contradicted the rest of this story.
 - [x] Readonly is focusable, copyable, and full-contrast; disabled is neither focusable-for-edit nor the same visual state
 - [x] onChange receives the native event
-- [x] Autofill styling verified manually in Chrome and Safari
+- [ ] Autofill styling verified manually in Chrome and Safari - **not done, and there is nothing to
+  verify yet.** No `:-webkit-autofill` rule exists in the repo; the override was documented before
+  it was written. Recorded as a stated gap on the Input verification record.
 - [x] axe clean in all four theme x density combinations
 
 

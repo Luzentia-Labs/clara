@@ -88,7 +88,7 @@ story is mostly about not inheriting either.
 - **And** its APPEARANCE is explicitly NOT covered here: visual regression is gate 7, unwired,
   tracked by US-01M0GMZW. Contrast is measured against real token values by `check:contrast`,
   because jsdom computes no layout
-- **Verify:** vitest "NumberInput theme and density matrix|stylesheets select on"
+- **Verify:** vitest "^NumberInput theme and density matrix|stylesheets select on"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -216,10 +216,10 @@ story is mostly about not inheriting either.
 | --- | --- | --- |
 | AC1 | Change `type="text"` to `type="number"`, which is what makes the wheel harmless. Deleting the old `onWheel` blur handler proves nothing, which is why that handler was removed. | No wheel mutation |
 | AC2 | Disable `clamp()`. Verified: the stepping half of the verifier dies. | Constraints and formatting |
-| AC3 | Delete `PageUp`/`PageDown`, `Home`/`End`, or the `+ mantissa` term in `atStepPrecision`. | Keyboard stepping |
+| AC3 | Make Arrow Up a no-op, or disable `clamp()`. Both die under this criterion; the Home/End and precision mutants belong to the bounds criterion below. | Keyboard stepping |
 | AC4 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
 | AC5 | Rename the theme or density attribute. | Both themes and densities |
-| AC6 | Emit `aria-valuemin`/`max` without `role="spinbutton"`; axe reports a critical `aria-allowed-attr`, and the role query stops resolving. | Reaching the bounds |
+| AC6 | Delete `Home`/`End`, or the `+ mantissa` term in `atStepPrecision`. These do NOT die under the arrow-stepping criterion above - the rows were the wrong way round. | Reaching the bounds |
 | AC7 | Delete the NumberInput verification record or its docs page. | Definition of done |
 
 ## Revision History

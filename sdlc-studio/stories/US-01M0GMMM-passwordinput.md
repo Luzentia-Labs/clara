@@ -69,7 +69,7 @@ what the toggle is called.
 - **And** its APPEARANCE is explicitly NOT covered here: visual regression is gate 7, unwired,
   tracked by US-01M0GMZW. Contrast is measured against real token values by `check:contrast`,
   because jsdom computes no layout
-- **Verify:** vitest "PasswordInput theme and density matrix|stylesheets select on"
+- **Verify:** vitest "^PasswordInput theme and density matrix|stylesheets select on"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -194,7 +194,7 @@ what the toggle is called.
 | AC1 | Name the toggle after its state rather than its action, so it reads "Hide password" while the value is hidden. | Toggle is operable and labelled |
 | AC2 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
 | AC3 | Rename the theme or density attribute. | Both themes and densities |
-| AC4 | Delete `if (fieldDisabled(wiring)) return` from the toggle - a disabled field then reveals its value. | Reveal keeps the user in the field |
+| AC4 | Delete `if (fieldDisabled(wiring)) return` from the toggle. It now dies HERE - the test sat under a Field describe, so this criterion could not fail on a disabled field revealing its value. | Reveal keeps the user in the field |
 | AC5 | Delete the PasswordInput verification record or its docs page. | Definition of done |
 
 ## Revision History

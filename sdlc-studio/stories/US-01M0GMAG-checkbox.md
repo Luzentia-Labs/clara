@@ -87,7 +87,7 @@ by accident and a user fails in practice.
 - **And** its APPEARANCE is explicitly NOT covered here: visual regression is gate 7, unwired,
   tracked by US-01M0GMZW. Contrast is measured against real token values by `check:contrast`,
   because jsdom computes no layout
-- **Verify:** vitest "Checkbox theme and density matrix|stylesheets select on"
+- **Verify:** vitest "^Checkbox theme and density matrix|stylesheets select on"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 

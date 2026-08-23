@@ -476,6 +476,18 @@ describe.each(CONTROLS)('%s theme and density matrix', (name, control) => {
 })
 
 describe('PasswordInput reveal keeps keyboard focus where the user was', () => {
+  it('does not reveal a disabled password', async () => {
+    // Lives HERE, under PasswordInput's own criterion. It sat under a Field describe, so deleting
+    // the guard - which does not merely allow a click, it reveals the value - left PasswordInput's
+    // acceptance criterion green and killed a different story's instead.
+    const { container } = inField(<PasswordInput defaultValue="hunter2" />, { disabled: true })
+    const field = container.querySelector('input') as HTMLInputElement
+    expect(field.type).toBe('password')
+    await userEvent.click(screen.getByRole('button'))
+    expect(field.type).toBe('password')
+    expect(screen.getByRole('button', { name: 'Show password' })).toBeInTheDocument()
+  })
+
   it('is operable with Enter and Space, not only clickable', async () => {
     inField(<PasswordInput />)
     const toggle = screen.getByRole('button')
@@ -596,8 +608,11 @@ describe('Switch has no third state', () => {
   it('does not expose an indeterminate prop, because a third state means Checkbox', () => {
     // RadioGroup guards its equivalent ("no bare Radio in the public API"); this is the same
     // guard for the same class of misuse.
-    const api = readFileSync(resolve(__dirname, '../../../../etc/clara-react.api.md'), 'utf8')
-    const at = api.indexOf('export interface SwitchProps')
+    // The BUILT declarations, not the committed report. Reading `etc/clara-react.api.md` meant a
+    // source change could not fail this until someone ran `api:update` - so adding a third state to
+    // SwitchProps left the criterion green through a full build.
+    const api = readFileSync(resolve(__dirname, '../../../../dist/index.d.ts'), 'utf8')
+    const at = api.indexOf('interface SwitchProps')
     // Assert the block was FOUND first. `slice(-1)` collapses to '' and matches nothing, so
     // renaming or removing SwitchProps would have made this pass while proving the opposite.
     expect(at).toBeGreaterThan(-1)
@@ -911,16 +926,6 @@ describe('a disabled control runs no consumer handler by any route', () => {
     expect(onClick).not.toHaveBeenCalled()
   })
 
-  it('does not reveal a disabled password', async () => {
-    // Deleting the guard here does not merely allow a click - it reveals the value.
-    const { container } = inField(<PasswordInput defaultValue="hunter2" />, { disabled: true })
-    const field = container.querySelector('input') as HTMLInputElement
-    expect(field.type).toBe('password')
-    await userEvent.click(screen.getByRole('button'))
-    expect(field.type).toBe('password')
-    expect(screen.getByRole('button', { name: 'Show password' })).toBeInTheDocument()
-  })
-
   it('does not select a disabled RadioGroup option by click', async () => {
     const onChange = vi.fn()
     render(
@@ -1122,5 +1127,47 @@ describe('NumberInput leaves a plain code field alone', () => {
     fireEvent.keyDown(el, { key: 'ArrowUp' })
     expect(el.value).toBe('15')
     expect(el).not.toHaveAttribute('aria-valuemax')
+  })
+})
+
+describe('RadioGroup is a single tab stop', () => {
+  // The OUTCOME - one Tab in, one Tab out, however many options - is not observable here:
+  // `userEvent.tab()` implements radio-group semantics itself, so it walks the group correctly even
+  // when the markup would not. A test written against it passes with `tabIndex={0}` on every radio,
+  // which is the one edit that destroys the grouping. That is a proxy, and this file has been
+  // caught by proxies before.
+  //
+  // So this asserts the MECHANISM, which is checkable and which the outcome follows from in a real
+  // browser: same `name`, so the browser treats them as one group; and no explicit `tabIndex`, so
+  // it applies its own roving rule rather than ours. The outcome itself belongs in the Playwright
+  // suite, and is named as a gap on the RadioGroup record.
+  it('shares one name across the options and overrides no tabIndex', () => {
+    const { container } = render(
+      <Field label="Terms" labelFor="group">
+        <RadioGroup name="terms" legend="Terms" defaultValue="b" options={[
+          { value: 'a', label: 'A' }, { value: 'b', label: 'B' }, { value: 'c', label: 'C' },
+        ]} />
+      </Field>,
+    )
+    const radios = [...container.querySelectorAll('input[type="radio"]')]
+    expect(radios).toHaveLength(3)
+    expect(new Set(radios.map((r) => r.getAttribute('name')))).toEqual(new Set(['terms']))
+    for (const radio of radios) expect(radio).not.toHaveAttribute('tabindex')
+    // And the checked one is where the browser will land.
+    expect(radios.filter((r) => (r as HTMLInputElement).checked)).toHaveLength(1)
+  })
+
+  it('unlike CheckboxGroup, where every box is its own stop', async () => {
+    render(
+      <Field label="Notify" labelFor="group">
+        <CheckboxGroup name="c" legend="Notify" options={[
+          { value: 'a', label: 'Email' }, { value: 'b', label: 'SMS' },
+        ]} />
+      </Field>,
+    )
+    await userEvent.tab()
+    expect(screen.getByRole('checkbox', { name: 'Email' })).toHaveFocus()
+    await userEvent.tab()
+    expect(screen.getByRole('checkbox', { name: 'SMS' })).toHaveFocus()
   })
 })

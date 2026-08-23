@@ -137,7 +137,7 @@ a Server Component cannot.
 - **And** its APPEARANCE is explicitly NOT covered here: visual regression is gate 7, unwired,
   tracked by US-01M0GMZW. Contrast is measured against real token values by `check:contrast`,
   because jsdom computes no layout
-- **Verify:** vitest "Field framework theme and density matrix|stylesheets select on"
+- **Verify:** vitest "^Field framework theme and density matrix|stylesheets select on"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -283,7 +283,7 @@ a Server Component cannot.
 
 | Criterion | Mutant - the production change this test must fail on | Title |
 | --- | --- | --- |
-| AC1 | Drop `htmlFor` from the Field label - 8 tests die. | Compound composition |
+| AC1 | Stop rendering the description element, so `aria-describedby` resolves to nothing. (Dropping `htmlFor` kills eight tests, but seven are under AC3 - a row must name the mutant that kills THIS criterion, not one that kills somewhere in the suite.) | Compound composition |
 | AC2 | Replace `useId()` with `String(Math.random())`; hydration reports a mismatch and the test asserts on that report, because React keeps the server DOM and comparing markup cannot see it. | ARIA is automatic and SSR-safe |
 | AC3 | Render the label as a `<span>` with no association. | Real label, never a placeholder |
 | AC4 | Render the error region unconditionally instead of only when there is an error, so `role="alert"` fires on mount. | Error announces once |

@@ -56,7 +56,7 @@ belongs when the thing that is wrong is that nothing was chosen.
 - **Given** the public API
 - **When** I inspect it
 - **Then** Radio is not exported for standalone use outside RadioGroup
-- **Verify:** shell test -s packages/react/etc/clara-react.api.md && grep -q "RadioGroupProps" packages/react/etc/clara-react.api.md && ! grep -qE "^export (declare )?(function|const|interface|type) Radio[^A-Za-z0-9_]" packages/react/etc/clara-react.api.md
+- **Verify:** shell test -s packages/react/dist/index.d.ts && grep -q "RadioGroupProps" packages/react/dist/index.d.ts && ! grep -qE "^(export )?declare (function|const|type|interface) Radio[^A-Za-z0-9_]" packages/react/dist/index.d.ts
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -87,7 +87,7 @@ belongs when the thing that is wrong is that nothing was chosen.
 - **And** its APPEARANCE is explicitly NOT covered here: visual regression is gate 7, unwired,
   tracked by US-01M0GMZW. Contrast is measured against real token values by `check:contrast`,
   because jsdom computes no layout
-- **Verify:** vitest "RadioGroup theme and density matrix|stylesheets select on"
+- **Verify:** vitest "^RadioGroup theme and density matrix|stylesheets select on"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -210,7 +210,7 @@ belongs when the thing that is wrong is that nothing was chosen.
 
 | Criterion | Mutant - the production change this test must fail on | Title |
 | --- | --- | --- |
-| AC1 | Give each radio a distinct `name`, which breaks the browser's own single-tab-stop grouping. | Roving focus |
+| AC1 | Add `tabIndex={0}` to every radio, or give each a distinct `name`. Note the LIMIT: `userEvent.tab()` implements radio grouping itself, so the outcome is not observable in jsdom - what is asserted is the shared name and the absent tabIndex, and the outcome belongs in Playwright. | Roving focus |
 | AC2 | Export a bare `Radio`. The verifier also asserts the API report exists and is non-empty, so deleting it fails rather than passing. | Radio only exists in a group |
 | AC3 | Move `aria-invalid`/`aria-errormessage` from the fieldset onto an individual radio. | Group error |
 | AC4 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
