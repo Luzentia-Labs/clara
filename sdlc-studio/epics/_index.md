@@ -7,11 +7,11 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 9 |
+| Draft | 8 |
 | Ready | 0 |
 | Approved | 0 |
 | In Progress | 0 |
-| Done | 1 |
+| Done | 2 |
 | **Total** | **10** |
 
 ## Epics
@@ -19,7 +19,7 @@
 | ID | Title | Status | Stories | Deps | Created | Updated |
 | --- | --- | --- | --- | --- | --- | --- |
 | [EP-01M0GKNH](EP-01M0GKNH-toolchain-and-release-pipeline.md) | Toolchain and release pipeline | Done | 0 | -- | 2026-08-21 | 2026-08-21 |
-| [EP-01M0GKNG](EP-01M0GKNG-foundations-visual-identity-and-token-system.md) | Foundations: visual identity and token system | Draft | 0 | -- | 2026-08-21 | 2026-08-21 |
+| [EP-01M0GKNG](EP-01M0GKNG-foundations-visual-identity-and-token-system.md) | Foundations: visual identity and token system | Done | 0 | -- | 2026-08-21 | 2026-08-21 |
 | [EP-01M0GKGS](EP-01M0GKGS-primitives-icons-layout-and-actions.md) | Primitives: icons, layout, and actions | Draft | 0 | -- | 2026-08-21 | 2026-08-21 |
 | [EP-01M0GK4P](EP-01M0GK4P-overlays-and-feedback.md) | Overlays and feedback | Draft | 0 | -- | 2026-08-21 | 2026-08-21 |
 | [EP-01M0GKM2](EP-01M0GKM2-form-framework-and-basic-inputs.md) | Form framework and basic inputs | Draft | 0 | -- | 2026-08-21 | 2026-08-21 |

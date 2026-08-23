@@ -1,11 +1,11 @@
 # US-01M0GMN0: F00 foundations pass: decide the visual language
 
-> **Status:** Draft
+> **Status:** Done
 > **Plan:** PL-01M0KF4N
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GKNG
 > **Serves:** Sofia Marchetti
 > **Affects:** design/foundations.md
@@ -38,6 +38,32 @@
 **As a** Maintainer
 **I want** Clara's visual identity decided inside a fixed five-day box
 **So that** F01 has real values to build on and the pass cannot become the project
+
+## Context
+
+### Persona Reference
+
+**Idris Vale** - decides inclusive design.
+[Full persona details](../personas/seats/idris-vale.md)
+
+### Background
+
+Every component inherits the visual language, so deciding it late means deciding it forty times.
+F00 is a time-boxed pass that fixes it once, with a hard cap: component work begins on day 5
+whether or not every value feels finished (D0035). A Provisional value is still a real token - the
+box exists so the pass cannot become the project.
+
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| D0035 | Timebox | 5 working days, calendar-called, no judgement | AC4 |
+| D0035 clause 1 | Scope | A Provisional value is still a real tier 1 token | AC2 |
+| D0035 clause 2 | Contrast | Nothing ships with a failing pairing | AC1 |
+| PRD:204 | Record | Every deliverable is recorded in design/foundations.md | AC1 |
+| D0037 | Density | The compact floors are numbers, derived not chosen | AC3 |
 
 ## Acceptance Criteria
 
@@ -73,7 +99,8 @@
 - **Given** day six
 - **When** the pass is not satisfied
 - **Then** component work begins regardless (D0004)
-- **Verify:** manual confirm component work started on schedule
+- **Verify:** manual The box held: F00 was time-boxed to 5 working days from 2026-08-21 (D0035). Component work began on 2026-08-23 with Box, Button, Heading, Text and the theming providers built, inside the box. Two deliverables (elevation, motion) remain Provisional under D0035 clause 1, which is exactly what the clause is for - they are consumed by components, so F01 is where they stop being guesses.
+- **Verified:** yes (2026-08-23)
 - **Verification target:** conversational
 
 > **Three verifiers were replaced.** As authored, AC1 ran `file design/foundations.md` (passes on an
@@ -107,6 +134,72 @@
 **Inherited constraints.** Publishing is a one-way door - anything reaching the public surface is permanent (D0001-D0008). Every CI gate blocks the merge; a gate that reports without blocking is not a gate. Load-bearing decisions are recorded via `decisions.py add`, never left in a commit message.
 
 **Definition of done.** Tests covering the behaviour in the acceptance criteria above, the relevant CI gate wired and blocking, and any load-bearing decision recorded in `sdlc-studio/decisions.md`.
+
+## Edge Cases & Error Handling
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| A deliverable is left undecided at day 5 | Recorded Provisional WITH a revisit condition - the gate fails on one without |
+| A colour value is described in prose | Fails - the gate requires real hex values that exist in the build |
+| A density floor is written as a word | Fails - the floors must be numbers |
+| A pairing fails contrast | Never ships (clause 2), regardless of the timebox |
+| The pass overruns | Component work starts anyway - that is what the box is |
+
+> **Minimum edge cases:** 5 - 5 recorded.
+
+## Test Scenarios
+
+- [ ] All ten deliverables carry a status
+- [ ] Every Provisional one carries a revisit condition
+- [ ] Colour values are real hexes that exist in the built tokens
+- [ ] Density floors are numbers
+- [ ] No pairing ships failing
+
+> **Minimum test scenarios:** 5 - recorded above.
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| [US-01M0GMAE](US-01M0GMAE-semantic-token-layer.md) | Completes | Made three deliverables real | Done |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| None | - | This is the first thing that happens |
+
+## Estimation
+
+**Points:** 8
+**Complexity:** High, and mostly judgement rather than code - which is why it is time-boxed.
+
+> **Points** are a RELATIVE size on the modified Fibonacci scale (1, 2, 3, 5, 8, 13, 20) - not
+> "how long will this take" but "is this bigger than that one", sized against stories already
+> delivered. The gaps widen deliberately, because uncertainty grows with size: it is much harder
+> to argue a story is a 7 rather than an 8 than to choose between a 5 and an 8. A value off the
+> scale is REFUSED, never rounded - the scale IS the estimate. Above 8, SPLIT the story;
+> estimator consistency collapses beyond it, so a bigger number is a triage failure rather than
+> a harder estimate. This is the one size vocabulary: the planner, the forecast and the measured
+> velocity all read this field.
+
+## Rollback Envelope
+
+> Required when `affects_production_runtime: true`; optional otherwise. See `reference-story.md#rollback-envelope`.
+
+**Affects production runtime:** false - nothing is published.
+
+*Reversal is `git revert`.* The values are tier 1 and tier 2; the tier 2 half is permanent once published.
+
+## Open Questions
+
+None.
+
+**Honest limit:** elevation and motion remain Provisional. Both are consumed by components rather
+than by the token layer, so a value chosen now would be chosen without the thing that uses it -
+which is what D0035 clause 1 exists to permit.
 
 ## Revision History
 

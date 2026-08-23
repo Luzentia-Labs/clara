@@ -15,16 +15,22 @@
 | 2 | Accent hue with reasoning | **Decided** - indigo ~275deg |
 | 3 | Ramp generation colour space | **Decided** - OKLCH |
 | 4 | Radius scale and character | **Decided** - subtle, 4px base |
-| 5 | Border weight convention | **Provisional** |
+| 5 | Border weight convention | **Decided** - 1px default, 2px focus, as tier 2 `border-width` tokens |
 | 6 | Elevation expression, incl. dark theme | **Provisional** |
 | 7 | Two-part focus indicator | **Decided** - measured on all 6 enumerated surfaces |
-| 8 | Type scale with body step named | **Provisional** |
-| 9 | Legal pairing table, populated and passing | **Partial** - 8 declared and passing; 27 required pairings await the tier 2 families (US-01M0GMAE) |
+| 8 | Type scale with body step named | **Decided** - body is 14px, named `font-body`; caption, body-lg and three heading steps beside it |
+| 9 | Legal pairing table, populated and passing | **Decided** - 48 pairings, all measured and passing in both themes, **0 waived** (US-01M0GMAE, US-01M0GM66) |
 | 10 | Motion durations and what motion may communicate | **Provisional** |
 | AC3 | Compact density floors | **Decided** - D0037, consulted |
 
 Under **D0035 clause 1** a Provisional value is still a real tier 1 token, so F01 is unblocked.
 Under **clause 2** nothing here ships with a failing contrast pairing.
+
+**Updated 2026-08-23.** Deliverables 5, 8 and 9 are no longer provisional: the semantic layer
+landed with border-width and type steps as tier 2 tokens, and the pairing table is complete at 48
+rows with the waiver at zero. Elevation and motion remain provisional and carry their revisit
+conditions - both are consumed by components rather than by the token layer, so F01 is where they
+stop being guesses.
 
 ---
 
