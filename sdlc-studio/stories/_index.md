@@ -7,12 +7,12 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 68 |
+| Draft | 57 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
 | Review | 0 |
-| Done | 20 |
+| Done | 31 |
 | Blocked | 0 |
 | **Total** | **88** |
 
@@ -43,17 +43,17 @@
 | [US-01M0GM5M](US-01M0GM5M-theming-light-dark-and-context-based-scoping.md) | Theming: light, dark, and context-based scoping | EP-01M0GKNG | Done | 8 | -- |
 | [US-01M0GMC6](US-01M0GMC6-density-modes-with-computed-geometry-assertions.md) | Density modes with computed geometry assertions | EP-01M0GKNG | Done | 5 | -- |
 | [US-01M0GMT2](US-01M0GMT2-typography-scale-and-tabular-numerals.md) | Typography scale and tabular numerals | EP-01M0GKNG | Done | 3 | -- |
-| [US-01M0GMGZ](US-01M0GMGZ-the-as-polymorphism-idiom.md) | The `as` polymorphism idiom | EP-01M0GKGS | Draft | 3 | -- |
-| [US-01M0GMYZ](US-01M0GMYZ-icon-pipeline-and-the-enumerated-v1-icon-set.md) | Icon pipeline and the enumerated v1 icon set | EP-01M0GKGS | Draft | 5 | -- |
-| [US-01M0GMJK](US-01M0GMJK-box.md) | Box | EP-01M0GKGS | Draft | 2 | -- |
-| [US-01M0GMVN](US-01M0GMVN-stack.md) | Stack | EP-01M0GKGS | Draft | 1 | -- |
-| [US-01M0GMQ7](US-01M0GMQ7-inline.md) | Inline | EP-01M0GKGS | Draft | 1 | -- |
-| [US-01M0GMZC](US-01M0GMZC-grid.md) | Grid | EP-01M0GKGS | Draft | 2 | -- |
-| [US-01M0GMBJ](US-01M0GMBJ-divider.md) | Divider | EP-01M0GKGS | Draft | 1 | -- |
-| [US-01M0GM69](US-01M0GM69-button.md) | Button | EP-01M0GKGS | Draft | 5 | -- |
-| [US-01M0GMW1](US-01M0GMW1-iconbutton.md) | IconButton | EP-01M0GKGS | Draft | 2 | -- |
-| [US-01M0GM3S](US-01M0GM3S-buttongroup.md) | ButtonGroup | EP-01M0GKGS | Draft | 2 | -- |
-| [US-01M0GMK8](US-01M0GMK8-link.md) | Link | EP-01M0GKGS | Draft | 2 | -- |
+| [US-01M0GMGZ](US-01M0GMGZ-the-as-polymorphism-idiom.md) | The `as` polymorphism idiom | EP-01M0GKGS | Done | 3 | -- |
+| [US-01M0GMYZ](US-01M0GMYZ-icon-pipeline-and-the-enumerated-v1-icon-set.md) | Icon pipeline and the enumerated v1 icon set | EP-01M0GKGS | Done | 5 | -- |
+| [US-01M0GMJK](US-01M0GMJK-box.md) | Box | EP-01M0GKGS | Done | 2 | -- |
+| [US-01M0GMVN](US-01M0GMVN-stack.md) | Stack | EP-01M0GKGS | Done | 1 | -- |
+| [US-01M0GMQ7](US-01M0GMQ7-inline.md) | Inline | EP-01M0GKGS | Done | 1 | -- |
+| [US-01M0GMZC](US-01M0GMZC-grid.md) | Grid | EP-01M0GKGS | Done | 2 | -- |
+| [US-01M0GMBJ](US-01M0GMBJ-divider.md) | Divider | EP-01M0GKGS | Done | 1 | -- |
+| [US-01M0GM69](US-01M0GM69-button.md) | Button | EP-01M0GKGS | Done | 5 | -- |
+| [US-01M0GMW1](US-01M0GMW1-iconbutton.md) | IconButton | EP-01M0GKGS | Done | 2 | -- |
+| [US-01M0GM3S](US-01M0GM3S-buttongroup.md) | ButtonGroup | EP-01M0GKGS | Done | 2 | -- |
+| [US-01M0GMK8](US-01M0GMK8-link.md) | Link | EP-01M0GKGS | Done | 2 | -- |
 | [US-01M0GM61](US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md) | Portal, layer scale, and scoping infrastructure | EP-01M0GK4P | Draft | 5 | -- |
 | [US-01M0GM48](US-01M0GM48-modal.md) | Modal | EP-01M0GK4P | Draft | 8 | -- |
 | [US-01M0GMWW](US-01M0GMWW-drawer.md) | Drawer | EP-01M0GK4P | Draft | 5 | -- |
