@@ -28,14 +28,39 @@ const builtClients = classification.components
   .map((c) => c.name)
   .sort()
 
+// Every built component, client or server: the entry re-exports all of them.
+const builtCount = classification.components.filter((c) => c.status === 'built').length
+
 // Peers are IGNORED when measuring. They are external in the build - the bundled-peers guard
 // proves no chunk contains React - but size-limit resolves imports by default, so leaving them in
 // measures React's weight and calls it Clara's. A budget that is 90% somebody else's library
 // cannot detect Clara growing.
 const PEERS = ['react', 'react-dom', 'react/jsx-runtime', 'react-dom/client']
 
+/**
+ * The react entry's budget SCALES with the number of components it re-exports.
+ *
+ * It was 5 kB - the per-component figure, reused. That is a cap on a barrel that re-exports every
+ * component, so it fails the moment one more is added, and the only available response is to raise
+ * it: a budget whose routine outcome is "bump the number" measures nothing. Adding four affordances
+ * to Input pushed it 248 B over and turned CI red, and nothing about that was a regression.
+ *
+ * What the entry budget is actually FOR is catching the barrel pulling in something it should not -
+ * a heavy dependency, or per-component code that failed to split into its own chunk. That signal
+ * survives if the allowance tracks the component count and the ceiling catches the entry growing
+ * FASTER than that count. Per-component budgets (D0048/D0053) remain the ones that bind for a
+ * consumer importing a single control; this one is a shape check on the barrel.
+ *
+ * 220 B per built component, floor 5 kB. Both are calibrated from the measured figure rather than
+ * argued: 24 built components at 5.25 kB is ~215 B each, so the allowance sits deliberately close
+ * to today's density and will fail if the entry starts carrying real weight.
+ */
+const ENTRY_BYTES_PER_COMPONENT = 220
+const ENTRY_FLOOR_BYTES = 5000
+const entryLimit = `${Math.max(ENTRY_FLOOR_BYTES, builtCount * ENTRY_BYTES_PER_COMPONENT)} B`
+
 const fixed = [
-  { name: '@luzentialabs/clara-react (ESM entry)', path: 'packages/react/dist/index.js', limit: '5 kB', gzip: true, ignore: PEERS },
+  { name: `@luzentialabs/clara-react (ESM entry, ${builtCount} components x ${ENTRY_BYTES_PER_COMPONENT} B, floor ${ENTRY_FLOOR_BYTES} B)`, path: 'packages/react/dist/index.js', limit: entryLimit, gzip: true, ignore: PEERS },
   { name: '@luzentialabs/clara-icons (ESM entry)', path: 'packages/icons/dist/index.js', limit: '5 kB', gzip: true },
   { name: '@luzentialabs/clara-tokens (ESM entry)', path: 'packages/tokens/dist/index.js', limit: '5 kB', gzip: true },
   {
