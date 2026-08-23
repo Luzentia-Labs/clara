@@ -7,18 +7,18 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 10 |
+| Draft | 9 |
 | Ready | 0 |
 | Approved | 0 |
 | In Progress | 0 |
-| Done | 0 |
+| Done | 1 |
 | **Total** | **10** |
 
 ## Epics
 
 | ID | Title | Status | Stories | Deps | Created | Updated |
 | --- | --- | --- | --- | --- | --- | --- |
-| [EP-01M0GKNH](EP-01M0GKNH-toolchain-and-release-pipeline.md) | Toolchain and release pipeline | Draft | 0 | -- | 2026-08-21 | 2026-08-21 |
+| [EP-01M0GKNH](EP-01M0GKNH-toolchain-and-release-pipeline.md) | Toolchain and release pipeline | Done | 0 | -- | 2026-08-21 | 2026-08-21 |
 | [EP-01M0GKNG](EP-01M0GKNG-foundations-visual-identity-and-token-system.md) | Foundations: visual identity and token system | Draft | 0 | -- | 2026-08-21 | 2026-08-21 |
 | [EP-01M0GKGS](EP-01M0GKGS-primitives-icons-layout-and-actions.md) | Primitives: icons, layout, and actions | Draft | 0 | -- | 2026-08-21 | 2026-08-21 |
 | [EP-01M0GK4P](EP-01M0GK4P-overlays-and-feedback.md) | Overlays and feedback | Draft | 0 | -- | 2026-08-21 | 2026-08-21 |

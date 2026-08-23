@@ -574,6 +574,19 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // Two sources disagreeing about what is public means neither can be trusted, and the gate that
+    // reads them would be deciding on the wrong set.
+    name: 'the two token manifests disagreeing about what is public',
+    guard: 'check-public-tokens.mjs',
+    expect: /disagree about what is public/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/tokens/dist/tokens.public.json')
+      const m = JSON.parse(readFileSync(f, 'utf8'))
+      delete m[Object.keys(m)[0]]
+      writeFileSync(f, JSON.stringify(m, null, 2))
+    },
+  },
+  {
     // TRD gate 8: a private token in a docs example becomes public by accident the moment someone
     // copies it, and D0007 says tiers 1 and 3 may change in a minor.
     name: 'a docs example referencing a tier 1 primitive',

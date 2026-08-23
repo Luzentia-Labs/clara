@@ -1,10 +1,10 @@
 # EP-01M0GKNH: Toolchain and release pipeline
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 
 ## Summary
 
@@ -13,6 +13,47 @@ Establish the buildable and testable scaffold: pnpm workspaces, Vite library bui
 **PRD features:** F20, F21, F22, F23
 **Delivery order:** 1 of 10 - no dependencies. **Build this first, by hand, to a green gate.** The sprint loop cannot run until a quality gate exists and passes.
 **Depends on:** None
+
+## Inherited Constraints
+
+> See PRD and TRD for full constraint details. Key constraints for this epic:
+
+| Source | Type | Constraint | Impact |
+| --- | --- | --- | --- |
+| PRD | Performance | Size budgets are per-component for JavaScript; CSS is one fixed sheet ceiling | Budgets generated per client component (D0048/D0053) |
+| PRD | Security | The library reads no environment variables; `NPM_TOKEN` is the only publish secret | Publish is main-only with provenance; no secret is committed |
+| TRD | Architecture | Layered token-first monorepo; react depends on icons depends on tokens | Dual ESM/CJS with a closed exports map, cascade layers, per-boundary chunks |
+| TRD | Tech Stack | Node 20.19 floor; Vite library mode; pnpm workspaces | Four tools pinned below their latest because their latest raised the Node floor (D0033, D0039) |
+
+## Business Context
+
+### Problem Statement
+
+Clara had specifications and no toolchain. Nothing could be built, tested, measured or published,
+so every claim about quality was an assertion about intent.
+
+This epic builds the machinery that makes later claims checkable: a build that emits what the
+exports map promises, gates that fail for the right reason, and a publish path that cannot quietly
+skip one.
+
+**PRD Reference:** PRD F20 (package and consumer verification), F21 (semver), F23 (SSR and RSC)
+
+### Value Proposition
+
+Every later epic inherits a green gate. A component story can be about the component, because the
+build, the boundary, the budgets and the publish path are already settled and enforced.
+
+The counterfactual is what makes this worth 12 stories: three adversarial review rounds found two
+Criticals that every gate had reported green. Without the machinery, those ship.
+
+### Success Metrics
+
+| Metric | Current | Target | Measurement |
+| --- | --- | --- | --- |
+| Deterministic guards | 0 | >= 15 | `pnpm check` |
+| Guard mutations proven killable | 0 | every guard | `prove-guards-fail.mjs` |
+| CI gates enumerated and blocking | 0 | every TRD Section 9 gate | `check-ci-gates.mjs` |
+| Consumer verification | none | Vite + Next App Router from the tarball | `verify-consumers.mjs` |
 
 ## Scope
 
@@ -46,6 +87,64 @@ Establish the buildable and testable scaffold: pnpm workspaces, Vite library bui
 - [ ] The `"use client"` directive survives bundling in both ESM and CJS output for every client component
 - [ ] The gate is green on an empty component set, so later epics inherit a working pipeline
 
+## Dependencies
+
+### Blocked By
+
+| Dependency | Type | Status | Owner |
+| --- | --- | --- | --- |
+| Node 20.19 LTS | Runtime floor | Met | - |
+| npm registry (`@luzentialabs`) | Publish target | Reachable; `NPM_TOKEN` not yet set | operator |
+
+### Blocking
+
+| Item | Type | Impact |
+| --- | --- | --- |
+| None remaining | - | All 12 stories Done |
+
+## Risks & Assumptions
+
+### Assumptions
+
+- Consumers install from npm with a package manager that honours `exports`; the closed map assumes it
+- The Node floor stays at 20.19 for v1.x, which is what forces four tools to be pinned below their latest
+- Publishing is one-way: a name in the published surface is permanent, so the surface stays deliberately small
+
+### Risks
+
+| Risk | Likelihood | Impact | Mitigation |
+| --- | --- | --- | --- |
+| A guard passes without checking anything | Observed, repeatedly | Critical - a green gate hides a real defect | Every guard carries a mutation proving it can fail, plus explicit vacuity floors |
+| A hand-rolled parser is defeated by ordinary input | Observed, nine times | High | TypeScript and `yaml` are dependencies; no new hand-rolled parsers |
+| A rename silently disables a guard keyed on a name prefix | Observed, three at once | High | Guards consult manifests and declared roles, not name shapes |
+| The publish path skips a gate CI runs | Observed, three times | Critical - a release cannot be withdrawn | `check-release` compares the two command sets exactly |
+
+## Technical Considerations
+
+### Architecture Impact
+
+not recorded
+
+### Integration Points
+
+not recorded
+
+## Sizing
+
+**Size:** not recorded
+
+_A T-shirt size (S / M / L / XL) - the epic's own coarse estimate, made before decomposition. An epic is never sized in story points; STORY points belong on stories._
+
+**Estimated Story Count:** not recorded
+
+**Derived Point Total:** not recorded
+
+_DERIVED, not estimated: the sum of this epic's stories' points. `reconcile` recomputes it, so it can never drift from the stories beneath it - do not hand-edit it._
+
+**Complexity Factors:**
+
+- not recorded
+
 ## Story Breakdown
 
 - [x] [US-01M0GMPJ: pnpm workspace and repository scaffold](../stories/US-01M0GMPJ-pnpm-workspace-and-repository-scaffold.md)
@@ -61,14 +160,18 @@ Establish the buildable and testable scaffold: pnpm workspaces, Vite library bui
 - [x] [US-01M0MQYN: Manual chunks so the use client directive survives bundling](../stories/US-01M0MQYN-manual-chunks-so-the-use-client-directive-survives.md)
 - [x] [US-01M0NJZN: One chunk per client component so budgets are real](../stories/US-01M0NJZN-one-chunk-per-client-component-so-budgets-are.md)
 
-## Risks
+## Test Plan
 
-- The CI gate list is long and could take longer to build than expected; the mitigation is that every gate is cheap individually and the alternative is defining gates with no enforcement point, which is the defect this epic exists to prevent
-- Vite library mode with multi-entry CSS Modules is the least-proven part of the stack; a spike on one trivial component de-risks it before the full build is wired
+**Test Spec:** [TSnot recorded: not recorded](../test-specs/TSnot recorded-not recorded.md)
 
 ## Open Questions
 
 _None open. Every PRD open question is closed (D0001-D0016) or promoted to F31._
+
+## Risks
+
+- The CI gate list is long and could take longer to build than expected; the mitigation is that every gate is cheap individually and the alternative is defining gates with no enforcement point, which is the defect this epic exists to prevent
+- Vite library mode with multi-entry CSS Modules is the least-proven part of the stack; a spike on one trivial component de-risks it before the full build is wired
 
 ## Revision History
 

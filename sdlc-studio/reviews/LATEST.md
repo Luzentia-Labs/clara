@@ -1,22 +1,25 @@
 # Where Clara stands
 
-> **Updated:** 2026-08-23
+> **Updated:** 2026-08-23 (close of RUN-01M0P7YW)
 > Read this first after any compaction or reset, then run `/sdlc-studio status`.
 
 ## One paragraph
 
-The foundation toolchain is built, merged to `main`, and **proven** - CI and the release path have
-both executed on a clean checkout, and the release path correctly declined to publish because a
-changeset is pending. Nothing is on npm. Two components exist (`Box`, `Button`) as the minimum
-surface the pipeline needs to be non-vacuous; real component work has not started, because F00 is
-not finished.
+**EP-01M0GKNH (toolchain and release pipeline) is Done - all 12 stories.** CI and the release path
+both execute on `main` and the release path correctly declines to publish while a changeset is
+pending. Nothing is on npm. The semantic token layer has landed and **the contrast waiver is zero**:
+all 48 legal pairings are measured and passing in both themes. Two components exist (`Box`,
+`Button`) as the minimum surface the pipeline needs to be non-vacuous; real component work still
+waits on the rest of F00.
 
 ## Numbers
 
-- `pnpm check` runs **18 guards**; `prove-guards-fail` kills **44 mutations** on a staged copy.
-- **246 tests**, 97% statements. `ci-gates.json` enumerates **19 gates** (12 wired, 7 pending, each
-  bound to an open story); every TRD Section 9 gate is claimed by number.
-- **52 decisions** recorded. `main` is the only branch - this project is trunk-based.
+- `pnpm check` runs **20 guards**; `prove-guards-fail` kills **48 mutations** on a staged copy.
+- **272 tests**, 97.1% statements. `ci-gates.json` enumerates **19 gates** (14 wired, 5 pending,
+  each bound to an open story); every TRD Section 9 gate is claimed by number.
+- **55 decisions**. Stories: **15 Done of 88**. `main` is the only branch - this project is
+  trunk-based.
+- **48 contrast pairings, 0 waived** (high-water mark 27, and it may only shrink).
 - Published to npm: **nothing**. `NPM_TOKEN` is not set, which is deliberate ordering.
 
 ## How work lands here
@@ -30,9 +33,7 @@ CI publishes only when no changeset is pending (D0052).
 | Blocker | Blocks | Note |
 | --- | --- | --- |
 | **Operator sign-off** | Closing EP-01M0GKNH | Four units have every AC passing but cannot reach Done: the author never records their own verdict. Evidence is in `reviews/RV-2026-08-22-run-01m0mfxj.md` and the round-2 review. |
-| **US-01M0GMAE** (semantic token layer) | F01, and 27 waived contrast pairings | Planned as PL-01M0M9FC, not started. D0044 decided the TRD's tier 2 names win, so `tokens.public.lock.json` currently locks 15 keys under names that will change. |
-| **US-01M0NJZN** (one chunk per client component) | Should land before F01 | D0048. The output shape is reachable from the exports map, so it is breaking after the first publish. |
-| **US-01M0GMDV** (consumer apps) | Gate 14 | The only thing that proves the RSC boundary in a real App Router build. Absorbs BG-01M0MFMZ per D0042. |
+| **The rest of F00** | F01 | `EP-01M0GKNG` is 3 of 8: tier-enforcement lint (US-01M0GME0), theming (US-01M0GM5M), density (US-01M0GMC6), typography (US-01M0GMT2) and the F00 pass itself (US-01M0GMN0) remain. |
 
 ## Sharp edges an agent will hit
 
@@ -44,6 +45,12 @@ CI publishes only when no changeset is pending (D0052).
   already dependencies.
 - **A guard ships with its fail-proof in the same commit.** Three guards once went a run unproven
   and an adversarial reviewer broke all three on the first attempt.
+- **Tier is decided by the tier MANIFEST, never by a name prefix.** Three guards keyed on the string
+  `semantic-` and went silently vacuous the moment D0044 renamed tier 2. Same rule as the boundary
+  oracles: do not infer a category from a name.
+- **The palette is SOLVED, not chosen.** `generate-semantic.mjs` walks candidate ramp steps until all
+  48 pairings pass. Do not hand-edit `src/semantic/color.json` or `src/themes/dark.json` - they are
+  generated, and a hand-picked hex cannot be re-derived when a ramp changes.
 - **The skill's retro parser cannot read this project's ids.** `ARTEFACT_ID_RE` requires four
   digits; `artifact.py` allocates ULIDs (`CR-01M0MK20`). So the retro's "filed" disposition and its
   known-issues rulings are unreachable, and the close reports them as malformed. Not a project
