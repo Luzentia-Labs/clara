@@ -1,6 +1,6 @@
 import { forwardRef, useRef, useState, type InputHTMLAttributes, type MutableRefObject } from 'react'
 import { cx } from '../../lib/cx'
-import { fieldAriaProps, useFieldWiring } from '../../lib/field-context'
+import { fieldAriaProps, fieldDisabled, useFieldWiring } from '../../lib/field-context'
 
 /**
  * A search input.
@@ -38,6 +38,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(functi
   const hasValue = (controlled ? String(rest.value ?? '') : typed).length > 0
 
   const clear = () => {
+    if (fieldDisabled(wiring)) return
     const el = inner.current
     if (el) {
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set

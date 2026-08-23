@@ -1,6 +1,6 @@
 import { useId, useState } from 'react'
 import { cx } from '../../lib/cx'
-import { useFieldWiring } from '../../lib/field-context'
+import { fieldDisabled, useFieldWiring } from '../../lib/field-context'
 
 export interface CheckboxOption {
   value: string
@@ -56,7 +56,19 @@ export function CheckboxGroup ({
         * mean: each box is independently optional, and "at least one of these" is a form-level
         * rule, not a property of the group. A required choice belongs in the label or description.
         */}
-      <legend className="clara-checkbox-group__legend">{legend}</legend>
+      {/*
+        * In group mode the FIELD's label names the group (aria-labelledby), so rendering the legend
+        * as well puts the same words on screen twice. It stays in the accessibility tree as the
+        * fieldset's own caption but is visually hidden, because a fieldset with no legend is worse
+        * markup than one whose legend is not painted.
+        *
+        * `(required)` is appended as TEXT rather than as aria-required: a `<fieldset>` is
+        * role=group, which does not support that property, and the Field's asterisk is aria-hidden
+        * - so without this the required state was announced nowhere at all.
+        */}
+      <legend className={cx('clara-checkbox-group__legend', wiring?.labelFor === 'group' && 'clara-visually-hidden')}>
+        {legend}{wiring?.required ? ' (required)' : ''}
+      </legend>
       {options.map((option) => {
         const id = `${base}-${option.value}`
         const descriptionId = option.description ? `${id}-description` : undefined
@@ -69,10 +81,13 @@ export function CheckboxGroup ({
               name={name}
               value={option.value}
               className="clara-checkbox"
-              disabled={option.disabled || undefined}
+              aria-disabled={option.disabled || wiring?.disabled || undefined}
               aria-describedby={descriptionId}
               {...(controlled ? { checked: isOn } : { defaultChecked: isOn })}
+              onClick={(event) => { if (option.disabled || fieldDisabled(wiring)) event.preventDefault() }}
               onChange={(event) => {
+                // aria-disabled keeps the option reachable but does not stop it changing.
+                if (option.disabled || fieldDisabled(wiring)) { event.preventDefault(); return }
                 const next = event.currentTarget.checked
                   ? [...selected, option.value]
                   : selected.filter((v) => v !== option.value)

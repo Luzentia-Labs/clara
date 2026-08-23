@@ -12,6 +12,24 @@ neither it nor any control that reads its wiring can be a Server Component (D006
 
 The label is a click target that moves focus into the control. Nothing in the Field itself takes a tab stop - the control does.
 
+
+| Key | Result |
+| --- | --- |
+| Tab | Moves to the control. The Field itself takes no tab stop. |
+| Click on the label | Moves focus into the control (`labelFor="control"` only; a group is named by `aria-labelledby` and has no `htmlFor`). |
+| Tab, when disabled | Still reaches the control. `aria-disabled` keeps the tab stop so the reason attached to the field can be read. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only - no pointer used.
+Every row of the table above was exercised in a Field, in both themes and both densities.
+
+Result: as documented, with one observation that is not a defect - a disabled control still receives
+focus, which reads as surprising until you know it is deliberate (D0058), and is the behaviour that
+lets a keyboard user reach the explanation attached to the field.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 Ids come from `useId()`, so hydration does not re-wire the description. What is asserted is the

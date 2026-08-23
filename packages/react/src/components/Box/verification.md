@@ -13,6 +13,19 @@ no browser APIs, so it carries no `"use client"` directive and renders on the se
 Nothing here takes a tab stop or handles a key. A layout primitive that captured focus would be a
 bug: it wraps content and must be transparent to the keyboard, leaving order to the DOM.
 
+
+| Key | Result |
+| --- | --- |
+| Tab | No stop. A layout primitive wraps content and must be transparent to the keyboard, leaving order to the DOM. |
+| Any key | No handler. Capturing a key here would break the control inside it. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only. Every row of the
+table above was exercised in both themes and both densities. Result: as documented.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 It renders no role and adds no semantics, so it never changes how its children are announced. `as` lets the caller choose the element when the region needs meaning - the primitive does not guess one.

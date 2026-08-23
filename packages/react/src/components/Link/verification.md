@@ -9,6 +9,19 @@ tests that actually run, so it can be checked rather than believed.
 
 Enter activates, as for any anchor. Space does not - that is a link, not a button, and the distinction is deliberate.
 
+
+| Key | Result |
+| --- | --- |
+| Tab | One stop. |
+| Enter | Follows the href. Space does not - that is anchor behaviour, and Clara does not change it. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only. Every row of the
+table above was exercised in both themes and both densities. Result: as documented.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 Underlined, so colour is not the only distinction (WCAG 1.4.1). External links announce that they open a new tab (WCAG 3.2.5).

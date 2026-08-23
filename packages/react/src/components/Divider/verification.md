@@ -11,6 +11,19 @@ no browser APIs, so it carries no `"use client"` directive and renders on the se
 ## Keyboard
 
 Not focusable in either mode; a separator is never a stop.
+
+| Key | Result |
+| --- | --- |
+| Tab | No stop, in either mode. A separator is never a focus target. |
+| Any key | No handler. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only. Every row of the
+table above was exercised in both themes and both densities. Result: as documented.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 `role="separator"` by default, so it announces a boundary. `decorative` sets `aria-hidden` instead - announcing "separator" for a rule that only exists to look right is noise, and which one it is only the author knows.

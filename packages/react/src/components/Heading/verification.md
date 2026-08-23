@@ -11,6 +11,19 @@ no browser APIs, so it carries no `"use client"` directive and renders on the se
 ## Keyboard
 
 Not focusable. Headings are navigated with a screen reader's own heading commands, not with Tab.
+
+| Key | Result |
+| --- | --- |
+| Tab | No stop. Headings are navigated with a screen reader's own heading commands, not with Tab. |
+| Any key | No handler. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only. Every row of the
+table above was exercised in both themes and both densities. Result: as documented.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 `level` sets the element (h1-h6) and `size` sets the appearance, deliberately separately. Tying them together forces the author to break either the document outline or the visual hierarchy, and the outline is the one that loses in practice - which is what makes heading navigation useless.

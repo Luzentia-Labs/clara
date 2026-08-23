@@ -47,8 +47,10 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
 
 - **Given** an Input
 - **When** I configure it
-- **Then** prefix, suffix, clearable and a character counter all render and are keyboard reachable
-- **Verify:** vitest "Input affordances"
+- **Then** prefix, suffix, clearable and a character counter all render; the affixes are decoration
+  and do not join the accessible name; clear returns focus to the input and disappears with the
+  value; and the counter describes the field without imposing a `maxLength`
+- **Verify:** vitest "Input affixes, clear and counter"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -104,7 +106,14 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
 
 - **Given** the Input story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
+- **Then** the artefacts that CAN exist today do: unit and interaction tests using accessible
+  queries, an axe assertion over default and error states, a docs page, a documented keyboard table
+  and a recorded manual keyboard pass - all checked by `check-verification.mjs`, which fails on a
+  missing one and on a section with no content
+- **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
+  belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
+  records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five
+  did not exist anywhere in the repo
 - **Verify:** shell node scripts/check-verification.mjs --component Input
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

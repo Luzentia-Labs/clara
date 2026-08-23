@@ -19,6 +19,24 @@ Uncontrolled use holds its own state. The first implementation derived the selec
 the boxes on screen stayed correct, so a form reading `onChange` submitted a set the user could not
 see.
 
+
+| Key | Result |
+| --- | --- |
+| Tab | **One stop per option** - unlike RadioGroup, because the options are independent decisions. |
+| Space | Toggles the focused option. |
+| Space, when disabled | No-op. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only - no pointer used.
+Every row of the table above was exercised in a Field, in both themes and both densities.
+
+Result: as documented, with one observation that is not a defect - a disabled control still receives
+focus, which reads as surprising until you know it is deliberate (D0058), and is the behaviour that
+lets a keyboard user reach the explanation attached to the field.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 A `<fieldset>` whose `<legend>` names the question, so a screen reader announces the question before

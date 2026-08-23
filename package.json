@@ -53,7 +53,7 @@
     "check:axe": "npx vitest run packages/react/src/components/__tests__/primitives.test.tsx packages/react/src/components/__tests__/typography.test.tsx packages/react/src/components/__tests__/Table.test.tsx packages/react/src/components/__tests__/matrix.test.tsx packages/react/src/components/Field/__tests__/behaviour.test.tsx packages/react/src/components/Field/__tests__/field.test.tsx -t \"axe\" --silent",
     "check:icons": "node scripts/check-icons.mjs",
     "check:verification": "node scripts/check-verification.mjs",
-    "check:keyboard": "npx vitest run packages/react/src/components/__tests__/matrix.test.tsx packages/react/src/components/__tests__/primitives.test.tsx -t \"focus\" --silent"
+    "check:keyboard": "npx vitest run packages/react/src/components/__tests__/matrix.test.tsx packages/react/src/components/__tests__/primitives.test.tsx packages/react/src/components/Field/__tests__/behaviour.test.tsx packages/react/src/components/Field/__tests__/controls.test.tsx -t \"keyboard|focus\" --silent"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",

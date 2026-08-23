@@ -253,7 +253,7 @@ describe('Field works uncontrolled and with RHF', () => {
   })
 })
 
-describe('accessibility: every control in every state', () => {
+describe('accessibility: axe on every control in every state', () => {
   const STATES = [
     ['default', {}],
     ['described', { description: 'A hint' }],

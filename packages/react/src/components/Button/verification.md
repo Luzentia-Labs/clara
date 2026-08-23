@@ -9,6 +9,21 @@ tests that actually run, so it can be checked rather than believed.
 
 Enter and Space activate; a disabled button keeps its tab stop (D0028) and does not activate; loading sets aria-busy and preserves width; `as="a"` renders a link that does not navigate while disabled.
 
+
+| Key | Result |
+| --- | --- |
+| Tab | One stop. A disabled button KEEPS its stop (D0028/D0058). |
+| Enter / Space | Activates. |
+| Enter / Space, when disabled | No-op - `aria-disabled` does not stop activation, so the handler suppresses it. |
+| Enter, as `as="a"` and disabled | Does not navigate; default is prevented. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only. Every row of the
+table above was exercised in both themes and both densities. Result: as documented.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 Focus indicator is the two-part ring (D0054), which survives every emphasis surface. Disabled text is NOT contrast-exempt - Clara exceeds WCAG here deliberately.

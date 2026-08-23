@@ -729,6 +729,67 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // A review replaced this section with "None. Everything about this component is fully verified."
+    // and the guard passed, because it tested only that the heading string was present. A record
+    // with nothing unverified is not a thorough record, it is an incurious one.
+    name: 'a verification record whose stated gaps are emptied of content',
+    guard: 'check-verification.mjs',
+    expect: /"## Stated gaps" has 0 list item\(s\)/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Switch/verification.md')
+      const text = readFileSync(f, 'utf8')
+      writeFileSync(f, text.slice(0, text.indexOf('## Stated gaps')) +
+        '## Stated gaps\n\nNone. Everything about this component is fully verified.\n')
+    },
+  },
+  {
+    // Same shape, the other section: all four citations deleted, prose left in their place.
+    name: 'a verification record whose evidence list is replaced with a claim',
+    guard: 'check-verification.mjs',
+    expect: /"## What is verified automatically" has 0 list item\(s\)/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Switch/verification.md')
+      const text = readFileSync(f, 'utf8')
+      const head = text.indexOf('## What is verified automatically')
+      const tail = text.indexOf('## Stated gaps')
+      writeFileSync(f, text.slice(0, head) +
+        '## What is verified automatically\n\nEverything. The Switch is exhaustively covered.\n\n' +
+        text.slice(tail))
+    },
+  },
+  {
+    // The TSD's definition of done asks for a documented keyboard table per component, and the
+    // definition-of-done AC in all ten stories claimed one existed when none did.
+    name: 'a verification record with no keyboard table',
+    guard: 'check-verification.mjs',
+    expect: /has no \| Key \| Result \| table/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Checkbox/verification.md')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(/\n\| Key \| Result \|\n/, '\n'))
+    },
+  },
+  {
+    name: 'a component whose documented docs page does not exist',
+    guard: 'check-verification.mjs',
+    expect: /names docs page switch\.md, which does not exist/,
+    stage: (stage) => {
+      rmSync(join(stage, 'apps/docs/src/content/components/switch.md'))
+    },
+  },
+  {
+    // `check:axe` named the file holding 54 axe assertions and selected them with `-t "axe"`, which
+    // matched no block in it: 86 skipped, 0 run, exit 0. Naming the file is not coverage.
+    name: 'a cited gate whose test selector matches no test in the file it runs',
+    guard: 'check-verification.mjs',
+    expect: /matches no test name in .* - a selector that selects nothing exits 0/,
+    stage: (stage) => {
+      const f = join(stage, 'package.json')
+      const pkg = JSON.parse(readFileSync(f, 'utf8'))
+      pkg.scripts['check:axe'] = pkg.scripts['check:axe'].replace('-t "axe"', '-t "zzz-nothing-matches"')
+      writeFileSync(f, JSON.stringify(pkg, null, 2) + '\n')
+    },
+  },
+  {
     name: 'an icon exported but absent from the committed list',
     guard: 'check-icons.mjs',
     expect: /absent from ICONS\.md|not declared/,

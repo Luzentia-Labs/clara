@@ -54,7 +54,7 @@ consumer actually feels.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC2: A consumer takes only what it imports
+### AC1: A consumer takes only what it imports
 
 - **Given** the built ESM output
 - **When** a consumer imports one client component
@@ -63,7 +63,7 @@ consumer actually feels.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC3: The budgets become per-component and real
+### AC2: The budgets become per-component and real
 
 - **Given** .size-limit.json
 - **When** the budgets run
@@ -72,7 +72,7 @@ consumer actually feels.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC4: The guard layer holds under the new shape
+### AC3: The guard layer holds under the new shape
 
 - **Given** many chunks rather than three
 - **When** the full gate set runs

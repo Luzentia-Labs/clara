@@ -12,6 +12,19 @@ no browser APIs, so it carries no `"use client"` directive and renders on the se
 
 Truncated text IS focusable, deliberately. `title` appears only on hover, so a truncated value that
 is not focusable cannot be read without a pointer (D0028).
+
+| Key | Result |
+| --- | --- |
+| Tab | No stop - EXCEPT when `truncate` is set, which makes the element focusable so a truncated value can be reached without a pointer (D0028). |
+| Any key | No handler. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only. Every row of the
+table above was exercised in both themes and both densities. Result: as documented.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 `truncate` requires `fullValue` at the type level, so the untruncated string is always available as the accessible name. Truncating without it does not compile. `numeric` gives tabular figures so a column of amounts aligns without a monospace face.

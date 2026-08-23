@@ -15,7 +15,7 @@ export interface SwitchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
 }
 
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch (
-  { label, className, onClick, ...rest }, ref,
+  { label, className, onClick, onChange, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const ownId = useId()
@@ -32,6 +32,8 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch 
       {...fieldAriaProps(wiring, 'toggle')}
       // See Checkbox: aria-disabled does not stop a toggle by itself (D0058).
       onClick={fieldChangeGuard(wiring, onClick)}
+      // The change goes through the guard as well as the click - see fieldChangeGuard.
+      onChange={fieldChangeGuard(wiring, onChange)}
       {...(ownLabel ? { id: ownId } : {})}
       {...rest}
     />

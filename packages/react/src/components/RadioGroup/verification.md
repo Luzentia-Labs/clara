@@ -12,6 +12,25 @@ neither it nor any control that reads its wiring can be a Server Component (D006
 
 One tab stop for the whole group, with arrow keys moving and choosing. That is the browser's own behaviour for same-named radios, not a roving `tabindex` implementation, so it stays correct in every browser without Clara maintaining it.
 
+
+| Key | Result |
+| --- | --- |
+| Tab | **One stop for the whole group**, landing on the checked option, or the first if none is checked. |
+| Arrow keys | Move between options AND select - the browser's own behaviour for same-named radios. |
+| Space | Selects the focused option. |
+| Arrow keys, when disabled | Move focus but do not change the selection. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only - no pointer used.
+Every row of the table above was exercised in a Field, in both themes and both densities.
+
+Result: as documented, with one observation that is not a defect - a disabled control still receives
+focus, which reads as surprising until you know it is deliberate (D0058), and is the behaviour that
+lets a keyboard user reach the explanation attached to the field.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 The role is `radiogroup` rather than the bare fieldset's implicit `group`, because that is the role

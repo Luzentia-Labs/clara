@@ -17,6 +17,26 @@ control that announces bounds and offers no way to reach them is half a contract
 to the precision `step` implies, so a 0.1 step does not write `0.30000000000000004` into a currency
 field.
 
+
+| Key | Result |
+| --- | --- |
+| Arrow Up / Arrow Down | Steps by `step`, clamped to `min` and `max`. |
+| PageUp / PageDown | Steps by ten times `step`, clamped. |
+| Home / End | Jumps to `min` / `max`. No-ops when that bound is not set. |
+| Any of the above, when disabled | No-op. `readOnly` stops typing but not the component's own writes, so this is suppressed explicitly. |
+| Wheel | Not a key, but recorded here because it is the notorious one: it cannot change the value, because the control is never `type="number"`. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only - no pointer used.
+Every row of the table above was exercised in a Field, in both themes and both densities.
+
+Result: as documented, with one observation that is not a defect - a disabled control still receives
+focus, which reads as surprising until you know it is deliberate (D0058), and is the behaviour that
+lets a keyboard user reach the explanation attached to the field.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 Supplying `min` or `max` makes the control a **spinbutton**, which is the only role that supports

@@ -17,6 +17,19 @@ reports the direction that was being SHOWN, not the one being moved to - the cal
 happens next, and a control that reported a direction it had not yet applied would be describing the
 future rather than the present.
 
+
+| Key | Result |
+| --- | --- |
+| Tab | One stop, in the header cell. |
+| Enter / Space | Reports the direction that was being SHOWN. The caller decides what happens next. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only. Both rows above
+exercised inside a table header. Result: as documented.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 Operable with no handler attached, so a header rendered before its sort logic exists does not throw.

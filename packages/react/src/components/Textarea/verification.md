@@ -12,6 +12,24 @@ neither it nor any control that reads its wiring can be a Server Component (D006
 
 Enter inserts a newline; it does not submit. Tab leaves the control rather than indenting.
 
+
+| Key | Result |
+| --- | --- |
+| Enter | Inserts a newline. Does **not** submit the form. |
+| Tab | Leaves the control. Does not indent - a textarea that captures Tab is a keyboard trap. |
+| Any printing key | Types, and re-measures the height when `maxRows` is set. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only - no pointer used.
+Every row of the table above was exercised in a Field, in both themes and both densities.
+
+Result: as documented, with one observation that is not a defect - a disabled control still receives
+focus, which reads as surprising until you know it is deliberate (D0058), and is the behaviour that
+lets a keyboard user reach the explanation attached to the field.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 Auto-resize is opt-in through `maxRows`, and the cap is the point of it: an unbounded textarea

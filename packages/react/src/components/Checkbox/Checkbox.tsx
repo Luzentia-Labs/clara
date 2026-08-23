@@ -17,7 +17,7 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
 }
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox (
-  { indeterminate = false, label, className, onClick, ...rest }, ref,
+  { indeterminate = false, label, className, onClick, onChange, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const ownId = useId()
@@ -60,6 +60,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
         applyIndeterminate()
         onClick?.(event)
       })}
+      // The change goes through the guard as well as the click - see fieldChangeGuard.
+      onChange={fieldChangeGuard(wiring, onChange)}
       {...(ownLabel ? { id: ownId } : {})}
       {...rest}
     />

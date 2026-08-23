@@ -44,7 +44,7 @@
   border-color: var(--clara-button-secondary-border);
 }
 
-.clara-button:disabled {
+.clara-button[aria-disabled="true"] {
   background: var(--clara-button-disabled-bg);
   color: var(--clara-button-disabled-fg);
   cursor: not-allowed;
@@ -289,3 +289,76 @@
  * what carries on/off, and a CSS track has to redraw it.
  */
 .clara-switch { appearance: auto; min-width: var(--clara-size-target-min); }
+
+/*
+ * The choice controls need an explicit disabled appearance now that they are `aria-disabled` rather
+ * than natively disabled: the UA greyed the native state for us, and it does not grey an ARIA one.
+ * Without these a disabled Checkbox, Radio or Switch is pixel-identical to an enabled one - the
+ * disabled model was changed for good reasons (D0058) and quietly removed the only visual signal.
+ */
+.clara-checkbox[aria-disabled="true"],
+.clara-radio[aria-disabled="true"],
+.clara-switch[aria-disabled="true"] {
+  /* `accent-color` rather than `opacity`: opacity dims the drawn tick along with everything else,
+   * and the tick is what carries the state (WCAG 1.4.1). Clara does not take WCAG's contrast
+   * exemption for disabled text, so the disabled colour is a real, readable colour. */
+  accent-color: var(--clara-color-fg-disabled);
+  color: var(--clara-color-fg-disabled);
+  cursor: not-allowed;
+}
+
+.clara-choice:has([aria-disabled="true"]) .clara-choice__label,
+.clara-field--disabled .clara-field__label { color: var(--clara-color-fg-disabled); }
+
+/* The Field's own disabled class was emitted and never styled. */
+.clara-field--disabled .clara-field__description { color: var(--clara-color-fg-disabled); }
+
+/*
+ * Visually hidden but still in the accessibility tree. Not `display: none` and not
+ * `visibility: hidden` - both remove the element from the tree, which is the opposite of the point.
+ */
+.clara-visually-hidden {
+  position: absolute;
+  width: var(--clara-border-width-default);
+  height: var(--clara-border-width-default);
+  padding: var(--clara-box-padding-none);
+  margin: calc(var(--clara-border-width-default) * -1);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: var(--clara-box-padding-none);
+}
+
+/* The decorated Input: prefix, suffix, clear button and character count. The group carries the
+ * border so the affixes sit inside one control rather than beside it. */
+.clara-input-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--clara-space-control-gap);
+  width: 100%;
+  min-height: var(--clara-size-control-height);
+  padding: var(--clara-box-padding-none) var(--clara-space-control-padding-x);
+  color: var(--clara-color-fg-default);
+  background: var(--clara-color-bg-surface);
+  border: var(--clara-border-width-default) solid var(--clara-color-border-default);
+  border-radius: var(--clara-radius-control);
+}
+.clara-input-group .clara-input {
+  min-height: var(--clara-size-target-min);
+  padding: var(--clara-box-padding-none);
+  background: none;
+  border: var(--clara-box-padding-none);
+}
+.clara-input-group__affix { font-size: var(--clara-font-body); color: var(--clara-color-fg-muted); }
+.clara-input-group__count { font-size: var(--clara-font-caption); color: var(--clara-color-fg-muted); font-variant-numeric: tabular-nums; }
+.clara-input-group__count--over { color: var(--clara-color-fg-danger); }
+.clara-input-group__clear {
+  font: inherit;
+  font-size: var(--clara-font-caption);
+  color: var(--clara-color-fg-link);
+  background: none;
+  border: var(--clara-box-padding-none);
+  cursor: pointer;
+  text-decoration: underline;
+  min-height: var(--clara-size-target-min);
+}

@@ -55,9 +55,9 @@ story is mostly about not inheriting either.
 ### AC2: Constraints and formatting
 
 - **Given** a NumberInput
-- **When** I configure min, max, step, precision and separators
-- **Then** all are enforced and thousands separators display correctly
-- **Verify:** vitest "NumberInput constraints and formatting"
+- **When** I configure min, max and step
+- **Then** min, max and step are enforced, figures are tabular, and a leading zero is preserved
+- **Verify:** vitest "NumberInput constraints and formatting|keyboard stepping"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -66,7 +66,7 @@ story is mostly about not inheriting either.
 - **Given** a focused NumberInput
 - **When** I press arrow keys
 - **Then** the value steps by the configured step and announces
-- **Verify:** vitest "NumberInput arrow stepping"
+- **Verify:** vitest "NumberInput keyboard stepping"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -92,20 +92,27 @@ story is mostly about not inheriting either.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC7: Reaching the bounds
+### AC6: Reaching the bounds
 
 - **Given** a bounded NumberInput
 - **When** the user presses Home, End, PageUp or PageDown
 - **Then** the value jumps to the bound or steps by ten, and a fractional step writes no float noise
-- **Verify:** vitest "NumberInput arrow stepping"
+- **Verify:** vitest "NumberInput keyboard stepping reaches every documented key"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC8: Definition of done
+### AC7: Definition of done
 
 - **Given** the NumberInput story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
+- **Then** the artefacts that CAN exist today do: unit and interaction tests using accessible
+  queries, an axe assertion over default and error states, a docs page, a documented keyboard table
+  and a recorded manual keyboard pass - all checked by `check-verification.mjs`, which fails on a
+  missing one and on a section with no content
+- **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
+  belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
+  records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five
+  did not exist anywhere in the repo
 - **Verify:** shell node scripts/check-verification.mjs --component NumberInput
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
@@ -137,7 +144,7 @@ story is mostly about not inheriting either.
 
 | Scenario | Expected Behaviour |
 | --- | --- |
-| The page is scrolled while the control has focus | The value does not change. `onWheel` blurs the control instead. This is the single most-reported data-entry defect attributed to `type="number"`. |
+| The page is scrolled while the control has focus | The value does not change, because the control is never `type="number"` - the guarantee is structural. An earlier implementation blurred the control on wheel; that protected against nothing and stole focus from anyone scrolling a long form, so it was removed (D0062). |
 | Arrow Up or Down is pressed | The value steps by `step` and clamps to `min` and `max`. Stepping goes through the native value setter so React's own `onChange` fires and a CONTROLLED component stays in sync. |
 | A leading zero is typed, as in an account code `00417` | It is preserved. An account code is not a quantity. |
 | Amounts are shown in a column | Figures are tabular, so the digits align without a monospace face. |
@@ -203,3 +210,12 @@ story is mostly about not inheriting either.
 
 | Date | Author | Change |
 | --- | --- | --- |
+
+## Deferred, deliberately
+
+**Thousands separators are not built.** The original AC2 named them and nothing implemented them,
+while the criterion was stamped `Verified: yes` - which is how a claim outlives the feature it
+describes. Formatting a value while it is being typed has to preserve the caret across every
+insertion, deletion and paste, and an implementation that gets that wrong is worse than none: the
+caret jumps mid-entry and the user retypes the field. It is a story of its own, not a clause in this
+one. Today, format for display outside the control; the docs page says so.

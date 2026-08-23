@@ -1,6 +1,6 @@
 import { forwardRef, useRef, useState, type InputHTMLAttributes, type KeyboardEvent, type MutableRefObject } from 'react'
 import { cx } from '../../lib/cx'
-import { fieldAriaProps, useFieldWiring } from '../../lib/field-context'
+import { fieldAriaProps, fieldDisabled, useFieldWiring } from '../../lib/field-context'
 
 /**
  * A numeric input.
@@ -47,8 +47,15 @@ export interface NumberInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
  * user has to clean up by hand.
  */
 function atStepPrecision (n: number, step: number): number {
-  const decimals = (String(step).split('.')[1] ?? '').length
-  return decimals ? Number(n.toFixed(decimals)) : n
+  // `String(step)` switches to exponential notation below 1e-6 - `String(1e-7)` is "1e-7" - so
+  // splitting on "." returned undefined and rounding silently stopped for exactly the small steps
+  // that need it most. An FX rate at seven or eight decimals is an ordinary ERP case.
+  const text = String(step)
+  const exponent = /e-(\d+)$/i.exec(text)
+  const mantissa = exponent ? (text.split('e')[0]?.split('.')[1] ?? '').length : 0
+  const decimals = exponent ? Number(exponent[1]) + mantissa : (text.split('.')[1] ?? '').length
+  // toFixed accepts 0-100; anything beyond that is past double precision anyway.
+  return decimals ? Number(n.toFixed(Math.min(decimals, 100))) : n
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput (
@@ -74,7 +81,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 
   const stepBy = (delta: number, event: KeyboardEvent<HTMLInputElement>) => {
     const el = inner.current
-    if (!el) return
+    // `readOnly` stops the user TYPING; it does not stop us writing through the native setter, so
+    // a disabled control still stepped on every arrow key.
+    if (!el || fieldDisabled(wiring)) return
     event.preventDefault()
     const from = Number(el.value)
     const next = atStepPrecision(clamp((Number.isFinite(from) ? from : 0) + delta), step)
@@ -87,7 +96,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 
   const jumpTo = (bound: number | undefined, event: KeyboardEvent<HTMLInputElement>) => {
     const el = inner.current
-    if (!el || bound === undefined) return
+    if (!el || bound === undefined || fieldDisabled(wiring)) return
     event.preventDefault()
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
     setter?.call(el, String(bound))

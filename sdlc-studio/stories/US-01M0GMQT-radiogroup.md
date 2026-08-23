@@ -56,7 +56,7 @@ belongs when the thing that is wrong is that nothing was chosen.
 - **Given** the public API
 - **When** I inspect it
 - **Then** Radio is not exported for standalone use outside RadioGroup
-- **Verify:** shell ! grep -qE "^export (declare )?(function|const|interface) Radio[^A-Za-z0-9_]" packages/react/etc/clara-react.api.md
+- **Verify:** shell test -s packages/react/etc/clara-react.api.md && grep -q "RadioGroupProps" packages/react/etc/clara-react.api.md && ! grep -qE "^export (declare )?(function|const|interface|type) Radio[^A-Za-z0-9_]" packages/react/etc/clara-react.api.md
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -91,20 +91,27 @@ belongs when the thing that is wrong is that nothing was chosen.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC7: The Field label names the group
+### AC6: The Field label names the group
 
 - **Given** a RadioGroup inside a Field with labelFor="group"
 - **When** it renders
 - **Then** the group is named by aria-labelledby; no label points at an element that cannot receive it
-- **Verify:** vitest "RadioGroup error associates with group"
+- **Verify:** vitest "Field labelFor group names the group instead of orphaning a label"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC8: Definition of done
+### AC7: Definition of done
 
 - **Given** the RadioGroup story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
+- **Then** the artefacts that CAN exist today do: unit and interaction tests using accessible
+  queries, an axe assertion over default and error states, a docs page, a documented keyboard table
+  and a recorded manual keyboard pass - all checked by `check-verification.mjs`, which fails on a
+  missing one and on a section with no content
+- **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
+  belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
+  records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five
+  did not exist anywhere in the repo
 - **Verify:** shell node scripts/check-verification.mjs --component RadioGroup
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

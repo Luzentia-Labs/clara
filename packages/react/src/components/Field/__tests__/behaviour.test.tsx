@@ -21,6 +21,15 @@ import { CheckboxGroup } from '../../CheckboxGroup/CheckboxGroup'
 const inField = (control: React.ReactNode, props = {}) =>
   render(<Field label="Value" {...props}>{control}</Field>)
 
+/**
+ * A Field wrapping a GROUP. Separate helper because the composition is different: `htmlFor` cannot
+ * target a fieldset, so a group needs `labelFor="group"` and the Field names it by
+ * `aria-labelledby`. Every group fixture previously used `inField`, which meant the whole suite
+ * exercised the broken shape - and the fix for it was covered by no test at all.
+ */
+const inGroupField = (control: React.ReactNode, props = {}) =>
+  render(<Field label="Value" labelFor="group" {...props}>{control}</Field>)
+
 describe('Input affordances', () => {
   it('is a real textbox that carries the Clara input contract', () => {
     inField(<Input />)
@@ -83,7 +92,7 @@ describe('Input uses native change convention', () => {
   })
 })
 
-describe('Textarea auto-resize respects maxRows', () => {
+describe('Textarea auto-resize respects maxRows, and its keyboard keys behave', () => {
   // jsdom computes no layout, so `scrollHeight` is 0 for every element and every assertion about
   // the resulting height is a constant - the first version of these tests asserted `height` was
   // truthy ("0px") and called it growth, and asserted overflow was 'hidden' under a name that said
@@ -205,7 +214,7 @@ describe('NumberInput constraints and formatting', () => {
   })
 })
 
-describe('NumberInput arrow stepping', () => {
+describe('NumberInput keyboard stepping', () => {
   it('steps up and down, and reports through onChange', async () => {
     function Controlled () {
       const [v, setV] = useState('10')
@@ -307,7 +316,7 @@ describe('Checkbox state is not colour alone', () => {
   })
 })
 
-describe('Checkbox label is a click target', () => {
+describe('Checkbox label is a click target and Space toggles from the keyboard', () => {
   it('toggles when the label text is clicked, not only the 16px box', async () => {
     render(<Checkbox label="Include cancelled" />)
     await userEvent.click(screen.getByText('Include cancelled'))
@@ -331,7 +340,7 @@ describe('Switch uses role switch', () => {
 describe('RadioGroup error associates with group', () => {
   // The error belongs to the QUESTION, not to one answer - it is described on the fieldset.
   it('describes the fieldset, not an individual radio', () => {
-    inField(<RadioGroup name="t" legend="Terms" options={[{ value: '30', label: 'Net 30' }]} />, { error: 'Choose one' })
+    inGroupField(<RadioGroup name="t" legend="Terms" options={[{ value: '30', label: 'Net 30' }]} />, { label: 'Terms', error: 'Choose one' })
     // `radiogroup`, not `group` - see RadioGroup.tsx: it is the role that supports aria-required.
     const group = screen.getByRole('radiogroup', { name: 'Terms' })
     expect(group).toHaveAttribute('aria-invalid', 'true')
@@ -344,7 +353,7 @@ describe('RadioGroup error associates with group', () => {
 describe('RadioGroup roving focus', () => {
   it('is one tab stop with arrow keys choosing - the browser\'s own behaviour', async () => {
     const options = [{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }]
-    inField(<RadioGroup name="t" legend="Q" options={options} defaultValue="a" />)
+    inGroupField(<RadioGroup name="t" legend="Q" options={options} defaultValue="a" />, { label: 'Q' })
     await userEvent.tab()
     expect(screen.getByRole('radio', { name: 'A' })).toHaveFocus()
     await userEvent.keyboard('{ArrowDown}')
@@ -354,7 +363,7 @@ describe('RadioGroup roving focus', () => {
 
 describe('CheckboxGroup group semantics', () => {
   it('is a fieldset whose legend names the question', () => {
-    inField(<CheckboxGroup name="c" legend="Notify by" options={[{ value: 'e', label: 'Email' }]} />)
+    inGroupField(<CheckboxGroup name="c" legend="Notify by" options={[{ value: 'e', label: 'Email' }]} />, { label: 'Notify by' })
     expect(screen.getByRole('group', { name: 'Notify by' })).toBeInTheDocument()
   })
 })
@@ -430,7 +439,7 @@ describe.each(CONTROLS)('%s theme and density matrix', (name, control) => {
   })
 })
 
-describe('PasswordInput reveal keeps the user where they were', () => {
+describe('PasswordInput reveal keeps keyboard focus where the user was', () => {
   it('is operable with Enter and Space, not only clickable', async () => {
     inField(<PasswordInput />)
     const toggle = screen.getByRole('button')
@@ -504,9 +513,12 @@ describe('CheckboxGroup accumulates every choice', () => {
     expect(onChange).toHaveBeenLastCalledWith(['b'])
   })
 
+})
+
+describe('CheckboxGroup error associates with the group', () => {
   it('associates its error with the fieldset, as RadioGroup does', () => {
     // The two stories share this edge case and only one guarded it.
-    inField(<CheckboxGroup name="c" legend="Notify by" options={[{ value: 'a', label: 'Email' }]} />, { error: 'Pick one' })
+    inGroupField(<CheckboxGroup name="c" legend="Notify by" options={[{ value: 'a', label: 'Email' }]} />, { label: 'Notify by', error: 'Pick one' })
     const group = screen.getByRole('group', { name: 'Notify by' })
     expect(group).toHaveAttribute('aria-invalid', 'true')
     const errId = group.getAttribute('aria-errormessage')
@@ -533,7 +545,243 @@ describe('Switch has no third state', () => {
     // RadioGroup guards its equivalent ("no bare Radio in the public API"); this is the same
     // guard for the same class of misuse.
     const api = readFileSync(resolve(__dirname, '../../../../etc/clara-react.api.md'), 'utf8')
-    const block = api.slice(api.indexOf('export interface SwitchProps'))
-    expect(block.slice(0, block.indexOf('}'))).not.toMatch(/indeterminate/)
+    const at = api.indexOf('export interface SwitchProps')
+    // Assert the block was FOUND first. `slice(-1)` collapses to '' and matches nothing, so
+    // renaming or removing SwitchProps would have made this pass while proving the opposite.
+    expect(at).toBeGreaterThan(-1)
+    const block = api.slice(at, api.indexOf('}', at))
+    expect(block).toMatch(/checked\?|onChange\?|label\?/)
+    expect(block).not.toMatch(/indeterminate/)
+  })
+})
+
+
+describe('Field labelFor group names the group instead of orphaning a label', () => {
+  // The whole `labelFor` mechanism had no test. Deleting both halves of it left 751 tests and 23
+  // gates green, while every group fixture in the suite rendered the broken composition - a
+  // `<label htmlFor>` bound to a fieldset, which resolves to nothing, moves focus nowhere and names
+  // nothing. axe has no rule for an orphan `for`, so no gate could see it either.
+  it('renders no label element bound to an id that does not exist', () => {
+    const { container } = render(
+      <Field label="Payment terms" labelFor="group">
+        <RadioGroup name="t" legend="Payment terms" options={[{ value: '30', label: 'Net 30' }]} />
+      </Field>,
+    )
+    for (const label of container.querySelectorAll('label[for]')) {
+      expect(container.querySelector(`#${CSS.escape(label.getAttribute('for')!)}`)).not.toBeNull()
+    }
+  })
+
+  it('names the group with the Field label, through aria-labelledby', () => {
+    const { container } = render(
+      <Field label="Payment terms" labelFor="group">
+        <RadioGroup name="t" legend="Terms" options={[{ value: '30', label: 'Net 30' }]} />
+      </Field>,
+    )
+    const group = screen.getByRole('radiogroup')
+    const named = group.getAttribute('aria-labelledby')
+    expect(named).toBeTruthy()
+    expect(container.querySelector(`#${CSS.escape(named!)}`)?.textContent).toContain('Payment terms')
+    expect(group).toHaveAccessibleName(expect.stringContaining('Payment terms') as unknown as string)
+  })
+
+  it('does not paint the group legend twice when the Field already names it', () => {
+    const { container } = render(
+      <Field label="Payment terms" labelFor="group">
+        <CheckboxGroup name="c" legend="Payment terms" options={[{ value: 'a', label: 'Net 30' }]} />
+      </Field>,
+    )
+    const legend = container.querySelector('legend')!
+    expect(legend.className).toContain('clara-visually-hidden')
+    expect(legend).toBeInTheDocument()
+  })
+
+  it('announces required as text, because role=group cannot carry aria-required', () => {
+    // The Field's asterisk is aria-hidden, so without this the required state reached nobody.
+    render(
+      <Field label="Notify by" labelFor="group" required>
+        <CheckboxGroup name="c" legend="Notify by" options={[{ value: 'a', label: 'Email' }]} />
+      </Field>,
+    )
+    expect(screen.getByRole('group').textContent).toContain('(required)')
+    expect(screen.getByRole('group')).not.toHaveAttribute('aria-required')
+  })
+})
+
+describe('a disabled Field suppresses the interaction by pointer and keyboard alike', () => {
+  // aria-disabled keeps the control reachable, which is the point (D0058) - so every control has to
+  // suppress its own change. Guarding the CLICK alone is not enough: React derives a checkbox's
+  // change from the same native click and queues both before either runs, so the DOM toggle reverts
+  // while the consumer's onChange still fires with checked === true.
+  it('does not report a change from a disabled Checkbox', async () => {
+    const onChange = vi.fn()
+    inField(<Checkbox onChange={onChange} />, { disabled: true })
+    await userEvent.click(screen.getByRole('checkbox'))
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('checkbox')).not.toBeChecked()
+  })
+
+  it('does not report a change from a disabled Switch, by keyboard either', async () => {
+    const onChange = vi.fn()
+    inField(<Switch onChange={onChange} />, { disabled: true })
+    const el = screen.getByRole('switch')
+    el.focus()
+    await userEvent.keyboard(' ')
+    expect(onChange).not.toHaveBeenCalled()
+    expect(el).not.toBeChecked()
+  })
+
+  it('does not step a disabled NumberInput', () => {
+    // readOnly stops TYPING; it does not stop the component writing through the native setter.
+    inField(<NumberInput defaultValue="3" min={0} max={9} />, { disabled: true })
+    const el = screen.getByRole('spinbutton') as HTMLInputElement
+    el.focus()
+    fireEvent.keyDown(el, { key: 'ArrowUp' })
+    fireEvent.keyDown(el, { key: 'End' })
+    expect(el.value).toBe('3')
+  })
+
+  it('does not clear a disabled SearchInput', async () => {
+    const onClear = vi.fn()
+    inField(<SearchInput defaultValue="acme" onClear={onClear} />, { disabled: true })
+    await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+    expect(screen.getByRole('searchbox')).toHaveValue('acme')
+    expect(onClear).not.toHaveBeenCalled()
+  })
+
+  it('does not change a disabled RadioGroup or CheckboxGroup', async () => {
+    const onRadio = vi.fn()
+    const { unmount } = render(
+      <Field label="Terms" labelFor="group" disabled>
+        <RadioGroup name="t" legend="Terms" onChange={onRadio}
+          options={[{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }]} />
+      </Field>,
+    )
+    await userEvent.click(screen.getByRole('radio', { name: 'B' }))
+    expect(onRadio).not.toHaveBeenCalled()
+    unmount()
+
+    const onBoxes = vi.fn()
+    render(
+      <Field label="Notify" labelFor="group" disabled>
+        <CheckboxGroup name="c" legend="Notify" onChange={onBoxes}
+          options={[{ value: 'a', label: 'Email' }]} />
+      </Field>,
+    )
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Email' }))
+    expect(onBoxes).not.toHaveBeenCalled()
+  })
+
+  it('keeps every disabled control REACHABLE, which is the whole reason for aria-disabled', async () => {
+    render(
+      <>
+        <button>before</button>
+        <Field label="Supplier" description="approved records cannot be edited" disabled>
+          <Input />
+        </Field>
+        <button>after</button>
+      </>,
+    )
+    await userEvent.tab()
+    await userEvent.tab()
+    expect(screen.getByRole('textbox')).toHaveFocus()
+  })
+})
+
+describe('Input affixes, clear and counter', () => {
+  // The story's User Story asked for all four; none existed, and AC1 was stamped Verified: yes
+  // over a test that asserted a class name. Built rather than de-scoped, because silently narrowing
+  // the ask is what produced the false verification in the first place.
+  it('renders a prefix and suffix as decoration, not as announced content', () => {
+    inField(<Input prefix="£" suffix="per unit" defaultValue="10" />)
+    const affixes = document.querySelectorAll('.clara-input-group__affix')
+    expect(affixes).toHaveLength(2)
+    for (const affix of affixes) expect(affix).toHaveAttribute('aria-hidden', 'true')
+    // The accessible name is still the Field's label alone - a prefix must not become part of it.
+    expect(screen.getByRole('textbox')).toHaveAccessibleName('Value')
+  })
+
+  it('clears and returns focus to the input', async () => {
+    inField(<Input clearable defaultValue="PO-4417" />)
+    await userEvent.click(screen.getByRole('button', { name: 'Clear Value' }))
+    expect(screen.getByRole('textbox')).toHaveValue('')
+    expect(screen.getByRole('textbox')).toHaveFocus()
+    expect(screen.queryByRole('button', { name: 'Clear Value' })).toBeNull()
+  })
+
+  it('renders no clear button when there is nothing to clear', () => {
+    inField(<Input clearable />)
+    expect(screen.queryByRole('button', { name: 'Clear Value' })).toBeNull()
+  })
+
+  it('counts characters and describes the field with the count', async () => {
+    inField(<Input maxCount={10} />)
+    const el = screen.getByRole('textbox')
+    await userEvent.type(el, 'abc')
+    const described = el.getAttribute('aria-describedby')!.split(' ')
+      .map((id) => document.getElementById(id)?.textContent).join(' ')
+    expect(described).toContain('3 of 10')
+  })
+
+  it('does not impose a maxLength, because a hard cut-off silently discards a paste', async () => {
+    inField(<Input maxCount={3} />)
+    const el = screen.getByRole('textbox') as HTMLInputElement
+    await userEvent.type(el, 'abcdef')
+    expect(el).not.toHaveAttribute('maxlength')
+    expect(el.value).toBe('abcdef')
+    expect(document.querySelector('.clara-input-group__count--over')).not.toBeNull()
+  })
+
+  it('stays quiet until the user is near the limit', async () => {
+    // A live region that fires on every keystroke is unusable.
+    inField(<Input maxCount={10} />)
+    await userEvent.type(screen.getByRole('textbox'), 'ab')
+    expect(document.querySelector('.clara-input-group__count')).toHaveAttribute('aria-live', 'off')
+    await userEvent.type(screen.getByRole('textbox'), 'cdefghi')
+    expect(document.querySelector('.clara-input-group__count')).toHaveAttribute('aria-live', 'polite')
+  })
+
+  it('does not clear a disabled decorated Input', async () => {
+    inField(<Input clearable defaultValue="PO-4417" />, { disabled: true })
+    await userEvent.click(screen.getByRole('button', { name: 'Clear Value' }))
+    expect(screen.getByRole('textbox')).toHaveValue('PO-4417')
+  })
+})
+
+describe('NumberInput keyboard stepping reaches every documented key', () => {
+  it('steps by ten with PageUp and PageDown', () => {
+    // Documented in the keyboard table and claimed by an AC; no test mentioned either key.
+    inField(<NumberInput defaultValue="10" step={2} min={0} max={100} />)
+    const el = screen.getByRole('spinbutton') as HTMLInputElement
+    el.focus()
+    fireEvent.keyDown(el, { key: 'PageUp' })
+    expect(el.value).toBe('30')
+    fireEvent.keyDown(el, { key: 'PageDown' })
+    expect(el.value).toBe('10')
+  })
+
+  it('rounds a step smaller than 1e-6, where String(step) turns exponential', () => {
+    // String(1e-7) is "1e-7", so splitting on "." found no decimals and rounding silently stopped -
+    // for exactly the small steps that need it. An FX rate at seven decimals is an ordinary case.
+    inField(<NumberInput defaultValue="0.1" step={1e-7} />)
+    const el = screen.getByRole('textbox') as HTMLInputElement
+    el.focus()
+    fireEvent.keyDown(el, { key: 'ArrowUp' })
+    expect(el.value).toBe('0.1000001')
+  })
+})
+
+describe('SearchInput imposes no delay of its own', () => {
+  it('reports every keystroke synchronously, so a local filter does not lag the typing', async () => {
+    // AC2's behavioural half - "Clara does not impose a delay" - had only a docs verifier, so
+    // wrapping onChange in a 400ms timeout would have left it green.
+    // Values are captured INSIDE the handler: React nulls `currentTarget` once it returns, so
+    // reading it from the recorded call would be reading a released event.
+    const seen: string[] = []
+    const onChange = vi.fn((e: React.ChangeEvent<HTMLInputElement>) => { seen.push(e.currentTarget.value) })
+    inField(<SearchInput onChange={onChange} />)
+    await userEvent.type(screen.getByRole('searchbox'), 'abc')
+    expect(onChange).toHaveBeenCalledTimes(3)
+    expect(seen).toEqual(['a', 'ab', 'abc'])
   })
 })

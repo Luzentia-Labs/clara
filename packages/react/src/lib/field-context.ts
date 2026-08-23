@@ -63,8 +63,17 @@ export function fieldAriaProps (wiring: FieldWiring | null, kind: 'text' | 'togg
 }
 
 /**
- * Suppress a change on a control that is `aria-disabled`. The native attribute would do this for
- * free; the cost of keeping the control reachable is doing it explicitly, as Button does for click.
+ * Suppress an interaction on a control that is `aria-disabled`. The native attribute would do this
+ * for free; the cost of keeping the control reachable is doing it explicitly, as Button does.
+ *
+ * It must be installed on BOTH `onClick` and `onChange`, and that is not belt-and-braces. React
+ * derives a checkbox's change from the same native click, and queues both listeners before either
+ * runs - so `preventDefault()` in the click handler reverts the DOM toggle while the queued change
+ * still fires, reporting `checked === true`. Installed on click alone, a disabled toggle in the
+ * idiomatic controlled form flips the consumer's state, looks right for exactly one frame, and then
+ * paints the tick on the next unrelated render: the "select all lies about what a bulk action will
+ * affect" failure, reintroduced by the fix for it. Guarding the click and not the change is a proxy
+ * for guarding the interaction (D0065).
  */
 export function fieldChangeGuard<E extends { preventDefault (): void }> (
   wiring: FieldWiring | null,
@@ -75,3 +84,6 @@ export function fieldChangeGuard<E extends { preventDefault (): void }> (
     handler?.(event)
   }
 }
+
+/** True when this wiring means "disabled" - for the controls that have to check it themselves. */
+export const fieldDisabled = (wiring: FieldWiring | null) => Boolean(wiring?.disabled)

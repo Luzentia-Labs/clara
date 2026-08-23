@@ -58,7 +58,7 @@ output cannot disagree, because the list is what cuts the chunks.
 - **Verified:** yes (2026-08-22)
 - **Verification target:** functional
 
-### AC2: The classification is the build's input
+### AC1: The classification is the build's input
 
 - **Given** client-boundary.json
 - **When** a component is listed client-only
@@ -67,7 +67,7 @@ output cannot disagree, because the list is what cuts the chunks.
 - **Verified:** yes (2026-08-22)
 - **Verification target:** functional
 
-### AC3: CJS intra-chunk requires resolve after the rename
+### AC2: CJS intra-chunk requires resolve after the rename
 
 - **Given** the CJS pass, whose files finalize-dual renames .js -> .cjs
 - **When** index.cjs requires the client chunk
@@ -76,7 +76,7 @@ output cannot disagree, because the list is what cuts the chunks.
 - **Verified:** yes (2026-08-22)
 - **Verification target:** functional
 
-### AC4: The exports map stays closed
+### AC3: The exports map stays closed
 
 - **Given** multiple files now in dist
 - **When** a consumer tries to reach a chunk directly
@@ -85,7 +85,7 @@ output cannot disagree, because the list is what cuts the chunks.
 - **Verified:** yes (2026-08-22)
 - **Verification target:** functional
 
-### AC5: The guard layer holds under the new output shape
+### AC4: The guard layer holds under the new output shape
 
 - **Given** the chunked build
 - **When** the full gate set runs

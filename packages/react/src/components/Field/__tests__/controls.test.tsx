@@ -151,7 +151,7 @@ describe('Switch', () => {
   })
 })
 
-describe('RadioGroup', () => {
+describe('RadioGroup keyboard and grouping', () => {
   const options = [
     { value: '30', label: 'Net 30' },
     { value: '60', label: 'Net 60', description: 'Requires approval' },
@@ -187,10 +187,18 @@ describe('RadioGroup', () => {
       .toBe('Requires approval')
   })
 
-  it('disables one option without disabling the set', () => {
-    inField(<RadioGroup name="t" legend="Terms" options={options} />)
-    expect(screen.getByRole('radio', { name: 'Net 90' })).toBeDisabled()
-    expect(screen.getByRole('radio', { name: 'Net 30' })).not.toBeDisabled()
+  it('disables one option without disabling the set, and keeps it reachable', async () => {
+    // aria-disabled, not the native attribute (D0058): a disabled option must still be reachable,
+    // because the reason it is unavailable is usually written next to it.
+    const onChange = vi.fn()
+    inField(<RadioGroup name="t" legend="Terms" options={options} onChange={onChange} />)
+    const off = screen.getByRole('radio', { name: 'Net 90' })
+    expect(off).toHaveAttribute('aria-disabled', 'true')
+    expect(off).not.toBeDisabled()
+    expect(screen.getByRole('radio', { name: 'Net 30' })).not.toHaveAttribute('aria-disabled')
+    await userEvent.click(off)
+    expect(onChange).not.toHaveBeenCalled()
+    expect(off).not.toBeChecked()
   })
 
   it('works controlled', () => {

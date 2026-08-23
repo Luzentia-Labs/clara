@@ -90,6 +90,7 @@ a Server Component cannot.
 - **Then** `aria-describedby` lists the description first and the error second, both ids resolve,
   and neither is listed twice
 - **Verify:** vitest "Field description and error coexist"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > Split from the announcement criterion below. The ORDER and the de-duplication are properties of
@@ -97,7 +98,7 @@ a Server Component cannot.
 > sitting behind a manual verifier, which is how a manual AC becomes a place things go to stop being
 > checked.
 
-### AC5b: Both are actually announced
+### AC6: Both are actually announced
 
 - **Given** a Field with both
 - **When** a screen reader reads it
@@ -106,7 +107,7 @@ a Server Component cannot.
 - **Verify:** manual VoiceOver: record announced strings for description plus error
 - **Verification target:** conversational
 
-### AC6: Uncontrolled and controlled
+### AC7: Uncontrolled and controlled
 
 - **Given** a Field
 - **When** it is used with native submission and with React Hook Form
@@ -115,7 +116,7 @@ a Server Component cannot.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC7: Token-only styling
+### AC8: Token-only styling
 
 - **Given** the Field framework stylesheet
 - **When** the lint rule runs
@@ -124,7 +125,7 @@ a Server Component cannot.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC8: Both themes and densities
+### AC9: Both themes and densities
 
 - **Given** a Field framework
 - **When** it renders in dark theme and compact density
@@ -151,7 +152,7 @@ a Server Component cannot.
 - **Given** a control nested inside a wrapper rather than a direct child
 - **When** the Field renders
 - **Then** the wiring still reaches it, because it travels by context and not by cloning children
-- **Verify:** vitest "Field compound composition"
+- **Verify:** vitest "wires a control that is WRAPPED"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
@@ -159,7 +160,14 @@ a Server Component cannot.
 
 - **Given** the Field framework story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
+- **Then** the artefacts that CAN exist today do: unit and interaction tests using accessible
+  queries, an axe assertion over default and error states, a docs page, a documented keyboard table
+  and a recorded manual keyboard pass - all checked by `check-verification.mjs`, which fails on a
+  missing one and on a section with no content
+- **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
+  belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
+  records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five
+  did not exist anywhere in the repo
 - **Verify:** shell node scripts/check-verification.mjs --component Field
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

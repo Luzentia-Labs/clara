@@ -82,7 +82,7 @@ browser's, and Clara does not debounce (D0062).
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC6: Clear exists only when there is something to clear
+### AC5: Clear exists only when there is something to clear
 
 - **Given** a SearchInput
 - **When** the field is empty
@@ -91,11 +91,18 @@ browser's, and Clara does not debounce (D0062).
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC7: Definition of done
+### AC6: Definition of done
 
 - **Given** the SearchInput story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
+- **Then** the artefacts that CAN exist today do: unit and interaction tests using accessible
+  queries, an axe assertion over default and error states, a docs page, a documented keyboard table
+  and a recorded manual keyboard pass - all checked by `check-verification.mjs`, which fails on a
+  missing one and on a section with no content
+- **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
+  belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
+  records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five
+  did not exist anywhere in the repo
 - **Verify:** shell node scripts/check-verification.mjs --component SearchInput
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

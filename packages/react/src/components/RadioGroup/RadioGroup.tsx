@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { cx } from '../../lib/cx'
-import { useFieldWiring } from '../../lib/field-context'
+import { fieldDisabled, useFieldWiring } from '../../lib/field-context'
 
 export interface RadioOption {
   value: string
@@ -52,7 +52,19 @@ export function RadioGroup ({
       aria-errormessage={wiring?.invalid ? wiring.errorId : undefined}
       aria-disabled={wiring?.disabled || undefined}
     >
-      <legend className="clara-radio-group__legend">{legend}</legend>
+      {/*
+        * In group mode the FIELD's label names the group (aria-labelledby), so rendering the legend
+        * as well puts the same words on screen twice. It stays in the accessibility tree as the
+        * fieldset's own caption but is visually hidden, because a fieldset with no legend is worse
+        * markup than one whose legend is not painted.
+        *
+        * `(required)` is appended as TEXT rather than as aria-required: a `<fieldset>` is
+        * role=group, which does not support that property, and the Field's asterisk is aria-hidden
+        * - so without this the required state was announced nowhere at all.
+        */}
+      <legend className={cx('clara-radio-group__legend', wiring?.labelFor === 'group' && 'clara-visually-hidden')}>
+        {legend}{wiring?.required ? ' (required)' : ''}
+      </legend>
       {options.map((option) => {
         const id = `${base}-${option.value}`
         const descriptionId = option.description ? `${id}-description` : undefined
@@ -64,10 +76,15 @@ export function RadioGroup ({
               name={name}
               value={option.value}
               className="clara-radio"
-              disabled={option.disabled || undefined}
+              aria-disabled={option.disabled || wiring?.disabled || undefined}
               aria-describedby={descriptionId}
               {...(value === undefined ? { defaultChecked: defaultValue === option.value } : { checked: value === option.value })}
-              onChange={() => onChange?.(option.value)}
+              onChange={(event) => {
+                // aria-disabled keeps the option reachable but does not stop it changing.
+                if (option.disabled || fieldDisabled(wiring)) { event.preventDefault(); return }
+                onChange?.(option.value)
+              }}
+              onClick={(event) => { if (option.disabled || fieldDisabled(wiring)) event.preventDefault() }}
             />
             <label className="clara-choice__label" htmlFor={id}>{option.label}</label>
             {option.description ? <span className="clara-choice__description" id={descriptionId}>{option.description}</span> : null}

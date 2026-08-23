@@ -1,6 +1,6 @@
 import { forwardRef, useId, useState, type InputHTMLAttributes } from 'react'
 import { cx } from '../../lib/cx'
-import { fieldAriaProps, useFieldWiring } from '../../lib/field-context'
+import { fieldAriaProps, fieldDisabled, useFieldWiring } from '../../lib/field-context'
 
 /**
  * A password input with a reveal toggle.
@@ -34,8 +34,8 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(fu
         type="button"
         id={toggleId}
         className="clara-password__toggle"
-        onClick={() => setRevealed((v) => !v)}
-        disabled={wiring?.disabled}
+        onClick={() => { if (fieldDisabled(wiring)) return; setRevealed((v) => !v) }}
+        aria-disabled={wiring?.disabled || undefined}
       >
         {revealed ? 'Hide password' : 'Show password'}
       </button>

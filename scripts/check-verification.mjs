@@ -25,7 +25,34 @@ import { componentsInFile } from './lib/module-exports.mjs'
 
 const ROOT = process.cwd()
 const COMPONENTS = join(ROOT, 'packages/react/src/components')
-const REQUIRED_SECTIONS = ['## Accessibility', '## What is verified automatically', '## Stated gaps']
+/**
+ * Sections a record must have AND fill.
+ *
+ * Presence alone is not evidence: a review replaced `## Stated gaps` with "None. Everything about
+ * this component is fully verified." and replaced `## What is verified automatically` with
+ * "Everything. Exhaustively covered." - deleting all four citations - and the guard passed both
+ * times, because it tested `text.includes('## Stated gaps')`. The docblock at the top of this file
+ * says a record is not evidence just by existing; that has to be true of its sections too.
+ *
+ * `minBullets` is the floor. A section with no list items is prose, and prose is what a false record
+ * is made of.
+ */
+const REQUIRED_SECTIONS = [
+  { heading: '## Keyboard', minBullets: 0, needsTable: true },
+  { heading: '## Accessibility', minBullets: 0, needsTable: false },
+  { heading: '## What is verified automatically', minBullets: 3, needsTable: false },
+  { heading: '## Stated gaps', minBullets: 1, needsTable: false },
+  { heading: '## Recorded manual keyboard pass', minBullets: 0, needsTable: false },
+]
+
+/** The body of one `## Section`, up to the next heading of the same level. */
+function sectionBody (text, heading) {
+  const start = text.indexOf(heading)
+  if (start === -1) return null
+  const after = text.slice(start + heading.length)
+  const next = after.search(/\n## /)
+  return next === -1 ? after : after.slice(0, next)
+}
 
 /**
  * A docs page's REASON for existing, as a claim the page must actually make. Keyed by page, each
@@ -80,6 +107,37 @@ const docsOnly = process.argv.includes('--docs')
 if (docsOnly && !scope) fail('verification', ['--docs needs --component'])
 
 const SCRIPTS = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scripts ?? {}
+
+/**
+ * The docs page each component owns. Explicit rather than derived from the name, because a name is
+ * not a fact (D0051/D0067) - `NumberInput` is `number-input.md` and `TableSortButton` documents
+ * itself inside the Table page it belongs to.
+ */
+const DOCS_PAGE_FOR = {
+  Field: 'field.md',
+  Input: 'input.md',
+  Textarea: 'textarea.md',
+  NumberInput: 'number-input.md',
+  PasswordInput: 'password-input.md',
+  SearchInput: 'search-input.md',
+  Checkbox: 'checkbox.md',
+  Switch: 'switch.md',
+  RadioGroup: 'radio-group.md',
+  CheckboxGroup: 'checkbox-group.md',
+  Box: 'layout.md',
+  Stack: 'layout.md',
+  Inline: 'layout.md',
+  Grid: 'layout.md',
+  Divider: 'layout.md',
+  Heading: 'typography.md',
+  Text: 'typography.md',
+  Button: 'button.md',
+  IconButton: 'button.md',
+  ButtonGroup: 'button.md',
+  Link: 'link.md',
+  Table: 'table.md',
+  TableSortButton: 'table.md',
+}
 
 /**
  * The test files whose assertions a component's record is entitled to cite as evidence, found by
@@ -167,8 +225,25 @@ for (const name of inScope) {
   // silently covers a component nobody documented.
   if (!text.includes(name)) problems.push(`${where}: does not mention ${name}, which it is the record for`)
 
-  for (const section of REQUIRED_SECTIONS) {
-    if (!text.includes(section)) problems.push(`${where}: missing section "${section}"`)
+  for (const { heading, minBullets, needsTable } of REQUIRED_SECTIONS) {
+    const body = sectionBody(text, heading)
+    if (body === null) { problems.push(`${where}: missing section "${heading}"`); continue }
+    const bullets = (body.match(/^\s*[-*] \S/gm) ?? []).length
+    if (bullets < minBullets) {
+      problems.push(`${where}: "${heading}" has ${bullets} list item(s), needs at least ${minBullets} - a section with none is prose, not evidence`)
+    }
+    // The TSD's definition of done asks for a documented keyboard table, per component.
+    if (needsTable && !/^\|\s*Key\s*\|/m.test(body)) {
+      problems.push(`${where}: "${heading}" has no | Key | Result | table - the definition of done requires a documented keyboard table`)
+    }
+  }
+
+  // The definition of done also asks for a docs page per component.
+  const page = DOCS_PAGE_FOR[name]
+  if (!page) {
+    problems.push(`${where}: ${name} has no entry in DOCS_PAGE_FOR, so its docs page is not checked`)
+  } else if (!existsSync(join(ROOT, 'apps/docs/src/content/components', page))) {
+    problems.push(`${where}: names docs page ${page}, which does not exist`)
   }
 
   // The stated boundary must agree with the file the BUILD reads. Two sources of truth about which
@@ -214,8 +289,28 @@ for (const name of inScope) {
     // bad as the one this catches.
     if (!/vitest/.test(command) || !/\.test\.tsx?/.test(command)) continue
     const covering = TEST_FILES_FOR.get(name) ?? []
-    if (covering.length && !covering.some((f) => command.includes(f))) {
+    const runs = covering.filter((f) => command.includes(f))
+    if (covering.length && !runs.length) {
       problems.push(`${where}: cites \`${script}\` as covering ${name}, but that script runs none of: ${covering.join(', ')}`)
+      continue
+    }
+    // Naming the file is not enough. `check:axe` named a file holding 54 axe assertions and
+    // selected them with `-t "axe"`, which matched no block in it: 86 skipped, 0 run, exit 0. A
+    // selector that selects nothing is the repo's signature fail-open, so the pattern is matched
+    // against the block names the file actually declares.
+    const selector = /-t\s+(?:"([^"]+)"|'([^']+)')/.exec(command)
+    if (!selector) continue
+    const pattern = new RegExp(selector[1] ?? selector[2])
+    const selectsSomething = runs.some((f) => {
+      const source = readFileSync(join(ROOT, f), 'utf8')
+      return [...source.matchAll(/^\s*(?:describe|it)(?:\.each\([^)]*\))?\(\s*[`'"]([^`'"]+)/gm)]
+        .some((m) => pattern.test(m[1]))
+    })
+    if (!selectsSomething) {
+      problems.push(
+        `${where}: cites \`${script}\`, whose selector /${pattern.source}/ matches no test name in ` +
+        `${runs.join(', ')} - a selector that selects nothing exits 0 and proves nothing`,
+      )
     }
   }
 }

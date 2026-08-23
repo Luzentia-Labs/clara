@@ -253,8 +253,13 @@ export type InlineProps<C extends ElementType = 'div'> = PolymorphicPropsWithRef
 export const Input: ForwardRefExoticComponent<InputProps & RefAttributes<HTMLInputElement>>;
 
 // @public
-export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'size'> {
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'size' | 'prefix'> {
+    clearable?: boolean;
+    maxCount?: number;
+    onClear?: () => void;
+    prefix?: ReactNode;
     size?: 'sm' | 'md';
+    suffix?: ReactNode;
 }
 
 // @public (undocumented)

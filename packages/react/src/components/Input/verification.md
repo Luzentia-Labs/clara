@@ -10,7 +10,29 @@ neither it nor any control that reads its wiring can be a Server Component (D006
 
 ## Keyboard
 
-Readonly stays in the tab order and is selectable and copyable; disabled is removed from it. Those are different states and they do not look alike.
+Readonly stays in the tab order and is selectable and copyable. **So does disabled** - it is
+`aria-disabled` plus `readOnly`, never the native attribute (D0058), because a natively disabled
+control is unreachable and the reason it is disabled is usually attached to it. The two are still
+different states and do not look alike: disabled takes the disabled background and foreground,
+readonly keeps the surface and changes only the text colour.
+
+
+| Key | Result |
+| --- | --- |
+| Tab | Enters and leaves the field. |
+| Any printing key | Types, unless readonly or disabled. |
+| Tab, when readonly | Still reaches it; the value stays selectable and copyable. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only - no pointer used.
+Every row of the table above was exercised in a Field, in both themes and both densities.
+
+Result: as documented, with one observation that is not a defect - a disabled control still receives
+focus, which reads as surprising until you know it is deliberate (D0058), and is the behaviour that
+lets a keyboard user reach the explanation attached to the field.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
 
 ## Accessibility
 

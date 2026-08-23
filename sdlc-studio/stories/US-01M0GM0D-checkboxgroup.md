@@ -73,7 +73,7 @@ model.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC5: Uncontrolled use accumulates
+### AC4: Uncontrolled use accumulates
 
 - **Given** an uncontrolled CheckboxGroup
 - **When** I tick more than one option
@@ -82,20 +82,27 @@ model.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC6: Group error
+### AC5: Group error
 
 - **Given** a CheckboxGroup in a Field with an error
 - **When** it renders
 - **Then** the error is associated with the fieldset, not with an individual box - as RadioGroup does
-- **Verify:** vitest "CheckboxGroup accumulates every choice"
+- **Verify:** vitest "CheckboxGroup error associates with the group"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC7: Definition of done
+### AC6: Definition of done
 
 - **Given** the CheckboxGroup story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
+- **Then** the artefacts that CAN exist today do: unit and interaction tests using accessible
+  queries, an axe assertion over default and error states, a docs page, a documented keyboard table
+  and a recorded manual keyboard pass - all checked by `check-verification.mjs`, which fails on a
+  missing one and on a section with no content
+- **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
+  belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
+  records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five
+  did not exist anywhere in the repo
 - **Verify:** shell node scripts/check-verification.mjs --component CheckboxGroup
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

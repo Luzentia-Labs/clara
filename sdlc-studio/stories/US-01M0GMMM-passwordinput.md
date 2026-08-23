@@ -73,20 +73,27 @@ what the toggle is called.
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC5: Reveal keeps the user in the field
+### AC4: Reveal keeps the user in the field
 
 - **Given** a PasswordInput being typed into
 - **When** I operate the reveal toggle with Enter or Space
 - **Then** it toggles, and focus stays inside the field's own controls - revealing is a glance, not a departure
-- **Verify:** vitest "PasswordInput reveal keeps the user where they were"
+- **Verify:** vitest "PasswordInput reveal keeps keyboard focus where the user was"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
-### AC6: Definition of done
+### AC5: Definition of done
 
 - **Given** the PasswordInput story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
+- **Then** the artefacts that CAN exist today do: unit and interaction tests using accessible
+  queries, an axe assertion over default and error states, a docs page, a documented keyboard table
+  and a recorded manual keyboard pass - all checked by `check-verification.mjs`, which fails on a
+  missing one and on a section with no content
+- **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
+  belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
+  records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five
+  did not exist anywhere in the repo
 - **Verify:** shell node scripts/check-verification.mjs --component PasswordInput
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

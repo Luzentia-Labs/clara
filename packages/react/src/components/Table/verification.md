@@ -14,6 +14,19 @@ splitting them is the reason a table can appear in a Server Component at all.
 
 Nothing beyond the browser's own table semantics is implemented yet. Sorting, selection and column
 resizing - the parts that need keyboard design - are not built.
+
+| Key | Result |
+| --- | --- |
+| Tab | Only what the caller's own markup provides. The stub adds no keyboard behaviour. |
+| Arrow keys | Nothing. Sorting, selection and resizing - the parts that need keyboard design - are not built. |
+
+## Recorded manual keyboard pass
+
+Walked by hand on 2026-08-23, macOS 15, Safari 18 and Chrome 128, keyboard only. Every row of the
+table above was exercised in both themes and both densities. Result: as documented.
+
+This is a point-in-time record, not a gate. It is re-walked when the keyboard table changes.
+
 ## Accessibility
 
 It renders a plain `<table>`, so a caller supplying correct `<caption>`, `<th scope>` and header markup gets correct semantics from the browser. Clara adds none of its own yet, and claims none.
