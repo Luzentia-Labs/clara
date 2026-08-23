@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 // @ts-expect-error - .mjs guard library, deliberately untyped (it runs under plain node too)
-import { focusableClassGroups } from '../focusable.mjs'
+import { focusableClassGroups, claraClassesByComponent } from '../focusable.mjs'
 
 /**
  * The reader that decides which Clara classes must carry a focus ring.
@@ -48,6 +48,18 @@ beforeAll(() => {
   write('Tabbable.tsx', `
     export function Tabbable () {
       return <div tabIndex={0} className="clara-tabbable">x</div>
+    }
+  `)
+  write('Spread.tsx', `
+    export function Spread () {
+      const recoverable = { tabIndex: 0, title: 'x' }
+      return <span {...recoverable} className="clara-spread">x</span>
+    }
+  `)
+  write('SpreadHref.tsx', `
+    export function SpreadHref ({ to }) {
+      const link = { href: to }
+      return <a {...link} className="clara-spread-href">go</a>
     }
   `)
   write('Runtime.tsx', `
@@ -103,6 +115,24 @@ describe('focusableClassGroups', () => {
     expect(groups().join(' ')).not.toContain('clara-runtime')
   })
 
+  it('sees a tabIndex delivered through a SPREAD', () => {
+    // `Text` spreads its tabIndex, so a reader matching only named attributes declared it
+    // non-focusable - and it shipped with no focus ring, which is the `.clara-link` defect of one
+    // round earlier arriving by a different idiom.
+    expect(groups()).toContain('.clara-spread')
+  })
+
+  it('sees an href delivered through a spread', () => {
+    expect(groups()).toContain('.clara-spread-href')
+  })
+
+  it('reports a focusable element with no resolvable class as a BLIND SPOT', () => {
+    // Silently skipping one is how it goes unnoticed - `TableSortButton` rendered a class-less
+    // <button> and was dropped without a word.
+    const result = focusableClassGroups(dir)
+    expect(result.unresolved.join(' ')).toContain('Runtime.tsx:<button>')
+  })
+
   it('returns a stable, de-duplicated list', () => {
     // Two elements with the same class list are one obligation, not two.
     expect(groups()).toEqual([...new Set(groups())])
@@ -114,4 +144,31 @@ describe('focusableClassGroups', () => {
   // ring and watches the guard fail. Asserting it in a unit test also broke the mutation runner,
   // whose sandbox contains only a subset of the sources, which is a legitimate difference rather
   // than a defect: a unit test for a reader should depend on its fixtures, not on the repo.
+})
+
+describe('claraClassesByComponent', () => {
+  // The mechanism that scopes `--component`. Deriving the selector from the NAME was a Critical -
+  // kebab(NumberInput) is `.clara-number-input`, which matches nothing - and the fix for it had no
+  // witness of its own, so reverting to the broken version was invisible to every gate.
+  it('returns what a component RENDERS, not what its name suggests', () => {
+    const owned = claraClassesByComponent(dir)
+    expect([...owned.get('Native')]).toContain('.clara-native')
+    expect([...owned.get('Native')]).toContain('.clara-native-area')
+  })
+
+  it('strips modifiers down to the base rule that owns them', () => {
+    const owned = claraClassesByComponent(dir)
+    expect([...owned.get('Poly')]).toContain('.clara-poly')
+    expect([...owned.get('Poly')].join(' ')).not.toContain('--')
+  })
+
+  it('knows nothing about a component that does not exist', () => {
+    // An empty scope passes on everything, which is how a typo turns an AC into nothing at all.
+    expect(claraClassesByComponent(dir).has('Bogus')).toBe(false)
+  })
+
+  it('does not attribute a class to a component that never renders it', () => {
+    const owned = claraClassesByComponent(dir)
+    expect([...(owned.get('Plain') ?? [])]).not.toContain('.clara-native')
+  })
 })

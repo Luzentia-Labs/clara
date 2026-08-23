@@ -228,7 +228,10 @@ const inScope = owned ? (selector) => owned.has(selector.split('--')[0]) : () =>
 // spot reported to nobody is the same as none. `TableSortButton` rendered a class-less <button> and
 // was skipped in silence until this was made loud.
 for (const where of FOCUSABLE.unresolved ?? []) {
-  if (scope) continue
+  // Attributed to its component, not skipped when scoped. `if (scope) continue` meant the check
+  // existed only on the path no acceptance criterion takes - and every AC uses `--component`.
+  const component = where.split('/').pop().split('.tsx')[0]
+  if (scope && component !== scope) continue
   problems.push(`${where} is focusable and carries no resolvable Clara class - it cannot be checked for a focus ring, so give it one`)
 }
 
@@ -255,7 +258,10 @@ for (const group of FOCUSABLE.filter((g) => g.some(inScope))) {
 for (const [selector, banned] of FORBIDDEN.filter(([sel]) => inScope(sel))) {
   for (const file of files) {
     postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
-      if (!(rule.selectors ?? []).includes(selector)) return
+      // Match any selector whose compound contains this class, not the exact string: a DESCENDANT
+      // selector removes the element just as effectively, and comparing strings could not see it.
+      const targets = new RegExp(`(^|[\\s>+~])${selector.replace('.', '\\.')}(?![\\w-])`)
+      if (!(rule.selectors ?? []).some((sel) => targets.test(sel))) return
       rule.walkDecls((decl) => {
         if (banned[decl.prop] === decl.value.trim()) {
           problems.push(`${selector} declares \`${decl.prop}: ${decl.value}\`, which removes it from the accessibility tree - the point of the class is to be unseen and still READ`)
@@ -269,6 +275,10 @@ for (const [selector, required] of SHAPE_CONTRACT.filter(([sel]) => inScope(sel)
   const declared = new Set()
   for (const file of files) {
     postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+      // The element's OWN rules, matched exactly. A descendant rule like
+      // `.clara-input-group .clara-input` styles the control in ONE context and does not satisfy
+      // the base contract - and treating it as though it did masked the deletion of the base
+      // `min-height` entirely, which is how this mutation started reporting SURVIVED.
       if (!(rule.selectors ?? []).includes(selector)) return
       rule.walkDecls((decl) => declared.add(decl.prop))
     })
@@ -282,6 +292,35 @@ for (const [selector, required] of SHAPE_CONTRACT.filter(([sel]) => inScope(sel)
       problems.push(`${selector} declares no \`${prop}\`: a control with no ${prop} is invisible to every test that runs in jsdom`)
     }
   }
+}
+
+/**
+ * A selector must not be declared twice with CONFLICTING values.
+ *
+ * Same layer, same specificity: the later rule simply wins, and nothing in this repo can see the
+ * result - jsdom computes no layout and gate 7 is unwired. A commit adding a focus ring appended a
+ * second `.clara-text--truncate` whose `display: block` overrode the original `inline-block`, so a
+ * truncating Text used inline became full width. That is a visual regression delivered as a
+ * side-effect of an unrelated edit, which is exactly what a stylesheet makes easy.
+ */
+const declaredBy = new Map()
+for (const file of files) {
+  postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+    for (const sel of rule.selectors ?? []) {
+      if (!inScope(sel.split(':')[0])) continue
+      rule.walkDecls((decl) => {
+        const key = `${sel}|${decl.prop}`
+        const seen = declaredBy.get(key)
+        if (seen !== undefined && seen !== decl.value.trim()) {
+          problems.push(
+            `${sel} declares \`${decl.prop}\` twice with different values ("${seen}" then "${decl.value.trim()}") - ` +
+            'the later one silently wins, and no test in this repo can see the difference',
+          )
+        }
+        declaredBy.set(key, decl.value.trim())
+      })
+    }
+  })
 }
 
 if (problems.length) fail(RULE, problems)

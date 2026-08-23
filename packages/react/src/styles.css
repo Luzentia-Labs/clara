@@ -374,10 +374,12 @@
   min-height: var(--clara-size-target-min);
 }
 
-/* Truncated Text is focusable on purpose (D0028) and therefore needs a ring, and the sort control
- * in a table header is a real button. Both were focusable and unringed - the first invisible to the
- * reader because its tabIndex arrives through a spread, the second because it had no class at all. */
-.clara-text--truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+/* The sort control in a table header is a real button, and had no class at all - so the focusable
+ * reader could not see it and it shipped unringed. Truncated Text was the same defect arriving by a
+ * different route: its tabIndex comes through a spread. Both now carry a ring; `.clara-text--truncate`
+ * is NOT redeclared here, because an earlier version of this block did and its `display: block`
+ * silently overrode the `inline-block` at the top of the file - a truncating Text used inline, in a
+ * table cell or beside a label, became full width, and nothing in this repo can see that. */
 .clara-table-sort {
   font: inherit;
   color: var(--clara-color-fg-default);

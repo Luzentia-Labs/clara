@@ -54,7 +54,9 @@
     "check:icons": "node scripts/check-icons.mjs",
     "check:verification": "node scripts/check-verification.mjs",
     "check:keyboard": "npx vitest run packages/react/src/components/__tests__/matrix.test.tsx packages/react/src/components/__tests__/primitives.test.tsx packages/react/src/components/Field/__tests__/behaviour.test.tsx packages/react/src/components/Field/__tests__/controls.test.tsx -t \"keyboard|focus\" --silent",
-    "preflight": "node scripts/check-ci-gates.mjs && pnpm build && pnpm typecheck && pnpm check && pnpm check:component-css && pnpm test && pnpm test:coverage && pnpm check:contrast && pnpm check:geometry && pnpm check:axe && pnpm check:keyboard && pnpm check:public-tokens && pnpm check:pack && pnpm check:client-boundary && pnpm check:api && pnpm size"
+    "preflight": "node scripts/check-ci-gates.mjs && pnpm build && pnpm typecheck && pnpm check && pnpm check:component-css && pnpm test && pnpm test:coverage && pnpm check:contrast && pnpm check:geometry && pnpm check:axe && pnpm check:keyboard && pnpm check:public-tokens && pnpm check:pack && pnpm check:client-boundary && pnpm check:api && pnpm size && pnpm check:latest",
+    "latest:sync": "node scripts/sync-latest-numbers.mjs",
+    "check:latest": "node scripts/sync-latest-numbers.mjs --check"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",

@@ -1,5 +1,10 @@
 # Table
 
+**This component is a stub, and it is not exported yet.** `@luzentialabs/clara-react` does not export
+`Table` or `TableSortButton`, so the example below does not compile against the published package. It
+is here because the pieces exist and are tested in the repo, and because the row-surface decision
+below should not be re-derived when the real component is built.
+
 **This component is a stub.** It renders a native `<table>` and adds nothing else.
 
 ```tsx

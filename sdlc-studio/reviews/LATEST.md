@@ -1,6 +1,8 @@
 # Where Clara stands
 
-> **Updated:** 2026-08-24 (close of the EP-01M0GKM2 form-framework run, after five review rounds)
+> **Updated:** 2026-08-24 (close of the EP-01M0GKM2 form-framework run, after six review rounds)
+> The figures below are generated - `pnpm latest:sync`, checked by `pnpm check:latest`. They were
+> typed by hand twice and were wrong both times.
 > Read this first after any compaction or reset, then run `/sdlc-studio status`.
 
 ## One paragraph
@@ -8,23 +10,23 @@
 **The form framework is built and its ten stories verify clean**, after **five rounds of
 adversarial review, each of which rejected the previous round's work**. The Field plus nine controls
 (Input, Textarea, NumberInput, PasswordInput, SearchInput, Checkbox, Switch, RadioGroup,
-CheckboxGroup) are on `main`, with 817 tests and every gate green. Nothing is on npm. The stories
+CheckboxGroup) are on `main`, with 826 tests and every gate green. Nothing is on npm. The stories
 are **not yet transitioned to Done** - that waits on the round-4 review and the operator's own
 sign-off, because the author never records their own verdict.
 
 ## Numbers
 
-- `pnpm check` runs **26 guards**; `prove-guards-fail` kills **74 mutations** on a staged copy.
-- **817 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- `pnpm check` runs **26 guards**; `prove-guards-fail` kills **77 mutations** on a staged copy.
+- **826 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **75 decisions**. Stories: **32 Done of 88**. `main` is the only branch - this project is
+- **79 decisions**. Stories: **31 Done of 88**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line
   claimed one had been recorded per component; that was fabricated, in all 23 records, and removed.
   The guard now accepts only two states for that section: a real pass naming the browsers it was
   walked in, or an admission that it is outstanding.
-- **48 contrast pairings, 0 waived.** Published to npm: **nothing**; `NPM_TOKEN` is unset, which is
+- **96 contrast pairings across both themes, 0 waived.** Published to npm: **nothing**; `NPM_TOKEN` is unset, which is
   deliberate ordering.
 
 ## How work lands here
@@ -88,6 +90,6 @@ was differing id *values*; an axe fixture rendered without the prop that trigger
 | Blocker | Blocks | Note |
 | --- | --- | --- |
 | **Operator sign-off** | Transitioning the ten form stories to Done | Every AC passes; the author never records their own verdict. Evidence: `reviews/RV-2026-08-23-ep-01m0gkm2.md`. |
-| **Round-4 review** | The same | Rounds 1-3 all rejected. Round 4 is running in isolated worktrees. |
+| **The review rounds** | The same | Six rounds run, each rejecting the previous round's work. By round 6 every behavioural mechanism deleted went red; what remained were guards with no witness and prose drifting from code. |
 | **US-01M0GMZW** | Gate 7, and the two definition-of-done artefacts named above | Storybook workspace + visual regression. |
 | **`NPM_TOKEN`** | Any publish | Unset on the repo, deliberately, until a release is actually wanted. |

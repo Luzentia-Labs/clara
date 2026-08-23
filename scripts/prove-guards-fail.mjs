@@ -18,7 +18,9 @@
  * `cwd` set to the copy. The real tree is only ever read.
  */
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, copyFileSync, cpSync, writeFileSync, readFileSync, rmSync, existsSync, renameSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, copyFileSync, cpSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync, renameSync } from 'node:fs'
+import { statSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -130,6 +132,31 @@ const CASES = [
     } },
 ]
 
+/**
+ * A content fingerprint of the staged tree, so a mutation that changed nothing can be told apart
+ * from a guard that stopped working. Hashes bytes rather than comparing size or mtime, because a
+ * same-length edit is the common case here.
+ */
+const snapshot = (dir) => {
+  const parts = []
+  const walk = (d) => {
+    for (const entry of readdirSync(d, { withFileTypes: true })) {
+      if (entry.name === 'node_modules' || entry.name === '.git') continue
+      const full = join(d, entry.name)
+      if (entry.isDirectory()) { walk(full); continue }
+      if (!entry.isFile()) continue
+      // Every file, not a list of extensions. An extension allow-list is a category from a name,
+      // and it had a miss immediately: `LICENSE` has none, so deleting it registered as "changed
+      // nothing" and two perfectly good mutations were reported stale.
+      const { size } = statSync(full)
+      if (size > 1_000_000) { parts.push(`${full}:${size}`); continue }
+      parts.push(`${full}:${createHash('sha1').update(readFileSync(full)).digest('hex')}`)
+    }
+  }
+  walk(dir)
+  return parts.sort().join('\n')
+}
+
 const problems = []
 const killed = []
 
@@ -141,7 +168,22 @@ for (const { name, guard, mutate, expect } of CASES) {
       problems.push(`${name}: ${guard} already fails on an unmutated copy (exit ${clean.code})`)
       continue
     }
+    /**
+     * Snapshot the staged tree, so a mutation that no longer APPLIES is distinguishable from a
+     * guard that stopped working. Both currently report SURVIVED, and they read identically - a
+     * mutation targeting `.clara-link:focus-visible {` silently became a no-op when that selector
+     * joined a shared list, and the resulting SURVIVED cost a debugging pass that assumed the guard
+     * had broken. A mutation that changes nothing proves nothing, and should say so in its own words.
+     */
+    const before = snapshot(stage)
     mutate(stage)
+    if (snapshot(stage) === before) {
+      problems.push(
+        `${name}: the mutation changed NOTHING in the staged copy - its target has moved, so it ` +
+        'proves nothing. This is not a guard failure; it is a stale mutation.',
+      )
+      continue
+    }
     const result = runGuard(guard, stage)
     if (result.code === 0) {
       problems.push(`${name}: SURVIVED - ${guard} exited 0 with the mutation applied`)
@@ -724,8 +766,16 @@ const OUTPUT_CASES = [
     guard: 'check-component-css.mjs',
     expect: /\.clara-input declares no `min-height`/,
     stage: (stage) => {
+      // Target `.clara-input`'s OWN block. A bare `.replace(/min-height: .../)` took the first
+      // occurrence in the file, which stopped being this one as rules were added above it - so the
+      // mutation still changed the file (passing the no-op check) while no longer testing anything.
+      // "Changed something" is not "changed the intended thing".
       const f = join(stage, 'packages/react/src/styles.css')
-      writeFileSync(f, readFileSync(f, 'utf8').replace(/\n\s*min-height: var\(--clara-size-control-height\);/, ''))
+      const text = readFileSync(f, 'utf8')
+      const at = text.indexOf('.clara-input {')
+      const close = text.indexOf('}', at)
+      const block = text.slice(at, close).replace(/\n\s*min-height:[^;]*;/, '')
+      writeFileSync(f, text.slice(0, at) + block + text.slice(close))
     },
   },
   {
@@ -807,7 +857,7 @@ const OUTPUT_CASES = [
     // every gate stay green.
     name: 'the decorated input group stripped of its box',
     guard: 'check-component-css.mjs',
-    expect: /\.clara-input-group declares no `border`/,
+    expect: /\.clara-input-group declares no `(border|width)`/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       const text = readFileSync(f, 'utf8')
@@ -894,6 +944,43 @@ const OUTPUT_CASES = [
       const pkg = JSON.parse(readFileSync(f, 'utf8'))
       pkg.scripts.preflight = pkg.scripts.preflight.replace(' && pnpm size', '')
       writeFileSync(f, JSON.stringify(pkg, null, 2) + '\n')
+    },
+  },
+  {
+    // Same layer, same specificity: the later rule wins and nothing here can see it. A commit adding
+    // a focus ring appended a second `.clara-text--truncate` whose `display: block` overrode the
+    // original `inline-block`, turning an inline truncated Text into a full-width block.
+    name: 'a selector redeclared with a conflicting value',
+    guard: 'check-component-css.mjs',
+    expect: /declares `display` twice with different values/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-text--truncate { display: block; }\n')
+    },
+  },
+  {
+    // Comparing the selector STRING could not see a descendant selector, which removes the element
+    // from the accessibility tree just as effectively - one line silently reverts D0071 everywhere.
+    name: 'the visually-hidden class hidden by a descendant selector',
+    guard: 'check-component-css.mjs',
+    expect: /removes it from the accessibility tree/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-field .clara-visually-hidden { display: none; }\n')
+    },
+  },
+  {
+    // A record citing a test file that does not import its component: path-resolves was standing in
+    // for evidence-is-there, inside the guard that enforces exactly that distinction.
+    name: 'a verification record citing a test file that does not import its component',
+    guard: 'check-verification.mjs',
+    expect: /does not import Checkbox - the assertions are in/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Checkbox/verification.md')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(
+        '../Field/__tests__/behaviour.test.tsx',
+        '../__tests__/primitives.test.tsx',
+      ))
     },
   },
   {

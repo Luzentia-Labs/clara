@@ -20,7 +20,7 @@ import { CheckboxGroup } from '../../CheckboxGroup/CheckboxGroup'
 const CONTROLS = [
   ['Input', <Input />],
   ['Textarea', <Textarea />],
-  ['NumberInput', <NumberInput />],
+  ['NumberInput', <NumberInput min={0} max={100} step={1} defaultValue="10" />],
   ['PasswordInput', <PasswordInput />],
   ['SearchInput', <SearchInput />],
   ['Checkbox', <Checkbox />],

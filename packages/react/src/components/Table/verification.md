@@ -46,8 +46,10 @@ It renders a plain `<table>`, so a caller supplying correct `<caption>`, `<th sc
 
 ## What is verified automatically
 
-- axe (serious and critical) in all four theme x density combinations - `check:axe`
-- The behaviour above, in `../__tests__/primitives.test.tsx` and `../__tests__/matrix.test.tsx`
+- axe (serious and critical) under the default theme and density - `check:axe`. **Not** the
+  four-combination matrix: that runs over the primitives and the form controls, and this component
+  is in neither. Claimed here before it was true.
+- The behaviour above, in `../__tests__/Table.test.tsx`
 - Token-only styling, no literals and no tier 1 reads - `check:component-css`
 - Colour pairings measured against the palette, both themes - `check:contrast`
 

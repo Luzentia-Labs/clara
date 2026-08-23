@@ -46,12 +46,18 @@ a real pass or, as here, that it is outstanding.
 ## Accessibility
 
 Operable with no handler attached, so a header rendered before its sort logic exists does not throw.
-The direction is carried on the control rather than in a detached legend, so it is announced with
-the column it sorts.
+
+**The direction is not announced.** The accessible name is the constant "sort"; the direction is
+internal state that reaches no `aria-*` and no rendered text. An earlier version of this record
+claimed the opposite, and contradicted itself two paragraphs later. `aria-sort` belongs on the
+`<th>`, which the Table stub does not own - so until the real Table exists there is nowhere correct
+to put it, and the honest statement is that a screen reader user cannot tell which way the column
+will sort.
 
 ## What is verified automatically
 
-- axe (serious and critical) on a correctly marked-up table - `check:axe`
+- axe on a correctly marked-up table - `check:axe`. **This control is not in that fixture**, so
+  what is covered is the table markup around it, not this button.
 - The behaviour above, in `../__tests__/Table.test.tsx`
 - Token-only styling, no literals and no tier 1 reads - `check:component-css`
 

@@ -318,6 +318,30 @@ for (const name of inScope) {
     citations++
     if (!existsSync(join(home, cited)) && !existsSync(join(ROOT, cited))) {
       problems.push(`${where}: cites ${cited}, which does not exist`)
+      continue
+    }
+    /**
+     * A cited TEST file must actually contain the component's evidence.
+     *
+     * Resolving the path was a proxy for the evidence being there - the same substitution this
+     * project keeps catching elsewhere, inside the guard that enforces the rule. Three records
+     * cited `primitives.test.tsx` and `matrix.test.tsx`, which import none of the components
+     * citing them; the assertions were in `typography.test.tsx` and `Table.test.tsx` all along, and
+     * the check passed because the files exist. `TEST_FILES_FOR` was already computed two blocks
+     * above, keyed by component, and used only for `check:*` script citations - the data needed to
+     * answer this was being discarded.
+     */
+    if (/\.test\.tsx?$/.test(cited)) {
+      const covering = TEST_FILES_FOR.get(name) ?? []
+      const resolved = existsSync(join(home, cited))
+        ? join(home, cited).slice(ROOT.length + 1)
+        : cited
+      if (covering.length && !covering.includes(resolved)) {
+        problems.push(
+          `${where}: cites ${cited} as its evidence, but that file does not import ${name} - ` +
+          `the assertions are in ${covering.join(', ')}`,
+        )
+      }
     }
   }
 
@@ -362,7 +386,11 @@ for (const name of inScope) {
 }
 
 const docsDir = join(ROOT, 'apps/docs/src/content/components')
-const DOC_OWNER = { 'search-input.md': 'SearchInput', 'switch.md': 'Switch' }
+// Every page in DOC_CLAIMS needs an owner, or the scoped run silently checks nothing for it.
+const DOC_OWNER = { 'search-input.md': 'SearchInput', 'switch.md': 'Switch', 'field.md': 'Field', 'input.md': 'Input' }
+for (const page of Object.keys(DOC_CLAIMS)) {
+  if (!DOC_OWNER[page]) throw new Error(`DOC_CLAIMS has ${page} with no DOC_OWNER entry - the scoped run would skip it`)
+}
 if (docsOnly && !Object.values(DOC_OWNER).includes(scope)) {
   fail('verification', [`${scope} owns no documentation page, so --docs has nothing to check`])
 }

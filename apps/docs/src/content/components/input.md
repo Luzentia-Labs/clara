@@ -35,11 +35,13 @@ where the platform already has one.
   standing on it has nothing to arrow to. Its accessible name composes "Clear" with the Field's own
   label, so a form with several clearable inputs is not a row of identical "Clear" buttons.
   `onClear` fires after the value is gone and focus has returned.
-- **`maxCount`** shows a live count and adds it to the field's description. It deliberately does
+- **`maxCount`** shows a count and adds it to the field's description, where it is read on demand.
+  The count itself is **not** a live region - one that rewrites on every keystroke is unusable. A
+  separate, always-present announcer stays empty until the limit is actually reached, and then says
+  so once. It deliberately does
   **not** set `maxLength`: a hard cut-off silently discards the end of a paste, which is how a user
-  loses half a reference without noticing. The count is announced politely, and only once the user
-  is near the limit - a live region firing on every keystroke is unusable. Over the limit it turns
-  danger-coloured; enforcing the limit is the form's decision, not the control's.
+  loses half a reference without noticing. Over the limit the count turns danger-coloured;
+  enforcing the limit is the form's decision, not the control's.
 
 ## Readonly is not disabled
 

@@ -312,6 +312,16 @@ describe('Checkbox state is not colour alone', () => {
 })
 
 describe('Checkbox label is a click target and Space toggles from the keyboard', () => {
+  it('toggles with Space, the key the record documents', async () => {
+    // The keyboard table names Space and only a click was ever tested - a documented key row
+    // exercised by pointer is not evidence about the keyboard.
+    render(<Checkbox label="Include cancelled" />)
+    const box = screen.getByRole('checkbox')
+    box.focus()
+    await userEvent.keyboard(' ')
+    expect(box).toBeChecked()
+  })
+
   it('toggles when the label text is clicked, not only the 16px box', async () => {
     render(<Checkbox label="Include cancelled" />)
     await userEvent.click(screen.getByText('Include cancelled'))
@@ -346,6 +356,22 @@ describe('RadioGroup error associates with group', () => {
 })
 
 describe('RadioGroup roving focus', () => {
+  it('arrow keys do not change a disabled selection', async () => {
+    // Documented in the keyboard table, and only ever tested with a click.
+    const options = [{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }]
+    const onChange = vi.fn()
+    render(
+      <Field label="Q" labelFor="group" disabled>
+        <RadioGroup name="t" legend="Q" options={options} defaultValue="a" onChange={onChange} />
+      </Field>,
+    )
+    const first = screen.getByRole('radio', { name: 'A' })
+    first.focus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('radio', { name: 'B' })).not.toBeChecked()
+  })
+
   it('is one tab stop with arrow keys choosing - the browser\'s own behaviour', async () => {
     const options = [{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }]
     inGroupField(<RadioGroup name="t" legend="Q" options={options} defaultValue="a" />, { label: 'Q' })
@@ -414,7 +440,9 @@ const CONTROLS = [
   ['Input', <Input />],
   ['Input (decorated)', <Input prefix="£" suffix="/unit" clearable maxCount={20} defaultValue="10" />],
   ['Textarea', <Textarea />],
-  ['NumberInput', <NumberInput unit="GBP" />],
+  // Bounded, so the spinbutton role and its aria-value* surface are actually in the matrix. The
+  // fixture was unbounded, which meant axe never saw the ARIA this component exists to argue about.
+  ['NumberInput', <NumberInput min={0} max={100} step={1} unit="GBP" defaultValue="10" />],
   ['PasswordInput', <PasswordInput />],
   ['SearchInput', <SearchInput />],
   ['Checkbox', <Checkbox label="One" />],
@@ -458,14 +486,19 @@ describe('PasswordInput reveal keeps keyboard focus where the user was', () => {
     expect(screen.getByRole('button', { name: 'Show password' })).toBeInTheDocument()
   })
 
-  it('does not eject the user from the field they were typing in', async () => {
-    // Revealing is a glance, not a departure. If focus leaves the field the user has to find their
-    // way back to it, having pressed a button whose whole purpose was to help them keep typing.
-    const { container } = inField(<PasswordInput />)
+  it('leaves focus on the toggle, and does not disturb the field', async () => {
+    // Asserting `activeElement === field || activeElement === button` was a disjunction that
+    // included the failing state - it could not tell the two apart, which is the whole question.
+    // Focus staying on the TOGGLE is correct: a keyboard user is then one keypress from masking the
+    // value again. The docs said focus stays in the field; the docs were wrong, not the code.
+    const { container } = inField(<PasswordInput defaultValue="hunter2" />)
     const field = container.querySelector('input') as HTMLInputElement
-    await userEvent.click(screen.getByRole('button'))
-    expect(document.activeElement === field || document.activeElement === screen.getByRole('button')).toBe(true)
-    expect(container.contains(document.activeElement)).toBe(true)
+    const toggle = screen.getByRole('button')
+    toggle.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(document.activeElement).toBe(toggle)
+    expect(field.value).toBe('hunter2')
+    expect(field.type).toBe('text')
   })
 })
 
