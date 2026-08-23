@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/etc/clara-react.api.md, packages/react/src/components/RadioGroup/**, packages/react/src/components/RadioGroup/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/etc/clara-react.api.md, packages/react/src/components/RadioGroup/RadioGroup.tsx, packages/react/src/components/RadioGroup/index.tsx, packages/react/src/components/RadioGroup/verification.md, packages/react/src/components/RadioGroup/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story

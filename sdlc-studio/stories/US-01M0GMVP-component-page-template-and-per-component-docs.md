@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GKM4
 > **Serves:** Sofia Marchetti
-> **Affects:** apps/docs/src/content/components/**, apps/docs/src/content/components/button.md, apps/docs/src/layouts/ComponentPage.astro, scripts/check-docs.mjs
+> **Affects:** apps/docs/src/content/components/button.md, apps/docs/src/content/components/checkbox-group.md, apps/docs/src/content/components/checkbox.md, apps/docs/src/content/components/field.md, apps/docs/src/content/components/input.md, apps/docs/src/content/components/layout.md, apps/docs/src/content/components/link.md, apps/docs/src/content/components/number-input.md, apps/docs/src/content/components/password-input.md, apps/docs/src/content/components/radio-group.md, apps/docs/src/content/components/search-input.md, apps/docs/src/content/components/switch.md, apps/docs/src/content/components/table.md, apps/docs/src/content/components/textarea.md, apps/docs/src/content/components/typography.md, apps/docs/src/content/components/button.md, apps/docs/src/layouts/ComponentPage.astro, scripts/check-docs.mjs
 > **Points:** 5
 
 ## User Story

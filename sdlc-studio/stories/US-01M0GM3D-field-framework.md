@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Field/**, packages/react/src/components/Field/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Field/Field.tsx, packages/react/src/components/Field/index.tsx, packages/react/src/components/Field/verification.md, packages/react/src/components/Field/verification.md, scripts/check-component-css.mjs
 > **Points:** 8
 
 ## User Story

@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GKV1
 > **Serves:** Sofia Marchetti
-> **Affects:** apps/reference-app, apps/reference-app/**, apps/reference-app/FINDINGS.md, apps/reference-app/package.json
+> **Affects:** apps/reference-app, apps/reference-app/package.json, apps/reference-app/FINDINGS.md, apps/reference-app/package.json
 > **Points:** 3
 
 ## User Story

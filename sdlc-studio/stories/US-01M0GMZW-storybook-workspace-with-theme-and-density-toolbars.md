@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GKM4
 > **Serves:** Sofia Marchetti
-> **Affects:** .github/workflows/pages.yml, apps/storybook/**, apps/storybook/.storybook/main.ts, apps/storybook/.storybook/preview.tsx
+> **Affects:** .github/workflows/pages.yml, apps/storybook/package.json, apps/storybook/.storybook/main.ts, apps/storybook/.storybook/preview.tsx
 > **Points:** 3
 
 ## User Story

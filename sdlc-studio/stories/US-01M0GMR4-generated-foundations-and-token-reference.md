@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GKM4
 > **Serves:** Sofia Marchetti
-> **Affects:** apps/docs/src/content/foundations/**, apps/docs/src/content/foundations/tokens.md, scripts/check-public-tokens.mjs
+> **Affects:** apps/docs/src/content/foundations/tokens.md, apps/docs/src/content/foundations/tokens.md, scripts/check-public-tokens.mjs
 > **Points:** 3
 
 ## User Story

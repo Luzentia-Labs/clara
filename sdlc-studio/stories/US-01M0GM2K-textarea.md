@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Textarea/**, packages/react/src/components/Textarea/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Textarea/Textarea.tsx, packages/react/src/components/Textarea/index.tsx, packages/react/src/components/Textarea/verification.md, packages/react/src/components/Textarea/verification.md, scripts/check-component-css.mjs
 > **Points:** 3
 
 ## User Story

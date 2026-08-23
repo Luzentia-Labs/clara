@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/CheckboxGroup/**, packages/react/src/components/CheckboxGroup/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/CheckboxGroup/CheckboxGroup.tsx, packages/react/src/components/CheckboxGroup/index.tsx, packages/react/src/components/CheckboxGroup/verification.md, packages/react/src/components/CheckboxGroup/verification.md, scripts/check-component-css.mjs
 > **Points:** 3
 
 ## User Story

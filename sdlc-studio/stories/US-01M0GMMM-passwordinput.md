@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/PasswordInput/**, packages/react/src/components/PasswordInput/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/PasswordInput/PasswordInput.tsx, packages/react/src/components/PasswordInput/index.tsx, packages/react/src/components/PasswordInput/verification.md, packages/react/src/components/PasswordInput/verification.md, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story

@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** apps/docs/src/content/components/switch.md, packages/react/src/components/Switch/**, packages/react/src/components/Switch/verification.md, scripts/check-component-css.mjs
+> **Affects:** apps/docs/src/content/components/switch.md, packages/react/src/components/Switch/Switch.tsx, packages/react/src/components/Switch/index.tsx, packages/react/src/components/Switch/verification.md, packages/react/src/components/Switch/verification.md, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story

@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GKM4
 > **Serves:** Sofia Marchetti
-> **Affects:** .github/workflows/pages.yml, @luzentialabs/clara-react, apps/docs/**, apps/docs/package.json, apps/docs/src/content/index.md
+> **Affects:** .github/workflows/pages.yml, @luzentialabs/clara-react, apps/docs/package.json, apps/docs/package.json, apps/docs/src/content/index.md
 > **Points:** 5
 
 ## User Story
