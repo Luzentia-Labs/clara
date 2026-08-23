@@ -5,6 +5,11 @@ node_modules/
 # Build output
 dist/
 build/
+# ...but `test/build/` is SOURCE, not output. The bare `build/` rule swallowed
+# `test/build/chunk-placement.test.ts` - the end-to-end Vite build that proves chunk placement
+# (D0051) - so it was never committed and CI never ran it, while it passed locally and was cited
+# as evidence. A rule that matches by name rather than by what a directory IS.
+!test/build/
 storybook-static/
 *.tsbuildinfo
 

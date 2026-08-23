@@ -38,7 +38,7 @@ for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
 process.on('exit', sweep)
 
 /** A throwaway workspace holding only what the guards read: manifests, the workspace file, LICENSE. */
-function stageWorkspace ({ withOutput = false } = {}) {
+function stageWorkspace ({ withOutput = false, withGit = false } = {}) {
   const stage = mkdtempSync(join(tmpdir(), 'clara-prove-'))
   staged.add(stage)
   for (const rel of [
@@ -77,6 +77,20 @@ function stageWorkspace ({ withOutput = false } = {}) {
       }
     }
   }
+  // Last, so every staged file is in the index and only the mutation's own file is untracked.
+  if (withGit) {
+    // A real git index in the staged copy. `check-tracked.mjs` asks git what is tracked, and
+    // reimplementing gitignore to test it would be the eleventh hand-rolled parser here - so the
+    // stage gets `.gitignore`, `git init`, and `git add -A`, which applies git's own rules.
+    if (existsSync(join(root, '.gitignore'))) copyFileSync(join(root, '.gitignore'), join(stage, '.gitignore'))
+    mkdirSync(join(stage, 'test'), { recursive: true })
+    mkdirSync(join(stage, 'scripts'), { recursive: true })
+    cpSync(join(root, 'scripts'), join(stage, 'scripts'), { recursive: true })
+    writeFileSync(join(stage, 'test', 'kept.test.ts'), "import { it } from 'vitest'\nit('x', () => {})\n")
+    execFileSync('git', ['init', '-q'], { cwd: stage, stdio: 'pipe' })
+    execFileSync('git', ['add', '-A'], { cwd: stage, stdio: 'pipe' })
+  }
+
   return stage
 }
 
@@ -1017,6 +1031,20 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // The end-to-end chunk-placement build was swallowed by a bare `build/` line in .gitignore. It
+    // passed on the author's machine for three epics, was cited as evidence in D0051, and CI never
+    // ran it - local and CI differed by exactly its nine tests, invisible until a derived figure
+    // disagreed between them.
+    name: 'a test file that git ignores, so CI never runs it',
+    guard: 'check-tracked.mjs',
+    withGit: true,
+    expect: /is loaded by a gate but is NOT tracked by git/,
+    stage: (stage) => {
+      // Written AFTER `git add -A`, so it is untracked exactly as an ignored file would be.
+      writeFileSync(join(stage, 'test', 'ghost.test.ts'), "import { it } from 'vitest'\nit('x', () => {})\n")
+    },
+  },
+  {
     name: 'an icon exported but absent from the committed list',
     guard: 'check-icons.mjs',
     expect: /absent from ICONS\.md|not declared/,
@@ -1056,8 +1084,8 @@ const OUTPUT_CASES = [
   },
 ]
 
-for (const { name, guard, stage: corrupt, expect, args = [] } of OUTPUT_CASES) {
-  const stage = stageWorkspace({ withOutput: true })
+for (const { name, guard, stage: corrupt, expect, args = [], withGit = false } of OUTPUT_CASES) {
+  const stage = stageWorkspace({ withOutput: true, withGit })
   try {
     const clean = runGuard(guard, stage, args)
     if (clean.code !== 0) {
