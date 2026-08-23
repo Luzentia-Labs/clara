@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
 import { useState } from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { createEvent, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { runAxe } from '../../../../../../test/axe'
 import { ClaraProvider } from '../../../theme/ClaraProvider'
@@ -224,7 +224,9 @@ describe('NumberInput arrow keys step and clamp', () => {
       return <Field label="Qty"><NumberInput value={v} step={5} onChange={(e) => setV(e.currentTarget.value)} /></Field>
     }
     render(<Controlled />)
-    const el = screen.getByRole('textbox')
+    // A spinbutton, not a textbox: naming a `step` opts into numeric semantics, which is what
+    // brings the role and the key handling with it.
+    const el = screen.getByRole('spinbutton')
     el.focus()
     await userEvent.keyboard('{ArrowUp}')
     expect(el).toHaveValue('15')
@@ -249,7 +251,7 @@ describe('NumberInput arrow keys step and clamp', () => {
     // 0.1 + 0.1 + 0.1 is 0.30000000000000004 in binary floating point, and seventeen significant
     // digits in a currency field is a defect the user has to clean up by hand.
     inField(<NumberInput step={0.1} defaultValue="0" />)
-    const el = screen.getByRole('textbox') as HTMLInputElement
+    const el = screen.getByRole('spinbutton') as HTMLInputElement
     el.focus()
     fireEvent.keyDown(el, { key: 'ArrowUp' })
     fireEvent.keyDown(el, { key: 'ArrowUp' })
@@ -826,7 +828,7 @@ describe('NumberInput keyboard reaches the bounds and holds precision', () => {
     // the precision is 8. Testing only `1e-7` left the mantissa term unexercised - it survived
     // deletion, and a step like this would have rounded one digit short.
     inField(<NumberInput defaultValue="0" step={1.5e-7} />)
-    const el = screen.getByRole('textbox') as HTMLInputElement
+    const el = screen.getByRole('spinbutton') as HTMLInputElement
     el.focus()
     fireEvent.keyDown(el, { key: 'ArrowUp' })
     expect(el.value).toBe('0.00000015')
@@ -836,7 +838,7 @@ describe('NumberInput keyboard reaches the bounds and holds precision', () => {
     // String(1e-7) is "1e-7", so splitting on "." found no decimals and rounding silently stopped -
     // for exactly the small steps that need it. An FX rate at seven decimals is an ordinary case.
     inField(<NumberInput defaultValue="0.1" step={1e-7} />)
-    const el = screen.getByRole('textbox') as HTMLInputElement
+    const el = screen.getByRole('spinbutton') as HTMLInputElement
     el.focus()
     fireEvent.keyDown(el, { key: 'ArrowUp' })
     expect(el.value).toBe('0.1000001')
@@ -1011,5 +1013,81 @@ describe('every labelFor and child combination produces a named control', () => 
     const group = screen.getByRole('group')
     expect(group).not.toHaveAttribute('aria-required')
     expect(group).toHaveAccessibleName(/Regions.\(required\)/)
+  })
+})
+
+describe('labelFor decides the label ELEMENT, and the requirement survives either choice', () => {
+  it('renders a span, not a label, in group mode', () => {
+    // Deleting the whole `labelFor === 'group'` branch - so a `<label htmlFor>` is always rendered,
+    // pointing at a fieldset - left 802 tests and 26 guards green. `htmlFor` on a fieldset does
+    // nothing: it is not a labelable element, so clicking the label moves focus nowhere.
+    const { container } = render(
+      <Field label="Terms" labelFor="group">
+        <RadioGroup name="t" legend="Terms" options={[{ value: 'a', label: 'A' }]} />
+      </Field>,
+    )
+    expect(container.querySelector('.clara-field__label')?.tagName).toBe('SPAN')
+    expect(container.querySelector('label.clara-field__label')).toBeNull()
+  })
+
+  it('renders a real label in control mode, so the text is a click target', async () => {
+    const { container } = render(<Field label="Supplier"><Input /></Field>)
+    const label = container.querySelector('label.clara-field__label')
+    expect(label).not.toBeNull()
+    await userEvent.click(label!)
+    expect(screen.getByRole('textbox')).toHaveFocus()
+  })
+
+  it('announces required on a CheckboxGroup even at the DEFAULT labelFor', () => {
+    // The realistic consumer mistake. D0073 promises a wrong `labelFor` costs a click target rather
+    // than a name - so the requirement must survive it too. Re-gating the marker on the labelling
+    // MODE (rather than on what the control announces) passes every other test in the suite, and
+    // loses the announcement here, which is the case no fixture covered.
+    render(
+      <Field label="Regions" required>
+        <CheckboxGroup name="c" legend="Regions" options={[{ value: 'a', label: 'A' }]} />
+      </Field>,
+    )
+    expect(screen.getByRole('group')).toHaveAccessibleName(/Regions.*\(required\)/)
+  })
+
+  it('a toggle never receives readOnly, which is not valid on a checkbox', () => {
+    // `fieldAriaProps(wiring, 'toggle')` exists for this, and nothing asserted it: dropping the
+    // `kind` distinction so every control gets readOnly was green across the whole suite.
+    inField(<Checkbox />, { disabled: true })
+    const box = screen.getByRole('checkbox')
+    expect(box).toHaveAttribute('aria-disabled', 'true')
+    expect(box).not.toHaveAttribute('readonly')
+    expect(screen.queryByRole('textbox')).toBeNull()
+  })
+})
+
+describe('NumberInput leaves a plain code field alone', () => {
+  it('does not step, and does not swallow arrow keys, when no numeric semantics were asked for', () => {
+    // The documented account-code case. With no min, max or step the control is a plain textbox -
+    // and it was still rewriting 4417 to 4418 on Arrow Up, and calling preventDefault, which
+    // destroys caret navigation in a text field. The APG key set is supposed to travel with the
+    // ROLE; it was travelling with the component.
+    inField(<NumberInput defaultValue="4417" />)
+    const el = screen.getByRole('textbox') as HTMLInputElement
+    expect(screen.queryByRole('spinbutton')).toBeNull()
+    el.focus()
+    for (const key of ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']) {
+      const event = createEvent.keyDown(el, { key })
+      fireEvent(el, event)
+      expect(event.defaultPrevented).toBe(false)
+    }
+    expect(el.value).toBe('4417')
+  })
+
+  it('steps when a step is named, even with no bounds', () => {
+    // A quantity with no maximum is an ordinary case: `bounded` alone would have been the wrong
+    // line, and would have silently stopped this working.
+    inField(<NumberInput defaultValue="10" step={5} />)
+    const el = screen.getByRole('spinbutton') as HTMLInputElement
+    el.focus()
+    fireEvent.keyDown(el, { key: 'ArrowUp' })
+    expect(el.value).toBe('15')
+    expect(el).not.toHaveAttribute('aria-valuemax')
   })
 })

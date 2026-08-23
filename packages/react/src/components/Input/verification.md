@@ -69,5 +69,6 @@ epic earlier and already shipped in Button, and two tests asserted the violation
   VoiceOver actually announce. PRD F17 names NVDA as a stated gap; it stays one.
 - **Visual regression is not yet wired** (gate 7), so the rendered appearance is unverified - only
   the markup, the tokens and the measured contrast are.
-- **Autofill styling is checked manually** (AC4), in Chrome and Safari. The browsers apply their
-  own background through a UA stylesheet that jsdom does not implement, so no unit test can see it.
+- **Autofill styling is not implemented.** The docs claimed Clara overrides the browser's autofill
+  background; no `:-webkit-autofill` rule exists anywhere in the repo. An autofilled field takes the
+  browser's own colour. AC4 remains manual, and what it will verify does not exist yet.

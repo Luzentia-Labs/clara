@@ -55,6 +55,7 @@ applicable yet.
 
 ## Autofill
 
-The browser applies its own background through a UA stylesheet. Clara overrides it so the field
-still reads as a Clara control. This is checked by hand in Chrome and Safari, because jsdom does not
-implement the pseudo-class and it is not drivable in a headless browser.
+The browser applies its own background through a UA stylesheet, and **Clara does not currently
+override it** - a `:-webkit-autofill` rule was documented before it was written, and the honest
+statement is that an autofilled field takes the browser's yellow. It is a stated gap on the Input
+verification record rather than a claim.

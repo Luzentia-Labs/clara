@@ -40,7 +40,11 @@ a real pass or, as here, that it is outstanding.
 
 ## Accessibility
 
-`truncate` requires `fullValue` at the type level, so the untruncated string is always available as the accessible name. Truncating without it does not compile. `numeric` gives tabular figures so a column of amounts aligns without a monospace face.
+`truncate` requires `fullValue` at the type level - the props are a discriminated union - so the
+untruncated string is always available as the accessible name. That was claimed here before it was
+true: the two props were independently optional, `<Text truncate>` compiled, and it produced a
+focusable span with `aria-label={undefined}` - a tab stop with no accessible name, which is the
+exact defect the pair exists to prevent. A compile-time assertion now pins it. `numeric` gives tabular figures so a column of amounts aligns without a monospace face.
 
 ## What is verified automatically
 

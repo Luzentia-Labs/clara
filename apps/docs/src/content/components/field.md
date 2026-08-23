@@ -16,7 +16,7 @@ between them. Every Clara form control reads its wiring from a Field.
 | `label` | A real `<label>` bound by `htmlFor`. There is no placeholder-as-label path. |
 | `description` | A `<p>` with an id, first in `aria-describedby`. |
 | `error` | A `role="alert"` region, second in `aria-describedby`, plus `aria-invalid` and `aria-errormessage`. |
-| `required` | `aria-required`, and a visible asterisk that is `aria-hidden` (the announcement comes from the property). |
+| `required` | `aria-required` where the role supports it - a single control, or a `radiogroup`. A `<fieldset>` is `role=group`, which does not, so a `CheckboxGroup` composes a visually-hidden marker into its name instead. The visible asterisk is `aria-hidden` either way. |
 | `disabled` | `aria-disabled` and `readOnly` - **not** the native `disabled` attribute. See below. |
 
 Description before error is deliberate: the hint explains what to enter, the error explains what went
@@ -33,8 +33,10 @@ A `RadioGroup` or `CheckboxGroup` is a `<fieldset>`, and `htmlFor` cannot target
 </Field>
 ```
 
-Without it the label binds to an id that does not exist: it moves focus nowhere and names nothing,
-and no automated check can see it - axe has no rule for an orphan `for`.
+It is not load-bearing for the NAME - a group is named by `aria-labelledby` in either case, because
+depending on a one-word prop for a control's accessible name was a defect in itself. What
+`labelFor="group"` changes is the label ELEMENT: a `<span>` rather than a `<label htmlFor>`, since
+`htmlFor` cannot target a fieldset and clicking such a label moves focus nowhere.
 
 ## Disabled keeps its tab stop
 

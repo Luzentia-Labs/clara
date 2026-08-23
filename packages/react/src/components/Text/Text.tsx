@@ -4,7 +4,7 @@ import { cx } from '../../lib/cx'
 /**
  * Server-capable: no function props, no state, no browser APIs.
  */
-export interface TextProps {
+interface TextBaseProps {
   children?: ReactNode
   /** Body is the default; caption is the smaller step. Size never changes with density. */
   size?: 'body' | 'body-lg' | 'caption'
@@ -20,10 +20,23 @@ export interface TextProps {
    * is unreachable without a pointer (PRD, D0028). Truncating makes the element focusable and gives
    * it the full text as its accessible name.
    */
-  truncate?: boolean
-  /** The untruncated text. Required when `truncate` is set. */
-  fullValue?: string
+  truncate?: false | undefined
+  fullValue?: undefined
 }
+
+/**
+ * The truncating form. Split into its own member so `fullValue` is REQUIRED when `truncate` is set -
+ * the documentation claimed that was true "at the type level" and it was not: two independent
+ * optional props compile happily apart, and `<Text truncate>` produced a focusable span with
+ * `aria-label={undefined}`, a tab stop with no accessible name.
+ */
+export interface TruncatedTextProps extends Omit<TextBaseProps, 'truncate' | 'fullValue'> {
+  truncate: true
+  /** The untruncated text. It becomes the element's accessible name. */
+  fullValue: string
+}
+
+export type TextProps = TextBaseProps | TruncatedTextProps
 
 export function Text ({ children, size = 'body', tone = 'default', numeric, truncate, fullValue }: TextProps) {
   const recoverable = truncate

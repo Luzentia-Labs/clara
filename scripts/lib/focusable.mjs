@@ -36,6 +36,7 @@ function sources (dir, out = []) {
  */
 export function focusableClassGroups (root = 'packages/react/src') {
   const groups = []
+  const unresolved = []
 
   const literalsIn = (node) => {
     const out = []
@@ -73,8 +74,21 @@ export function focusableClassGroups (root = 'packages/react/src') {
       if (opening) {
         const tag = opening.tagName.getText()
         const attrs = opening.attributes.properties.filter(ts.isJsxAttribute)
-        const named = attrs.some((a) => a.name.getText() === 'tabIndex')
-        const isAnchor = tag === 'a' && attrs.some((a) => a.name.getText() === 'href')
+        const spreads = opening.attributes.properties.filter(ts.isJsxSpreadAttribute)
+        /**
+         * A prop can arrive through a SPREAD, and that is not an edge case - `Text` delivers its
+         * `tabIndex` as `{...recoverable}`, so a reader matching only named attributes declared it
+         * non-focusable and `.clara-text--truncate` shipped with no focus ring. The spread's
+         * identifier is resolved back to its declaration in the same file, which is how every
+         * component here spells it.
+         */
+        const spreadCarries = (prop) => spreads.some((sp) => {
+          const name = sp.expression.getText()
+          const decl = new RegExp(`\\b${name}\\s*=([\\s\\S]{0,400})`).exec(text)
+          return decl ? new RegExp(`\\b${prop}\\b`).test(decl[1]) : false
+        })
+        const named = attrs.some((a) => a.name.getText() === 'tabIndex') || spreadCarries('tabIndex')
+        const isAnchor = tag === 'a' && (attrs.some((a) => a.name.getText() === 'href') || spreadCarries('href'))
         const viaAs = polymorphic.get(tag)
         if (named || isAnchor || viaAs || (NATURALLY_FOCUSABLE.has(tag) && tag !== 'a')) {
           const cls = attrs.find((a) => a.name.getText() === 'className')
@@ -90,6 +104,12 @@ export function focusableClassGroups (root = 'packages/react/src') {
               }
             }
             if (group.length) groups.push(group)
+            // A focusable element with no resolvable class name is a BLIND SPOT, not a pass: it
+            // cannot be checked, and silently skipping it is how one goes unnoticed. Reported so it
+            // is loud - `TableSortButton` renders a class-less <button> and was dropped in silence.
+            else unresolved.push(`${file.split('/').slice(-2).join('/')}:<${tag}>`)
+          } else {
+            unresolved.push(`${file.split('/').slice(-2).join('/')}:<${tag}>`)
           }
         }
       }
@@ -99,10 +119,45 @@ export function focusableClassGroups (root = 'packages/react/src') {
   }
   // De-duplicate identical groups, keeping the reading stable.
   const seen = new Set()
-  return groups.filter((g) => {
+  const result = groups.filter((g) => {
     const key = [...g].sort().join(' ')
     if (seen.has(key)) return false
     seen.add(key)
     return true
   })
+  // Attached to the RETURNED array. Setting it on `groups` first lost it, because `filter` returns
+  // a fresh array - a blind spot reported onto an object nobody reads is not reported at all.
+  result.unresolved = [...new Set(unresolved)]
+  return result
+}
+
+/**
+ * Every Clara class name a component's own source mentions, keyed by component.
+ *
+ * `--component NumberInput` derived its scope from the NAME - `.clara-number-input` - which matches
+ * nothing: the real selectors are `.clara-number` and `.clara-input`. PasswordInput and SearchInput
+ * were the same, so three acceptance criteria named a verifier that could not fail on their own
+ * component, which is precisely what scoping was added to prevent. It is the category-from-a-name
+ * failure (D0051, D0067, D0074) inside the fix for a different instance of it.
+ *
+ * Read from the JSX instead: what a component owns is what it renders.
+ */
+export function claraClassesByComponent (root = 'packages/react/src') {
+  const owned = new Map()
+  for (const file of sources(root)) {
+    const parsed = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+    const component = file.split('/').pop().replace(/\.tsx$/, '')
+    const names = owned.get(component) ?? new Set()
+    const visit = (node) => {
+      if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+        for (const part of node.text.split(/\s+/)) {
+          if (part.startsWith('clara-')) names.add(`.${part.split('--')[0]}`)
+        }
+      }
+      ts.forEachChild(node, visit)
+    }
+    visit(parsed)
+    if (names.size) owned.set(component, names)
+  }
+  return owned
 }

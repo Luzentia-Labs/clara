@@ -204,7 +204,9 @@
 .clara-search__clear:focus-visible,
 .clara-input-group__clear:focus-visible,
 .clara-password__toggle:focus-visible,
-.clara-link:focus-visible {
+.clara-link:focus-visible,
+.clara-text:focus-visible,
+.clara-table-sort:focus-visible {
   outline: var(--clara-border-width-focus) solid var(--clara-color-border-focus);
   outline-offset: var(--clara-border-width-focus);
   box-shadow: 0 0 0 var(--clara-border-width-focus) var(--clara-color-border-focus-offset);
@@ -369,5 +371,18 @@
   border: var(--clara-box-padding-none);
   cursor: pointer;
   text-decoration: underline;
+  min-height: var(--clara-size-target-min);
+}
+
+/* Truncated Text is focusable on purpose (D0028) and therefore needs a ring, and the sort control
+ * in a table header is a real button. Both were focusable and unringed - the first invisible to the
+ * reader because its tabIndex arrives through a spread, the second because it had no class at all. */
+.clara-text--truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.clara-table-sort {
+  font: inherit;
+  color: var(--clara-color-fg-default);
+  background: none;
+  border: var(--clara-box-padding-none);
+  cursor: pointer;
   min-height: var(--clara-size-target-min);
 }

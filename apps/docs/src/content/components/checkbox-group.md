@@ -21,8 +21,10 @@ and each deserves its own stop.
 
 There is no `aria-required` here. A `<fieldset>` is `role="group"`, which does not support it - and
 "at least one of these" is a form-level rule rather than a property of a group whose boxes are each
-independently optional. Inside a `<Field required labelFor="group">` the requirement is appended to
-the group's caption as text, so it is actually announced.
+independently optional. Inside a `<Field required>` the Field renders a visually-hidden "(required)" marker and this group
+composes it into its own `aria-labelledby`, so the requirement reaches the accessible name. That is
+the only route it has - and it works whichever `labelFor` you pass, because forgetting the prop must
+not cost the announcement.
 
 ## Controlled and uncontrolled
 

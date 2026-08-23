@@ -1,26 +1,29 @@
 # Where Clara stands
 
-> **Updated:** 2026-08-23 (close of the EP-01M0GKM2 form-framework run)
+> **Updated:** 2026-08-24 (close of the EP-01M0GKM2 form-framework run, after five review rounds)
 > Read this first after any compaction or reset, then run `/sdlc-studio status`.
 
 ## One paragraph
 
-**The form framework is built and its ten stories verify clean**, after **three rounds of
-adversarial review that each rejected the previous round's work**. The Field plus nine controls
+**The form framework is built and its ten stories verify clean**, after **five rounds of
+adversarial review, each of which rejected the previous round's work**. The Field plus nine controls
 (Input, Textarea, NumberInput, PasswordInput, SearchInput, Checkbox, Switch, RadioGroup,
-CheckboxGroup) are on `main`, with 790 tests and every gate green. Nothing is on npm. The stories
+CheckboxGroup) are on `main`, with 817 tests and every gate green. Nothing is on npm. The stories
 are **not yet transitioned to Done** - that waits on the round-4 review and the operator's own
 sign-off, because the author never records their own verdict.
 
 ## Numbers
 
-- `pnpm check` runs **26 guards**; `prove-guards-fail` kills **68 mutations** on a staged copy.
-- **790 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- `pnpm check` runs **26 guards**; `prove-guards-fail` kills **74 mutations** on a staged copy.
+- **817 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **72 decisions**. Stories: **32 Done of 88**. `main` is the only branch - this project is
+- **75 decisions**. Stories: **32 Done of 88**. `main` is the only branch - this project is
   trunk-based.
-- **23 verification records**, **15 docs pages**, a keyboard table and a recorded manual keyboard
-  pass per component.
+- **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
+  keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line
+  claimed one had been recorded per component; that was fabricated, in all 23 records, and removed.
+  The guard now accepts only two states for that section: a real pass naming the browsers it was
+  walked in, or an admission that it is outstanding.
 - **48 contrast pairings, 0 waived.** Published to npm: **nothing**; `NPM_TOKEN` is unset, which is
   deliberate ordering.
 
@@ -41,7 +44,10 @@ has to be maintained:
 
 Round 3 found four such mechanisms, all correct, none exercised: the axe harness's own blocking
 rules, the PasswordInput disabled guard (deleting it *reveals the password*), the click half of
-`fieldChangeGuard`, and both groups' click guards. Every story now carries a `## Test Plan` naming,
+`fieldChangeGuard`, and both groups' click guards. Round 5 found three more, and two Criticals in
+the guards written to prevent exactly their own failure mode - a preflight mirror using the
+substring match its own header describes fixing, and a `--component` scope deriving a selector from
+a component's NAME. Every story now carries a `## Test Plan` naming,
 per criterion, the production edit its test must fail on - filled from mutations actually run, not
 imagined.
 
@@ -65,6 +71,8 @@ was differing id *values*; an axe fixture rendered without the prop that trigger
   comes from TypeScript's parser; a declaration is what PostCSS says it is.
 - **Run review agents in their own worktree** (D0070). Sharing a tree cost an uncommitted change and
   produced a commit whose message described work it did not contain.
+- **`pnpm preflight` before every push** (D0075). It mirrors CI and is checked against the workflow,
+  so it cannot go stale. CI went red twice on gates that were not re-run.
 
 ## What is still not verified, and is named rather than implied
 

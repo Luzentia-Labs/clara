@@ -21,7 +21,7 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import postcss from 'postcss'
-import { focusableClassGroups } from './lib/focusable.mjs'
+import { focusableClassGroups, claraClassesByComponent } from './lib/focusable.mjs'
 import { fail, pass } from './lib/workspace.mjs'
 
 const RULE = 'component-css'
@@ -205,12 +205,32 @@ for (const file of files) {
     }
   })
 }
-/** The selectors a given component owns: its own block, its elements, and its modifiers. */
-const ownedBy = (component) => {
-  const base = `.clara-${component.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}`
-  return (selector) => selector === base || selector.startsWith(`${base}__`) || selector.startsWith(`${base}--`)
+/**
+ * The selectors a component owns, read from what it RENDERS.
+ *
+ * The first version derived them from the name - `.clara-` + kebab(NumberInput) - which matches
+ * nothing at all, because the real selectors are `.clara-number` and `.clara-input`. Three stories
+ * therefore cited a verifier that could not fail on their own component: the exact anti-pattern
+ * scoping was added to remove, arrived at through the exact failure this repo keeps finding.
+ */
+const OWNED = claraClassesByComponent()
+if (scope && !OWNED.has(scope)) {
+  fail(RULE, [
+    `${scope} renders no Clara class names, or is not a component under packages/react/src.`,
+    'An empty scope would pass on everything, which is how a typo turns an acceptance criterion into nothing.',
+  ])
 }
-const inScope = scope ? ownedBy(scope) : () => true
+const owned = scope ? OWNED.get(scope) : null
+// A modifier belongs to whoever owns its base.
+const inScope = owned ? (selector) => owned.has(selector.split('--')[0]) : () => true
+
+// A focusable element whose class list cannot be resolved statically is a blind spot, and a blind
+// spot reported to nobody is the same as none. `TableSortButton` rendered a class-less <button> and
+// was skipped in silence until this was made loud.
+for (const where of FOCUSABLE.unresolved ?? []) {
+  if (scope) continue
+  problems.push(`${where} is focusable and carries no resolvable Clara class - it cannot be checked for a focus ring, so give it one`)
+}
 
 for (const group of FOCUSABLE.filter((g) => g.some(inScope))) {
   // An element is covered if ANY of its class names carries a complete ring: a textarea renders

@@ -22,7 +22,7 @@ need keyboard and announcement design, and they are tracked separately.
 SHOWING when activated, leaving the caller to decide what happens next. The table that would use it
 does not exist yet.
 
-## Row surfaces
+## Row surfaces - decided, not yet rendered
 
 An ERP row is routinely striped, hovered, selected and focused at once. The resolved order is
 focus > selected > hover > striped, with selected and hover **composing** rather than one replacing

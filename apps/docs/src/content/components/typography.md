@@ -21,6 +21,6 @@ for a screen reader user.
 
 - `numeric` gives tabular figures, so a column of amounts lines up without a monospace face. In an
   ERP that is most columns.
-- `truncate` **requires** `fullValue`, at the type level. `title` appears only on hover, so a
+- `truncate` **requires** `fullValue`, at the type level - the props are a discriminated union, so `<Text truncate>` alone does not compile. `title` appears only on hover, so a
   truncated value that is not focusable cannot be read without a pointer; truncating makes the
   element focusable and gives it the full text as its accessible name (D0028).

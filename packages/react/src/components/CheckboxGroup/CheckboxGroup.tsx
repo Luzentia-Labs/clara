@@ -63,14 +63,15 @@ export function CheckboxGroup ({
         * rule, not a property of the group. A required choice belongs in the label or description.
         */}
       {/*
-        * In group mode the FIELD's label names the group (aria-labelledby), so rendering the legend
-        * as well puts the same words on screen twice. It stays in the accessibility tree as the
+        * Whenever there is a Field, its label names the group (aria-labelledby), so painting the
+        * legend as well puts the same words on screen twice. It stays in the accessibility tree as the
         * fieldset's own caption but is visually hidden, because a fieldset with no legend is worse
         * markup than one whose legend is not painted.
         *
         * The requirement is NOT appended here. `aria-labelledby` outranks a native legend in
-        * accessible-name computation, so text added to the legend never reaches the name; the Field
-        * puts it inside the element it names the group with instead.
+        * accessible-name computation, so text added to a legend never reaches the name. The Field
+        * renders it as a separate marker; whether this group references it is decided above, by
+        * whether the role can carry `aria-required`.
         */}
       <legend className={cx('clara-checkbox-group__legend', wiring != null && 'clara-visually-hidden')}>
         {legend}

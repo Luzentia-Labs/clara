@@ -68,15 +68,6 @@ export function Field ({ children, label, description, error, required = false, 
             <span className="clara-field__label" id={labelId}>
               {label}
               {required ? <span className="clara-field__required" aria-hidden="true">*</span> : null}
-              {/*
-                * The requirement has to live HERE in group mode, inside the element the group
-                * points `aria-labelledby` at, because that is what becomes the accessible name.
-                * Appending it to the group's own <legend> did nothing: aria-labelledby outranks a
-                * native legend in name computation, and the legend is visually hidden here anyway -
-                * so the state was announced by no route at all while a test asserting `textContent`
-                * reported success. In control mode this is absent, because `aria-required` on the
-                * control already carries it and both would announce it twice.
-                */}
 
             </span>
             )
@@ -86,6 +77,13 @@ export function Field ({ children, label, description, error, required = false, 
               {required ? <span className="clara-field__required" aria-hidden="true">*</span> : null}
             </label>
             )}
+        {/*
+          * The requirement marker: a SIBLING of the label with its own id, referenced only by a
+          * control that cannot carry `aria-required` itself. It is not inside the label, because
+          * every control names itself from `labelId` and the ones with the property would then
+          * announce the requirement twice. Which control that is cannot be decided here - React
+          * renders this before any child reports in - so the choice belongs to the control.
+          */}
         {requiredMarkerId
           ? <span className="clara-visually-hidden" id={requiredMarkerId}>(required)</span>
           : null}

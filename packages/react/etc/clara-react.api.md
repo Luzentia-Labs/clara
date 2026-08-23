@@ -388,17 +388,11 @@ export interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaE
     rows?: number;
 }
 
-// @public
-export interface TextProps {
-    // (undocumented)
-    children?: ReactNode;
-    fullValue?: string;
-    numeric?: boolean;
-    size?: 'body' | 'body-lg' | 'caption';
-    // (undocumented)
-    tone?: 'default' | 'muted';
-    truncate?: boolean;
-}
+// Warning: (ae-forgotten-export) The symbol "TextBaseProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "TruncatedTextProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type TextProps = TextBaseProps | TruncatedTextProps;
 
 // Warning: (ae-forgotten-export) The symbol "ClaraSettings" needs to be exported by the entry point index.d.ts
 //

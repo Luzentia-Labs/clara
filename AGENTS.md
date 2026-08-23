@@ -131,10 +131,14 @@ Fill these in. This is the part an agent cannot infer.
 
 - **Stack:** TypeScript (strict), React 18 and 19, CSS custom properties + CSS Modules,
   Radix UI primitives, Style Dictionary, pnpm workspaces + Turborepo, Vitest + React Testing
-  Library, Playwright, Storybook, Changesets. Node 20 LTS+ for builds. **No code exists yet** -
-  the repo is currently specifications only.
-- **Run / build / test:** not yet established. The toolchain lands with the foundation epic.
-  Until then there is no build or test command to run, and any claim that one passes is false.
+  Library, Playwright, Storybook, Changesets. Node 20 LTS+ for builds.
+- **Run / build / test:** `pnpm preflight` is the one command that mirrors CI - build, typecheck,
+  the guard suite, tests, coverage, contrast, geometry, axe, keyboard, tokens, pack, boundary, API
+  surface and size budgets. It is checked against `.github/workflows/ci.yml` by
+  `check-ci-gates.mjs`, so it cannot drift silently. Individually: `pnpm build`, `pnpm typecheck`,
+  `pnpm test`, `pnpm check` (the deterministic guards), `pnpm size`. Slow and network-bound gates
+  are deliberately outside preflight and listed as exemptions with reasons: `pnpm test:mutation`,
+  `pnpm test:e2e`, `pnpm verify:consumers`, `pnpm audit`.
 - **Deploy & CI:** publish to public npm under the `@luzentialabs` scope, automated from the
   default branch, gated on green CI. Releases are **immutable** - a bad release is fixed forward
   with a patch, never unpublished.
@@ -161,13 +165,21 @@ Fill these in. This is the part an agent cannot infer.
   - **Accessibility is split across two seats on purpose.** Idris (ux) decides inclusive design;
     Mira (qa) proves it. Neither may assume the other covered it.
 
-## Current state (2026-08-21)
+## Current state
 
-Specifications only - no code, no toolchain, no tests. PRD is at v0.2.0 with Tier 1 review
-conditions applied. Four working seats are accepted in `sdlc-studio/personas/seats/`.
-**F00 (the 5-working-day foundations pass) blocks F01 and therefore blocks every component.**
-Outstanding from the team consultation: Tier 2 (9 conditions), Tier 3 (12), operator calls (6),
-open questions (3). See `sdlc-studio/reviews/prd-team-consult-2026-08-21.md`.
+**Do not restate the numbers here - read `sdlc-studio/reviews/LATEST.md`.** This section said
+"specifications only - no code, no toolchain, no tests" for three epics after the toolchain, the
+token pipeline and 24 components had shipped, while instructing every agent that "any claim that a
+build or test command passes is false". A stale orientation file does not merely fail to help; it
+actively misinforms the one reader who has no other context, which is exactly the reader it exists
+for.
+
+The rule that follows from that: this section carries no counts, no percentages and no status. It
+names where the truth lives and nothing else.
+
+- **State snapshot:** `sdlc-studio/reviews/LATEST.md`, rewritten at the close of each run.
+- **What is decided and why:** `sdlc-studio/decisions.md`.
+- **What is left:** `/sdlc-studio status`, then `/sdlc-studio hint`.
 
 ## Don't
 

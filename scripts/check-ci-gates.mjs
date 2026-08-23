@@ -107,11 +107,18 @@ const preflight = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), '
 if (!preflight) {
   errors.push('package.json has no `preflight` script - the one command that mirrors CI')
 } else {
-  for (const step of workflow.jobs?.gates?.steps ?? []) {
+  // Exact command matching, via the same reader the gate-wiring half uses. A `.includes` test is
+  // the substring bug this file's header describes fixing, and it came straight back: `pnpm check`
+  // was satisfied by the presence of `pnpm check:component-css`, so the whole guard suite and the
+  // whole test suite could each be dropped from preflight with this check green.
+  const inPreflight = new Set(commandsIn(preflight))
+  // Every step in the workflow, not one hard-coded job id: renaming or splitting the job silently
+  // emptied the loop and the check stopped checking without saying so.
+  for (const step of workflow.steps ?? []) {
     const cmd = (step.run ?? '').trim()
-    if (!cmd || !cmd.startsWith('pnpm') && !cmd.startsWith('node')) continue
+    if (!cmd || (!cmd.startsWith('pnpm') && !cmd.startsWith('node'))) continue
     if (PREFLIGHT_EXEMPT.has(cmd)) continue
-    if (!preflight.includes(cmd)) {
+    if (!cmd.split('&&').map((c) => c.trim()).every((c) => inPreflight.has(c))) {
       errors.push(`preflight does not run "${cmd}", which ${CI} does - add it, or exempt it with a reason`)
     }
   }

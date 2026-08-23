@@ -72,6 +72,28 @@ const DOC_CLAIMS = {
       [/Clara debounces|we debounce for you|debounces? for you/i, 'a claim that Clara debounces, which is the opposite of the decision'],
     ],
   },
+  'field.md': {
+    require: [
+      [/\*\*A disabled field still submits\.\*\*/, 'the submission consequence of aria-disabled (D0068)'],
+      [/aria-disabled/, 'that disabled is aria-disabled rather than the native attribute'],
+      [/labelFor="group"|labelFor="group"/, 'the group labelling mode'],
+      [/^\|.*`required`.*\|/m, 'the required row of the wiring table'],
+    ],
+    forbid: [
+      [/native `?disabled`? attribute is used|uses the native disabled/i, 'a claim that Clara uses the native disabled attribute'],
+    ],
+  },
+  'input.md': {
+    require: [
+      [/^#+ .*[Aa]ffixes/m, 'a section on the affordances'],
+      [/does \*\*not\*\* set `maxLength`|not.{0,20}set `maxLength`/, 'that the counter does not impose a maxLength'],
+      [/returns focus to the\s+input/, 'that clearing returns focus to the input'],
+      [/aria-hidden/, 'that the affixes are decoration rather than announced content'],
+    ],
+    forbid: [
+      [/Clara overrides it/, 'the autofill override claim, which no rule in the repo implements'],
+    ],
+  },
   'switch.md': {
     require: [
       [/^\|.*\*\*Switch\*\*.*\|/m, 'a Switch row in the choice table'],

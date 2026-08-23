@@ -64,11 +64,20 @@ function atStepPrecision (n: number, step: number): string {
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput (
-  { size = 'md', unit, min, max, step = 1, className, onChange, onKeyDown, ...rest }, ref,
+  { size = 'md', unit, min, max, step, className, onChange, onKeyDown, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const inner = useRef<HTMLInputElement | null>(null)
-  const bounded = min !== undefined || max !== undefined
+  /**
+   * Whether the caller opted into NUMERIC semantics at all - by naming a bound or a step.
+   *
+   * `bounded` alone was the wrong line: a quantity field with `step={5}` and no maximum is an
+   * ordinary case and must still step. And keying stepping on nothing at all was worse - an
+   * unbounded control is the documented account-code case, and Arrow Up was rewriting 4417 to 4418
+   * and calling preventDefault, which also destroyed caret navigation in a plain text field.
+   */
+  const numeric = min !== undefined || max !== undefined || step !== undefined
+  const stepBySize = step ?? 1
 
   // `aria-valuenow` has to track the value, so the value has to be observable. A controlled
   // consumer supplies it; an uncontrolled one does not, so the last known value is held here and
@@ -88,10 +97,14 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
     const el = inner.current
     // `readOnly` stops the user TYPING; it does not stop us writing through the native setter, so
     // a disabled control still stepped on every arrow key.
-    if (!el || fieldDisabled(wiring)) return
+    //
+    // `bounded` too: stepping is the spinbutton's contract, and an unbounded control is a plain
+    // textbox - the documented account-code case. It was rewriting 4417 to 4418 on Arrow Up and
+    // calling preventDefault, which also destroyed caret navigation in a text field.
+    if (!el || !numeric || fieldDisabled(wiring)) return
     event.preventDefault()
     const from = Number(el.value)
-    const next = atStepPrecision(clamp((Number.isFinite(from) ? from : 0) + delta), step)
+    const next = atStepPrecision(clamp((Number.isFinite(from) ? from : 0) + delta), stepBySize)
     // Set through the native setter so React's onChange fires - assigning `.value` directly does
     // not, and a controlled consumer would never see the step.
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
@@ -101,18 +114,19 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 
   const jumpTo = (bound: number | undefined, event: KeyboardEvent<HTMLInputElement>) => {
     const el = inner.current
-    if (!el || bound === undefined || fieldDisabled(wiring)) return
+    if (!el || !numeric || bound === undefined || fieldDisabled(wiring)) return
     event.preventDefault()
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
     // Same formatting as stepBy: `String(1e-7)` is "1e-7", and scientific notation in a
     // currency field is not a value the user can work with.
-    setter?.call(el, atStepPrecision(bound, step))
+    setter?.call(el, atStepPrecision(bound, stepBySize))
     el.dispatchEvent(new Event('input', { bubbles: true }))
   }
 
   // A spinbutton that announces bounds but offers no way to reach them is half a contract, so the
-  // full APG key set travels with the role rather than arrow keys alone.
-  const spinbuttonAria = bounded
+  // full APG key set travels WITH THE ROLE - which means it is absent when there is no role, and
+  // an unbounded control keeps ordinary text-field key behaviour.
+  const spinbuttonAria = numeric
     ? {
         role: 'spinbutton',
         'aria-valuemin': min,
@@ -135,10 +149,10 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
         className={cx('clara-input', `clara-input--${size}`, 'clara-input--numeric', className)}
         {...spinbuttonAria}
         onKeyDown={(event) => {
-          if (event.key === 'ArrowUp') stepBy(step, event)
-          else if (event.key === 'ArrowDown') stepBy(-step, event)
-          else if (event.key === 'PageUp') stepBy(step * 10, event)
-          else if (event.key === 'PageDown') stepBy(-step * 10, event)
+          if (event.key === 'ArrowUp') stepBy(stepBySize, event)
+          else if (event.key === 'ArrowDown') stepBy(-stepBySize, event)
+          else if (event.key === 'PageUp') stepBy(stepBySize * 10, event)
+          else if (event.key === 'PageDown') stepBy(-stepBySize * 10, event)
           else if (event.key === 'Home') jumpTo(min, event)
           else if (event.key === 'End') jumpTo(max, event)
           onKeyDown?.(event)

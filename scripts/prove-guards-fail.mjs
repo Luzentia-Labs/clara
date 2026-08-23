@@ -838,9 +838,15 @@ const OUTPUT_CASES = [
     guard: 'check-component-css.mjs',
     expect: /focus-visible declares no `outline`/,
     stage: (stage) => {
+      // Gut the SHARED indicator block, leaving its selector list intact. Targeting one selector's
+      // own rule stopped working the moment that selector joined the shared list - and a mutation
+      // that no longer applies reports SURVIVED, which reads identically to a guard that broke.
       const f = join(stage, 'packages/react/src/styles.css')
       const text = readFileSync(f, 'utf8')
-      writeFileSync(f, text.replace(/(\.clara-link:focus-visible \{)[^}]*\}/, '$1 color: var(--clara-color-fg-default); }'))
+      const at = text.indexOf('.clara-input:focus-visible,')
+      const open = text.indexOf('{', at)
+      const close = text.indexOf('}', open)
+      writeFileSync(f, `${text.slice(0, open)}{ color: var(--clara-color-fg-default); }${text.slice(close + 1)}`)
     },
   },
   {
