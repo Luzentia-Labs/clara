@@ -61,8 +61,26 @@ export function useFieldWiring (): FieldWiring | null {
  * act on. A control with no readonly state (a checkbox, a radio, a switch) suppresses the change
  * itself; `fieldChangeGuard` is that suppression.
  */
-export function fieldAriaProps (wiring: FieldWiring | null, kind: 'text' | 'toggle' = 'text') {
-  if (!wiring) return {}
+export function fieldAriaProps (
+  wiring: FieldWiring | null,
+  kind: 'text' | 'toggle' = 'text',
+  /**
+   * A `disabled` the CONSUMER passed to the control directly.
+   *
+   * `disabled` is the first prop a React developer reaches for, and it was reaching the DOM through
+   * `{...rest}` - so `<Input disabled />` emitted the native attribute and left the tab order, which
+   * is precisely the failure D0058 and D0064 exist to prevent. Omitting the prop would make that a
+   * compile error, but it would also leave a standalone control with no way to be disabled at all.
+   * So the prop is kept and MEANS the Clara thing: same aria-disabled, same readOnly, same guard.
+   */
+  ownDisabled = false,
+) {
+  const disabled = Boolean(wiring?.disabled) || ownDisabled
+  if (!wiring) {
+    return disabled
+      ? { 'aria-disabled': true, ...(kind === 'text' ? { readOnly: true } : {}) }
+      : {}
+  }
   return {
     id: wiring.id,
     // Always, for every control. `htmlFor` alone made the name depend on the consumer choosing the
@@ -72,8 +90,8 @@ export function fieldAriaProps (wiring: FieldWiring | null, kind: 'text' | 'togg
     'aria-invalid': wiring.invalid || undefined,
     'aria-errormessage': wiring.invalid ? wiring.errorId : undefined,
     'aria-required': wiring.required || undefined,
-    'aria-disabled': wiring.disabled || undefined,
-    ...(kind === 'text' && wiring.disabled ? { readOnly: true } : {}),
+    'aria-disabled': disabled || undefined,
+    ...(kind === 'text' && disabled ? { readOnly: true } : {}),
   }
 }
 
@@ -98,12 +116,20 @@ export function fieldAriaProps (wiring: FieldWiring | null, kind: 'text' | 'togg
 export function fieldChangeGuard<E extends { preventDefault (): void }> (
   wiring: FieldWiring | null,
   handler: ((event: E) => void) | undefined,
+  /** A `disabled` the consumer passed to the control itself - it must suppress too. */
+  ownDisabled = false,
 ) {
   return (event: E) => {
-    if (wiring?.disabled) { event.preventDefault(); return }
+    if (wiring?.disabled || ownDisabled) { event.preventDefault(); return }
     handler?.(event)
   }
 }
 
-/** True when this wiring means "disabled" - for the controls that have to check it themselves. */
-export const fieldDisabled = (wiring: FieldWiring | null) => Boolean(wiring?.disabled)
+/**
+ * True when the control is disabled - by its Field, or by its own prop.
+ *
+ * The second argument matters: a control disabled directly must suppress its own interactions too,
+ * or `<SearchInput disabled />` still clears and `<NumberInput disabled />` still steps.
+ */
+export const fieldDisabled = (wiring: FieldWiring | null, ownDisabled = false) =>
+  Boolean(wiring?.disabled) || ownDisabled

@@ -19,7 +19,7 @@ export interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaE
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea (
-  { rows = 3, maxRows, className, onChange, ...rest }, ref,
+  { rows = 3, maxRows, className, onChange, disabled = false, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const inner = useRef<HTMLTextAreaElement | null>(null)
@@ -50,7 +50,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       rows={rows}
       className={cx('clara-input', 'clara-textarea', className)}
       onChange={(event) => { resize(); onChange?.(event) }}
-      {...fieldAriaProps(wiring)}
+      {...fieldAriaProps(wiring, 'text', disabled)}
       {...rest}
     />
   )

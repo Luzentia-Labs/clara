@@ -22,7 +22,7 @@ describe('Input', () => {
     expect(screen.getByRole('textbox').className).toContain(`clara-input--${size}`)
   })
 
-  it('is disabled by the Field, not by its own prop - and stays reachable', () => {
+  it('is disabled by the Field and stays reachable', () => {
     // aria-disabled, never the native attribute (D0058). This test previously asserted the
     // violation as correct, which is how an undiscussed divergence from an accepted decision
     // survived a whole epic.

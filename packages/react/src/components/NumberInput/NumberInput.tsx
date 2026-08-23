@@ -64,7 +64,7 @@ function atStepPrecision (n: number, step: number): string {
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput (
-  { size = 'md', unit, min, max, step, className, onChange, onKeyDown, ...rest }, ref,
+  { size = 'md', unit, min, max, step, className, onChange, onKeyDown, disabled = false, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const inner = useRef<HTMLInputElement | null>(null)
@@ -101,7 +101,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
     // `bounded` too: stepping is the spinbutton's contract, and an unbounded control is a plain
     // textbox - the documented account-code case. It was rewriting 4417 to 4418 on Arrow Up and
     // calling preventDefault, which also destroyed caret navigation in a text field.
-    if (!el || !numeric || fieldDisabled(wiring)) return
+    if (!el || !numeric || fieldDisabled(wiring, disabled)) return
     event.preventDefault()
     const from = Number(el.value)
     const next = atStepPrecision(clamp((Number.isFinite(from) ? from : 0) + delta), stepBySize)
@@ -114,7 +114,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 
   const jumpTo = (bound: number | undefined, event: KeyboardEvent<HTMLInputElement>) => {
     const el = inner.current
-    if (!el || !numeric || bound === undefined || fieldDisabled(wiring)) return
+    if (!el || !numeric || bound === undefined || fieldDisabled(wiring, disabled)) return
     event.preventDefault()
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
     // Same formatting as stepBy: `String(1e-7)` is "1e-7", and scientific notation in a
@@ -126,6 +126,20 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
   // A spinbutton that announces bounds but offers no way to reach them is half a contract, so the
   // full APG key set travels WITH THE ROLE - which means it is absent when there is no role, and
   // an unbounded control keeps ordinary text-field key behaviour.
+  /**
+   * A typed value can sit OUTSIDE the declared bounds.
+   *
+   * `min`/`max`/`step` never reach the DOM - they are destructured out - so the browser enforces
+   * nothing and clamping applies only to stepping. That is deliberate: clamping as the user types
+   * fights them mid-entry, and rejecting the keystroke loses a paste. But it means the control could
+   * announce `aria-valuenow="500"` beside `aria-valuemax="10"`, which is a contradiction a screen
+   * reader reads out in one breath. So an out-of-range value is announced as INVALID - the value
+   * stays truthful and the state is honest - unless the Field already says so, in which case the
+   * Field's error is the better message and this must not compete with it.
+   */
+  const outOfRange = Number.isFinite(asNumber) &&
+    ((min !== undefined && asNumber < min) || (max !== undefined && asNumber > max))
+
   const spinbuttonAria = numeric
     ? {
         role: 'spinbutton',
@@ -138,6 +152,11 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 
   return (
     <span className="clara-number">
+      {/*
+        * `aria-invalid` for an out-of-range value is spread AFTER the field wiring, not inside
+        * `spinbuttonAria`: that spread sets `aria-invalid: undefined` when the Field is valid, and
+        * silently erased it. When the Field IS invalid its own value already stands.
+        */}
       <input
         ref={(node) => {
           inner.current = node
@@ -161,7 +180,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
           if (!controlled) setSeen(event.currentTarget.value)
           onChange?.(event)
         }}
-        {...fieldAriaProps(wiring)}
+        {...fieldAriaProps(wiring, 'text', disabled)}
+        {...(outOfRange ? { 'aria-invalid': true } : {})}
         {...rest}
       />
       {unit ? <span className="clara-number__unit">{unit}</span> : null}

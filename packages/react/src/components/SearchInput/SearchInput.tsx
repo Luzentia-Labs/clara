@@ -26,7 +26,7 @@ export interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
 }
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(function SearchInput (
-  { clearable = true, onClear, className, ...rest }, ref,
+  { clearable = true, onClear, className, disabled = false, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const inner = useRef<HTMLInputElement | null>(null)
@@ -38,7 +38,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(functi
   const hasValue = (controlled ? String(rest.value ?? '') : typed).length > 0
 
   const clear = () => {
-    if (fieldDisabled(wiring)) return
+    if (fieldDisabled(wiring, disabled)) return
     const el = inner.current
     if (el) {
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
@@ -62,7 +62,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(functi
         }}
         type="search"
         className={cx('clara-input', 'clara-input--search', className)}
-        {...fieldAriaProps(wiring)}
+        {...fieldAriaProps(wiring, 'text', disabled)}
         {...rest}
         onChange={(event) => {
           if (!controlled) setTyped(event.currentTarget.value)

@@ -17,7 +17,7 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
 }
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox (
-  { indeterminate = false, label, className, onClick, onChange, ...rest }, ref,
+  { indeterminate = false, label, className, onClick, onChange, disabled = false, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const ownId = useId()
@@ -52,16 +52,16 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
       type="checkbox"
       className={cx('clara-checkbox', className)}
       aria-checked={indeterminate ? 'mixed' : undefined}
-      {...fieldAriaProps(wiring, 'toggle')}
+      {...fieldAriaProps(wiring, 'toggle', disabled)}
       // aria-disabled keeps the control reachable but does not stop it toggling, so the click has
       // to be suppressed the way Button suppresses activation (D0058).
       onClick={fieldChangeGuard(wiring, (event: React.MouseEvent<HTMLInputElement>) => {
         // Restore before anything else observes the node: the native toggle has already cleared it.
         applyIndeterminate()
         onClick?.(event)
-      })}
+      }, disabled)}
       // The change goes through the guard as well as the click - see fieldChangeGuard.
-      onChange={fieldChangeGuard(wiring, onChange)}
+      onChange={fieldChangeGuard(wiring, onChange, disabled)}
       {...(ownLabel ? { id: ownId } : {})}
       {...rest}
     />

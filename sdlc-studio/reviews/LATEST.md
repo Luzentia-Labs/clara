@@ -10,16 +10,16 @@
 **The form framework is built and its ten stories verify clean**, after **five rounds of
 adversarial review, each of which rejected the previous round's work**. The Field plus nine controls
 (Input, Textarea, NumberInput, PasswordInput, SearchInput, Checkbox, Switch, RadioGroup,
-CheckboxGroup) are on `main`, with 834 tests and every gate green. Nothing is on npm. The stories
+CheckboxGroup) are on `main`, with 846 tests and every gate green. Nothing is on npm. The stories
 are **not yet transitioned to Done** - that waits on the round-4 review and the operator's own
 sign-off, because the author never records their own verdict.
 
 ## Numbers
 
 - `pnpm check` runs **28 guards**; `prove-guards-fail` kills **82 mutations** on a staged copy.
-- **834 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- **846 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **84 decisions**. Stories: **31 Done of 88**. `main` is the only branch - this project is
+- **85 decisions**. Stories: **31 Done of 88**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line
@@ -75,6 +75,16 @@ was differing id *values*; an axe fixture rendered without the prop that trigger
   produced a commit whose message described work it did not contain.
 - **`pnpm preflight` before every push** (D0075). It mirrors CI and is checked against the workflow,
   so it cannot go stale. CI went red twice on gates that were not re-run.
+
+## Known gap in the tooling itself
+
+**An acceptance criterion's `Verified:` stamp does not expire when the criterion's TEXT changes.**
+Rewriting a criterion leaves its stamp in place, so a criterion can be certified by a run that
+judged different words. Caught by a review seat on NumberInput AC3, where a clause added on the 24th
+sat under a stamp dated the 23rd - and the widened verifier had not yet run. Re-running
+`verify_ac.py run` resolves an instance; nothing prevents the next one. A fix would pin a hash of
+the criterion text beside the stamp, which is a change to the artefact format and belongs in the
+skill rather than here.
 
 ## What is still not verified, and is named rather than implied
 

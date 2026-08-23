@@ -16,7 +16,7 @@ import { fieldAriaProps, fieldDisabled, useFieldWiring } from '../../lib/field-c
 export interface PasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {}
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(function PasswordInput (
-  { className, ...rest }, ref,
+  { className, disabled = false, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const [revealed, setRevealed] = useState(false)
@@ -27,15 +27,15 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(fu
         ref={ref}
         type={revealed ? 'text' : 'password'}
         className={cx('clara-input', className)}
-        {...fieldAriaProps(wiring)}
+        {...fieldAriaProps(wiring, 'text', disabled)}
         {...rest}
       />
       <button
         type="button"
         id={toggleId}
         className="clara-password__toggle"
-        onClick={() => { if (fieldDisabled(wiring)) return; setRevealed((v) => !v) }}
-        aria-disabled={wiring?.disabled || undefined}
+        onClick={() => { if (fieldDisabled(wiring, disabled)) return; setRevealed((v) => !v) }}
+        aria-disabled={fieldDisabled(wiring, disabled) || undefined}
       >
         {revealed ? 'Hide password' : 'Show password'}
       </button>

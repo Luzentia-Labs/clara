@@ -15,7 +15,7 @@ export interface SwitchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
 }
 
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch (
-  { label, className, onClick, onChange, ...rest }, ref,
+  { label, className, onClick, onChange, disabled = false, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const ownId = useId()
@@ -29,11 +29,11 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch 
       type="checkbox"
       role="switch"
       className={cx('clara-switch', className)}
-      {...fieldAriaProps(wiring, 'toggle')}
+      {...fieldAriaProps(wiring, 'toggle', disabled)}
       // See Checkbox: aria-disabled does not stop a toggle by itself (D0058).
-      onClick={fieldChangeGuard(wiring, onClick)}
+      onClick={fieldChangeGuard(wiring, onClick, disabled)}
       // The change goes through the guard as well as the click - see fieldChangeGuard.
-      onChange={fieldChangeGuard(wiring, onChange)}
+      onChange={fieldChangeGuard(wiring, onChange, disabled)}
       {...(ownLabel ? { id: ownId } : {})}
       {...rest}
     />

@@ -764,7 +764,7 @@ describe('a disabled Field suppresses the interaction by pointer and keyboard al
     expect(onBoxes).not.toHaveBeenCalled()
   })
 
-  it('keeps every disabled control REACHABLE, which is the whole reason for aria-disabled', async () => {
+  it('keeps a disabled Input REACHABLE, which is the whole reason for aria-disabled', async () => {
     render(
       <>
         <button>before</button>
@@ -1189,5 +1189,84 @@ describe('every text control forwards its ref to the real element', () => {
     // and it is the element the user actually types into, not a wrapper that happens to be one
     ref.current?.focus()
     expect(document.activeElement).toBe(ref.current)
+  })
+})
+
+describe('NumberInput does not announce a value its own bounds contradict', () => {
+  // `min`/`max`/`step` never reach the DOM, so the browser enforces nothing and clamping applies
+  // only to stepping - deliberately, because clamping as the user types fights them mid-entry and
+  // rejecting the keystroke loses a paste. But the control was then announcing `aria-valuenow=500`
+  // beside `aria-valuemax=10`, a contradiction a screen reader reads out in one breath.
+  it('marks an out-of-range value invalid, keeping the announced value truthful', async () => {
+    inField(<NumberInput min={0} max={10} />)
+    const el = screen.getByRole('spinbutton')
+    await userEvent.type(el, '500')
+    expect(el).toHaveAttribute('aria-valuenow', '500')
+    expect(el).toHaveAttribute('aria-valuemax', '10')
+    expect(el).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('says nothing about validity while the value is within bounds', async () => {
+    inField(<NumberInput min={0} max={10} />)
+    const el = screen.getByRole('spinbutton')
+    await userEvent.type(el, '7')
+    expect(el).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('defers to the Field, which owns the error message', async () => {
+    // Two sources of invalidity on one control is one too many, and the Field's carries text.
+    inField(<NumberInput min={0} max={10} />, { error: 'Enter a quantity between 0 and 10' })
+    const el = screen.getByRole('spinbutton')
+    await userEvent.type(el, '500')
+    expect(el).toHaveAttribute('aria-errormessage')
+    expect(el.getAttribute('aria-invalid')).toBe('true')
+  })
+})
+
+describe('a consumer disabling a control directly gets Clara disabled, not native disabled', () => {
+  // `disabled` is the first prop a React developer reaches for, and it was reaching the DOM through
+  // `{...rest}` - so `<Input disabled />` emitted the native attribute and left the tab order, which
+  // is precisely the failure D0058 and D0064 exist to prevent. It is public surface on a one-way
+  // door, so it was worth settling before the first publish rather than after.
+  it.each([
+    ['Input', <Input disabled />, 'textbox'],
+    ['Textarea', <Textarea disabled />, 'textbox'],
+    ['NumberInput', <NumberInput min={0} max={9} disabled />, 'spinbutton'],
+    ['SearchInput', <SearchInput disabled />, 'searchbox'],
+    ['Checkbox', <Checkbox disabled />, 'checkbox'],
+    ['Switch', <Switch disabled />, 'switch'],
+  ] as const)('%s keeps its tab stop', (_name, control, role) => {
+    render(<Field label="Value">{control}</Field>)
+    const el = screen.getByRole(role)
+    expect(el).toHaveAttribute('aria-disabled', 'true')
+    expect(el).not.toBeDisabled()
+    el.focus()
+    expect(el).toHaveFocus()
+  })
+
+  it('PasswordInput keeps its tab stop too - it has no textbox role to query by', () => {
+    // `type="password"` has no implicit role at all, which is why it is not in the table above.
+    const { container } = render(<Field label="Value"><PasswordInput disabled /></Field>)
+    const el = container.querySelector('input') as HTMLInputElement
+    expect(el).toHaveAttribute('aria-disabled', 'true')
+    expect(el).not.toBeDisabled()
+    el.focus()
+    expect(el).toHaveFocus()
+  })
+
+  it('suppresses the interaction too, not only the appearance', async () => {
+    const onChange = vi.fn()
+    render(<Field label="Value"><Checkbox disabled onChange={onChange} /></Field>)
+    await userEvent.click(screen.getByRole('checkbox'))
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('checkbox')).not.toBeChecked()
+  })
+
+  it('works standalone, with no Field at all', () => {
+    render(<Input disabled aria-label="Loose" />)
+    const el = screen.getByRole('textbox')
+    expect(el).toHaveAttribute('aria-disabled', 'true')
+    expect(el).not.toBeDisabled()
+    expect(el).toHaveAttribute('readonly')
   })
 })

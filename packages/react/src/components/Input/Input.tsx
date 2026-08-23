@@ -44,7 +44,7 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input (
-  { size = 'md', className, type = 'text', prefix, suffix, clearable = false, onClear, maxCount, onChange, ...rest }, ref,
+  { size = 'md', className, type = 'text', prefix, suffix, clearable = false, onClear, maxCount, onChange, disabled = false, ...rest }, ref,
 ) {
   const wiring = useFieldWiring()
   const inner = useRef<HTMLInputElement | null>(null)
@@ -55,7 +55,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input (
   const decorated = prefix !== undefined || suffix !== undefined || clearable || maxCount !== undefined
 
   const clear = () => {
-    if (fieldDisabled(wiring)) return
+    if (fieldDisabled(wiring, disabled)) return
     const el = inner.current
     if (el) {
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
@@ -68,7 +68,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input (
     onClear?.()
   }
 
-  const aria: Record<string, unknown> = fieldAriaProps(wiring)
+  const aria: Record<string, unknown> = fieldAriaProps(wiring, 'text', disabled)
   const describedBy = [aria['aria-describedby'] as string | undefined, maxCount === undefined ? undefined : countId]
     .filter(Boolean).join(' ') || undefined
 
@@ -106,7 +106,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input (
             className="clara-input-group__clear"
             id={`${countId}-clear`}
             aria-labelledby={wiring ? `${countId}-clear ${wiring.labelId}` : undefined}
-            aria-disabled={fieldDisabled(wiring) || undefined}
+            aria-disabled={fieldDisabled(wiring, disabled) || undefined}
             onClick={clear}
           >
             Clear

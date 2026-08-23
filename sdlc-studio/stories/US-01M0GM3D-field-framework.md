@@ -146,7 +146,7 @@ a Server Component cannot.
 - **Given** a disabled Field
 - **When** it renders
 - **Then** the control is aria-disabled and readOnly, NOT natively disabled - it keeps its tab stop, so the reason attached to it can be reached (D0058, D0028)
-- **Verify:** vitest "keeps every disabled control REACHABLE"
+- **Verify:** vitest "keeps a disabled Input REACHABLE|a consumer disabling a control directly"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
