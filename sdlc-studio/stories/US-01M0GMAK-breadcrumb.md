@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK5K
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Breadcrumb/**, packages/react/src/components/Breadcrumb/verification.md
+> **Affects:** packages/react/src/components/Breadcrumb/**, packages/react/src/components/Breadcrumb/verification.md, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story

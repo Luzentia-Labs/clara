@@ -5,7 +5,7 @@
 > **Created:** 2026-08-22
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Affects:** packages/react/vite.config.ts, packages/react/src, packages/react/client-boundary.json, scripts/lib/chunk-plan.mjs, scripts/lib/directive.mjs, scripts/lib/exports-read.mjs, scripts/lib/finalize-dual.mjs, scripts/check-client-boundary.mjs, scripts/check-bundled-peers.mjs, scripts/prove-guards-fail.mjs, scripts/prove-coverage-gate.mjs, test/setup.ts
+> **Affects:** packages/react/vite.config.ts, packages/react/src, packages/react/client-boundary.json, scripts/lib/chunk-plan.mjs, scripts/lib/directive.mjs, scripts/lib/exports-read.mjs, scripts/lib/finalize-dual.mjs, scripts/check-client-boundary.mjs, scripts/check-bundled-peers.mjs, scripts/prove-guards-fail.mjs, scripts/prove-coverage-gate.mjs, test/setup.ts, scripts/check-exports.mjs, test/build/chunk-placement.test.ts
 > **Epic:** EP-01M0GKNH
 > **Points:** 8
 > **Persona:** Sofia Marchetti

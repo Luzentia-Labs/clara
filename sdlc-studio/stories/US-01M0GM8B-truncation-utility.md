@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK5K
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Truncation/**, packages/react/src/components/Truncation/verification.md
+> **Affects:** packages/react/src/components/Truncation/**, packages/react/src/components/Truncation/verification.md, scripts/check-component-css.mjs
 > **Points:** 3
 
 ## User Story

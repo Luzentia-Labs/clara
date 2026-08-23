@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/EmptyState/**, packages/react/src/components/EmptyState/index.tsx
+> **Affects:** packages/react/src/components/EmptyState/**, packages/react/src/components/EmptyState/index.tsx, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story

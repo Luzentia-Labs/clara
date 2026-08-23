@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** .github/workflows/ci.yml, apps/verify-next, apps/verify-vite
+> **Affects:** .github/workflows/ci.yml, apps/verify-next, apps/verify-vite, scripts/check-ci-gates.mjs, scripts/verify-consumers.mjs
 > **Points:** 3
 
 ## User Story

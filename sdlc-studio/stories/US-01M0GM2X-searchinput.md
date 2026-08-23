@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** apps/docs/src/content/components/search-input.md, packages/react/src/components/SearchInput/**, packages/react/src/components/SearchInput/verification.md
+> **Affects:** apps/docs/src/content/components/search-input.md, packages/react/src/components/SearchInput/**, packages/react/src/components/SearchInput/verification.md, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story

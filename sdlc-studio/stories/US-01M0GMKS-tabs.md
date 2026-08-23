@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK5K
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Tabs/**, packages/react/src/components/Tabs/verification.md
+> **Affects:** packages/react/src/components/Tabs/**, packages/react/src/components/Tabs/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story

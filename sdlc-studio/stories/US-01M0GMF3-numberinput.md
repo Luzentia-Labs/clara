@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/NumberInput/**, packages/react/src/components/NumberInput/verification.md
+> **Affects:** packages/react/src/components/NumberInput/**, packages/react/src/components/NumberInput/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story

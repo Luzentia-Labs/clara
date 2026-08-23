@@ -11,7 +11,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** ./packages/react/package.json, packages/tokens/package.json, packages/icons/package.json, scripts/check-exports.mjs, packages/tokens/LICENSE, packages/icons/LICENSE, packages/react/LICENSE
+> **Affects:** ./packages/react/package.json, packages/tokens/package.json, packages/icons/package.json, scripts/check-exports.mjs, packages/tokens/LICENSE, packages/icons/LICENSE, packages/react/LICENSE, scripts/check-license.mjs, scripts/prove-guards-fail.mjs
 > **Points:** 5
 
 ## User Story

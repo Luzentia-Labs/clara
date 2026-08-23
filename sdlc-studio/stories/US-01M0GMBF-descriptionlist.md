@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK5K
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/DescriptionList/**, packages/react/src/components/DescriptionList/index.tsx
+> **Affects:** packages/react/src/components/DescriptionList/**, packages/react/src/components/DescriptionList/index.tsx, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story

@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Modal/**, packages/react/src/components/Modal/verification.md
+> **Affects:** packages/react/src/components/Modal/**, packages/react/src/components/Modal/verification.md, scripts/check-component-css.mjs
 > **Points:** 8
 
 ## User Story

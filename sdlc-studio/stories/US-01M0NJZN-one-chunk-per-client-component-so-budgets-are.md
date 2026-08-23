@@ -5,7 +5,7 @@
 > **Created:** 2026-08-23
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Affects:** scripts/lib/chunk-plan.mjs, scripts/check-client-boundary.mjs, scripts/lib/finalize-dual.mjs, .size-limit.json
+> **Affects:** scripts/lib/chunk-plan.mjs, scripts/check-client-boundary.mjs, scripts/lib/finalize-dual.mjs, .size-limit.json, scripts/lib/__tests__/chunk-plan.test.ts, scripts/sync-size-budgets.mjs, test/build/chunk-placement.test.ts
 > **Epic:** EP-01M0GKNH
 > **Points:** 5
 > **Persona:** Sofia Marchetti

@@ -10,7 +10,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** ./playwright.config.ts, ./.size-limit.json, ./stryker.conf.json, ./vitest.config.ts
+> **Affects:** ./playwright.config.ts, ./.size-limit.json, ./stryker.conf.json, ./vitest.config.ts, scripts/check-mutation-config.mjs, scripts/prove-coverage-gate.mjs
 > **Points:** 8
 
 ## User Story

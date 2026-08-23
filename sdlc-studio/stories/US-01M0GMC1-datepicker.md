@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK91
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/etc/clara-react.api.md, packages/react/src/components/DatePicker/**, packages/react/src/components/DatePicker/verification.md
+> **Affects:** packages/react/etc/clara-react.api.md, packages/react/src/components/DatePicker/**, packages/react/src/components/DatePicker/verification.md, scripts/check-component-css.mjs
 > **Points:** 8
 
 ## User Story

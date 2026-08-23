@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK91
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/MultiSelect/**, packages/react/src/components/MultiSelect/verification.md
+> **Affects:** packages/react/src/components/MultiSelect/**, packages/react/src/components/MultiSelect/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story

@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Alert/**, packages/react/src/components/Alert/index.tsx
+> **Affects:** packages/react/src/components/Alert/**, packages/react/src/components/Alert/index.tsx, scripts/check-component-css.mjs
 > **Points:** 3
 
 ## User Story

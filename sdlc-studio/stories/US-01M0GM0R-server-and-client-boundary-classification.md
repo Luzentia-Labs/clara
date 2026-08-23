@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/CLIENT-BOUNDARY.md, packages/react/client-boundary.json, scripts/check-client-boundary.mjs, packages/react/src/components
+> **Affects:** packages/react/CLIENT-BOUNDARY.md, packages/react/client-boundary.json, scripts/check-client-boundary.mjs, packages/react/src/components, packages/react/src/components/__tests__/boundary.test.tsx
 > **Points:** 3
 
 ## User Story

@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** ./package.json, packages/react/package.json, pnpm-workspace.yaml
+> **Affects:** ./package.json, packages/react/package.json, pnpm-workspace.yaml, scripts/check-layers.mjs
 > **Points:** 2
 
 ## User Story

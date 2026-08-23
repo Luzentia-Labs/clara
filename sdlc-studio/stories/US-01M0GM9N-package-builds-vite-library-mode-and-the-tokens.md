@@ -10,7 +10,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/vite.config.ts, packages/tokens/style-dictionary.config.js, scripts/lib/finalize-dual.mjs, scripts/lib/bundle-record.mjs, packages/tokens/generate-ramps.mjs
+> **Affects:** packages/react/vite.config.ts, packages/tokens/style-dictionary.config.js, scripts/lib/finalize-dual.mjs, scripts/lib/bundle-record.mjs, packages/tokens/generate-ramps.mjs, scripts/check-bundled-peers.mjs, scripts/check-token-output.mjs
 > **Points:** 5
 
 ## User Story

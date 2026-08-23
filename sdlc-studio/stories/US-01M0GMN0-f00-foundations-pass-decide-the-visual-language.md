@@ -8,7 +8,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNG
 > **Serves:** Sofia Marchetti
-> **Affects:** design/foundations.md
+> **Affects:** design/foundations.md, scripts/check-foundations.mjs
 > **Points:** 8
 
 > **DIRECTION DECIDED 2026-08-22 (D0036).** The operator took the Idris seat's leanings in full:

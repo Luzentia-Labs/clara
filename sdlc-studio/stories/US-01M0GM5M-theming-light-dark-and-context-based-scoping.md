@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNG
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/src/theme, packages/react/src/index.ts, scripts/lib/surface-contract.mjs, scripts/api-report.mjs
+> **Affects:** packages/react/src/theme, packages/react/src/index.ts, scripts/lib/surface-contract.mjs, scripts/api-report.mjs, packages/react/src/theme/__tests__/theming.test.tsx
 > **Points:** 8
 
 ## User Story

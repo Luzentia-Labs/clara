@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNG
 > **Serves:** Sofia Marchetti
-> **Affects:** scripts/check-component-css.mjs, packages/tokens/src/component, packages/tokens/style-dictionary.config.js, packages/react/src/styles.css, ci-gates.json
+> **Affects:** scripts/check-component-css.mjs, packages/tokens/src/component, packages/tokens/style-dictionary.config.js, packages/react/src/styles.css, ci-gates.json, scripts/check-public-tokens.mjs, scripts/check-token-output.mjs
 > **Points:** 5
 
 ## User Story

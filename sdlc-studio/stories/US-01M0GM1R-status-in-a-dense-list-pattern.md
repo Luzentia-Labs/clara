@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK5K
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** apps/docs/src/content/patterns/status-in-lists.md, packages/react/src/components/Status/index.tsx
+> **Affects:** apps/docs/src/content/patterns/status-in-lists.md, packages/react/src/components/Status/index.tsx, scripts/check-component-css.mjs
 > **Points:** 3
 
 ## User Story

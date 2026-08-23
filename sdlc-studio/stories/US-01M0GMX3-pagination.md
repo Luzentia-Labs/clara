@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK5K
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Pagination/**, packages/react/src/components/Pagination/verification.md
+> **Affects:** packages/react/src/components/Pagination/**, packages/react/src/components/Pagination/verification.md, scripts/check-component-css.mjs
 > **Points:** 3
 
 ## User Story

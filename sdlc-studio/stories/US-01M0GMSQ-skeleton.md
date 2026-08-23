@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Skeleton/**, packages/react/src/components/Skeleton/index.tsx
+> **Affects:** packages/react/src/components/Skeleton/**, packages/react/src/components/Skeleton/index.tsx, scripts/check-component-css.mjs
 > **Points:** 1
 
 ## User Story

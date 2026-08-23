@@ -8,7 +8,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNG
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/tokens/generate-semantic.mjs, packages/tokens/src/semantic/color.json, packages/tokens/src/themes/dark.json, packages/tokens/src/pairings.json, packages/tokens/contrast-required.json, packages/tokens/tokens.public.lock.json, scripts/lib/row-surface.mjs
+> **Affects:** packages/tokens/generate-semantic.mjs, packages/tokens/src/semantic/color.json, packages/tokens/src/themes/dark.json, packages/tokens/src/pairings.json, packages/tokens/contrast-required.json, packages/tokens/tokens.public.lock.json, scripts/lib/row-surface.mjs, packages/tokens/src/__tests__/pairings.test.ts, scripts/check-contrast.mjs, scripts/check-public-tokens.mjs, scripts/check-token-output.mjs
 > **Points:** 8
 
 ## User Story

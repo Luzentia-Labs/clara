@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK91
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** apps/reference-app/src/screens/List.tsx, packages/react/src/components/DateRangePicker/**, packages/react/src/components/DateRangePicker/verification.md
+> **Affects:** apps/reference-app/src/screens/List.tsx, packages/react/src/components/DateRangePicker/**, packages/react/src/components/DateRangePicker/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story

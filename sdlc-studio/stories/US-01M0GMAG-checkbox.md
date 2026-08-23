@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GKM2
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Checkbox/**, packages/react/src/components/Checkbox/verification.md
+> **Affects:** packages/react/src/components/Checkbox/**, packages/react/src/components/Checkbox/verification.md, scripts/check-component-css.mjs
 > **Points:** 3
 
 ## User Story

@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNG
 > **Serves:** Sofia Marchetti
-> **Affects:** apps/docs/src/content/foundations/tokens.md, packages/tokens/dist/tokens.public.json, scripts/check-public-tokens.mjs
+> **Affects:** apps/docs/src/content/foundations/tokens.md, packages/tokens/dist/tokens.public.json, scripts/check-public-tokens.mjs, scripts/check-token-output.mjs
 > **Points:** 2
 
 ## User Story

@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNG
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/src/components/Heading, packages/react/src/components/Text, packages/tokens/src/semantic/geometry.json, packages/react/src/styles.css
+> **Affects:** packages/react/src/components/Heading, packages/react/src/components/Text, packages/tokens/src/semantic/geometry.json, packages/react/src/styles.css, packages/react/src/components/__tests__/typography.test.tsx, scripts/check-component-css.mjs, scripts/check-token-output.mjs
 > **Points:** 3
 
 ## User Story

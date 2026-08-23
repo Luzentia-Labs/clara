@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKNH
 > **Serves:** Sofia Marchetti
-> **Affects:** apps/verify-next, packages/react/dist/styles.css, scripts/lib/cascade-layer.mjs
+> **Affects:** apps/verify-next, packages/react/dist/styles.css, scripts/lib/cascade-layer.mjs, scripts/check-stylesheets.mjs, test/cascade-layer.test.ts
 > **Points:** 3
 
 ## User Story

@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKGS
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/src/components/Box, packages/react/src/styles.css, packages/react/src/components/__tests__/matrix.test.tsx, packages/react/src/components/__tests__/primitives.test.tsx
+> **Affects:** packages/react/src/components/Box, packages/react/src/styles.css, packages/react/src/components/__tests__/matrix.test.tsx, packages/react/src/components/__tests__/primitives.test.tsx, packages/react/src/components/Box/index.tsx, scripts/api-report.mjs, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story

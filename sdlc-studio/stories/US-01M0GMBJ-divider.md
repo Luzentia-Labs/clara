@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GKGS
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/src/components/Divider, packages/react/src/styles.css, packages/react/src/components/__tests__/matrix.test.tsx, packages/react/src/components/__tests__/primitives.test.tsx
+> **Affects:** packages/react/src/components/Divider, packages/react/src/styles.css, packages/react/src/components/__tests__/matrix.test.tsx, packages/react/src/components/__tests__/primitives.test.tsx, packages/react/src/components/Divider/index.tsx, scripts/check-component-css.mjs
 > **Points:** 1
 
 ## User Story
