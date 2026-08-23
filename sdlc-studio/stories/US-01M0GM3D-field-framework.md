@@ -272,6 +272,24 @@ a Server Component cannot.
 
 - None open.
 
+## Test Plan
+
+| Criterion | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- |
+| AC1 | Drop `htmlFor` from the Field label - 8 tests die. | Compound composition |
+| AC2 | Replace `useId()` with `String(Math.random())`; hydration reports a mismatch and the test asserts on that report, because React keeps the server DOM and comparing markup cannot see it. | ARIA is automatic and SSR-safe |
+| AC3 | Render the label as a `<span>` with no association. | Real label, never a placeholder |
+| AC4 | Render the error region unconditionally instead of only when there is an error, so `role="alert"` fires on mount. | Error announces once |
+| AC5 | Reverse the `aria-describedby` order so the error precedes the description. | Description and error coexist, in a documented order |
+| AC6 | MANUAL. No mutant: what VoiceOver speaks is not observable from a test. | Both are actually announced |
+| AC7 | Ignore the consumer `value`/`defaultValue` so the control stops tracking it. | Uncontrolled and controlled |
+| AC8 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC9 | Rename `data-clara-theme` in `resolve.ts` so the attribute no longer matches what the emitted theme stylesheet selects on. | Both themes and densities |
+| AC10 | Emit the native `disabled` attribute instead of `aria-disabled` + `readOnly`; the control leaves the tab order and the focus assertion dies. | Disabled stays reachable |
+| AC11 | Pass the wiring by cloning children instead of by context - a wrapped control stops being wired. | A wrapped control is still wired |
+| AC12 | Delete the guard from `onClick` (consumer handler runs) or from `onChange` (the toggle happens). Both are covered separately. | Disabled suppresses the interaction |
+| AC13 | Delete a verification record, empty its Stated gaps, remove its keyboard table, or delete a docs page. | Definition of done |
+
 ## Revision History
 
 | Date | Author | Change |

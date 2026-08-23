@@ -202,6 +202,18 @@ belongs when the thing that is wrong is that nothing was chosen.
 
 - None open.
 
+## Test Plan
+
+| Criterion | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- |
+| AC1 | Give each radio a distinct `name`, which breaks the browser's own single-tab-stop grouping. | Roving focus |
+| AC2 | Export a bare `Radio`. The verifier also asserts the API report exists and is non-empty, so deleting it fails rather than passing. | Radio only exists in a group |
+| AC3 | Move `aria-invalid`/`aria-errormessage` from the fieldset onto an individual radio. | Group error |
+| AC4 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC5 | Rename the theme or density attribute. | Both themes and densities |
+| AC6 | Delete `aria-labelledby` from the fieldset, or stop hiding the legend in group mode. Both are asserted on BOTH groups. | The Field label names the group |
+| AC7 | Delete the RadioGroup verification record or its docs page. | Definition of done |
+
 ## Revision History
 
 | Date | Author | Change |

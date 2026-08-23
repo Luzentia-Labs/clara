@@ -206,6 +206,18 @@ story is mostly about not inheriting either.
 
 - None open.
 
+## Test Plan
+
+| Criterion | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- |
+| AC1 | Change `type="text"` to `type="number"`, which is what makes the wheel harmless. Deleting the old `onWheel` blur handler proves nothing, which is why that handler was removed. | No wheel mutation |
+| AC2 | Disable `clamp()`. Verified: the stepping half of the verifier dies. | Constraints and formatting |
+| AC3 | Delete `PageUp`/`PageDown`, `Home`/`End`, or the `+ mantissa` term in `atStepPrecision`. | Keyboard stepping |
+| AC4 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC5 | Rename the theme or density attribute. | Both themes and densities |
+| AC6 | Emit `aria-valuemin`/`max` without `role="spinbutton"`; axe reports a critical `aria-allowed-attr`, and the role query stops resolving. | Reaching the bounds |
+| AC7 | Delete the NumberInput verification record or its docs page. | Definition of done |
+
 ## Revision History
 
 | Date | Author | Change |

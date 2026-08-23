@@ -183,6 +183,16 @@ what the toggle is called.
 
 - None open.
 
+## Test Plan
+
+| Criterion | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- |
+| AC1 | Name the toggle after its state rather than its action, so it reads "Hide password" while the value is hidden. | Toggle is operable and labelled |
+| AC2 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC3 | Rename the theme or density attribute. | Both themes and densities |
+| AC4 | Delete `if (fieldDisabled(wiring)) return` from the toggle - a disabled field then reveals its value. | Reveal keeps the user in the field |
+| AC5 | Delete the PasswordInput verification record or its docs page. | Definition of done |
+
 ## Revision History
 
 | Date | Author | Change |

@@ -40,3 +40,7 @@ reports/
 
 # api-extractor scratch output
 packages/*/temp/
+
+# Agent worktrees (EnterWorktree / isolated review agents). Never committed - these are
+# full checkouts of this repo, and D0070 requires review agents to run in their own tree.
+.claude/worktrees/

@@ -192,6 +192,17 @@ model.
 
 - None open.
 
+## Test Plan
+
+| Criterion | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- |
+| AC1 | Drop the `<legend>`, so the fieldset has no accessible name. | Group semantics |
+| AC2 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC3 | Rename the theme or density attribute. | Both themes and densities |
+| AC4 | Derive the selected set from `defaultValue` instead of state, so uncontrolled use reports only the last box touched. | Uncontrolled use accumulates |
+| AC5 | Move the error association off the fieldset onto an individual box. | Group error |
+| AC6 | Delete the CheckboxGroup verification record or its docs page. | Definition of done |
+
 ## Revision History
 
 | Date | Author | Change |
