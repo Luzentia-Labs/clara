@@ -4,33 +4,66 @@
 
 ```ts
 
+import { AnchorHTMLAttributes } from 'react';
+import { ComponentPropsWithoutRef } from 'react';
+import { ComponentPropsWithRef } from 'react';
+import { ElementType } from 'react';
+import { ForwardRefExoticComponent } from 'react';
 import { JSX as JSX_2 } from 'react';
+import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { ReactPortal } from 'react';
-
-// @public (undocumented)
-export function Box(input: BoxProps): JSX_2.Element;
+import { RefAttributes } from 'react';
 
 // @public
-export interface BoxProps {
+export interface AsProp<C extends ElementType> {
     // (undocumented)
-    children?: ReactNode;
+    as?: C;
+}
+
+// @public (undocumented)
+export const Box: <C extends ElementType = "div">(props: PolymorphicPropsWithRef<C, BoxOwnProps>) => ReactElement | null;
+
+// @public
+export interface BoxOwnProps {
     // (undocumented)
     padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
 // @public (undocumented)
-export function Button(input: ButtonProps): JSX_2.Element;
+export type BoxProps<C extends ElementType = 'div'> = PolymorphicPropsWithRef<C, BoxOwnProps>;
+
+// @public (undocumented)
+export const Button: <C extends ElementType = "button">(props: PolymorphicPropsWithRef<C, ButtonOwnProps>) => ReactElement | null;
+
+// @public (undocumented)
+export const ButtonGroup: ForwardRefExoticComponent<ButtonGroupProps & RefAttributes<HTMLDivElement>>;
 
 // @public
-export interface ButtonProps {
+export interface ButtonGroupProps {
     // (undocumented)
     children?: ReactNode;
     // (undocumented)
-    onClick?: () => void;
+    className?: string;
+    label: string;
+    // (undocumented)
+    orientation?: 'horizontal' | 'vertical';
+}
+
+// @public
+export interface ButtonOwnProps {
+    // (undocumented)
+    children?: ReactNode;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    onClick?: (event: React.MouseEvent) => void;
     // (undocumented)
     variant?: 'primary' | 'secondary';
 }
+
+// @public (undocumented)
+export type ButtonProps<C extends ElementType = 'button'> = PolymorphicPropsWithRef<C, ButtonOwnProps>;
 
 // @public
 export function ClaraPortal(input: ClaraPortalProps): ReactPortal | null;
@@ -70,6 +103,32 @@ export interface ClaraScopeProps {
 }
 
 // @public (undocumented)
+export const Divider: ForwardRefExoticComponent<DividerProps & RefAttributes<HTMLHRElement>>;
+
+// @public
+export interface DividerProps {
+    // (undocumented)
+    className?: string;
+    decorative?: boolean;
+    // (undocumented)
+    orientation?: 'horizontal' | 'vertical';
+}
+
+// @public (undocumented)
+export const Grid: <C extends ElementType = "div">(props: PolymorphicPropsWithRef<C, GridOwnProps>) => ReactElement | null;
+
+// @public
+export interface GridOwnProps {
+    // (undocumented)
+    columns?: 1 | 2 | 3 | 4 | 6 | 12;
+    // (undocumented)
+    gap?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+// @public (undocumented)
+export type GridProps<C extends ElementType = 'div'> = PolymorphicPropsWithRef<C, GridOwnProps>;
+
+// @public (undocumented)
 export function Heading(input: HeadingProps): JSX_2.Element;
 
 // @public
@@ -79,6 +138,72 @@ export interface HeadingProps {
     level: 1 | 2 | 3 | 4 | 5 | 6;
     size?: 'sm' | 'md' | 'lg';
 }
+
+// @public (undocumented)
+export const IconButton: ForwardRefExoticComponent<IconButtonProps & RefAttributes<HTMLButtonElement>>;
+
+// @public
+export interface IconButtonProps extends Omit<ButtonOwnProps, 'children'> {
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    icon: ReactNode;
+    label: string;
+}
+
+// @public (undocumented)
+export const Inline: <C extends ElementType = "div">(props: PolymorphicPropsWithRef<C, InlineOwnProps>) => ReactElement | null;
+
+// @public
+export interface InlineOwnProps {
+    // (undocumented)
+    align?: 'start' | 'center' | 'end' | 'stretch';
+    // (undocumented)
+    gap?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+// @public (undocumented)
+export type InlineProps<C extends ElementType = 'div'> = PolymorphicPropsWithRef<C, InlineOwnProps>;
+
+// @public (undocumented)
+export const Link: ForwardRefExoticComponent<LinkProps & RefAttributes<HTMLAnchorElement>>;
+
+// @public
+export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
+    // (undocumented)
+    children?: ReactNode;
+    // (undocumented)
+    external?: boolean;
+    // (undocumented)
+    href: string;
+}
+
+// Warning: (ae-forgotten-export) The symbol "OwnKeys" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type PolymorphicProps<C extends ElementType, Props = Record<never, never>> = Props & AsProp<C> & Omit<ComponentPropsWithoutRef<C>, OwnKeys<C, Props>>;
+
+// @public
+export type PolymorphicPropsWithRef<C extends ElementType, Props = Record<never, never>> = PolymorphicProps<C, Props> & {
+    ref?: PolymorphicRef<C>;
+};
+
+// @public
+export type PolymorphicRef<C extends ElementType> = ComponentPropsWithRef<C>['ref'];
+
+// @public (undocumented)
+export const Stack: <C extends ElementType = "div">(props: PolymorphicPropsWithRef<C, StackOwnProps>) => ReactElement | null;
+
+// @public
+export interface StackOwnProps {
+    // (undocumented)
+    align?: 'start' | 'center' | 'end' | 'stretch';
+    // (undocumented)
+    gap?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+// @public (undocumented)
+export type StackProps<C extends ElementType = 'div'> = PolymorphicPropsWithRef<C, StackOwnProps>;
 
 // @public (undocumented)
 function Text_2(input: TextProps): JSX_2.Element;

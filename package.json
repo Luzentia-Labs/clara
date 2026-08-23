@@ -17,7 +17,7 @@
     "check:layers": "node scripts/check-layers.mjs",
     "check:private": "node scripts/check-private.mjs",
     "check:peers": "node scripts/check-peers.mjs",
-    "check": "pnpm check:layers && pnpm check:private && pnpm check:peers && pnpm check:exports && pnpm check:license && pnpm check:bundled-peers && pnpm check:token-output && pnpm check:stylesheets && pnpm check:contrast && pnpm check:foundations && pnpm check:mutation-config && pnpm check:coverage-gate && pnpm check:api && pnpm check:ci-gates && pnpm check:release && pnpm check:client-boundary && pnpm check:pack && pnpm check:size-budgets && pnpm check:public-tokens && pnpm check:component-css && pnpm check:geometry && pnpm check:prove-guards",
+    "check": "pnpm check:layers && pnpm check:private && pnpm check:peers && pnpm check:exports && pnpm check:license && pnpm check:bundled-peers && pnpm check:token-output && pnpm check:stylesheets && pnpm check:contrast && pnpm check:foundations && pnpm check:mutation-config && pnpm check:coverage-gate && pnpm check:api && pnpm check:ci-gates && pnpm check:release && pnpm check:client-boundary && pnpm check:pack && pnpm check:size-budgets && pnpm check:public-tokens && pnpm check:component-css && pnpm check:geometry && pnpm check:axe && pnpm check:prove-guards",
     "check:exports": "node scripts/check-exports.mjs",
     "check:license": "node scripts/check-license.mjs",
     "check:bundled-peers": "node scripts/check-bundled-peers.mjs",
@@ -49,7 +49,8 @@
     "check:size-budgets": "node scripts/sync-size-budgets.mjs --check",
     "check:public-tokens": "node scripts/check-public-tokens.mjs",
     "check:component-css": "node scripts/check-component-css.mjs",
-    "check:geometry": "npx vitest run packages/tokens/src/__tests__/density.test.ts --silent"
+    "check:geometry": "npx vitest run packages/tokens/src/__tests__/density.test.ts --silent",
+    "check:axe": "npx vitest run packages/react/src/components/__tests__/primitives.test.tsx -t \"accessibility\" --silent"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",

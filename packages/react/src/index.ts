@@ -1,22 +1,36 @@
 import './styles.css'
 
-// Box and Button only. Both are minimal, and minimal is safe here: adding props later is additive
-// and therefore a minor, while renaming or removing one is permanent (AGENTS.md - publishing is a
-// one-way door).
-//
-// Table and TableSortButton are deliberately NOT exported. They exist under src/components/Table/
-// as build fixtures for the co-location case - a client component living inside a server
-// component's directory, which shipped undirectived until D0047 - and they are unit-tested there.
-// Exporting them would freeze a three-line placeholder as Clara's Table API, and freeze a
-// component name (`TableSortButton`) that appears nowhere in the TRD.
-export { Button } from './components/Button/Button'
-export type { ButtonProps } from './components/Button/Button'
+// Server-capable primitives - no function props, no state, no browser APIs, so they carry no
+// directive and a consumer rendering them never crosses a client boundary.
 export { Box } from './components/Box/Box'
-export type { BoxProps } from './components/Box/Box'
+export type { BoxProps, BoxOwnProps } from './components/Box/Box'
+export { Stack } from './components/Stack/Stack'
+export type { StackProps, StackOwnProps } from './components/Stack/Stack'
+export { Inline } from './components/Inline/Inline'
+export type { InlineProps, InlineOwnProps } from './components/Inline/Inline'
+export { Grid } from './components/Grid/Grid'
+export type { GridProps, GridOwnProps } from './components/Grid/Grid'
+export { Divider } from './components/Divider/Divider'
+export type { DividerProps } from './components/Divider/Divider'
 export { Heading } from './components/Heading/Heading'
 export type { HeadingProps } from './components/Heading/Heading'
 export { Text } from './components/Text/Text'
 export type { TextProps } from './components/Text/Text'
+export { Link } from './components/Link/Link'
+export type { LinkProps } from './components/Link/Link'
+export { ButtonGroup } from './components/ButtonGroup/ButtonGroup'
+export type { ButtonGroupProps } from './components/ButtonGroup/ButtonGroup'
+
+// Client-only.
+export { Button } from './components/Button/Button'
+export type { ButtonProps, ButtonOwnProps } from './components/Button/Button'
+export { IconButton } from './components/IconButton/IconButton'
+export type { IconButtonProps } from './components/IconButton/IconButton'
+
+// `as` is Clara's single polymorphism idiom (D0008).
+export type { PolymorphicProps, PolymorphicPropsWithRef, PolymorphicRef, AsProp } from './lib/polymorphic'
+
+// Theming and density travel by React context (TRD ADR-006).
 export { ClaraProvider } from './theme/ClaraProvider'
 export type { ClaraProviderProps } from './theme/ClaraProvider'
 export { ClaraScope } from './theme/ClaraScope'

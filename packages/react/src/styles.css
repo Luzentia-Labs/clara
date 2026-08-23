@@ -85,3 +85,57 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Layout primitives. Gaps are semantic steps, so they tighten with density automatically. */
+.clara-vertical { display: flex; flex-direction: column; }
+.clara-horizontal { display: flex; flex-direction: row; flex-wrap: wrap; }
+
+.clara-vertical--gap-none, .clara-horizontal--gap-none { gap: var(--clara-box-padding-none); }
+.clara-vertical--gap-sm, .clara-horizontal--gap-sm { gap: var(--clara-space-control-gap); }
+.clara-vertical--gap-md, .clara-horizontal--gap-md { gap: var(--clara-space-stack); }
+.clara-vertical--gap-lg, .clara-horizontal--gap-lg { gap: var(--clara-space-section); }
+
+.clara-vertical--align-start, .clara-horizontal--align-start { align-items: flex-start; }
+.clara-vertical--align-center, .clara-horizontal--align-center { align-items: center; }
+.clara-vertical--align-end, .clara-horizontal--align-end { align-items: flex-end; }
+.clara-vertical--align-stretch, .clara-horizontal--align-stretch { align-items: stretch; }
+
+.clara-grid { display: grid; }
+.clara-grid--cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.clara-grid--cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.clara-grid--cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.clara-grid--cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.clara-grid--cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.clara-grid--cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.clara-grid--gap-none { gap: var(--clara-box-padding-none); }
+.clara-grid--gap-sm { gap: var(--clara-space-control-gap); }
+.clara-grid--gap-md { gap: var(--clara-space-stack); }
+.clara-grid--gap-lg { gap: var(--clara-space-section); }
+
+.clara-divider {
+  border: var(--clara-box-padding-none);
+  background: var(--clara-color-border-default);
+  margin: var(--clara-box-padding-none);
+}
+.clara-divider--horizontal { height: var(--clara-button-border-width); width: 100%; }
+.clara-divider--vertical { width: var(--clara-button-border-width); align-self: stretch; }
+
+/*
+ * A disabled button stays focusable (D0028) - it uses aria-disabled, not the disabled attribute -
+ * so it must still LOOK unavailable while remaining readable. Clara does not take WCAG's contrast
+ * exemption for disabled text: an ERP form is frequently mostly disabled, and the user still has
+ * to read it.
+ */
+.clara-button--disabled {
+  background: var(--clara-button-disabled-bg);
+  color: var(--clara-button-disabled-fg);
+  cursor: not-allowed;
+}
+
+.clara-button-group { display: flex; gap: var(--clara-space-adjacent-target); }
+.clara-button-group--vertical { flex-direction: column; }
+
+.clara-icon-button__icon { display: inline-flex; }
+
+.clara-link { color: var(--clara-color-fg-link); }
+.clara-link__external { margin-inline-start: var(--clara-space-control-gap); font-size: var(--clara-font-caption); }

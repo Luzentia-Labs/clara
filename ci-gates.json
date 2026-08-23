@@ -32,9 +32,9 @@
     {
       "n": 5,
       "gate": "axe: zero serious or critical violations",
-      "status": "pending",
-      "story": "US-01M0GM69",
-      "trd": 4
+      "status": "wired",
+      "trd": 4,
+      "run": "pnpm check:axe"
     },
     {
       "n": 6,

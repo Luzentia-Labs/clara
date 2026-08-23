@@ -36,7 +36,7 @@
     {
       "name": "Divider",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "EmptyState",
@@ -46,7 +46,7 @@
     {
       "name": "Grid",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Heading",
@@ -56,7 +56,7 @@
     {
       "name": "Inline",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Skeleton",
@@ -66,7 +66,7 @@
     {
       "name": "Stack",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Tag",
@@ -85,8 +85,8 @@
     },
     {
       "name": "ButtonGroup",
-      "boundary": "client",
-      "status": "planned"
+      "boundary": "server",
+      "status": "built"
     },
     {
       "name": "Checkbox",
@@ -131,7 +131,7 @@
     {
       "name": "IconButton",
       "boundary": "client",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Input",
@@ -226,6 +226,11 @@
     {
       "name": "ClaraPortal",
       "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "Link",
+      "boundary": "server",
       "status": "built"
     }
   ]

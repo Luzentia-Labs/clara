@@ -1,16 +1,24 @@
+import type { ElementType } from 'react'
 import { cx } from '../../lib/cx'
-import type { ReactNode } from 'react'
+import { polymorphicForwardRef } from '../../lib/polymorphic'
+import type { PolymorphicPropsWithRef, PolymorphicRef } from '../../lib/polymorphic'
 
 /**
- * Server-capable by the TRD Section 7 rule: no function props, no state, no effects, no refs, no
- * browser APIs. It therefore carries NO directive, and a consumer rendering it in an App Router
- * page never crosses a client boundary.
+ * Server-capable: no function props, no state, no browser APIs.
+ *
+ * The spacing scale is a closed set rather than a number, so `padding` cannot drift off the
+ * density system - a raw value would look identical and stop responding to density.
  */
-export interface BoxProps {
-  children?: ReactNode
+export interface BoxOwnProps {
   padding?: 'none' | 'sm' | 'md' | 'lg'
 }
 
-export function Box ({ children, padding = 'none' }: BoxProps) {
-  return <div className={cx('clara-box', `clara-box--${padding}`)}>{children}</div>
-}
+export type BoxProps<C extends ElementType = 'div'> = PolymorphicPropsWithRef<C, BoxOwnProps>
+
+export const Box = polymorphicForwardRef<BoxOwnProps, 'div'>(function Box<C extends ElementType = 'div'> (
+  { as, padding = 'none', className, ...rest }: BoxProps<C>,
+  ref: PolymorphicRef<C>,
+) {
+  const Component = (as ?? 'div') as ElementType
+  return <Component ref={ref} className={cx('clara-box', `clara-box--${padding}`, className)} {...rest} />
+})

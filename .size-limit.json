@@ -76,5 +76,17 @@
       "react/jsx-runtime",
       "react-dom/client"
     ]
+  },
+  {
+    "name": "IconButton (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-IconButton.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
   }
 ]
