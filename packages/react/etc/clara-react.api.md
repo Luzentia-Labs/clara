@@ -9,11 +9,13 @@ import { ComponentPropsWithoutRef } from 'react';
 import { ComponentPropsWithRef } from 'react';
 import { ElementType } from 'react';
 import { ForwardRefExoticComponent } from 'react';
+import { InputHTMLAttributes } from 'react';
 import { JSX as JSX_2 } from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { ReactPortal } from 'react';
 import { RefAttributes } from 'react';
+import { TextareaHTMLAttributes } from 'react';
 
 // @public
 export interface AsProp<C extends ElementType> {
@@ -68,6 +70,51 @@ export interface ButtonOwnProps {
 // @public (undocumented)
 export type ButtonProps<C extends ElementType = 'button'> = PolymorphicPropsWithRef<C, ButtonOwnProps>;
 
+// @public (undocumented)
+export const Checkbox: ForwardRefExoticComponent<CheckboxProps & RefAttributes<HTMLInputElement>>;
+
+// @public (undocumented)
+export function CheckboxGroup(input: CheckboxGroupProps): JSX_2.Element;
+
+// @public
+export interface CheckboxGroupProps {
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    defaultValue?: string[];
+    // (undocumented)
+    legend: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    onChange?: (value: string[]) => void;
+    // (undocumented)
+    options: CheckboxOption[];
+    // (undocumented)
+    orientation?: 'vertical' | 'horizontal';
+    // (undocumented)
+    value?: string[];
+}
+
+// @public (undocumented)
+export interface CheckboxOption {
+    // (undocumented)
+    description?: string;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    value: string;
+}
+
+// @public
+export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
+    indeterminate?: boolean;
+    // (undocumented)
+    label?: string;
+}
+
 // @public
 export function ClaraPortal(input: ClaraPortalProps): ReactPortal | null;
 
@@ -115,6 +162,37 @@ export interface DividerProps {
     decorative?: boolean;
     // (undocumented)
     orientation?: 'horizontal' | 'vertical';
+}
+
+// @public (undocumented)
+export function Field(input: FieldProps): JSX_2.Element;
+
+// @public
+export interface FieldProps {
+    // (undocumented)
+    children?: ReactNode;
+    // (undocumented)
+    className?: string;
+    description?: string | undefined;
+    // (undocumented)
+    disabled?: boolean;
+    error?: string | undefined;
+    label: string;
+    // (undocumented)
+    required?: boolean;
+}
+
+// @public
+export interface FieldWiring {
+    describedBy: string | undefined;
+    // (undocumented)
+    disabled: boolean;
+    errorId: string | undefined;
+    id: string;
+    // (undocumented)
+    invalid: boolean;
+    // (undocumented)
+    required: boolean;
 }
 
 // @public (undocumented)
@@ -169,6 +247,14 @@ export interface InlineOwnProps {
 export type InlineProps<C extends ElementType = 'div'> = PolymorphicPropsWithRef<C, InlineOwnProps>;
 
 // @public (undocumented)
+export const Input: ForwardRefExoticComponent<InputProps & RefAttributes<HTMLInputElement>>;
+
+// @public
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'size'> {
+    size?: 'sm' | 'md';
+}
+
+// @public (undocumented)
 export const Link: ForwardRefExoticComponent<LinkProps & RefAttributes<HTMLAnchorElement>>;
 
 // @public
@@ -179,6 +265,23 @@ export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>,
     external?: boolean;
     // (undocumented)
     href: string;
+}
+
+// @public (undocumented)
+export const NumberInput: ForwardRefExoticComponent<NumberInputProps & RefAttributes<HTMLInputElement>>;
+
+// @public
+export interface NumberInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type' | 'size'> {
+    // (undocumented)
+    size?: 'sm' | 'md';
+    unit?: string;
+}
+
+// @public (undocumented)
+export const PasswordInput: ForwardRefExoticComponent<PasswordInputProps & RefAttributes<HTMLInputElement>>;
+
+// @public
+export interface PasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
 }
 
 // Warning: (ae-forgotten-export) The symbol "OwnKeys" needs to be exported by the entry point index.d.ts
@@ -195,6 +298,48 @@ export type PolymorphicPropsWithRef<C extends ElementType, Props = Record<never,
 export type PolymorphicRef<C extends ElementType> = ComponentPropsWithRef<C>['ref'];
 
 // @public (undocumented)
+export function RadioGroup(input: RadioGroupProps): JSX_2.Element;
+
+// @public
+export interface RadioGroupProps {
+    // (undocumented)
+    children?: ReactNode;
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    defaultValue?: string;
+    legend: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    onChange?: (value: string) => void;
+    // (undocumented)
+    options: RadioOption[];
+    // (undocumented)
+    orientation?: 'vertical' | 'horizontal';
+    // (undocumented)
+    value?: string;
+}
+
+// @public (undocumented)
+export interface RadioOption {
+    description?: string;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    value: string;
+}
+
+// @public (undocumented)
+export const SearchInput: ForwardRefExoticComponent<SearchInputProps & RefAttributes<HTMLInputElement>>;
+
+// @public
+export interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
+}
+
+// @public (undocumented)
 export const Stack: <C extends ElementType = "div">(props: PolymorphicPropsWithRef<C, StackOwnProps>) => ReactElement | null;
 
 // @public
@@ -209,8 +354,26 @@ export interface StackOwnProps {
 export type StackProps<C extends ElementType = 'div'> = PolymorphicPropsWithRef<C, StackOwnProps>;
 
 // @public (undocumented)
+export const Switch: ForwardRefExoticComponent<SwitchProps & RefAttributes<HTMLInputElement>>;
+
+// @public
+export interface SwitchProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
+    // (undocumented)
+    label?: string;
+}
+
+// @public (undocumented)
 function Text_2(input: TextProps): JSX_2.Element;
 export { Text_2 as Text }
+
+// @public (undocumented)
+export const Textarea: ForwardRefExoticComponent<TextareaProps & RefAttributes<HTMLTextAreaElement>>;
+
+// @public
+export interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> {
+    // (undocumented)
+    rows?: number;
+}
 
 // @public
 export interface TextProps {
@@ -228,6 +391,9 @@ export interface TextProps {
 //
 // @public
 export function useClaraSettings(): ClaraSettings;
+
+// @public
+export function useFieldWiring(): FieldWiring | null;
 
 // (No @packageDocumentation comment for this package)
 

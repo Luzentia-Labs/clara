@@ -54,6 +54,30 @@
     ]
   },
   {
+    "name": "Checkbox (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-Checkbox.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
+    "name": "CheckboxGroup (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-CheckboxGroup.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
     "name": "ClaraPortal (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-ClaraPortal.js",
     "limit": "5 kB",
@@ -90,8 +114,104 @@
     ]
   },
   {
+    "name": "Field (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-Field.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
     "name": "IconButton (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-IconButton.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
+    "name": "Input (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-Input.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
+    "name": "NumberInput (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-NumberInput.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
+    "name": "PasswordInput (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-PasswordInput.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
+    "name": "RadioGroup (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-RadioGroup.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
+    "name": "SearchInput (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-SearchInput.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
+    "name": "Switch (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-Switch.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
+  },
+  {
+    "name": "Textarea (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-Textarea.js",
     "limit": "5 kB",
     "gzip": true,
     "ignore": [

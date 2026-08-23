@@ -164,3 +164,89 @@
 
 /* Colour alone cannot distinguish a link (WCAG 1.4.1) - the underline is the affordance. */
 .clara-link { color: var(--clara-color-fg-link); text-decoration: underline; }
+
+/* ── Form framework ─────────────────────────────────────────────────────────────────────
+ * The label is a real element, always. Placeholder-as-label disappears the moment the user
+ * types, and in a dense form that is unrecoverable (WCAG 3.3.2).
+ */
+.clara-field { display: grid; gap: var(--clara-space-control-gap); }
+.clara-field__label { font-size: var(--clara-font-body); color: var(--clara-color-fg-default); font-weight: 500; }
+.clara-field__required { color: var(--clara-color-fg-danger); margin-inline-start: var(--clara-space-control-gap); }
+.clara-field__description { font-size: var(--clara-font-caption); color: var(--clara-color-fg-muted); margin: 0; }
+.clara-field__error { font-size: var(--clara-font-caption); color: var(--clara-color-fg-danger); margin: 0; }
+
+.clara-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--clara-size-control-height);
+  padding: var(--clara-space-control-padding-y) var(--clara-space-control-padding-x);
+  font: inherit;
+  font-size: var(--clara-font-body);
+  color: var(--clara-color-fg-default);
+  background: var(--clara-color-bg-surface);
+  border: var(--clara-border-width-default) solid var(--clara-color-border-default);
+  border-radius: var(--clara-radius-control);
+}
+.clara-input--sm { min-height: var(--clara-space-section); }
+.clara-input--numeric { font-variant-numeric: tabular-nums; text-align: right; }
+.clara-textarea { min-height: var(--clara-space-section); resize: vertical; }
+
+/* The two-part focus indicator (D0054), same as every other control. */
+.clara-input:focus-visible,
+.clara-checkbox:focus-visible,
+.clara-radio:focus-visible,
+.clara-switch:focus-visible {
+  outline: var(--clara-border-width-focus) solid var(--clara-color-border-focus);
+  outline-offset: var(--clara-border-width-focus);
+  box-shadow: 0 0 0 var(--clara-border-width-focus) var(--clara-color-border-focus-offset);
+}
+
+/* Invalid is announced AND shown. Colour is reinforcement, not the signal - the error text is. */
+.clara-field--invalid .clara-input { border-color: var(--clara-color-border-strong); }
+
+/* Readonly and disabled stay readable. Clara does not take WCAG's contrast exemption for
+ * disabled text: an ERP form is frequently mostly disabled and the user still has to read it. */
+.clara-input:disabled {
+  background: var(--clara-color-bg-disabled);
+  color: var(--clara-color-fg-disabled);
+}
+.clara-input:read-only { color: var(--clara-color-fg-readonly); }
+
+.clara-choice { display: inline-flex; align-items: center; gap: var(--clara-space-control-gap); }
+.clara-choice__label { font-size: var(--clara-font-body); color: var(--clara-color-fg-default); }
+.clara-choice__description { font-size: var(--clara-font-caption); color: var(--clara-color-fg-muted); }
+
+.clara-checkbox, .clara-radio, .clara-switch {
+  min-width: var(--clara-size-target-min);
+  min-height: var(--clara-size-target-min);
+  accent-color: var(--clara-color-bg-accent-emphasis);
+}
+
+.clara-radio-group, .clara-checkbox-group {
+  display: grid;
+  gap: var(--clara-space-adjacent-target);
+  border: var(--clara-box-padding-none);
+  padding: var(--clara-box-padding-none);
+  margin: var(--clara-box-padding-none);
+}
+.clara-radio-group--horizontal, .clara-checkbox-group--horizontal { grid-auto-flow: column; justify-content: start; }
+.clara-radio-group__legend, .clara-checkbox-group__legend {
+  font-size: var(--clara-font-body);
+  color: var(--clara-color-fg-default);
+  padding: var(--clara-box-padding-none);
+  font-weight: 500;
+}
+
+.clara-number { display: inline-flex; align-items: center; gap: var(--clara-space-control-gap); width: 100%; }
+.clara-number__unit { font-size: var(--clara-font-caption); color: var(--clara-color-fg-muted); }
+.clara-password { display: inline-flex; align-items: center; gap: var(--clara-space-control-gap); width: 100%; }
+.clara-password__toggle {
+  font: inherit;
+  font-size: var(--clara-font-caption);
+  color: var(--clara-color-fg-link);
+  background: none;
+  border: var(--clara-box-padding-none);
+  cursor: pointer;
+  text-decoration: underline;
+  min-height: var(--clara-size-target-min);
+}

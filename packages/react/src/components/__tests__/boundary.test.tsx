@@ -38,8 +38,26 @@ const components: Array<[string, Renderable]> = Object.entries(Clara)
 const boundaryOf = (name: string) =>
   classification.components.find((c) => c.name === name)?.boundary
 
+/**
+ * The props a component cannot render without.
+ *
+ * Kept explicit rather than rendering everything bare: a component with a REQUIRED prop is that
+ * way on purpose - `IconButton` without a label and `RadioGroup` without a legend are the defects
+ * those props exist to prevent - so the suite supplies them rather than treating the component as
+ * untestable.
+ */
+const REQUIRED_PROPS: Record<string, Record<string, unknown>> = {
+  Field: { label: 'Label' },
+  IconButton: { label: 'Action', icon: null },
+  ButtonGroup: { label: 'Actions' },
+  Link: { href: '/x' },
+  RadioGroup: { name: 'r', legend: 'Question', options: [{ value: 'a', label: 'A' }] },
+  CheckboxGroup: { name: 'c', legend: 'Question', options: [{ value: 'a', label: 'A' }] },
+  Heading: { level: 2 },
+}
+
 /** Render with the watched globals replaced by getters that record any read. */
-function renderRecordingGlobalReads (component: Renderable) {
+function renderRecordingGlobalReads (component: Renderable, props: Record<string, unknown> = {}) {
   const touched: string[] = []
   const saved = WATCHED.map((key) => {
     const descriptor = Object.getOwnPropertyDescriptor(globalThis, key)
@@ -51,7 +69,7 @@ function renderRecordingGlobalReads (component: Renderable) {
     return { key, descriptor }
   })
   try {
-    return { markup: renderToStaticMarkup(createElement(component)), touched }
+    return { markup: renderToStaticMarkup(createElement(component, props as never)), touched }
   } finally {
     // Restore the ORIGINAL descriptor. Replacing jsdom's prototype accessor with an own data
     // property would leave later tests reading a frozen snapshot instead of the live accessor.
@@ -73,14 +91,15 @@ describe('server render', () => {
 
   // A client component still has to server-render its initial markup without crashing - that is
   // what "no hydration mismatch" requires. What NO component may do is read a browser API.
-  it.each(components)('%s renders on the server without reading a browser global', (_name, component) => {
-    const { touched } = renderRecordingGlobalReads(component as Renderable)
+  it.each(components)('%s renders on the server without reading a browser global', (name, component) => {
+    const { touched } = renderRecordingGlobalReads(component as Renderable, REQUIRED_PROPS[name] ?? {})
     expect(touched).toEqual([])
   })
 
-  it.each(components)('%s renders identically twice, so hydration has nothing to disagree with', (_n, component) => {
-    expect(renderToStaticMarkup(createElement(component as Renderable)))
-      .toBe(renderToStaticMarkup(createElement(component as Renderable)))
+  it.each(components)('%s renders identically twice, so hydration has nothing to disagree with', (name, component) => {
+    const props = (REQUIRED_PROPS[name] ?? {}) as never
+    expect(renderToStaticMarkup(createElement(component as Renderable, props)))
+      .toBe(renderToStaticMarkup(createElement(component as Renderable, props)))
   })
 
   it('the recording getters actually detect a read', () => {

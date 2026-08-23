@@ -6,7 +6,9 @@
     "Table": "Static parts are server-capable; interactive parts (sort, select, resize) are client.",
     "Alert": "Non-dismissible is server-capable; a dismissible Alert takes onDismiss and is therefore client.",
     "ClaraProvider": "Client-only: resolves the system colour-scheme preference in an effect, and holds context state.",
-    "ButtonGroup": "Client-only: roving tabindex needs state and a DOM effect (US-01M0GM3S AC1)."
+    "ButtonGroup": "Client-only: roving tabindex needs state and a DOM effect (US-01M0GM3S AC1).",
+    "Field": "Client-only, reclassified during implementation: Field renders a context Provider, and a Server Component cannot - so it and every control reading that context are client-only. The context object itself lives in lib/, not components/, because it is infrastructure rather than a component and does not belong in this classification.",
+    "Checkbox": "Client-only: `indeterminate` is a DOM property that must be set in an effect."
   },
   "components": [
     {
@@ -92,7 +94,7 @@
     {
       "name": "Checkbox",
       "boundary": "client",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Combobox",
@@ -127,7 +129,7 @@
     {
       "name": "Field",
       "boundary": "client",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "IconButton",
@@ -137,7 +139,7 @@
     {
       "name": "Input",
       "boundary": "client",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Menu",
@@ -167,7 +169,7 @@
     {
       "name": "RadioGroup",
       "boundary": "client",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Select",
@@ -177,7 +179,7 @@
     {
       "name": "Switch",
       "boundary": "client",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Tabs",
@@ -187,7 +189,7 @@
     {
       "name": "Textarea",
       "boundary": "client",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "TimePicker",
@@ -232,6 +234,26 @@
     {
       "name": "Link",
       "boundary": "server",
+      "status": "built"
+    },
+    {
+      "name": "PasswordInput",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "NumberInput",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "CheckboxGroup",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "SearchInput",
+      "boundary": "client",
       "status": "built"
     }
   ]
