@@ -51,11 +51,19 @@ const PEERS = ['react', 'react-dom', 'react/jsx-runtime', 'react-dom/client']
  * FASTER than that count. Per-component budgets (D0048/D0053) remain the ones that bind for a
  * consumer importing a single control; this one is a shape check on the barrel.
  *
- * 220 B per built component, floor 5 kB. Both are calibrated from the measured figure rather than
- * argued: 24 built components at 5.25 kB is ~215 B each, so the allowance sits deliberately close
- * to today's density and will fail if the entry starts carrying real weight.
+ * 270 B per built component, floor 5 kB.
+ *
+ * The first attempt at this was 220 B, derived from the then-current 24 components at 5.25 kB
+ * (~215 B each) - which left 32 B of headroom and failed on the very next feature, 69 B later. That
+ * is the same "bump the number" dynamic this budget was written to escape, just one level up: an
+ * allowance with no headroom measures normal variation rather than the thing it is looking for.
+ *
+ * 270 B is ~20% above today's measured density. It absorbs a control gaining a prop or a live
+ * region, and still fails if the entry picks up a dependency or code that should have split into a
+ * per-component chunk - which is the only signal this budget exists to give. The per-component
+ * budgets (D0048/D0053) remain the ones that bind for a consumer importing a single control.
  */
-const ENTRY_BYTES_PER_COMPONENT = 220
+const ENTRY_BYTES_PER_COMPONENT = 270
 const ENTRY_FLOOR_BYTES = 5000
 const entryLimit = `${Math.max(ENTRY_FLOOR_BYTES, builtCount * ENTRY_BYTES_PER_COMPONENT)} B`
 

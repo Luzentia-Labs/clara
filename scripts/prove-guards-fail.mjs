@@ -877,6 +877,20 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // `pnpm preflight` is the one command that answers "will this break CI?". A hand-written mirror
+    // goes stale silently, which is worse than no mirror: it answers the question wrongly. CI went
+    // red twice on gates that were not re-run before a push, which is why it exists at all.
+    name: 'preflight drifting from the gates CI actually runs',
+    guard: 'check-ci-gates.mjs',
+    expect: /preflight does not run "pnpm size", which .* does/,
+    stage: (stage) => {
+      const f = join(stage, 'package.json')
+      const pkg = JSON.parse(readFileSync(f, 'utf8'))
+      pkg.scripts.preflight = pkg.scripts.preflight.replace(' && pnpm size', '')
+      writeFileSync(f, JSON.stringify(pkg, null, 2) + '\n')
+    },
+  },
+  {
     name: 'an icon exported but absent from the committed list',
     guard: 'check-icons.mjs',
     expect: /absent from ICONS\.md|not declared/,

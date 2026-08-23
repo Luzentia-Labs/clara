@@ -11,6 +11,7 @@
 // still passed, because `pnpm check` is a substring of `pnpm check:contrast`. It also had no
 // notion of an advisory step, so `if: false`, `continue-on-error` and `|| true` all passed.
 import { readFileSync, existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { fail, pass } from './lib/workspace.mjs'
 import { readWorkflow, commandsIn, commandSet, advisoryReasons, stepRunning } from './lib/workflow.mjs'
 
@@ -79,6 +80,40 @@ for (const gate of manifest.gates) {
     }
   } else {
     errors.push(`${label}: status must be wired|pending, got ${gate.status}`)
+  }
+}
+
+/**
+ * `pnpm preflight` must actually mirror CI.
+ *
+ * It exists so "will this break CI?" is one command rather than a checklist to remember - and it
+ * was added after CI went red twice on gates I had not re-run before pushing (the size budget, then
+ * the coverage threshold). A hand-written mirror goes stale silently, which would make it worse
+ * than no mirror at all: it would answer the question wrongly rather than not answering it.
+ *
+ * So the mirror is checked here. Anything CI runs must appear in preflight, or be listed below as
+ * a deliberate omission with its reason.
+ */
+const PREFLIGHT_EXEMPT = new Map([
+  ['pnpm install --frozen-lockfile', 'the developer already has node_modules; CI starts from nothing'],
+  ['pnpm test:mutation', 'minutes-long; run deliberately, and CI is the backstop'],
+  ['pnpm verify:consumers', 'installs real tarballs into throwaway apps; slow and network-bound'],
+  ['pnpm check:publint && pnpm check:attw', 'downloads two CLIs on every run'],
+  ['pnpm audit --audit-level=high --prod', 'network-bound, and advisory data changes independently of this repo, so it can go red with no local change'],
+  ['pnpm changeset status --since=origin/main', 'compares against the remote; meaningless before a push'],
+  ['pnpm exec playwright install --with-deps chromium && pnpm test:e2e', 'downloads a browser; run deliberately'],
+])
+const preflight = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')).scripts?.preflight
+if (!preflight) {
+  errors.push('package.json has no `preflight` script - the one command that mirrors CI')
+} else {
+  for (const step of workflow.jobs?.gates?.steps ?? []) {
+    const cmd = (step.run ?? '').trim()
+    if (!cmd || !cmd.startsWith('pnpm') && !cmd.startsWith('node')) continue
+    if (PREFLIGHT_EXEMPT.has(cmd)) continue
+    if (!preflight.includes(cmd)) {
+      errors.push(`preflight does not run "${cmd}", which ${CI} does - add it, or exempt it with a reason`)
+    }
   }
 }
 
