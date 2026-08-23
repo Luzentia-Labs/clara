@@ -139,3 +139,28 @@
 
 .clara-link { color: var(--clara-color-fg-link); }
 .clara-link__external { margin-inline-start: var(--clara-space-control-gap); font-size: var(--clara-font-caption); }
+
+/*
+ * Loading keeps the label in the DOM, hidden but still occupying its width, so the button does not
+ * resize mid-interaction. `visibility` rather than `display: none`: a hidden-but-present box still
+ * reserves space, which is the entire point.
+ */
+.clara-button__label--hidden { visibility: hidden; }
+.clara-button--loading { position: relative; }
+.clara-button__spinner {
+  position: absolute;
+  width: var(--clara-font-body);
+  height: var(--clara-font-body);
+  border: var(--clara-button-border-width) solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--clara-radius-surface);
+}
+.clara-button--sm { padding: var(--clara-space-control-padding-y) var(--clara-space-control-padding-x); }
+.clara-button--md { min-height: var(--clara-size-control-height); }
+
+/* The target floor holds at every density (PRD:164, WCAG 2.5.8). */
+.clara-icon-button__icon { display: inline-flex; }
+.clara-button--icon-only { min-width: var(--clara-size-target-min); min-height: var(--clara-size-target-min); }
+
+/* Colour alone cannot distinguish a link (WCAG 1.4.1) - the underline is the affordance. */
+.clara-link { color: var(--clara-color-fg-link); text-decoration: underline; }

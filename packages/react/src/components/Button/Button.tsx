@@ -15,36 +15,56 @@ import type { PolymorphicPropsWithRef, PolymorphicRef } from '../../lib/polymorp
 export interface ButtonOwnProps {
   children?: ReactNode
   variant?: 'primary' | 'secondary'
+  size?: 'sm' | 'md'
   disabled?: boolean
+  /**
+   * In flight. Sets `aria-busy`, suppresses activation, and PRESERVES the button's width - a
+   * button that shrinks to a spinner moves everything beside it, and in a form footer that means
+   * the control under the user's cursor changes between the press and the release.
+   */
+  loading?: boolean
   onClick?: (event: React.MouseEvent) => void
 }
 
 export type ButtonProps<C extends ElementType = 'button'> = PolymorphicPropsWithRef<C, ButtonOwnProps>
 
 export const Button = polymorphicForwardRef<ButtonOwnProps, 'button'>(function Button<C extends ElementType = 'button'> (
-  { as, children, variant = 'primary', disabled = false, onClick, className, ...rest }: ButtonProps<C>,
+  { as, children, variant = 'primary', size = 'md', disabled = false, loading = false, onClick, className, ...rest }: ButtonProps<C>,
   ref: PolymorphicRef<C>,
 ) {
   const [pressed, setPressed] = useState(false)
   const Component = (as ?? 'button') as ElementType
+  // Loading is a form of unavailable, so it shares the disabled path rather than inventing a
+  // second one that a consumer would have to handle separately.
+  const inert = disabled || loading
   return (
     <Component
       ref={ref}
       type={as ? undefined : 'button'}
-      className={cx('clara-button', `clara-button--${variant}`, disabled && 'clara-button--disabled', className)}
-      aria-disabled={disabled || undefined}
+      className={cx(
+        'clara-button', `clara-button--${variant}`, `clara-button--${size}`,
+        inert && 'clara-button--disabled', loading && 'clara-button--loading', className,
+      )}
+      aria-disabled={inert || undefined}
+      aria-busy={loading || undefined}
       data-pressed={pressed || undefined}
-      onPointerDown={() => !disabled && setPressed(true)}
+      onPointerDown={() => !inert && setPressed(true)}
       onPointerUp={() => setPressed(false)}
       onClick={(event: React.MouseEvent) => {
         // aria-disabled does not stop activation the way the disabled attribute would, so the
         // handler has to. Preventing default matters for `as="a"`, which would otherwise navigate.
-        if (disabled) { event.preventDefault(); return }
+        if (inert) { event.preventDefault(); return }
         onClick?.(event)
       }}
       {...rest}
     >
-      {children}
+      {/*
+        * The label stays in the DOM while loading, hidden from view but still occupying its width -
+        * which is what keeps the button from resizing. Replacing it with a spinner would collapse
+        * the button to the spinner's width.
+        */}
+      <span className={cx('clara-button__label', loading && 'clara-button__label--hidden')}>{children}</span>
+      {loading ? <span className="clara-button__spinner" aria-hidden="true" /> : null}
     </Component>
   )
 })

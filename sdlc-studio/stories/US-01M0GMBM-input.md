@@ -55,7 +55,7 @@
 - **Given** the Input stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell pnpm lint:css
+- **Verify:** shell node scripts/check-component-css.mjs
 - **Verification target:** functional
 
 ### AC6: Both themes and densities

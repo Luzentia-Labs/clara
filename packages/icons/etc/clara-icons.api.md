@@ -4,6 +4,164 @@
 
 ```ts
 
+import { JSX as JSX_2 } from 'react';
+import { ReactNode } from 'react';
+import { SVGProps } from 'react';
+
+// @public (undocumented)
+export function AddIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ArrowDownIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ArrowLeftIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ArrowRightIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ArrowUpIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function AttachmentIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function BlockedIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function CalendarIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function CheckIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ChevronDownIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ChevronLeftIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ChevronRightIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ChevronUpIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ClockIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function CloseIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ColumnsIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function CopyIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DangerIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DateRangeIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DeleteIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DownloadIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function EditIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function ExternalIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function FileIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function FilterIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function GroupIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function HelpIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function HomeIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function Icon(input: IconProps): JSX_2.Element;
+
+// @public
+export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'children' | 'aria-label'> {
+    // (undocumented)
+    children?: ReactNode;
+    label?: string;
+}
+
+// @public (undocumented)
+export function InfoIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function LockIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function LogoutIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function MenuIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function MoreIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function NotificationIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function PendingIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function RefreshIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function SaveIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function SearchIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function SettingsIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function SortAscIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function SortDescIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function SortIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function SuccessIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function UndoIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function UploadIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function UserIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function UsersIcon(props: IconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function WarningIcon(props: IconProps): JSX_2.Element;
+
 // (No @packageDocumentation comment for this package)
 
 ```

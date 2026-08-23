@@ -23,7 +23,8 @@
 - **Given** a Stack
 - **When** I set a gap
 - **Then** only token scale values are accepted
-- **Verify:** vitest "Stack gap is token-constrained"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Stack gap is token-constrained"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: No extra wrapper
@@ -31,7 +32,8 @@
 - **Given** a Stack
 - **When** it renders
 - **Then** it adds no element beyond the one it renders
-- **Verify:** vitest "Stack renders a single element"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Stack renders a single element"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Token-only styling
@@ -39,7 +41,8 @@
 - **Given** the Stack stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell pnpm lint:css
+- **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Both themes and densities
@@ -47,7 +50,8 @@
 - **Given** a Stack
 - **When** it renders in dark theme and compact density
 - **Then** it holds its visual baseline in all four combinations
-- **Verify:** vitest "Stack theme and density matrix"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Stack theme and density matrix"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC5: Definition of done
@@ -56,6 +60,7 @@
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page all exist
 - **Verify:** file packages/react/src/components/Stack/index.tsx
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

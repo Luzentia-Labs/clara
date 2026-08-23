@@ -23,7 +23,8 @@
 - **Given** the public API
 - **When** I inspect it
 - **Then** `as` is the only polymorphism idiom; `asChild` appears nowhere (D0008)
-- **Verify:** shell ! grep -q "asChild" packages/react/etc/clara-react.api.md
+- **Verify:** shell node scripts/api-report.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Props are inferred
@@ -31,7 +32,8 @@
 - **Given** a component with `as="a"`
 - **When** I pass an invalid attribute for that element
 - **Then** it is a TypeScript error
-- **Verify:** vitest "as prop infers target element props"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/primitives.test.tsx -t "as prop infers target element props"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Refs forward through
@@ -39,7 +41,8 @@
 - **Given** a polymorphic component
 - **When** I attach a ref
 - **Then** it reaches the rendered element
-- **Verify:** vitest "polymorphic ref forwarding"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/primitives.test.tsx -t "polymorphic ref forwarding"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

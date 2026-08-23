@@ -1,4 +1,5 @@
 import { forwardRef, type ReactNode } from 'react'
+import { cx } from '../../lib/cx'
 import { Button, type ButtonOwnProps } from '../Button/Button'
 
 /**
@@ -23,7 +24,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
   { label, icon, className, ...rest }, ref,
 ) {
   return (
-    <Button ref={ref} aria-label={label} className={className} {...rest}>
+    <Button ref={ref} aria-label={label} className={cx('clara-button--icon-only', className)} {...rest}>
       <span aria-hidden="true" className="clara-icon-button__icon">{icon}</span>
     </Button>
   )

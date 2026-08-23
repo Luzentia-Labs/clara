@@ -5,7 +5,8 @@
   "special": {
     "Table": "Static parts are server-capable; interactive parts (sort, select, resize) are client.",
     "Alert": "Non-dismissible is server-capable; a dismissible Alert takes onDismiss and is therefore client.",
-    "ClaraProvider": "Client-only: resolves the system colour-scheme preference in an effect, and holds context state."
+    "ClaraProvider": "Client-only: resolves the system colour-scheme preference in an effect, and holds context state.",
+    "ButtonGroup": "Client-only: roving tabindex needs state and a DOM effect (US-01M0GM3S AC1)."
   },
   "components": [
     {
@@ -85,7 +86,7 @@
     },
     {
       "name": "ButtonGroup",
-      "boundary": "server",
+      "boundary": "client",
       "status": "built"
     },
     {

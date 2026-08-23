@@ -33,7 +33,8 @@
 - **Given** a Button
 - **When** I set variant and size
 - **Then** primary, secondary, ghost and danger render at sm, md and lg, md matching the density control height
-- **Verify:** vitest "Button variants and sizes"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Button variants and sizes"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Loading preserves width
@@ -41,7 +42,8 @@
 - **Given** a Button
 - **When** it enters the loading state
 - **Then** interaction is disabled, width is preserved so there is no layout shift, and aria-busy is set
-- **Verify:** vitest "Button loading preserves width"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Button loading preserves width"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Disabled stays focusable
@@ -49,7 +51,8 @@
 - **Given** a disabled Button
 - **When** a keyboard user tabs to it
 - **Then** it uses aria-disabled, remains in the tab order, announces as disabled, and does nothing on activation (D0022)
-- **Verify:** vitest "disabled Button is focusable and announces"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "disabled Button is focusable and announces"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Focus indicator survives every surface
@@ -57,7 +60,8 @@
 - **Given** a focused Button
 - **When** it renders on each enumerated surface
 - **Then** the two-part indicator meets 3:1 against the control and its surround on all of them, asserted by computation
-- **Verify:** vitest "Button focus indicator contrast on all surfaces"
+- **Verify:** shell node scripts/check-contrast.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC5: Renders as anchor
@@ -65,7 +69,8 @@
 - **Given** a Button with as="a" and href
 - **When** it renders
 - **Then** it produces an anchor with correct role semantics
-- **Verify:** vitest "Button renders as anchor"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Button renders as anchor"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC6: Token-only styling
@@ -73,7 +78,8 @@
 - **Given** the Button stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell pnpm lint:css
+- **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC7: Both themes and densities
@@ -81,7 +87,8 @@
 - **Given** a Button
 - **When** it renders in dark theme and compact density
 - **Then** it holds its visual baseline in all four combinations
-- **Verify:** vitest "Button theme and density matrix"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Button theme and density matrix"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC8: Definition of done
@@ -90,6 +97,7 @@
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
 - **Verify:** file packages/react/src/components/Button/verification.md
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

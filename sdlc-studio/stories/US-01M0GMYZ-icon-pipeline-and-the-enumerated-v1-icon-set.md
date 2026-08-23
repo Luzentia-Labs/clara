@@ -23,7 +23,8 @@
 - **Given** the repo
 - **When** I look for the icon list
 - **Then** `packages/icons/ICONS.md` names all 48 icons by category, committed before implementation
-- **Verify:** file packages/icons/ICONS.md
+- **Verify:** shell node scripts/check-icons.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: List and exports agree
@@ -32,6 +33,7 @@
 - **When** CI runs
 - **Then** an exported icon absent from the list, or a listed icon unexported, fails the build
 - **Verify:** shell node scripts/check-icons.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Icons inherit colour and size
@@ -39,7 +41,8 @@
 - **Given** an icon
 - **When** it renders inside text
 - **Then** it uses currentColor and scales from font size, with a size prop override
-- **Verify:** vitest "icon inherits currentColor and size"
+- **Verify:** shell npx vitest run packages/icons/src/__tests__/icons.test.tsx -t "icon inherits currentColor and size"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Decorative by default
@@ -47,7 +50,8 @@
 - **Given** an icon with no aria-label
 - **When** it renders
 - **Then** it is aria-hidden and treated as decorative
-- **Verify:** vitest "icon without label is aria-hidden"
+- **Verify:** shell npx vitest run packages/icons/src/__tests__/icons.test.tsx -t "icon without label is aria-hidden"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC5: Import cost
@@ -55,7 +59,8 @@
 - **Given** a single icon import
 - **When** the bundle is measured
 - **Then** it adds no more than 1KB gzipped
-- **Verify:** shell pnpm size-limit
+- **Verify:** shell pnpm size
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

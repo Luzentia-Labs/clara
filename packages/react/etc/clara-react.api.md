@@ -37,7 +37,7 @@ export type BoxProps<C extends ElementType = 'div'> = PolymorphicPropsWithRef<C,
 export const Button: <C extends ElementType = "button">(props: PolymorphicPropsWithRef<C, ButtonOwnProps>) => ReactElement | null;
 
 // @public (undocumented)
-export const ButtonGroup: ForwardRefExoticComponent<ButtonGroupProps & RefAttributes<HTMLDivElement>>;
+export function ButtonGroup(input: ButtonGroupProps): JSX_2.Element;
 
 // @public
 export interface ButtonGroupProps {
@@ -56,8 +56,11 @@ export interface ButtonOwnProps {
     children?: ReactNode;
     // (undocumented)
     disabled?: boolean;
+    loading?: boolean;
     // (undocumented)
     onClick?: (event: React.MouseEvent) => void;
+    // (undocumented)
+    size?: 'sm' | 'md';
     // (undocumented)
     variant?: 'primary' | 'secondary';
 }

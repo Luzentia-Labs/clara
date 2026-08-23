@@ -23,7 +23,8 @@
 - **Given** a Link in body text
 - **When** it renders
 - **Then** an underline or other non-colour affordance distinguishes it
-- **Verify:** vitest "Link is distinguishable without colour"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Link is distinguishable without colour"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: External links are announced
@@ -31,7 +32,8 @@
 - **Given** a Link to an external target
 - **When** it renders
 - **Then** the external destination is conveyed to assistive technology, not only by an icon
-- **Verify:** vitest "external Link is announced"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "external Link is announced"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Token-only styling
@@ -39,7 +41,8 @@
 - **Given** the Link stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell pnpm lint:css
+- **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Both themes and densities
@@ -47,7 +50,8 @@
 - **Given** a Link
 - **When** it renders in dark theme and compact density
 - **Then** it holds its visual baseline in all four combinations
-- **Verify:** vitest "Link theme and density matrix"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Link theme and density matrix"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC5: Definition of done
@@ -56,6 +60,7 @@
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
 - **Verify:** file packages/react/src/components/Link/verification.md
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

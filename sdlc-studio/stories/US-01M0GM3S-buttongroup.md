@@ -23,7 +23,8 @@
 - **Given** a ButtonGroup
 - **When** I press an arrow key
 - **Then** focus moves between buttons with a single tab stop for the group
-- **Verify:** vitest "ButtonGroup roving focus"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "ButtonGroup roving focus"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Borders merge
@@ -31,7 +32,8 @@
 - **Given** adjacent buttons
 - **When** they render
 - **Then** shared borders collapse without a double rule
-- **Verify:** vitest "ButtonGroup merges adjacent borders"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "ButtonGroup merges adjacent borders"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Token-only styling
@@ -39,7 +41,8 @@
 - **Given** the ButtonGroup stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell pnpm lint:css
+- **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Both themes and densities
@@ -47,7 +50,8 @@
 - **Given** a ButtonGroup
 - **When** it renders in dark theme and compact density
 - **Then** it holds its visual baseline in all four combinations
-- **Verify:** vitest "ButtonGroup theme and density matrix"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "ButtonGroup theme and density matrix"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC5: Definition of done
@@ -56,6 +60,7 @@
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
 - **Verify:** file packages/react/src/components/ButtonGroup/verification.md
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

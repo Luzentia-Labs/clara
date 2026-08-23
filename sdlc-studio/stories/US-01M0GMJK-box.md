@@ -23,7 +23,8 @@
 - **Given** a Box
 - **When** I pass a spacing value
 - **Then** only token scale values type-check; an arbitrary string is a TypeScript error
-- **Verify:** vitest "Box spacing props are token-constrained"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Box spacing props are token-constrained"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC2: Not a style escape hatch
@@ -31,7 +32,8 @@
 - **Given** the Box API
 - **When** I inspect it
 - **Then** it exposes a constrained surface and does not accept arbitrary CSS
-- **Verify:** shell ! grep -qE "css\?:|sx\?:" packages/react/etc/clara-react.api.md
+- **Verify:** shell node scripts/api-report.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC3: Token-only styling
@@ -39,7 +41,8 @@
 - **Given** the Box stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell pnpm lint:css
+- **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC4: Both themes and densities
@@ -47,7 +50,8 @@
 - **Given** a Box
 - **When** it renders in dark theme and compact density
 - **Then** it holds its visual baseline in all four combinations
-- **Verify:** vitest "Box theme and density matrix"
+- **Verify:** shell npx vitest run packages/react/src/components/__tests__/matrix.test.tsx -t "Box theme and density matrix"
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 ### AC5: Definition of done
@@ -56,6 +60,7 @@
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page all exist
 - **Verify:** file packages/react/src/components/Box/index.tsx
+- **Verified:** yes (2026-08-23)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

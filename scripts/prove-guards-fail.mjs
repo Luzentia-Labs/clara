@@ -66,6 +66,9 @@ function stageWorkspace ({ withOutput = false } = {}) {
       for (const sub of [
         'dist', 'build', 'src', 'vite.config.ts', 'generate-ramps.mjs', 'client-boundary.json',
         'tokens.public.lock.json', 'contrast-required.json', 'client-boundary.json',
+        // The icon set's three sources - the SVGs, the catalogue and the committed list - are what
+        // check-icons compares against each other.
+        'svg', 'icons.json', 'ICONS.md',
       ]) {
         const from = join(root, dir, sub)
         if (existsSync(from)) cpSync(from, join(stage, dir, sub), { recursive: true })
@@ -605,6 +608,27 @@ const OUTPUT_CASES = [
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8') + '\n.probe { margin: 12px; }\n')
+    },
+  },
+  {
+    // PRD:357 asks for an enumerated, COUNTED list precisely so this is checkable. Swapping one
+    // category's icon for another's keeps the total at 48 while changing what was agreed.
+    name: 'an icon moved between categories, keeping the total at 48',
+    guard: 'check-icons.mjs',
+    expect: /PRD:357 specifies/,
+    stage: patch('packages/icons/icons.json', (m) => {
+      const [name, path] = Object.entries(m.categories.navigation)[0]
+      delete m.categories.navigation[name]
+      m.categories.file[name] = path
+    }),
+  },
+  {
+    name: 'an icon exported but absent from the committed list',
+    guard: 'check-icons.mjs',
+    expect: /absent from ICONS\.md|not declared/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/icons/src/generated.ts')
+      writeFileSync(f, readFileSync(f, 'utf8') + "export { GhostIcon } from './icons/GhostIcon'\n")
     },
   },
   {

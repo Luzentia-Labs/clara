@@ -9,6 +9,10 @@ import { cx } from '../../lib/cx'
  * browser's link list, and whether middle-click opens a tab. Blurring it is a common and
  * expensive accessibility defect, so the API does not offer it.
  *
+ * Underlined by default, and that is not styling. Colour alone cannot distinguish a link (WCAG
+ * 1.4.1) - a user with a colour vision deficiency, or reading a printed page, sees no link at all.
+ * The underline is the affordance; the colour is reinforcement.
+ *
  * `external` adds the affordance rather than only the behaviour - a link that opens a new tab
  * without saying so takes control away from the user (WCAG 3.2.5).
  */

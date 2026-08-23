@@ -13,7 +13,10 @@ export default defineConfig({
   // `bundleTypes` (the option formerly called `rollupTypes`) is deliberately NOT used: it needs
   // @microsoft/api-extractor as an extra dependency. Per-file declarations are fine here because
   // the exports map is closed - no extra .d.ts file is reachable as public API (PL-01M0HVR8 risk 2).
-  plugins: [dts({ insertTypesEntry: true, tsconfigPath: './tsconfig.json' }), bundleRecord()],
+  plugins: [// `bundleTypes` for the same reason as clara-react: without it the entry .d.ts re-exports
+    // './generated' with no extension, which node16 ESM resolution cannot follow - attw reports
+    // InternalResolutionError and gate 10 fails.
+    dts({ insertTypesEntry: true, bundleTypes: true, tsconfigPath: './tsconfig.json' }), bundleRecord()],
   build: {
     lib: {
       entry: 'src/index.ts',

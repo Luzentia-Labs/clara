@@ -121,21 +121,22 @@ describe('IconButton', () => {
 })
 
 describe('ButtonGroup', () => {
-  it('is a labelled group, so its buttons read as one decision', () => {
+  // Corrected: an earlier version of this component used role="group" and left every button in
+  // the tab order, on the reasoning that toolbar semantics suit an icon bar but not a form footer.
+  // US-01M0GM3S AC1 specifies roving focus with a single tab stop, which IS toolbar behaviour -
+  // the spec decided, and the reservation is recorded on the component rather than acted on.
+  it('is a labelled toolbar, so its buttons read as one control', () => {
     render(<ButtonGroup label="Record actions"><Button>Save</Button><Button>Cancel</Button></ButtonGroup>)
-    const group = screen.getByRole('group', { name: 'Record actions' })
-    expect(group).toBeInTheDocument()
+    expect(screen.getByRole('toolbar', { name: 'Record actions' })).toBeInTheDocument()
     expect(screen.getAllByRole('button')).toHaveLength(2)
   })
 
-  // Deliberately not role="toolbar": that implies arrow-key navigation and removes the buttons
-  // from the tab order, which is right for an icon bar and wrong for a form footer.
-  it('keeps every button in the tab order', async () => {
-    render(<ButtonGroup label="Actions"><Button>A</Button><Button>B</Button></ButtonGroup>)
+  it('is one tab stop, not one per button', async () => {
+    render(<><ButtonGroup label="Actions"><Button>A</Button><Button>B</Button></ButtonGroup><Button>Outside</Button></>)
     await userEvent.tab()
     expect(screen.getByRole('button', { name: 'A' })).toHaveFocus()
     await userEvent.tab()
-    expect(screen.getByRole('button', { name: 'B' })).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus()
   })
 })
 
