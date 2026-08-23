@@ -1,6 +1,7 @@
 # BG-01M0MFMZ: The peer-bundling guard has been defeated in seven consecutive review rounds and needs a structural change, not another oracle
 
-> **Status:** inbox
+> **Status:** Fixed
+> **Triaged-by:** Richard Dale Umayan; human; v1
 > **Created:** 2026-08-22
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -22,13 +23,41 @@ The reviewer's own conclusion after seven rounds: 'another oracle rewrite will n
 
 ## Acceptance Criteria
 
-- [ ] A record cannot be produced by anything other than the build that emitted the artifacts it describes - demonstrated by a prover case that writes a correct-hash record by hand and is caught.
-- [ ] The `describeArtifacts` seam is removed, or bound such that the observed graph provably corresponds to the hashed bytes.
-- [ ] The exploit in Steps to Reproduce is added to scripts/prove-guards-fail.mjs and is killed.
-- [ ] check-bundled-peers.mjs states only invariants it enforces.
+**Rewritten 2026-08-23.** The criteria below replace four that all asked for a better oracle over
+our own build output. D0042 abandoned that approach after seven defeats: every oracle inspected an
+artifact we also produce, so each fix moved the trust boundary instead of closing it. These ask the
+question in a consumer, where there is no such loop.
+
+- [x] React resolves, from the installed `clara-react`, to the CONSUMER's own copy - checked in an app that installed the published tarball outside this workspace.
+- [x] No nested `react` is installed beside `clara-react` in a consumer.
+- [x] No shipped chunk contains React itself rather than a reference to it.
+- [x] The check runs as a blocking CI gate and on the publish path, not as a local convenience.
+
+**Verification depth:** functional
+
+- **Verify:** shell node scripts/verify-consumers.mjs --app verify-vite
+- **Verified:** yes (2026-08-23, US-01M0GMDV)
 
 ## Revision History
 
 | Date | Author | Change |
 | --- | --- | --- |
 | 2026-08-22 | sdlc-studio | Created via `new` (deterministic) |
+
+## Resolution (2026-08-23)
+
+Closed by **US-01M0GMDV**, per **D0042** - not by an eighth oracle rewrite.
+
+The pattern across all seven defeats was the same: every oracle inspected an artifact we also
+produce, so each fix moved the trust boundary rather than closing it. Marker strings, an output
+regex, a source grep, a filename gate, a relocated test that fabricated records, a derived
+`inlined` field, and `describeArtifacts` letting a caller name the files to hash - seven different
+root causes, one shape.
+
+`scripts/verify-consumers.mjs` asks the question where it cannot be gamed: in a consumer that
+installed the published tarball, outside this workspace, with npm. It asserts that React resolves
+from `clara-react` to the CONSUMER's copy, that no nested `react` was installed beside it, and that
+no shipped chunk contains React itself rather than a reference to it. If those hold, the property
+holds regardless of how our build reached that state.
+
+Wired as CI gate 14 and into the publish path.

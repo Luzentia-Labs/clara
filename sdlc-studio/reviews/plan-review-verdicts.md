@@ -1,0 +1,12 @@
+# Plan-Review Verdicts
+
+> Append-only. The independent non-author plan reviewer's verdict per unit -
+> the pre-implementation AC-vs-spec check (US0090). Latest row per unit wins.
+> Reviewer must differ from the plan author - a self-review never clears the gate.
+> Kind names WHICH pre-code artefact was judged; a gate asks for its own kind.
+
+| Unit | Verdict | Reviewer | Author | Date | Brief | Kind | Issues |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| US01M0GM0R | APPROVE | Anton Reis | sdlc-studio agent | 2026-08-23 | cdbfb0698abe | spec | [new] chunk placement keyed on directory name, so a co-located client component shipped undirectived - FIXED via TypeScript AST parsing (D0051); [new] a module shared by both sides put the server chunk behind the client boundary - FIXED with a third undirectived chunk plus transitive reachability; [regression] the round-1 repair reported both Criticals fixed when a real build showed neither was - FIXED, and a third oracle reading emitted bytes means no single reader is a point of failure; [pre-existing] the skill's retro parser cannot read this project's ULID ids. Findings sourced from two adversarial reviews by fresh non-author contexts, recorded in reviews/RV-2026-08-22-run-01m0mfxj.md |
+| US01M0MQYN | APPROVE | Anton Reis | sdlc-studio agent | 2026-08-23 | 1f2815ecd5c3 | spec | [new] chunk placement keyed on directory name, so a co-located client component shipped undirectived - FIXED via TypeScript AST parsing (D0051); [new] a module shared by both sides put the server chunk behind the client boundary - FIXED with a third undirectived chunk plus transitive reachability; [regression] the round-1 repair reported both Criticals fixed when a real build showed neither was - FIXED, and a third oracle reading emitted bytes means no single reader is a point of failure; [pre-existing] the skill's retro parser cannot read this project's ULID ids. Findings sourced from two adversarial reviews by fresh non-author contexts, recorded in reviews/RV-2026-08-22-run-01m0mfxj.md |
+| US01M0GMDV | APPROVE | Mira Calderon | sdlc-studio agent | 2026-08-23 | 287b488a1fec | spec | [pre-existing] hydration is verified by a clean production build rather than a browser load - recorded as an honest limit in the story, not implied; [new] the peer-resolution check compared raw paths and tripped on the macOS /var -> /private/var symlink - FIXED by realpath'ing both sides |

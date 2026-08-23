@@ -56,6 +56,7 @@ jobs:
       - run: pnpm check:contrast
       - run: pnpm check:client-boundary
       - run: pnpm check:pack
+      - run: pnpm verify:consumers
       - run: pnpm check:api
       - run: pnpm check:publint && pnpm check:attw
       - run: pnpm size

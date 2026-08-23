@@ -7,13 +7,13 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 78 |
+| Draft | 77 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
-| Review | 2 |
+| Review | 5 |
 | Done | 6 |
-| Blocked | 2 |
+| Blocked | 0 |
 | **Total** | **88** |
 
 ## Stories by Epic
@@ -33,8 +33,8 @@
 | [US-01M0GM3X](US-01M0GM3X-test-harness-vitest-rtl-axe-playwright-stryker-size.md) | Test harness: Vitest, RTL, axe, Playwright, Stryker, size-limit | EP-01M0GKNH | Review | 8 | -- |
 | [US-01M0GMYH](US-01M0GMYH-api-surface-report-gate.md) | API surface report gate | EP-01M0GKNH | Done | 3 | -- |
 | [US-01M0GMWF](US-01M0GMWF-changesets-semver-policy-and-automated-publish.md) | Changesets, semver policy, and automated publish | EP-01M0GKNH | Done | 5 | -- |
-| [US-01M0GM0R](US-01M0GM0R-server-and-client-boundary-classification.md) | Server and client boundary classification | EP-01M0GKNH | Blocked | 3 | -- |
-| [US-01M0GMDV](US-01M0GMDV-consumer-verification-apps.md) | Consumer verification apps | EP-01M0GKNH | Blocked | 3 | -- |
+| [US-01M0GM0R](US-01M0GM0R-server-and-client-boundary-classification.md) | Server and client boundary classification | EP-01M0GKNH | Review | 3 | -- |
+| [US-01M0GMDV](US-01M0GMDV-consumer-verification-apps.md) | Consumer verification apps | EP-01M0GKNH | Review | 3 | -- |
 | [US-01M0GMN0](US-01M0GMN0-f00-foundations-pass-decide-the-visual-language.md) | F00 foundations pass: decide the visual language | EP-01M0GKNG | Draft | 8 | -- |
 | [US-01M0GME0](US-01M0GME0-token-pipeline-and-tier-enforcement.md) | Token pipeline and tier enforcement | EP-01M0GKNG | Draft | 5 | -- |
 | [US-01M0GMAE](US-01M0GMAE-semantic-token-layer.md) | Semantic token layer | EP-01M0GKNG | Draft | 8 | -- |
@@ -111,7 +111,7 @@
 | [US-01M0GMXH](US-01M0GMXH-colour-alone-audit.md) | Colour-alone audit | EP-01M0GKVE | Draft | 3 | -- |
 | [US-01M0GMJX](US-01M0GMJX-reduced-motion-support.md) | Reduced motion support | EP-01M0GKVE | Draft | 2 | -- |
 | [US-01M0GM3E](US-01M0GM3E-accessibility-statement-and-gap-register.md) | Accessibility statement and gap register | EP-01M0GKVE | Draft | 3 | -- |
-| [US-01M0MQYN](US-01M0MQYN-manual-chunks-so-the-use-client-directive-survives.md) | Manual chunks so the use client directive survives bundling | EP-01M0GKNH | Draft | 8 | Sofia Marchetti |
+| [US-01M0MQYN](US-01M0MQYN-manual-chunks-so-the-use-client-directive-survives.md) | Manual chunks so the use client directive survives bundling | EP-01M0GKNH | Review | 8 | Sofia Marchetti |
 | [US-01M0NJZN](US-01M0NJZN-one-chunk-per-client-component-so-budgets-are.md) | One chunk per client component so budgets are real | EP-01M0GKNH | Draft | 5 | Sofia Marchetti |
 
 ## Notes

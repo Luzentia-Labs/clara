@@ -3,8 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "description": "Consumer verification target: a fresh Next.js App Router app built from the published tarball.",
-  "type": "module",
   "scripts": {
-    "build": "echo \"not yet implemented\" && exit 1"
+    "build": "next build"
+  },
+  "dependencies": {
+    "next": "^16.3.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "typescript": "^5.9.3",
+    "@types/node": "^20.19.0"
   }
 }

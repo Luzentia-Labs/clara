@@ -95,9 +95,9 @@
     {
       "n": 14,
       "gate": "Consumer verification: Vite + Next.js builds, no hydration warnings",
-      "status": "pending",
-      "story": "US-01M0GMDV",
-      "trd": 13
+      "status": "wired",
+      "trd": 13,
+      "run": "pnpm verify:consumers"
     },
     {
       "n": 15,
