@@ -28,8 +28,14 @@ const builtClients = classification.components
   .map((c) => c.name)
   .sort()
 
+// Peers are IGNORED when measuring. They are external in the build - the bundled-peers guard
+// proves no chunk contains React - but size-limit resolves imports by default, so leaving them in
+// measures React's weight and calls it Clara's. A budget that is 90% somebody else's library
+// cannot detect Clara growing.
+const PEERS = ['react', 'react-dom', 'react/jsx-runtime', 'react-dom/client']
+
 const fixed = [
-  { name: '@luzentialabs/clara-react (ESM entry)', path: 'packages/react/dist/index.js', limit: '5 kB', gzip: true },
+  { name: '@luzentialabs/clara-react (ESM entry)', path: 'packages/react/dist/index.js', limit: '5 kB', gzip: true, ignore: PEERS },
   { name: '@luzentialabs/clara-icons (ESM entry)', path: 'packages/icons/dist/index.js', limit: '5 kB', gzip: true },
   { name: '@luzentialabs/clara-tokens (ESM entry)', path: 'packages/tokens/dist/index.js', limit: '5 kB', gzip: true },
   {
@@ -42,6 +48,7 @@ const perComponent = builtClients.map((name) => ({
   path: `packages/react/dist/${CLIENT_CHUNK}-${name}.js`,
   limit: PER_COMPONENT_LIMIT,
   gzip: true,
+  ignore: PEERS,
 }))
 const wanted = [...fixed, ...perComponent]
 const current = existsSync(BUDGET_FILE) ? JSON.parse(readFileSync(BUDGET_FILE, 'utf8')) : []

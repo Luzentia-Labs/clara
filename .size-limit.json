@@ -3,7 +3,13 @@
     "name": "@luzentialabs/clara-react (ESM entry)",
     "path": "packages/react/dist/index.js",
     "limit": "5 kB",
-    "gzip": true
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
   },
   {
     "name": "@luzentialabs/clara-icons (ESM entry)",
@@ -27,24 +33,48 @@
     "name": "Button (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-Button.js",
     "limit": "5 kB",
-    "gzip": true
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
   },
   {
     "name": "ClaraPortal (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-ClaraPortal.js",
     "limit": "5 kB",
-    "gzip": true
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
   },
   {
     "name": "ClaraProvider (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-ClaraProvider.js",
     "limit": "5 kB",
-    "gzip": true
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
   },
   {
     "name": "ClaraScope (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-ClaraScope.js",
     "limit": "5 kB",
-    "gzip": true
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
+    ]
   }
 ]
