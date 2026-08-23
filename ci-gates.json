@@ -60,9 +60,9 @@
     {
       "n": 9,
       "gate": "Computed geometry: heights, target size, type floors",
-      "status": "pending",
-      "story": "US-01M0GMC6",
-      "trd": null
+      "status": "wired",
+      "trd": null,
+      "run": "pnpm check:geometry"
     },
     {
       "n": 10,

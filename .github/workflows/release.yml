@@ -56,6 +56,7 @@ jobs:
       - run: pnpm check:contrast
       - run: pnpm check:public-tokens
       - run: pnpm check:component-css
+      - run: pnpm check:geometry
       - run: pnpm check:client-boundary
       - run: pnpm check:pack
       - run: pnpm verify:consumers

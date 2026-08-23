@@ -60,6 +60,8 @@ jobs:
 
       - name: Gate 2 - component CSS tier and literal rules
         run: pnpm check:component-css
+      - name: Gate 9 - computed geometry and density floors
+        run: pnpm check:geometry
       - name: Gate 8 - public token reference
         run: pnpm check:public-tokens
       - name: Gate 14 - consumer verification (Vite + Next App Router)
