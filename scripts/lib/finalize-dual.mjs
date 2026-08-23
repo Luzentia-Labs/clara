@@ -18,7 +18,7 @@
 import { readdirSync, renameSync, copyFileSync, rmSync, existsSync, statSync, readFileSync, writeFileSync } from 'node:fs'
 import { applyCascadeLayer } from './cascade-layer.mjs'
 import { prependDirective } from './directive.mjs'
-import { CLIENT_CHUNK } from './chunk-plan.mjs'
+import { isClientChunk } from './chunk-plan.mjs'
 import { join, resolve } from 'node:path'
 
 const walkCss = (dir) =>
@@ -82,14 +82,16 @@ copyFileSync(dts, join(dist, 'index.d.cts'))
 // The entry is deliberately NOT stamped. That is what keeps the package server-capable: a
 // consumer importing Box never crosses a client boundary, and one importing Button crosses it
 // exactly at the import. TRD Section 7 requires both halves.
+// One chunk per client component (D0048), so this stamps every file whose name carries the client
+// prefix rather than a single known filename.
 let stamped = 0
-for (const ext of ['js', 'cjs']) {
-  const clientChunk = join(dist, `${CLIENT_CHUNK}.${ext}`)
-  if (!existsSync(clientChunk)) continue
-  const before = readFileSync(clientChunk, 'utf8')
+for (const name of readdirSync(dist)) {
+  if (!isClientChunk(name)) continue
+  const file = join(dist, name)
+  const before = readFileSync(file, 'utf8')
   const after = prependDirective(before)
   if (after !== before) {
-    writeFileSync(clientChunk, after)
+    writeFileSync(file, after)
     stamped++
   }
 }

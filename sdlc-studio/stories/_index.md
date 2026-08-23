@@ -7,11 +7,11 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 77 |
+| Draft | 76 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
-| Review | 5 |
+| Review | 6 |
 | Done | 6 |
 | Blocked | 0 |
 | **Total** | **88** |
@@ -112,7 +112,7 @@
 | [US-01M0GMJX](US-01M0GMJX-reduced-motion-support.md) | Reduced motion support | EP-01M0GKVE | Draft | 2 | -- |
 | [US-01M0GM3E](US-01M0GM3E-accessibility-statement-and-gap-register.md) | Accessibility statement and gap register | EP-01M0GKVE | Draft | 3 | -- |
 | [US-01M0MQYN](US-01M0MQYN-manual-chunks-so-the-use-client-directive-survives.md) | Manual chunks so the use client directive survives bundling | EP-01M0GKNH | Review | 8 | Sofia Marchetti |
-| [US-01M0NJZN](US-01M0NJZN-one-chunk-per-client-component-so-budgets-are.md) | One chunk per client component so budgets are real | EP-01M0GKNH | Draft | 5 | Sofia Marchetti |
+| [US-01M0NJZN](US-01M0NJZN-one-chunk-per-client-component-so-budgets-are.md) | One chunk per client component so budgets are real | EP-01M0GKNH | Review | 5 | Sofia Marchetti |
 
 ## Notes
 

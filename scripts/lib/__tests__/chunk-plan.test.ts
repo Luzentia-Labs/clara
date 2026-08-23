@@ -60,14 +60,14 @@ describe('isOwnSource', () => {
 
 describe('chunkFor', () => {
   it.each([
-    ['a client component', 'src/components/Button/Button.tsx', CLIENT_CHUNK],
+    ['a client component', 'src/components/Button/Button.tsx', `${CLIENT_CHUNK}-Button`],
     ['a server component', 'src/components/Box/Box.tsx', SERVER_CHUNK],
     // The two placements that were wrong when this keyed on the directory.
-    ['a client component co-located under a server component', 'src/components/Table/TableSortButton.tsx', CLIENT_CHUNK],
+    ['a client component co-located under a server component', 'src/components/Table/TableSortButton.tsx', `${CLIENT_CHUNK}-TableSortButton`],
     ['a server component beside a client one', 'src/components/Table/Table.tsx', SERVER_CHUNK],
     // A flat file matched no component directory, so it was inlined into the ENTRY - the one
     // file that must stay undirectived. Keyed on what it DEFINES, it lands correctly.
-    ['a flat client component file', 'src/components/Switch.tsx', CLIENT_CHUNK],
+    ['a flat client component file', 'src/components/Switch.tsx', `${CLIENT_CHUNK}-Switch`],
   ])('places %s', (_label, id, expected) => {
     expect(chunkFor(id, boundaryMap({ components: [...classification.components, { name: 'Switch', boundary: 'client' }] }), read)).toBe(expected)
   })
@@ -125,7 +125,7 @@ describe('manualChunks (the callback Rollup actually calls)', () => {
     mkdirSync(dir, { recursive: true })
     const file = join(dir, 'Widget.tsx')
     writeFileSync(file, 'export function Widget () {}')
-    expect(cf(file, bm({ components: [{ name: 'Widget', boundary: 'client' }] }))).toBe(CLIENT_CHUNK)
+    expect(cf(file, bm({ components: [{ name: 'Widget', boundary: 'client' }] }))).toBe(`${CLIENT_CHUNK}-Widget`)
   })
 })
 
@@ -207,7 +207,7 @@ describe('placement predicates', () => {
   it('accepts a NAMED default export', () => {
     const b = boundaryMap({ components: [{ name: 'Switch', boundary: 'client' }] })
     expect(chunkFor('src/components/Switch/Switch.tsx', b, () => 'const Switch = () => null\nexport default Switch'))
-      .toBe(CLIENT_CHUNK)
+      .toBe(`${CLIENT_CHUNK}-Switch`)
   })
 
   it('names every unclassified export in the error, not just the first', () => {
@@ -219,5 +219,52 @@ describe('placement predicates', () => {
     const both = boundaryMap({ components: [{ name: 'A', boundary: 'client' }, { name: 'B', boundary: 'server' }] })
     expect(() => chunkFor('src/components/M/M.ts', both, () => 'export function A () {}\nexport function B () {}'))
       .toThrow(/A:client.*B:server/s)
+  })
+})
+
+// D0048 / US-01M0NJZN. `use client` boundaries are module-granular, so ONE client chunk means a
+// consumer importing Button also takes Dialog, Combobox and every other client component into
+// their client bundle - which contradicts AGENTS.md's per-component JS budgets outright.
+describe('per-component client chunks (D0048)', () => {
+  const boundaries = boundaryMap({
+    components: [
+      { name: 'Button', boundary: 'client' },
+      { name: 'Dialog', boundary: 'client' },
+      { name: 'Box', boundary: 'server' },
+      { name: 'Stack', boundary: 'server' },
+    ],
+  })
+
+  it('gives each client component its own chunk, named after it', () => {
+    expect(chunkFor('src/components/Button/Button.tsx', boundaries, () => 'export function Button () {}'))
+      .toBe(`${CLIENT_CHUNK}-Button`)
+    expect(chunkFor('src/components/Dialog/Dialog.tsx', boundaries, () => 'export function Dialog () {}'))
+      .toBe(`${CLIENT_CHUNK}-Dialog`)
+  })
+
+  // Server components carry no directive, so a shared server chunk crosses no boundary and costs a
+  // consumer only bytes their bundler can tree-shake. They stay together deliberately.
+  it.each(['Box', 'Stack'])('keeps server component %s in the shared server chunk', (name) => {
+    expect(chunkFor(`src/components/${name}/${name}.tsx`, boundaries, () => `export function ${name} () {}`))
+      .toBe(SERVER_CHUNK)
+  })
+
+  it('still sends a cross-cutting helper to the undirectived shared chunk', () => {
+    expect(chunkFor('src/lib/cx.ts', boundaries, () => 'export const cx = () => 1')).toBe(SHARED_CHUNK)
+  })
+
+  it('names the chunk after the component, not after its file or directory', () => {
+    expect(chunkFor('src/components/Table/TableSortButton.tsx', boundaryMap({
+      components: [{ name: 'TableSortButton', boundary: 'client' }],
+    }), () => 'export function TableSortButton () {}')).toBe(`${CLIENT_CHUNK}-TableSortButton`)
+  })
+
+  // A module defining two client components cannot be split, so it takes one chunk. Naming it
+  // after the first alphabetically keeps the name deterministic across builds.
+  it('gives a module defining two client components one deterministic chunk', () => {
+    const b = boundaryMap({ components: [{ name: 'Zeta', boundary: 'client' }, { name: 'Alpha', boundary: 'client' }] })
+    const place = () => chunkFor('src/components/Pair/Pair.tsx', b, () => 'export function Zeta () {}\nexport function Alpha () {}')
+    expect(place()).toBe(`${CLIENT_CHUNK}-Alpha`)
+    expect(place()).toBe(place())
   })
 })

@@ -39,6 +39,7 @@ import { readFileSync, existsSync, realpathSync, readdirSync, statSync } from 'n
 import { createHash } from 'node:crypto'
 import { join, sep, isAbsolute, relative } from 'node:path'
 import { fail, pass, readWorkspace } from './lib/workspace.mjs'
+import { isClientChunk } from './lib/chunk-plan.mjs'
 
 const root = process.cwd()
 const problems = []
@@ -147,7 +148,7 @@ for (const file of emitted) {
     // ONLY the client chunk is stamped, so only it may be forgiven. Applied to every chunk, a
     // hand-added directive on clara-shared laundered straight through the hash binding - and
     // that directive alone puts the server chunk behind the client boundary (review F3 r2).
-    if (actual !== chunk.sha256 && /^clara-client\./.test(chunk.fileName)) {
+    if (actual !== chunk.sha256 && isClientChunk(chunk.fileName)) {
       // The exact inverse of prependDirective, INCLUDING the shebang case - it puts the directive
       // below a shebang, and an undo that cannot skip one would report "stale or fabricated" for a
       // file nobody tampered with (review F8).

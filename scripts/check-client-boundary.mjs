@@ -9,13 +9,13 @@
 //      Vite's library build DROPS `use client` and downgrades it to a warning, so nothing in the
 //      normal build fails. See CR-01M0MK20 - the single-chunk output cannot carry per-component
 //      directives at all, which is why the directive half of this guard is still pending.
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { fail, pass } from './lib/workspace.mjs'
 import { exportedNames } from './lib/exports-read.mjs'
 import { componentsIn } from './lib/module-exports.mjs'
 import { clientHooksUsed } from './lib/client-signals.mjs'
-import { CLIENT_CHUNK, SERVER_CHUNK, SHARED_CHUNK } from './lib/chunk-plan.mjs'
+import { CLIENT_CHUNK, SERVER_CHUNK, SHARED_CHUNK, isClientChunk } from './lib/chunk-plan.mjs'
 
 const RULE = 'client-boundary'
 const pkg = 'packages/react'
@@ -74,17 +74,27 @@ const builtServers = doc.components.filter((c) => c.boundary === 'server' && c.s
 const DIRECTIVE = /^\s*["']use client["']/
 
 if (builtClients.length) {
+  const distFiles = existsSync(join(pkg, 'dist')) ? readdirSync(join(pkg, 'dist')) : []
+  const clientChunks = distFiles.filter(isClientChunk)
   for (const [label, ext] of [['ESM', 'js'], ['CJS', 'cjs']]) {
-    const chunk = join(pkg, `dist/${CLIENT_CHUNK}.${ext}`)
-    if (!existsSync(chunk)) {
-      errors.push(`${label}: ${builtClients.length} client component(s) built but ${CLIENT_CHUNK}.${ext} does not exist`)
+    const forFormat = clientChunks.filter((f) => f.endsWith(`.${ext}`))
+    if (!forFormat.length) {
+      errors.push(`${label}: ${builtClients.length} client component(s) built but no client chunk exists`)
       errors.push('  the classification drives the chunking - a client component with no client chunk means the build ignored it')
       continue
     }
-    if (!DIRECTIVE.test(readFileSync(chunk, 'utf8'))) {
-      errors.push(`${label}: ${CLIENT_CHUNK}.${ext} carries no "use client" as its first statement`)
+    for (const chunk of forFormat) {
+      if (DIRECTIVE.test(readFileSync(join(pkg, 'dist', chunk), 'utf8'))) continue
+      errors.push(`${label}: ${chunk} carries no "use client" as its first statement`)
       errors.push('  a directive is only a directive at the top; Rollup drops it and only warns (D0041)')
     }
+  }
+  // D0048: every built client component must own a chunk. Without this, collapsing them back into
+  // one would still pass everything above - the budgets would silently stop being per-component.
+  for (const c of builtClients) {
+    if (clientChunks.some((f) => f === `${CLIENT_CHUNK}-${c.name}.js`)) continue
+    errors.push(`${c.name} is a built client component with no chunk of its own (expected ${CLIENT_CHUNK}-${c.name}.js)`)
+    errors.push('  one chunk per client component (D0048), or a consumer importing one takes them all')
   }
 }
 
@@ -111,7 +121,7 @@ if (!existsSync(recordFile)) {
   const chunks = record.chunks ?? []
   if (!chunks.length) errors.push('the bundle record lists no chunks - the placement check would be vacuous')
 
-  const expectedChunk = { client: CLIENT_CHUNK, server: SERVER_CHUNK }
+  const expectedChunk = (entry, name) => (entry.boundary === 'client' ? `${CLIENT_CHUNK}-${name}` : SERVER_CHUNK)
   for (const chunk of chunks) {
     const base = chunk.fileName.replace(/\.(js|cjs)$/, '')
     for (const rel of chunk.inlined ?? []) {
@@ -121,7 +131,7 @@ if (!existsSync(recordFile)) {
       for (const name of componentsIn(readFileSync(abs, 'utf8'), abs)) {
         const entry = classified.get(name)
         if (!entry || entry.status !== 'built') continue
-        const want = expectedChunk[entry.boundary]
+        const want = expectedChunk(entry, name)
         if (base === want) continue
         errors.push(
           `${name} is classified ${entry.boundary} but its code (${rel}) was emitted into ` +
@@ -147,16 +157,16 @@ if (!existsSync(recordFile)) {
       const next = String(stack.pop())
       if (seen.has(next)) continue
       seen.add(next)
-      if (next.startsWith(CLIENT_CHUNK)) return true
+      if (isClientChunk(next)) return true
       stack.push(...(importsOf.get(next) ?? []))
     }
     return false
   }
   for (const chunk of chunks) {
     // The entry re-exports both by design; it is the boundary, not something behind it.
-    if (chunk.fileName.startsWith('index.') || chunk.fileName.startsWith(CLIENT_CHUNK)) continue
+    if (chunk.fileName.startsWith('index.') || isClientChunk(chunk.fileName)) continue
     if (!reachesClient(chunk.fileName)) continue
-    errors.push(`${chunk.fileName} reaches ${CLIENT_CHUNK} through its imports, putting server-capable code behind the client boundary`)
+    errors.push(`${chunk.fileName} reaches a client chunk through its imports, putting server-capable code behind the client boundary`)
     errors.push('  every export of a "use client" module is a client reference under RSC, so the server render throws')
   }
 
@@ -165,7 +175,7 @@ if (!existsSync(recordFile)) {
   // parser finds nothing - which is how a client component shipped in the undirectived shared
   // chunk with every gate green. This reads the EMITTED bytes instead.
   for (const chunk of chunks) {
-    if (chunk.fileName.startsWith(CLIENT_CHUNK)) continue
+    if (isClientChunk(chunk.fileName)) continue
     const file = join(pkg, 'dist', chunk.fileName)
     if (!existsSync(file)) continue
     const hooks = clientHooksUsed(readFileSync(file, 'utf8'))

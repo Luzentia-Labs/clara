@@ -42,6 +42,16 @@ export function isOwnSource (id) {
   return /\/src\/.*\.(ts|tsx|js|jsx)$/.test(path) || /^src\/.*\.(ts|tsx|js|jsx)$/.test(path)
 }
 
+/**
+ * Is this EMITTED file a client chunk?
+ *
+ * One definition, used by the finalizer and by the guard, so "which files must carry the
+ * directive" cannot drift between the thing that stamps them and the thing that checks them.
+ * Matches `clara-client-<Component>.{js,cjs}` and the legacy single `clara-client.{js,cjs}`.
+ */
+export const isClientChunk = (fileName) =>
+  new RegExp(`^${CLIENT_CHUNK}(?:-[A-Za-z0-9_$]+)?\\.(?:js|cjs)$`).test(fileName)
+
 /** name -> 'client' | 'server', from the classification document. */
 export function boundaryMap (classification) {
   return new Map((classification?.components ?? []).map((c) => [c.name, c.boundary]))
@@ -87,7 +97,18 @@ export function chunkFor (id, boundaries, read = defaultRead) {
         'A module receives one directive or none, so split it into a client file and a server file.',
     )
   }
-  return boundariesFound.has('client') ? CLIENT_CHUNK : SERVER_CHUNK
+  if (!boundariesFound.has('client')) return SERVER_CHUNK
+  // D0048: one chunk PER client component. `use client` boundaries are module-granular, so a
+  // single client chunk makes a consumer importing Button take every other client component into
+  // their client bundle - which contradicts the per-component JS budgets AGENTS.md declares.
+  // Server components stay together on purpose: they carry no directive, so a shared server chunk
+  // crosses no boundary and costs a consumer only bytes their bundler can tree-shake.
+  //
+  // Sorted, so a module defining more than one client component gets a name that does not depend
+  // on declaration order - a chunk whose name moves between builds breaks the size budgets and the
+  // bundle record that address it.
+  const owner = known.filter((n) => boundaries.get(n) === 'client').sort()[0]
+  return `${CLIENT_CHUNK}-${owner}`
 }
 
 // The suffix heuristic that used to live here - /Props$|Context$|Provider$|Ref$|Type$|Options$/ -

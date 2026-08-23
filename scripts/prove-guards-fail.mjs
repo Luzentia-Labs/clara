@@ -290,7 +290,7 @@ const OUTPUT_CASES = [
     guard: 'check-client-boundary.mjs',
     expect: /carries no "use client"/,
     stage: (stage) => {
-      const f = join(stage, 'packages/react/dist/clara-client.js')
+      const f = join(stage, 'packages/react/dist/clara-client-Button.js')
       writeFileSync(f, readFileSync(f, 'utf8').replace(/^["']use client["'];?\r?\n/, ''))
     },
   },
@@ -301,7 +301,7 @@ const OUTPUT_CASES = [
     guard: 'check-client-boundary.mjs',
     expect: /carries no "use client"/,
     stage: (stage) => {
-      const f = join(stage, 'packages/react/dist/clara-client.cjs')
+      const f = join(stage, 'packages/react/dist/clara-client-Button.cjs')
       writeFileSync(f, readFileSync(f, 'utf8').replace(/^["']use client["'];?\r?\n/, ''))
     },
   },
@@ -328,8 +328,8 @@ const OUTPUT_CASES = [
   {
     name: 'the client chunk missing while a client component is built',
     guard: 'check-client-boundary.mjs',
-    expect: /does not exist/,
-    stage: (stage) => rmSync(join(stage, 'packages/react/dist/clara-client.js')),
+    expect: /no chunk of its own|no client chunk exists/,
+    stage: (stage) => rmSync(join(stage, 'packages/react/dist/clara-client-Button.js')),
   },
   {
     // The bundle record must not forgive anything except the directive prepend. A post-build step
@@ -338,7 +338,7 @@ const OUTPUT_CASES = [
     guard: 'check-bundled-peers.mjs',
     expect: /does not match its bundle record/,
     stage: (stage) => {
-      const f = join(stage, 'packages/react/dist/clara-client.js')
+      const f = join(stage, 'packages/react/dist/clara-client-Button.js')
       writeFileSync(f, readFileSync(f, 'utf8') + '\nglobalThis.__sneaky = 1;\n')
     },
   },
@@ -484,7 +484,7 @@ const OUTPUT_CASES = [
         const i = (c.inlined ?? []).indexOf('src/components/Button/Button.tsx')
         if (i >= 0 && c.fileName.startsWith('clara-client')) {
           c.inlined.splice(i, 1)
-          rec.chunks.find((x) => x.fileName === c.fileName.replace('client', 'server')).inlined.push('src/components/Button/Button.tsx')
+          rec.chunks.find((x) => x.fileName.startsWith('clara-server')).inlined.push('src/components/Button/Button.tsx')
         }
       }
       writeFileSync(f, JSON.stringify(rec, null, 2))
@@ -501,7 +501,7 @@ const OUTPUT_CASES = [
     stage: (stage) => {
       const f = join(stage, 'packages/react/build/bundle-record.json')
       const rec = JSON.parse(readFileSync(f, 'utf8'))
-      rec.chunks.find((c) => c.fileName === 'clara-server.js').external.push('clara-client.js')
+      rec.chunks.find((c) => c.fileName === 'clara-server.js').external.push('clara-client-Button.js')
       writeFileSync(f, JSON.stringify(rec, null, 2))
     },
   },
@@ -511,7 +511,7 @@ const OUTPUT_CASES = [
     name: 'the bundle record describing a chunk that does not exist',
     guard: 'check-bundled-peers.mjs',
     expect: /which does not exist/,
-    stage: (stage) => rmSync(join(stage, 'packages/react/dist/clara-client.js')),
+    stage: (stage) => rmSync(join(stage, 'packages/react/dist/clara-client-Button.js')),
   },
   {
     // H3 round 2: the shared chunk was never checked for a directive while three documents said it
@@ -541,11 +541,11 @@ const OUTPUT_CASES = [
     // component transitively behind the boundary while the guard reported PASS.
     name: 'the server chunk reaching the client chunk through the shared chunk',
     guard: 'check-client-boundary.mjs',
-    expect: /reaches clara-client through its imports/,
+    expect: /reaches a client chunk through its imports/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/build/bundle-record.json')
       const rec = JSON.parse(readFileSync(f, 'utf8'))
-      rec.chunks.find((c) => c.fileName === 'clara-shared.js').external.push('clara-client.js')
+      rec.chunks.find((c) => c.fileName === 'clara-shared.js').external.push('clara-client-Button.js')
       rec.chunks.find((c) => c.fileName === 'clara-server.js').external.push('clara-shared.js')
       writeFileSync(f, JSON.stringify(rec, null, 2))
     },
@@ -559,6 +559,17 @@ const OUTPUT_CASES = [
     stage: (stage) => {
       const f = join(stage, 'packages/react/dist/clara-server.js')
       writeFileSync(f, 'import { useState as q } from "react";\n' + readFileSync(f, 'utf8'))
+    },
+  },
+  {
+    // D0048: collapsing the per-component chunks back into one would still pass every directive
+    // check - the budgets would just silently stop being per-component.
+    name: 'a built client component with no chunk of its own',
+    guard: 'check-client-boundary.mjs',
+    expect: /no chunk of its own/,
+    stage: (stage) => {
+      const dist = join(stage, 'packages/react/dist')
+      renameSync(join(dist, 'clara-client-Button.js'), join(dist, 'clara-client.js'))
     },
   },
   {
