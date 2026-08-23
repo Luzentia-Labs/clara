@@ -123,21 +123,26 @@ Criticals that every gate had reported green. Without the machinery, those ship.
 
 ### Architecture Impact
 
-not recorded
+Sets the shape every later epic inherits, and most of it is one-way. The cascade layer contract, the
+closed exports map, the tier boundary, and the client/server chunk topology are all reachable from
+the published surface, so each is a breaking change after the first publish rather than a
+refactor - which is why they were settled here rather than during component work.
 
 ### Integration Points
 
-not recorded
+npm (publish, with provenance via OIDC), GitHub Actions (CI and release), and the consumer surface
+itself - a Vite app and a Next.js App Router app that install the published tarball from outside
+this workspace, because inside it pnpm links the packages and the test proves nothing.
 
 ## Sizing
 
-**Size:** not recorded
+**Size:** XL
 
 _A T-shirt size (S / M / L / XL) - the epic's own coarse estimate, made before decomposition. An epic is never sized in story points; STORY points belong on stories._
 
 **Estimated Story Count:** not recorded
 
-**Derived Point Total:** not recorded
+**Derived Point Total:** 58
 
 _DERIVED, not estimated: the sum of this epic's stories' points. `reconcile` recomputes it, so it can never drift from the stories beneath it - do not hand-edit it._
 
