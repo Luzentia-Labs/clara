@@ -1,0 +1,14 @@
+{
+  "space": {
+    "control-padding-y": { "value": "{space.2}", "type": "dimension" },
+    "control-padding-x": { "value": "{space.3}", "type": "dimension" },
+    "control-gap": { "value": "{space.2}", "type": "dimension" },
+    "adjacent-target": { "value": "{space.2}", "type": "dimension" },
+    "stack": { "value": "{space.3}", "type": "dimension" },
+    "section": { "value": "{space.5}", "type": "dimension" }
+  },
+  "size": {
+    "control-height": { "value": "{space.7}", "type": "dimension" },
+    "target-min": { "value": "{space.6}", "type": "dimension" }
+  }
+}

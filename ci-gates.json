@@ -11,9 +11,9 @@
     {
       "n": 2,
       "gate": "Lint; token-tier and literal rules in component CSS",
-      "status": "pending",
-      "story": "US-01M0GME0",
-      "trd": 2
+      "status": "wired",
+      "trd": 2,
+      "run": "pnpm check:component-css"
     },
     {
       "n": 3,

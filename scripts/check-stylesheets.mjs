@@ -18,6 +18,7 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fail, pass, readWorkspace } from './lib/workspace.mjs'
+import { exportTargets } from './lib/pack-inspect.mjs'
 import { LAYER_DECLARATION, LAYER_NAMES } from './lib/cascade-layer.mjs'
 
 const root = process.cwd()
@@ -59,9 +60,15 @@ for (const { dir, kind, manifest } of readWorkspace(root)) {
 
   // "Exactly one stylesheet per package" was asserted by the docblock and by US-01M0GM9N AC1,
   // and counted by nothing - the outcome was held only by check-exports, which AC1 does not run
-  // (review R7). The tokens package is the documented exception: tokens.css and themes/dark.css
-  // are separately-named subpaths in the closed exports table, which is what a theme file is for.
-  const EXPECTED = manifest.name.endsWith('clara-tokens') ? 2 : sheets.length <= 1 ? sheets.length : 1
+  // (review R7).
+  //
+  // The budget is DERIVED from the closed exports map, not hardcoded per package. It used to be
+  // `name.endsWith('clara-tokens') ? 2 : 1`, which meant adding a theme file required editing this
+  // guard - and a guard edited to accommodate output is a guard that stopped constraining it. A
+  // package may emit as many stylesheets as it publicly declares, and no more, so adding a theme
+  // means adding its subpath: the thing that makes it reachable is the thing that permits it.
+  const declaredSheets = new Set(exportTargets(manifest.exports).filter((t) => t.endsWith('.css')))
+  const EXPECTED = Math.max(declaredSheets.size, 1)
   if (sheets.length > EXPECTED) {
     problems.push(
       `${manifest.name}: ${sheets.length} stylesheets emitted, expected at most ${EXPECTED} - ` +

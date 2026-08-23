@@ -35,6 +35,7 @@
     },
     "./tokens.css": "./dist/tokens.css",
     "./themes/dark.css": "./dist/themes/dark.css",
+    "./themes/compact.css": "./dist/themes/compact.css",
     "./tokens.json": "./dist/tokens.json",
     "./tokens.public.json": "./dist/tokens.public.json",
     "./package.json": "./package.json"

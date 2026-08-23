@@ -11,6 +11,69 @@ export const BorderThick = "2px";
 export const BorderThin = "1px";
 
 // @public (undocumented)
+export const BorderWidthDefault = "1px";
+
+// @public (undocumented)
+export const BorderWidthFocus = "2px";
+
+// @public (undocumented)
+export const BoxPaddingLg = "24px";
+
+// @public (undocumented)
+export const BoxPaddingMd = "12px";
+
+// @public (undocumented)
+export const BoxPaddingNone = "0";
+
+// @public (undocumented)
+export const BoxPaddingSm = "8px";
+
+// @public (undocumented)
+export const ButtonBorderWidth = "1px";
+
+// @public (undocumented)
+export const ButtonDisabledBg = "#f2f0ed";
+
+// @public (undocumented)
+export const ButtonDisabledFg = "#777471";
+
+// @public (undocumented)
+export const ButtonFocusWidth = "2px";
+
+// @public (undocumented)
+export const ButtonGap = "8px";
+
+// @public (undocumented)
+export const ButtonHeight = "48px";
+
+// @public (undocumented)
+export const ButtonPaddingX = "12px";
+
+// @public (undocumented)
+export const ButtonPaddingY = "8px";
+
+// @public (undocumented)
+export const ButtonPrimaryBg = "#616db7";
+
+// @public (undocumented)
+export const ButtonPrimaryBorder = "#616db7";
+
+// @public (undocumented)
+export const ButtonPrimaryFg = "#ffffff";
+
+// @public (undocumented)
+export const ButtonRadius = "4px";
+
+// @public (undocumented)
+export const ButtonSecondaryBg = "#ffffff";
+
+// @public (undocumented)
+export const ButtonSecondaryBorder = "#585654";
+
+// @public (undocumented)
+export const ButtonSecondaryFg = "#1f1e1d";
+
+// @public (undocumented)
 export const ColorAccent0 = "#ffffff";
 
 // @public (undocumented)
@@ -320,6 +383,24 @@ export const DurationFast = "120ms";
 export const DurationInstant = "0ms";
 
 // @public (undocumented)
+export const FontBody = "14px";
+
+// @public (undocumented)
+export const FontBodyLg = "16px";
+
+// @public (undocumented)
+export const FontCaption = "12px";
+
+// @public (undocumented)
+export const FontHeadingLg = "32px";
+
+// @public (undocumented)
+export const FontHeadingMd = "24px";
+
+// @public (undocumented)
+export const FontHeadingSm = "20px";
+
+// @public (undocumented)
 export const FontSize2xl = "32px";
 
 // @public (undocumented)
@@ -338,6 +419,9 @@ export const FontSizeXl = "24px";
 export const FontSizeXs = "12px";
 
 // @public (undocumented)
+export const RadiusControl = "4px";
+
+// @public (undocumented)
 export const RadiusFull = "9999px";
 
 // @public (undocumented)
@@ -351,6 +435,15 @@ export const RadiusNone = "0";
 
 // @public (undocumented)
 export const RadiusSm = "2px";
+
+// @public (undocumented)
+export const RadiusSurface = "8px";
+
+// @public (undocumented)
+export const SizeControlHeight = "48px";
+
+// @public (undocumented)
+export const SizeTargetMin = "24px";
 
 // @public (undocumented)
 export const Space0 = "0";
@@ -378,6 +471,45 @@ export const Space7 = "32px";
 
 // @public (undocumented)
 export const Space8 = "48px";
+
+// @public (undocumented)
+export const SpaceAdjacentTarget = "8px";
+
+// @public (undocumented)
+export const SpaceControlGap = "8px";
+
+// @public (undocumented)
+export const SpaceControlPaddingX = "12px";
+
+// @public (undocumented)
+export const SpaceControlPaddingY = "8px";
+
+// @public (undocumented)
+export const SpaceNone = "0";
+
+// @public (undocumented)
+export const SpaceSection = "24px";
+
+// @public (undocumented)
+export const SpaceStack = "12px";
+
+// @public (undocumented)
+export const TableRowBg = "#ffffff";
+
+// @public (undocumented)
+export const TableRowBgHover = "#f2f0ed";
+
+// @public (undocumented)
+export const TableRowBgSelected = "#eceffe";
+
+// @public (undocumented)
+export const TableRowBgSelectedHover = "#d6defe";
+
+// @public (undocumented)
+export const TableRowBgStriped = "#f8f7f4";
+
+// @public (undocumented)
+export const TableRowBorder = "#95928e";
 
 // (No @packageDocumentation comment for this package)
 

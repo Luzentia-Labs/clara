@@ -587,6 +587,27 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // TRD gate 2: a component reaching past the semantic layer into a primitive is how theming
+    // quietly stops working for that one component - the output looks identical.
+    name: 'component CSS reading a tier 1 primitive',
+    guard: 'check-component-css.mjs',
+    expect: /a tier 1 primitive/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.probe{color:var(--clara-color-neutral-600)}\n')
+    },
+  },
+  {
+    // Written on ONE line with its selector, which a per-line declaration regex skipped entirely.
+    name: 'a raw literal in component CSS, on the selector line',
+    guard: 'check-component-css.mjs',
+    expect: /uses the literal 12px/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.probe { margin: 12px; }\n')
+    },
+  },
+  {
     // TRD gate 8: a private token in a docs example becomes public by accident the moment someone
     // copies it, and D0007 says tiers 1 and 3 may change in a minor.
     name: 'a docs example referencing a tier 1 primitive',

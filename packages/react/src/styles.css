@@ -1,19 +1,62 @@
 /*
- * The seed of Clara's single stylesheet.
+ * Component styles.
  *
- * `./styles.css` is a promised subpath in the closed exports map (TRD Section 5), so the build
- * must emit dist/styles.css or that export resolves to nothing and publint fails. Until the first
- * component ships, this file is what makes the promise true.
+ * Every value here is a token, and every token is tier 2 or tier 3 - never a tier 1 primitive and
+ * never a literal (TRD Section 6, gate 2). A component reaching into a primitive is how the
+ * semantic layer stops being the place a theme is changed: the output looks identical and theming
+ * quietly stops working for that one component.
  *
- * It is a PLAIN stylesheet, not a CSS Module, and that is forced rather than chosen: Vite
- * compiles a CSS Module to a JS module whose default export is the class map, so a CSS Module
- * imported only for its side effect is removed by the bundler and emits nothing. A CSS Module
- * needs a consuming component, and components are not this story (US-01M0GM9N builds the
- * pipeline). The first component story replaces this seed with real module-scoped CSS.
- *
- * No `@layer clara.components` wrapper here: US-01M0GM16 owns the cascade layer guarantee and
- * applies it to every stylesheet at once. Adding it piecemeal here would pre-empt that.
+ * Kept as plain CSS rather than CSS Modules for now - CR-01M0HWDQ schedules that with F01 (D0050),
+ * because proving the CSS Modules pipeline needs a component with real styles AND the tier lint,
+ * and the tier 2 names only just settled.
  */
-:root {
-  --clara-stylesheet-present: 1;
+.clara-box {
+  box-sizing: border-box;
+}
+
+.clara-box--none { padding: var(--clara-box-padding-none); }
+.clara-box--sm { padding: var(--clara-button-gap); }
+.clara-box--md { padding: var(--clara-box-padding-md); }
+.clara-box--lg { padding: var(--clara-box-padding-lg); }
+
+.clara-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--clara-button-gap);
+  padding: var(--clara-button-padding-y) var(--clara-button-padding-x);
+  border: var(--clara-button-border-width) solid transparent;
+  border-radius: var(--clara-button-radius);
+  font: inherit;
+  cursor: pointer;
+}
+
+.clara-button--primary {
+  background: var(--clara-button-primary-bg);
+  color: var(--clara-button-primary-fg);
+  border-color: var(--clara-button-primary-border);
+}
+
+.clara-button--secondary {
+  background: var(--clara-button-secondary-bg);
+  color: var(--clara-button-secondary-fg);
+  border-color: var(--clara-button-secondary-border);
+}
+
+.clara-button:disabled {
+  background: var(--clara-button-disabled-bg);
+  color: var(--clara-button-disabled-fg);
+  cursor: not-allowed;
+}
+
+/*
+ * The two-part focus indicator (D0054). The ring is only ever seen against the page and the offset
+ * only ever against the control, which is what lets the pair survive any surface - a single ring
+ * colour measured 1.52-1.68:1 against the emphasis fills, well under the 3:1 floor.
+ */
+.clara-button:focus-visible {
+  outline: var(--clara-button-focus-width) solid var(--clara-color-border-focus);
+  outline-offset: var(--clara-button-focus-width);
+  box-shadow: 0 0 0 var(--clara-button-focus-width) var(--clara-color-border-focus-offset);
 }

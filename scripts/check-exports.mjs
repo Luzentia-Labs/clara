@@ -7,8 +7,11 @@ import { readWorkspace, fail, pass } from './lib/workspace.mjs'
 // The closed maps from TRD Section 5. A subpath absent here is not merely undeclared - it is
 // a promise nobody decided to make.
 const ALLOWED = {
-  '@luzentialabs/clara-tokens': ['.', './tokens.css', './themes/dark.css', './tokens.json',
-    './tokens.public.json', './package.json'],
+  // Hardcoded ON PURPOSE, unlike the stylesheet budget that is derived from this map. A subpath is
+  // permanent once published, so adding one has to be a deliberate edit HERE, in the independent
+  // witness - not a consequence of the build happening to emit another file.
+  '@luzentialabs/clara-tokens': ['.', './tokens.css', './themes/dark.css', './themes/compact.css',
+    './tokens.json', './tokens.public.json', './package.json'],
   '@luzentialabs/clara-icons': ['.', './package.json'],
   '@luzentialabs/clara-react': ['.', './styles.css', './package.json'],
 }

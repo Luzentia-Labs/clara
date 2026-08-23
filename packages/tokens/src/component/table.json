@@ -1,0 +1,12 @@
+{
+  "table": {
+    "row": {
+      "bg": { "value": "{color.bg.surface}", "type": "color" },
+      "bg-striped": { "value": "{color.bg.row-striped}", "type": "color" },
+      "bg-hover": { "value": "{color.bg.row-hover}", "type": "color" },
+      "bg-selected": { "value": "{color.bg.selected}", "type": "color" },
+      "bg-selected-hover": { "value": "{color.bg.selected-hover}", "type": "color" },
+      "border": { "value": "{color.border.default}", "type": "color" }
+    }
+  }
+}

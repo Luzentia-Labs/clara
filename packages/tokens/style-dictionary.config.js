@@ -15,8 +15,9 @@ import { applyCascadeLayer } from '../../scripts/lib/cascade-layer.mjs'
 import { formats, transformGroups } from 'style-dictionary/enums'
 
 // TRD Section 6 specifies this layout: src/primitive, src/semantic, src/component.
-const SOURCE = ['src/primitive/**/*.json', 'src/semantic/**/*.json']
+const SOURCE = ['src/primitive/**/*.json', 'src/semantic/**/*.json', 'src/component/**/*.json']
 const DARK_OVERRIDES = ['src/themes/dark.json']
+const COMPACT_OVERRIDES = ['src/themes/compact.json']
 
 /** Tier 2 is the public surface (PRD F01). Tier 1 and tier 3 are private. */
 // Tier is decided by WHICH FILE a token came from, per the TRD's layout - not by its path prefix.
@@ -24,7 +25,17 @@ const DARK_OVERRIDES = ['src/themes/dark.json']
 // be nested under a `semantic` key. D0044 renamed them to the TRD's scheme (`color.fg.default`),
 // and a prefix test would have silently reclassified every tier 2 token as tier 1 - quietly
 // emptying the public manifest that is the whole boundary between public and private (D0007).
-const isTier2 = (token) => /(^|\/)(semantic|themes)\//.test(token.filePath ?? '')
+// Three tiers, decided by WHICH FILE a token came from, per the TRD's layout. `tier1` used to be
+// defined as "not tier 2", which was correct only while there were two tiers - adding the component
+// layer would have quietly filed every tier 3 token as a primitive, and the public/private boundary
+// is drawn off these sets.
+const tierOf = (token) => {
+  const path = token.filePath ?? ''
+  if (/(^|\/)(semantic|themes)\//.test(path)) return 2
+  if (/(^|\/)component\//.test(path)) return 3
+  return 1
+}
+const isTier2 = (token) => tierOf(token) === 2
 
 StyleDictionary.registerFilter({
   name: 'clara/tier2',
@@ -66,7 +77,8 @@ StyleDictionary.registerFormat({
     JSON.stringify(
       {
         tier2: dictionary.allTokens.filter(isTier2).map((t) => ({ path: t.path.join('.'), name: t.name })),
-        tier1: dictionary.allTokens.filter((t) => !isTier2(t)).map((t) => ({ path: t.path.join('.'), name: t.name })),
+        tier1: dictionary.allTokens.filter((t) => tierOf(t) === 1).map((t) => ({ path: t.path.join('.'), name: t.name })),
+        tier3: dictionary.allTokens.filter((t) => tierOf(t) === 3).map((t) => ({ path: t.path.join('.'), name: t.name })),
       },
       null,
       2,
@@ -120,7 +132,42 @@ async function rejectDtcgSyntax() {
 async function build() {
   await rejectDtcgSyntax()
 
-  // Light theme: CSS, JSON manifests, and the TypeScript source that `tsc` then compiles.
+  /**
+ * A tier may only reference the tier directly beneath it (TRD Section 6, Error severity).
+ *
+ * Without this the tiers are a naming convention rather than an architecture: a component token
+ * reaching straight past the semantic layer into a primitive is exactly how the semantic layer
+ * stops being the place a theme is changed, and nothing in the output would look wrong.
+ */
+function validateTierReferences (dictionary) {
+  const tierByPath = new Map(dictionary.allTokens.map((t) => [t.path.join('.'), tierOf(t)]))
+  const violations = []
+  for (const token of dictionary.allTokens) {
+    const tier = tierOf(token)
+    if (tier === 1) continue
+    const raw = token.original?.value
+    if (typeof raw !== 'string') continue
+    for (const ref of raw.matchAll(/\{([^}]+)\}/g)) {
+      const target = tierByPath.get(ref[1])
+      if (target === undefined) {
+        violations.push(`${token.path.join('.')} references {${ref[1]}}, which is not a token`)
+      } else if (target !== tier - 1) {
+        violations.push(
+          `${token.path.join('.')} (tier ${tier}) references {${ref[1]}} (tier ${target}) - ` +
+            `a tier may only reference tier ${tier - 1}`,
+        )
+      }
+    }
+  }
+  if (violations.length) {
+    console.error('FAIL [tokens] tier reference violations:')
+    for (const v of violations) console.error(`  ${v}`)
+    process.exit(1)
+  }
+  return violations
+}
+
+// Light theme: CSS, JSON manifests, and the TypeScript source that `tsc` then compiles.
   const light = new StyleDictionary({
     source: SOURCE,
     platforms: {
@@ -200,8 +247,35 @@ async function build() {
     },
   })
 
+  /**
+   * Compact density, built exactly like the dark theme and for the same reason.
+   *
+   * Density is a SCOPED override of the semantic geometry, not a second copy of the token set:
+   * the compact file redefines only the spacing and size tokens D0037 fixes, and everything else
+   * keeps resolving through the base layer. A density that redefined the whole scale would drift
+   * from comfortable the moment either changed.
+   *
+   * The selector is an attribute, so a subtree can be compact inside a comfortable page - which is
+   * what TRD ADR-006's context propagation writes onto a portal root.
+   */
+  const compact = new StyleDictionary({
+    include: SOURCE,
+    source: COMPACT_OVERRIDES,
+    log: { warnings: 'disabled' },
+    platforms: {
+      css: cssPlatform('dist/themes/', 'compact.css', {
+        selector: '[data-clara-density="compact"]',
+        filter: (token) => token.filePath.endsWith('themes/compact.json'),
+      }),
+    },
+  })
+
+  // Validate BEFORE emitting. A build that writes the files and then complains has already put a
+  // violating token where something can consume it.
+  validateTierReferences(await light.getPlatformTokens('manifest'))
   await light.buildAllPlatforms()
   await dark.buildAllPlatforms()
+  await compact.buildAllPlatforms()
 }
 
 await build()
@@ -210,10 +284,24 @@ await build()
 // `clara.tokens`, which loses to `clara.components` and to anything a consumer writes unlayered.
 // Applied after the build because Style Dictionary's css/variables format owns the rule body.
 {
-  const { readFileSync, writeFileSync, existsSync } = await import('node:fs')
-  for (const file of ['dist/tokens.css', 'dist/themes/dark.css']) {
-    if (!existsSync(file)) continue
+  // Walk what was EMITTED rather than a hardcoded list. The list was ['dist/tokens.css',
+  // 'dist/themes/dark.css'], so adding compact.css produced an unlayered stylesheet - and the
+  // layer contract cannot be retrofitted after release without changing the resolved style of
+  // every consumer override already written (D0005). A file this step does not know about is
+  // exactly the file that ships wrong.
+  const { readFileSync, writeFileSync, readdirSync, statSync, existsSync } = await import('node:fs')
+  const walkCss = (dir) => !existsSync(dir) ? []
+    : readdirSync(dir).flatMap((e) => {
+      const full = `${dir}/${e}`
+      return statSync(full).isDirectory() ? walkCss(full) : full.endsWith('.css') ? [full] : []
+    })
+  const sheets = walkCss('dist')
+  for (const file of sheets) {
     writeFileSync(file, applyCascadeLayer(readFileSync(file, 'utf8'), 'clara.tokens'))
   }
-  console.log('PASS [layers] token stylesheets wrapped in clara.tokens')
+  if (!sheets.length) {
+    console.error('FAIL [layers] no stylesheet was emitted - nothing was wrapped')
+    process.exit(1)
+  }
+  console.log(`PASS [layers] ${sheets.length} token stylesheet(s) wrapped in clara.tokens`)
 }

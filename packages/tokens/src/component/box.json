@@ -1,0 +1,20 @@
+{
+  "box": {
+    "padding-none": {
+      "value": "{space.none}",
+      "type": "dimension"
+    },
+    "padding-sm": {
+      "value": "{space.control-padding-y}",
+      "type": "dimension"
+    },
+    "padding-md": {
+      "value": "{space.stack}",
+      "type": "dimension"
+    },
+    "padding-lg": {
+      "value": "{space.section}",
+      "type": "dimension"
+    }
+  }
+}

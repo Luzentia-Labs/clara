@@ -17,7 +17,7 @@
     "check:layers": "node scripts/check-layers.mjs",
     "check:private": "node scripts/check-private.mjs",
     "check:peers": "node scripts/check-peers.mjs",
-    "check": "pnpm check:layers && pnpm check:private && pnpm check:peers && pnpm check:exports && pnpm check:license && pnpm check:bundled-peers && pnpm check:token-output && pnpm check:stylesheets && pnpm check:contrast && pnpm check:foundations && pnpm check:mutation-config && pnpm check:coverage-gate && pnpm check:api && pnpm check:ci-gates && pnpm check:release && pnpm check:client-boundary && pnpm check:pack && pnpm check:size-budgets && pnpm check:public-tokens && pnpm check:prove-guards",
+    "check": "pnpm check:layers && pnpm check:private && pnpm check:peers && pnpm check:exports && pnpm check:license && pnpm check:bundled-peers && pnpm check:token-output && pnpm check:stylesheets && pnpm check:contrast && pnpm check:foundations && pnpm check:mutation-config && pnpm check:coverage-gate && pnpm check:api && pnpm check:ci-gates && pnpm check:release && pnpm check:client-boundary && pnpm check:pack && pnpm check:size-budgets && pnpm check:public-tokens && pnpm check:component-css && pnpm check:prove-guards",
     "check:exports": "node scripts/check-exports.mjs",
     "check:license": "node scripts/check-license.mjs",
     "check:bundled-peers": "node scripts/check-bundled-peers.mjs",
@@ -47,7 +47,8 @@
     "verify:consumers": "node scripts/verify-consumers.mjs",
     "size:sync": "node scripts/sync-size-budgets.mjs",
     "check:size-budgets": "node scripts/sync-size-budgets.mjs --check",
-    "check:public-tokens": "node scripts/check-public-tokens.mjs"
+    "check:public-tokens": "node scripts/check-public-tokens.mjs",
+    "check:component-css": "node scripts/check-component-css.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",
@@ -68,6 +69,7 @@
     "axe-core": "^4.13.0",
     "jsdom": "^29.1.1",
     "picomatch": "^4.0.5",
+    "postcss": "^8.5.26",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "size-limit": "^12.1.0",
