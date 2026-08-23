@@ -13,11 +13,11 @@ between them. Every Clara form control reads its wiring from a Field.
 
 | You write | The control gets |
 | --- | --- |
-| `label` | A real `<label>` bound by `htmlFor`. There is no placeholder-as-label path. |
+| `label` | A real `<label>` bound by `htmlFor` for a single control; a `<span>` referenced by `aria-labelledby` when the child is a group, because `htmlFor` cannot target a fieldset. There is no placeholder-as-label path either way. |
 | `description` | A `<p>` with an id, first in `aria-describedby`. |
 | `error` | A `role="alert"` region, second in `aria-describedby`, plus `aria-invalid` and `aria-errormessage`. |
 | `required` | `aria-required` where the role supports it - a single control, or a `radiogroup`. A `<fieldset>` is `role=group`, which does not, so a `CheckboxGroup` composes a visually-hidden marker into its name instead. The visible asterisk is `aria-hidden` either way. |
-| `disabled` | `aria-disabled` and `readOnly` - **not** the native `disabled` attribute. See below. |
+| `disabled` | `aria-disabled`, plus `readOnly` on the TEXT controls - not the native `disabled` attribute. A checkbox, switch or group takes no `readOnly` (it is not valid there) and suppresses its own change instead. See below. |
 
 Description before error is deliberate: the hint explains what to enter, the error explains what went
 wrong with what was entered, and that is the order a person needs them in.

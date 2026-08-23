@@ -53,6 +53,7 @@ jobs:
       - run: pnpm check
       - run: pnpm test
       - run: pnpm test:coverage
+      - run: pnpm check:latest
       - run: pnpm check:contrast
       - run: pnpm check:public-tokens
       - run: pnpm check:component-css

@@ -55,6 +55,12 @@ jobs:
       - name: Gate 4 - coverage thresholds
         run: pnpm test:coverage
 
+      # The orientation file's figures, measured HERE rather than only on a developer's machine.
+      # A guard that lives solely in preflight is a guard the author can skip - and the numbers it
+      # protects are the first thing every agent reads.
+      - name: Orientation figures are current
+        run: pnpm check:latest
+
       - name: Gate 8 - token contrast, both themes
         run: pnpm check:contrast
 

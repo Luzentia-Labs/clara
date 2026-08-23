@@ -48,13 +48,14 @@ a real pass or, as here, that it is outstanding.
 
 ## Accessibility
 
-Supplying `min` or `max` makes the control a **spinbutton**, which is the only role that supports
+Supplying `min`, `max` **or** `step` makes the control a **spinbutton**, which is the only role that supports
 `aria-valuemin` / `aria-valuemax` / `aria-valuenow`. An earlier version emitted those properties on
 the implicit `textbox` role, where they are invalid: nothing announced them, and axe reported it as
 a critical `aria-allowed-attr` violation while this record claimed the bounds were announced. The
 axe fixture did not catch it because it rendered the control WITHOUT bounds - the one configuration
-that cannot fail. With no bound the control stays a plain textbox, which is correct: an account
-code is not a value in a range.
+that cannot fail. With none of the three the control stays a plain textbox - and it neither steps
+nor swallows the arrow keys, which is correct: an account code is not a value in a range, and
+`00417` must survive Arrow Up with the caret still moving.
 
 The wheel cannot change the value because the control is never `type="number"` - that is structural,
 not a handler. An earlier version blurred the control on wheel, which protected against nothing and

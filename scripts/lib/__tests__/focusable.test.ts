@@ -130,7 +130,12 @@ describe('focusableClassGroups', () => {
     // Silently skipping one is how it goes unnoticed - `TableSortButton` rendered a class-less
     // <button> and was dropped without a word.
     const result = focusableClassGroups(dir)
-    expect(result.unresolved.join(' ')).toContain('Runtime.tsx:<button>')
+    // Each entry carries its FILE as well as a label, so a caller can attribute it with the same
+    // reader that decides ownership - deriving the component from the filename put a class-less
+    // element in `Field/index.tsx` outside `--component Field`.
+    const blind = result.unresolved.map((u: { where: string, file: string }) => u.where).join(' ')
+    expect(blind).toContain('Runtime.tsx:<button>')
+    expect(result.unresolved.every((u: { file: string }) => u.file.endsWith('.tsx'))).toBe(true)
   })
 
   it('returns a stable, de-duplicated list', () => {

@@ -5,7 +5,7 @@ token scale and none of them adding semantics.
 
 ```tsx
 <Stack gap="md">
-  <Inline gap="sm"><Badge /><Text>Draft</Text></Inline>
+  <Inline gap="sm"><Text tone="muted" size="caption">Status</Text><Text>Draft</Text></Inline>
   <Grid columns={2} gap="md">{fields}</Grid>
 </Stack>
 ```

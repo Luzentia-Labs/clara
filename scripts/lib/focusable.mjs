@@ -107,9 +107,9 @@ export function focusableClassGroups (root = 'packages/react/src') {
             // A focusable element with no resolvable class name is a BLIND SPOT, not a pass: it
             // cannot be checked, and silently skipping it is how one goes unnoticed. Reported so it
             // is loud - `TableSortButton` renders a class-less <button> and was dropped in silence.
-            else unresolved.push(`${file.split('/').slice(-2).join('/')}:<${tag}>`)
+            else unresolved.push({ where: `${file.split('/').slice(-2).join('/')}:<${tag}>`, file })
           } else {
-            unresolved.push(`${file.split('/').slice(-2).join('/')}:<${tag}>`)
+            unresolved.push({ where: `${file.split('/').slice(-2).join('/')}:<${tag}>`, file })
           }
         }
       }
@@ -127,7 +127,14 @@ export function focusableClassGroups (root = 'packages/react/src') {
   })
   // Attached to the RETURNED array. Setting it on `groups` first lost it, because `filter` returns
   // a fresh array - a blind spot reported onto an object nobody reads is not reported at all.
-  result.unresolved = [...new Set(unresolved)]
+  // Carries the FILE, so a caller can attribute it with the same reader that decides ownership.
+  // Deriving the component from the filename put `Field/index.tsx` outside `--component Field`.
+  const seenUnresolved = new Set()
+  result.unresolved = unresolved.filter((u) => {
+    if (seenUnresolved.has(u.where)) return false
+    seenUnresolved.add(u.where)
+    return true
+  })
   return result
 }
 

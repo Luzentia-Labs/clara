@@ -1,7 +1,9 @@
 import './styles.css'
 
-// Server-capable primitives - no function props, no state, no browser APIs, so they carry no
-// directive and a consumer rendering them never crosses a client boundary.
+// Layout and typography primitives. MOST are server-capable - no function props, no state, no
+// browser APIs - so they carry no directive and a consumer rendering them never crosses a client
+// boundary. Not all: ButtonGroup uses state and a DOM effect for its roving tabindex and is
+// classified client. `client-boundary.json` is the authority here, not this comment.
 export { Box } from './components/Box/Box'
 export type { BoxProps, BoxOwnProps } from './components/Box/Box'
 export { Stack } from './components/Stack/Stack'

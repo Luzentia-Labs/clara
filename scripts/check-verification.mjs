@@ -171,7 +171,7 @@ const collectTests = (dir) => {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name)
     if (entry.isDirectory()) { collectTests(full); continue }
-    if (!entry.name.endsWith('.test.tsx')) continue
+    if (!/\.test\.tsx?$/.test(entry.name)) continue
     const source = readFileSync(full, 'utf8')
     for (const m of source.matchAll(/import \{([^}]*)\} from '[^']*\/(\w+)'/g)) {
       for (const imported of m[1].split(',').map((x) => x.trim()).filter(Boolean)) {
@@ -183,7 +183,12 @@ const collectTests = (dir) => {
     }
   }
 }
-collectTests(join(ROOT, 'packages/react/src'))
+// Every directory that holds tests, not just the react package: the matcher accepts any
+// `.test.ts(x)` path, so a record citing `scripts/lib/__tests__/...` or a tokens test was told the
+// file "does not import" its component - when the truth was that the collector never looked there.
+for (const dir of ['packages/react/src', 'packages/tokens/src', 'packages/icons/src', 'scripts/lib', 'test']) {
+  if (existsSync(join(ROOT, dir))) collectTests(join(ROOT, dir))
+}
 
 const manifest = JSON.parse(readFileSync(join(ROOT, 'packages/react/client-boundary.json'), 'utf8'))
 const boundaries = new Map(manifest.components.map((c) => [c.name, c]))

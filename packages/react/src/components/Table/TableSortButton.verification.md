@@ -66,5 +66,7 @@ will sort.
 - **Screen reader testing is not automated.** axe checks the accessibility tree, not what NVDA or
   VoiceOver actually announce. PRD F17 names NVDA as a stated gap; it stays one.
 - **Visual regression is not yet wired** (gate 7), so the rendered appearance is unverified.
-- **`aria-sort` is not set by this control.** It belongs on the `<th>`, which the Table stub does not
-  own yet, so the sort state is currently announced only through the button's own label.
+- **The direction is not announced at all**, as the Accessibility section above states. `aria-sort`
+  belongs on the `<th>`, which the Table stub does not own, and the button's own label is the
+  constant "sort". An earlier version of this line said the state was announced through the label,
+  contradicting the section above it.

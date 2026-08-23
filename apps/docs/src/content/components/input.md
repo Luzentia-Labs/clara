@@ -37,8 +37,10 @@ where the platform already has one.
   `onClear` fires after the value is gone and focus has returned.
 - **`maxCount`** shows a count and adds it to the field's description, where it is read on demand.
   The count itself is **not** a live region - one that rewrites on every keystroke is unusable. A
-  separate, always-present announcer stays empty until the limit is actually reached, and then says
-  so once. It deliberately does
+  separate, always-present announcer stays empty until the limit is reached, then says "limit
+  reached" - and past it, how many characters over. That last part does rewrite as you type, which
+  is a deliberate trade: once you are over, the number is the useful part. Pasting straight past the
+  limit skips "limit reached" and announces the overage directly. It deliberately does
   **not** set `maxLength`: a hard cut-off silently discards the end of a paste, which is how a user
   loses half a reference without noticing. Over the limit the count turns danger-coloured;
   enforcing the limit is the form's decision, not the control's.

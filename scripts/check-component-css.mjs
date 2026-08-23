@@ -22,6 +22,7 @@ import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import postcss from 'postcss'
 import { focusableClassGroups, claraClassesByComponent } from './lib/focusable.mjs'
+import { componentsInFile } from './lib/module-exports.mjs'
 import { fail, pass } from './lib/workspace.mjs'
 
 const RULE = 'component-css'
@@ -227,11 +228,11 @@ const inScope = owned ? (selector) => owned.has(selector.split('--')[0]) : () =>
 // A focusable element whose class list cannot be resolved statically is a blind spot, and a blind
 // spot reported to nobody is the same as none. `TableSortButton` rendered a class-less <button> and
 // was skipped in silence until this was made loud.
-for (const where of FOCUSABLE.unresolved ?? []) {
-  // Attributed to its component, not skipped when scoped. `if (scope) continue` meant the check
-  // existed only on the path no acceptance criterion takes - and every AC uses `--component`.
-  const component = where.split('/').pop().split('.tsx')[0]
-  if (scope && component !== scope) continue
+for (const { where, file } of FOCUSABLE.unresolved ?? []) {
+  // Attributed by what the FILE exports, not by its name. `if (scope) continue` meant the check
+  // existed only on the path no acceptance criterion takes - and then attributing it by filename
+  // put `Field/index.tsx` outside `--component Field`, which is the same failure one step along.
+  if (scope && !componentsInFile(file).includes(scope)) continue
   problems.push(`${where} is focusable and carries no resolvable Clara class - it cannot be checked for a focus ring, so give it one`)
 }
 
@@ -255,12 +256,28 @@ for (const group of FOCUSABLE.filter((g) => g.some(inScope))) {
   }
 }
 
+const unconditional = (rule) => {
+  // A rule inside @media/@supports applies only sometimes, so it is neither a conflicting
+  // redeclaration of an unconditional one nor a substitute for it. `walkRules` descends into them
+  // and both new matchers were blind: a breakpoint override read as a conflict (making ordinary
+  // responsive CSS unlandable), and a required declaration hiding inside a query read as present.
+  for (let node = rule.parent; node; node = node.parent) {
+    if (node.type === 'atrule' && /^(media|supports|container)$/.test(node.name)) return false
+  }
+  return true
+}
+
 for (const [selector, banned] of FORBIDDEN.filter(([sel]) => inScope(sel))) {
   for (const file of files) {
     postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
-      // Match any selector whose compound contains this class, not the exact string: a DESCENDANT
-      // selector removes the element just as effectively, and comparing strings could not see it.
-      const targets = new RegExp(`(^|[\\s>+~])${selector.replace('.', '\\.')}(?![\\w-])`)
+      // Anywhere in the selector, in any compound. Requiring whitespace or a combinator before the
+      // class missed `.clara-checkbox-group__legend.clara-visually-hidden` - the exact pair both
+      // groups render - so the compound form named in this check's own docblock went unchecked.
+      // No lookbehind: the leading `.` IS the delimiter, and a class may follow another class
+      // directly. Requiring a non-word character before the dot meant the compound form -
+      // `.clara-checkbox-group__legend.clara-visually-hidden`, which both groups render - never
+      // matched, so the check named after compounds was checking only descendants.
+      const targets = new RegExp(`${selector.replace('.', '\\.')}(?![\\w-])`)
       if (!(rule.selectors ?? []).some((sel) => targets.test(sel))) return
       rule.walkDecls((decl) => {
         if (banned[decl.prop] === decl.value.trim()) {
@@ -279,6 +296,10 @@ for (const [selector, required] of SHAPE_CONTRACT.filter(([sel]) => inScope(sel)
       // `.clara-input-group .clara-input` styles the control in ONE context and does not satisfy
       // the base contract - and treating it as though it did masked the deletion of the base
       // `min-height` entirely, which is how this mutation started reporting SURVIVED.
+      // Unconditional only: a `min-height` that exists solely inside `@media (min-width: 3000px)`
+      // does not give the control a height, and accepting it was a live escape of the very defect
+      // this contract was written for.
+      if (!unconditional(rule)) return
       if (!(rule.selectors ?? []).includes(selector)) return
       rule.walkDecls((decl) => declared.add(decl.prop))
     })
@@ -306,6 +327,7 @@ for (const [selector, required] of SHAPE_CONTRACT.filter(([sel]) => inScope(sel)
 const declaredBy = new Map()
 for (const file of files) {
   postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+    if (!unconditional(rule)) return
     for (const sel of rule.selectors ?? []) {
       if (!inScope(sel.split(':')[0])) continue
       rule.walkDecls((decl) => {

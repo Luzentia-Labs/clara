@@ -84,9 +84,17 @@ function stageWorkspace ({ withOutput = false } = {}) {
  * Run a guard against the staged copy. Distinguishes "the guard rejected the mutation" from
  * "the guard crashed" - conflating them lets a broken guard read as a working one (N5).
  */
-const runGuard = (script, cwd) => {
+/**
+ * `args` exists so the SCOPED path can be proven.
+ *
+ * 138 story `Verify:` lines call a guard with `--component`, and no mutation had ever run one that
+ * way - so every hole in the scoped path shipped unnoticed, twice: the blind-spot list skipped when
+ * scoped, and then attributed by filename. The path an acceptance criterion takes is the path that
+ * most needs a fail-proof.
+ */
+const runGuard = (script, cwd, args = []) => {
   try {
-    execFileSync('node', [join(scriptsDir, script)], { cwd, stdio: 'pipe' })
+    execFileSync('node', [join(scriptsDir, script), ...args], { cwd, stdio: 'pipe' })
     return { code: 0, crashed: false, stderr: '' }
   } catch (error) {
     const code = error.status ?? null
@@ -984,6 +992,31 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // The SCOPED path, which is the one every acceptance criterion uses and which no mutation had
+    // ever exercised. Two holes shipped in it unnoticed before this existed.
+    name: 'a component losing its focus ring, checked the way its acceptance criterion checks it',
+    guard: 'check-component-css.mjs',
+    args: ['--component', 'SearchInput'],
+    expect: /\.clara-search__clear is focusable and has no `:focus-visible` rule/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('.clara-search__clear:focus-visible,\n', ''))
+    },
+  },
+  {
+    name: 'a component losing its box, checked the way its acceptance criterion checks it',
+    guard: 'check-component-css.mjs',
+    args: ['--component', 'Field'],
+    expect: /\.clara-field declares no `display`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(
+        '.clara-field { display: grid; gap: var(--clara-space-control-gap); }',
+        '.clara-field { color: var(--clara-color-fg-default); }',
+      ))
+    },
+  },
+  {
     name: 'an icon exported but absent from the committed list',
     guard: 'check-icons.mjs',
     expect: /absent from ICONS\.md|not declared/,
@@ -1023,16 +1056,28 @@ const OUTPUT_CASES = [
   },
 ]
 
-for (const { name, guard, stage: corrupt, expect } of OUTPUT_CASES) {
+for (const { name, guard, stage: corrupt, expect, args = [] } of OUTPUT_CASES) {
   const stage = stageWorkspace({ withOutput: true })
   try {
-    const clean = runGuard(guard, stage)
+    const clean = runGuard(guard, stage, args)
     if (clean.code !== 0) {
       problems.push(`${name}: ${guard} already fails on an unmutated copy (exit ${clean.code})`)
       continue
     }
+    // The no-op check belongs HERE most of all. These 70 mutations are the fragile ones - string
+    // replacements against styles.css, verification.md and ci.yml - and the case that motivated the
+    // check (`.clara-link:focus-visible {` becoming a no-op) is one of them. It was installed only
+    // on the other loop, whose seven JSON patches can barely no-op at all.
+    const before = snapshot(stage)
     corrupt(stage)
-    const result = runGuard(guard, stage)
+    if (snapshot(stage) === before) {
+      problems.push(
+        `${name}: the mutation changed NOTHING in the staged copy - its target has moved, so it ` +
+        'proves nothing. This is not a guard failure; it is a stale mutation.',
+      )
+      continue
+    }
+    const result = runGuard(guard, stage, args)
     if (result.code === 0) problems.push(`${name}: SURVIVED - ${guard} exited 0 with the mutation applied`)
     else if (expect && !expect.test(result.stderr)) {
       problems.push(

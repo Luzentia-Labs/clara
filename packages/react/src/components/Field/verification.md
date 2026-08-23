@@ -3,7 +3,7 @@
 PRD F17 requires a per-component record rather than a blanket claim. This one is written from
 the tests that actually run, so it can be checked rather than believed.
 
-The Field owns the wiring every control inherits: one generated id, a real `<label>` bound by `htmlFor`, `aria-describedby` ordered description-then-error, `aria-invalid` and `aria-errormessage` when invalid.
+The Field owns the wiring every control inherits: one generated id, a label element bound by `htmlFor` for a single control and by `aria-labelledby` for a group, `aria-describedby` ordered description-then-error, `aria-invalid` and `aria-errormessage` when invalid.
 
 **Boundary:** client-only (see `client-boundary.json`). A Field renders a context Provider, so
 neither it nor any control that reads its wiring can be a Server Component (D0060).

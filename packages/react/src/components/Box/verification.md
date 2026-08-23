@@ -3,7 +3,7 @@
 PRD F17 requires a per-component record rather than a blanket claim. This one is written from
 the tests that actually run, so it can be checked rather than believed.
 
-The unstyled layout box: padding, background and border drawn only from tokens.
+The unstyled layout box. It takes `padding` and nothing else: an earlier version of this line claimed background and border too, and `BoxOwnProps` has one member while `.clara-box` declares only `box-sizing`.
 
 **Boundary:** server-capable (see `../../../client-boundary.json`). No function props, no state,
 no browser APIs, so it carries no `"use client"` directive and renders on the server.
