@@ -1,6 +1,6 @@
 # US-01M0GMF3: NumberInput
 
-> **Status:** Ready
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -109,7 +109,7 @@ story is mostly about not inheriting either.
 
 - **Given** a bounded NumberInput
 - **When** the user presses Home, End, PageUp or PageDown
-- **Then** the value jumps to the bound or steps by ten, and a fractional step writes no float noise
+- **Then** the value jumps to the bound, or steps by ten TIMES `step`, and a fractional step writes no float noise
 - **Verify:** vitest "NumberInput keyboard reaches the bounds and holds precision"
 - **Verified:** yes (2026-08-23)
 - **Verification target:** functional

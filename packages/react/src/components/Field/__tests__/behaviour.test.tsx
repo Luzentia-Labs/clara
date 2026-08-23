@@ -168,10 +168,10 @@ describe('NumberInput ignores wheel', () => {
   // handler deleted. The behaviour that exists is that the control BLURS, so a wheel event
   // reaching a focused numeric field cannot be captured by it at all; that is what is asserted.
   it('is never type="number", which is what makes the wheel harmless', () => {
-    // The guarantee is structural, not a handler. An earlier version blurred the control on wheel,
-    // which protected against nothing (a text input does not step on wheel anywhere) and stole
-    // focus from anyone scrolling a long form - so the test asserting "the value did not change"
-    // passed with the mechanism deleted. This asserts the mechanism itself.
+    // The guarantee is structural, not a handler: the control is never `type="number"`, so the
+    // wheel cannot reach the value at all (D0062). An earlier implementation blurred on wheel,
+    // which protected against nothing and stole focus from anyone scrolling a long form - it was
+    // removed, and the assertion below is that focus STAYS.
     inField(<NumberInput defaultValue="100" />)
     const el = screen.getByRole('textbox') as HTMLInputElement
     expect(el.type).toBe('text')
@@ -1268,5 +1268,40 @@ describe('a consumer disabling a control directly gets Clara disabled, not nativ
     expect(el).toHaveAttribute('aria-disabled', 'true')
     expect(el).not.toBeDisabled()
     expect(el).toHaveAttribute('readonly')
+  })
+})
+
+describe('a control disabled by its OWN prop suppresses its own writes', () => {
+  // D0085's rationale names this blind spot and its own fix walked into it: every covering test
+  // disabled the FIELD, so dropping the `disabled` argument from `fieldDisabled` inside NumberInput
+  // left all 846 tests green. The composition a React developer writes first is the one that was
+  // never fixtured.
+  it('does not step a NumberInput disabled by its own prop', () => {
+    render(<Field label="Qty"><NumberInput min={0} max={99} step={5} defaultValue="10" disabled /></Field>)
+    const el = screen.getByRole('spinbutton') as HTMLInputElement
+    el.focus()
+    for (const key of ['ArrowUp', 'PageUp', 'End', 'Home']) fireEvent.keyDown(el, { key })
+    expect(el.value).toBe('10')
+  })
+
+  it('does not clear a SearchInput disabled by its own prop', async () => {
+    const onClear = vi.fn()
+    render(<Field label="Search"><SearchInput defaultValue="acme" onClear={onClear} disabled /></Field>)
+    await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+    expect(screen.getByRole('searchbox')).toHaveValue('acme')
+    expect(onClear).not.toHaveBeenCalled()
+  })
+
+  it('does not reveal a PasswordInput disabled by its own prop', async () => {
+    const { container } = render(<Field label="Key"><PasswordInput defaultValue="hunter2" disabled /></Field>)
+    const field = container.querySelector('input') as HTMLInputElement
+    await userEvent.click(screen.getByRole('button'))
+    expect(field.type).toBe('password')
+  })
+
+  it('does not clear a decorated Input disabled by its own prop', async () => {
+    render(<Field label="Ref"><Input clearable defaultValue="PO-4417" disabled /></Field>)
+    await userEvent.click(screen.getByRole('button', { name: 'Clear Ref' }))
+    expect(screen.getByRole('textbox')).toHaveValue('PO-4417')
   })
 })

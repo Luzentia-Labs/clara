@@ -134,8 +134,15 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
    * fights them mid-entry, and rejecting the keystroke loses a paste. But it means the control could
    * announce `aria-valuenow="500"` beside `aria-valuemax="10"`, which is a contradiction a screen
    * reader reads out in one breath. So an out-of-range value is announced as INVALID - the value
-   * stays truthful and the state is honest - unless the Field already says so, in which case the
-   * Field's error is the better message and this must not compete with it.
+   * stays truthful and the state is honest. It is set unconditionally: when the Field is ALSO
+   * invalid both sources say `true`, so the override is idempotent and the Field's
+   * `aria-errormessage` survives untouched. An earlier version of this note claimed a deferral the
+   * code does not implement.
+   *
+   * KNOWN GAP: out of range inside a VALID Field, the control announces invalid with no message
+   * attached - there is no error text to point `aria-errormessage` at. That is a plausible WCAG 2.2
+   * SC 3.3.1 shortfall which axe cannot see structurally, and it is a UX call rather than a coding
+   * one: the alternative is announcing a contradiction. Recorded on the verification record.
    */
   const outOfRange = Number.isFinite(asNumber) &&
     ((min !== undefined && asNumber < min) || (max !== undefined && asNumber > max))

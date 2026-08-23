@@ -72,6 +72,12 @@ Figures are tabular, so a column of amounts aligns, and a leading zero is preser
 
 ## Stated gaps
 
+- **An out-of-range value inside a VALID Field announces invalid with no message.** The control sets
+  `aria-invalid` so it does not announce `aria-valuenow="500"` beside `aria-valuemax="10"` as though
+  both were fine - but when the Field carries no error there is no text to point
+  `aria-errormessage` at. A plausible WCAG 2.2 SC 3.3.1 shortfall, invisible to axe, and a UX call
+  (the alternative is announcing the contradiction). Raised by a spec review; not yet decided.
+
 - **Screen reader testing is not automated.** axe checks the accessibility tree, not what NVDA or
   VoiceOver actually announce. PRD F17 names NVDA as a stated gap; it stays one.
 - **Visual regression is not yet wired** (gate 7), so the rendered appearance is unverified - only
