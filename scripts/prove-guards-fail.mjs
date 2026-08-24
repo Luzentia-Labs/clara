@@ -680,6 +680,16 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // The shape was the only thing checked, so a reference to a token that does not exist passed
+    // and emitted a var() pointing at nothing.
+    name: 'a tier 2 token referencing a tier 1 token that does not exist',
+    guard: 'check-token-output.mjs',
+    expect: /references no tier 1 token/,
+    stage: patch('packages/tokens/src/semantic/overlay.json', (m) => {
+      m.color.bg.scrim.value = '{color.black-alpha.99}'
+    }),
+  },
+  {
     // TRD gate 2: a component reaching past the semantic layer into a primitive is how theming
     // quietly stops working for that one component - the output looks identical.
     name: 'component CSS reading a tier 1 primitive',

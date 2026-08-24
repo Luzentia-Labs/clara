@@ -137,6 +137,9 @@ export const ColorBgRowHover = "#f2f0ed";
 export const ColorBgRowStriped = "#f8f7f4";
 
 // @public (undocumented)
+export const ColorBgScrim = "#00000080";
+
+// @public (undocumented)
 export const ColorBgSelected = "#eceffe";
 
 // @public (undocumented)
@@ -159,6 +162,9 @@ export const ColorBgWarningEmphasis = "#9b690b";
 
 // @public (undocumented)
 export const ColorBgWarningSubtle = "#fbf6f0";
+
+// @public
+export const ColorBlackAlpha50 = "#00000080";
 
 // @public (undocumented)
 export const ColorBorderDefault = "#95928e";
@@ -274,7 +280,7 @@ export const ColorInfo800 = "#053e58";
 // @public (undocumented)
 export const ColorInfo900 = "#042130";
 
-// @public
+// @public (undocumented)
 export const ColorNeutral0 = "#ffffff";
 
 // @public (undocumented)

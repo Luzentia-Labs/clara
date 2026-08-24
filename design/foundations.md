@@ -16,7 +16,7 @@
 | 3 | Ramp generation colour space | **Decided** - OKLCH |
 | 4 | Radius scale and character | **Decided** - subtle, 4px base |
 | 5 | Border weight convention | **Decided** - 1px default, 2px focus, as tier 2 `border-width` tokens |
-| 6 | Elevation expression, incl. dark theme | **Provisional** |
+| 6 | Elevation expression, incl. dark theme | **Provisional** - measured and deliberately deferred to Popover (D0093) |
 | 7 | Two-part focus indicator | **Decided** - measured on all 6 enumerated surfaces |
 | 8 | Type scale with body step named | **Decided** - body is 14px, named `font-body`; caption, body-lg and three heading steps beside it |
 | 9 | Legal pairing table, populated and passing | **Decided** - 48 pairings, all measured and passing in both themes, **0 waived** (US-01M0GMAE, US-01M0GM66) |
@@ -155,11 +155,30 @@ Each lands as a real token so F01 is unblocked, with the condition that revisits
 | Deliverable | Provisional value | Revisit when |
 | --- | --- | --- |
 | **5. Border weight** | `thin 1px` (default), `thick 2px` | The first Table and Input ship together and rule weight can be judged at real density |
-| **6. Elevation** | Not expressed as shadow tokens yet. Surfaces are distinguished by `bg` steps only | The first Modal and Popover ship - shadows barely register in dark theme, so this needs both themes side by side |
+| **6. Elevation** | Not expressed as shadow tokens. Separation is carried by the SCRIM in light (panel vs scrim 3.95:1, border only 1.28:1) and by the 1px `border-default` in dark (6.18:1 against the scrim, panel only 1.15:1). The mechanism is theme-asymmetric by measurement, not by preference, and each theme has exactly one cue clearing the 3:1 non-text floor - the same two-part structure as deliverable 7. **An earlier version of this row said "surfaces are distinguished by `bg` steps only", which was false as shipped: `bg.canvas` and `bg.surface` are identical in BOTH themes, so `bg.surface` carries no design decision today** | **Popover ships, and before the first publish.** Not Modal: Modal always has a scrim, so it structurally cannot produce the case that decides this. Popover has none, and an unscrimmed white popover on a white canvas is 1.00:1 of surface separation with `border-default` at 3.10:1 as the only cue - the first and only place where a shadow is the sole remaining mechanism, and a LIGHT-theme case. The original condition had the hard theme backwards (D0093) |
 | **8. Type scale** | `xs 12 · sm 14 · md 16 · lg 20 · xl 24 · 2xl 32`, **body = `sm` 14px** | The reference application shows real density. Idris's floor holds regardless: body never below 14px, 12px only for genuinely non-essential metadata |
 | **10. Motion** | `instant 0 · fast 120ms · base 200ms`. Motion may communicate **state change and spatial origin only** - never decoration | The first Drawer and Toast ship |
 
 ---
+
+### Pre-committed shapes, so the revisit does not restart the argument
+
+Recorded when each deliverable was deferred, by the seat that deferred it. A later story implements
+these; it does not reopen them without a new decision.
+
+**Elevation (deliverable 6, D0093).** One level, never a scale. A light-theme shadow token and a
+dark-theme surface step, because neither mechanism works in the other theme - a shadow against the
+composited dark scrim is 1.06:1, and a scrim cannot express elevation in dark at any alpha (black at
+alpha 1.0 buys 1.15:1 to 1.26:1). No elevation token whose only justification is that a surface
+looked plain. The dark surface step must NOT be `neutral.800`: dark `bg-subtle` is already
+`neutral.800`, and `component/table.json` binds `table.row.bg` to `bg.surface`, so raising it would
+make dark table striping vanish in a component that has already shipped.
+
+**Motion (deliverable 10, D0094).** When Modal gains a transition it is `opacity` on the SCRIM only -
+the panel does not move and does not scale, because a scale-up implies a spatial origin a centred
+dialog does not have. `fast` (120ms) on enter, `instant` on exit, because a dialog that lingers on
+close blocks the next action. Under `prefers-reduced-motion: reduce` the transition is REMOVED, not
+shortened: a 1ms fade is still a fade and is still composited.
 
 ## Non-negotiable, not provisional
 

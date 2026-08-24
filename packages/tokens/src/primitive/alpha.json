@@ -1,0 +1,12 @@
+{
+  "//": "Alpha primitives. A SEPARATE FILE from base.json on purpose: generate-ramps.mjs replaces `existing.color` wholesale (line 62), so anything hand-added to base.json's color group is destroyed by the next `pnpm generate:ramps`. Tier is decided by directory, so this is tier 1 exactly as base.json is.",
+  "color": {
+    "black-alpha": {
+      "50": {
+        "value": "#00000080",
+        "type": "color",
+        "comment": "True black at 50%, the scrim. NOT a neutral ramp step: neutral.900 over neutral.900 is 1.00:1, so a scrim built from the ramp does literally nothing in dark theme. This is the one place Clara needs a colour outside its ramps, and it enters with a role rather than an appearance."
+      }
+    }
+  }
+}

@@ -204,17 +204,33 @@ for (const name of emittedDark) {
 // directory. Accepts DTCG `$value` as well as `value`, because a token written in the `$value`
 // form silently vanished from the output while still being declared in the dark theme (N4).
 const tier2Paths = new Set(tiers.tier2.map((t) => t.path))
+const tier1Paths = new Set(tiers.tier1.map((t) => t.path))
 const sourceFiles = walk(join(tokens, 'src')).filter((f) => f.endsWith('.json'))
 for (const f of sourceFiles) {
   const walkTokens = (node, path = []) => {
     if (!node || typeof node !== 'object') return
     const raw = typeof node.value === 'string' ? node.value : typeof node.$value === 'string' ? node.$value : null
     if (raw !== null) {
-      if (tier2Paths.has(path.join('.')) && !/^\{[\w.]+\}$/.test(raw)) {
-        problems.push(
-          `${f.slice(root.length + 1)}: ${path.join('.')} = "${raw}" is a raw literal; ` +
-            'tier 2 must reference tier 1 (TRD Section 6)',
-        )
+      if (tier2Paths.has(path.join('.'))) {
+        // `[\w.]` excluded the hyphen, and no tier 1 group had ever had one - so the first that
+        // did (`color.black-alpha`, the scrim) read as a raw literal while Style Dictionary
+        // resolved it perfectly well. Tier 2's OWN paths are full of hyphens (`row-striped`,
+        // `accent-emphasis`), so the character was always legal; the regex just never met it.
+        const ref = /^\{([\w.-]+)\}$/.exec(raw)
+        if (!ref) {
+          problems.push(
+            `${f.slice(root.length + 1)}: ${path.join('.')} = "${raw}" is a raw literal; ` +
+              'tier 2 must reference tier 1 (TRD Section 6)',
+          )
+        } else if (!tier1Paths.has(ref[1])) {
+          // Shape was the only thing checked, so `{color.does-not-exist}` passed here and emitted
+          // a var() pointing at nothing. Tier 2 must reference tier 1 - which means the target has
+          // to BE a tier 1 token, not merely look like a reference.
+          problems.push(
+            `${f.slice(root.length + 1)}: ${path.join('.')} = "${raw}" references no tier 1 token; ` +
+              'tier 2 must reference tier 1 (TRD Section 6)',
+          )
+        }
       }
       return
     }

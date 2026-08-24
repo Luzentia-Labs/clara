@@ -16,10 +16,10 @@ sign-off, because the author never records their own verdict.
 
 ## Numbers
 
-- `pnpm check` runs **28 guards**; `prove-guards-fail` kills **94 mutations** on a staged copy.
+- `pnpm check` runs **28 guards**; `prove-guards-fail` kills **95 mutations** on a staged copy.
 - **875 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **91 decisions**. Stories: **39 Done of 88**. `main` is the only branch - this project is
+- **94 decisions**. Stories: **39 Done of 88**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line

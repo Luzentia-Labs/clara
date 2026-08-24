@@ -86,6 +86,21 @@ CI fails on any that misses its threshold - 4.5:1 for text, 3:1 for non-text, pe
 Nothing is waived. A pairing that is not listed is documented as unsupported, which is a real
 answer and a testable one.
 
+### Background
+
+| Token | Use |
+| --- | --- |
+| `--clara-color-bg-scrim` | The backdrop behind a modal or drawer. Translucent by design, so the page stays readable |
+
+Clara's scrim is 50% black in both themes. That is solved rather than picked: it is the strongest
+scrim that keeps body text behind it above 4.5:1, and light enough to leave the panel's edge
+readable against it. It is deliberately the same value in dark - legibility through the scrim works
+out identical in both themes, so a heavier dark scrim would cost readability and buy almost no extra
+separation.
+
+Nothing in Clara is drawn on top of the scrim. If you draw your own control there, check its
+contrast yourself: Clara's focus ring is measured against Clara's surfaces, not against the scrim.
+
 ## Stacking
 
 Clara's overlays share one layer, and the browser decides which of two is on top.
