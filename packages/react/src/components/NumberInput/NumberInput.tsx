@@ -1,6 +1,7 @@
 import { forwardRef, useRef, useState, type InputHTMLAttributes, type KeyboardEvent, type MutableRefObject } from 'react'
 import { cx } from '../../lib/cx'
 import { fieldAriaProps, fieldDisabled, useFieldWiring } from '../../lib/field-context'
+import { devWarning } from '../../lib/dev-warning'
 
 /**
  * A numeric input.
@@ -143,7 +144,29 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
    *
    * So detection belongs to the form, which is running it anyway, and the Field stays the single
    * source of invalidity - as it already is for every other control. See D0086.
+   *
+   * What remains is a warning to the DEVELOPER, in development only: a bounded control whose value
+   * is out of range inside a Field carrying no error is a composition mistake, and telling the
+   * person writing the code is the one place a library can help without guessing at copy the user
+   * will read.
    */
+  const outOfRange = Number.isFinite(asNumber) &&
+    ((min !== undefined && asNumber < min) || (max !== undefined && asNumber > max))
+
+  /**
+   * Checked on BLUR, not on render.
+   *
+   * Warning on render walks straight back into the defect that killed the `aria-invalid` version:
+   * a correct 500 typed into a `min={100}` field passes through 5 and 50, so the console fills with
+   * warnings about a value the user is entering correctly. A developer learns to filter that, which
+   * makes it worse than silent. On blur the value has settled and the composition mistake is real.
+   */
+  const warnIfUnreported = () => devWarning(
+    outOfRange && !wiring?.invalid,
+    'A NumberInput holds a value outside its min/max, and the Field around it has no `error`. ' +
+    'Clara does not flag this to the user - detection is your form\'s job (D0086) - so nothing is ' +
+    'telling them. Pass `error` to the Field when the value is wrong.',
+  )
   const spinbuttonAria = numeric
     ? {
         role: 'spinbutton',
@@ -179,6 +202,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
           if (!controlled) setSeen(event.currentTarget.value)
           onChange?.(event)
         }}
+        onBlur={(event) => { warnIfUnreported(); rest.onBlur?.(event) }}
         {...fieldAriaProps(wiring, 'text', disabled)}
         {...rest}
       />

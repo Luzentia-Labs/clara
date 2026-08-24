@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { cloneElement, useState } from 'react'
 import { createEvent, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { runAxe } from '../../../../../../test/axe'
+import { resetDevWarnings } from '../../../lib/dev-warning'
 import { ClaraProvider } from '../../../theme/ClaraProvider'
 import { claraAttributes } from '../../../theme/resolve'
 import { Field } from '../Field'
@@ -1309,5 +1310,85 @@ describe('a control disabled by its OWN prop suppresses its own writes', () => {
     render(<Field label="Ref"><Input clearable defaultValue="PO-4417" disabled /></Field>)
     await userEvent.click(screen.getByRole('button', { name: 'Clear Ref' }))
     expect(screen.getByRole('textbox')).toHaveValue('PO-4417')
+  })
+})
+
+describe('NumberInput warns the developer, never the user', () => {
+  // D0086 removed the user-facing signal because it was wrong four ways. This replaced it, and it
+  // is QA's condition for that removal: without it the behaviour has no observable property at all,
+  // and no gate can tell "we chose not to signal" from "the bounds wiring is broken".
+  //
+  // It fires on BLUR. Warning on render repeats the defect that killed the aria-invalid version -
+  // a correct 500 typed into a `min={100}` field passes through 5 and 50 - and a console that cries
+  // wolf gets filtered, which is worse than silence.
+  beforeEach(() => { resetDevWarnings() })
+
+  it('warns when a settled value is out of range and the Field carries no error', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    inField(<NumberInput min={0} max={10} />)
+    await userEvent.type(screen.getByRole('spinbutton'), '500')
+    await userEvent.tab()
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('the Field around it has no `error`')
+    warn.mockRestore()
+  })
+
+  it('says nothing while a correct value is being typed', async () => {
+    // The exact defect that killed the previous mechanism, checked on the replacement.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    inField(<NumberInput min={100} max={999} />)
+    await userEvent.type(screen.getByRole('spinbutton'), '500')
+    expect(warn).not.toHaveBeenCalled()
+    await userEvent.tab()
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
+  it('says nothing when the Field IS reporting the error', async () => {
+    // The correct composition. Warning here would train the developer to ignore the warning.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    inField(<NumberInput min={0} max={10} />, { error: 'Enter a quantity between 0 and 10' })
+    await userEvent.type(screen.getByRole('spinbutton'), '500')
+    await userEvent.tab()
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
+  it('warns once, however many times the field is left', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    inField(<NumberInput min={0} max={10} />)
+    const el = screen.getByRole('spinbutton')
+    await userEvent.type(el, '500')
+    await userEvent.tab()
+    el.focus()
+    await userEvent.tab()
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
+  })
+
+  it('is silent in a production build', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const real = process.env.NODE_ENV
+    process.env.NODE_ENV = 'production'
+    try {
+      resetDevWarnings()
+      inField(<NumberInput min={0} max={10} defaultValue="500" />)
+      screen.getByRole('spinbutton').focus()
+      await userEvent.tab()
+      expect(warn).not.toHaveBeenCalled()
+    } finally {
+      process.env.NODE_ENV = real
+      warn.mockRestore()
+    }
+  })
+
+  it('never reaches the user - nothing announced, nothing rendered', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = inField(<NumberInput min={0} max={10} />)
+    await userEvent.type(screen.getByRole('spinbutton'), '500')
+    await userEvent.tab()
+    expect(screen.getByRole('spinbutton')).not.toHaveAttribute('aria-invalid')
+    expect(container.textContent).not.toContain('clara')
+    warn.mockRestore()
   })
 })

@@ -60,6 +60,11 @@ quantity in an ERP is the remaining amount on the order, not `max`.
 So detection stays with your form, which is running it anyway, and the Field stays the single source
 of invalidity. Supply `error` when the value is wrong.
 
+**Clara will tell you if you forget.** In development only, a control holding an out-of-range value
+inside a Field with no `error` logs one console warning when the field is blurred. It is stripped
+from production builds, says nothing to your user, and fires on blur rather than on every keystroke -
+a warning that cries wolf while someone types a correct value is one you learn to ignore.
+
 ## Keys
 
 | Key | Result |

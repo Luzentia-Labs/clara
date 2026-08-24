@@ -78,6 +78,11 @@ Figures are tabular, so a column of amounts aligns, and a leading zero is preser
   on VALID entry, never removed the contradiction it was added for, and was invisible to sighted
   users. Detection belongs to the form; Clara's job is to make the correct composition the
   documented default.
+- **A development-only `console.warn` replaces the removed signal**, and is the only runtime warning
+  in the library. It fires on BLUR - warning on render repeats the very defect that killed the
+  `aria-invalid` version, since a correct 500 in a `min={100}` field passes through 5 and 50 - once
+  per message, and is dead code in a production build. It exists so the removal has an observable
+  property a gate can hold (D0086, and the precedent in D0077).
 - **The premise that started this was never observed.** The claim that a screen reader "reads the
   contradiction in one breath" was reasoned, not heard - and this record says elsewhere that the
   manual pass is outstanding. The bounded pass QA scoped (two screen readers, four fixtures, one
