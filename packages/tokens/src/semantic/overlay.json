@@ -1,11 +1,10 @@
 {
-  "//": "A SEPARATE FILE from semantic/color.json on purpose: generate-semantic.mjs writes that file and themes/dark.json wholesale from its contrast step-solver (lines 194-195), and a fixed alpha does not fit a `pick a ramp step, solved against contrast` model. It would be erased on the next run.",
   "color": {
     "bg": {
       "scrim": {
         "value": "{color.black-alpha.50}",
         "type": "color",
-        "comment": "The modal/drawer backdrop. Solved, not chosen: 0.50 is the strongest scrim that keeps the page behind it legible (body text through the scrim measures 4.85:1, above the 4.5:1 floor; at 0.55 it is 4.09:1 and the page stops being readable). It is also clear of the 0.40-0.45 dead zone where border-default against the scrim collapses to 1.09:1 and the panel loses its outline from the outside. Deliberately NOT overridden in dark: background legibility through the scrim is identical in both themes at the same alpha, because light and dark are the same pair reversed - a heavier dark scrim would cost legibility and buy 0.09:1 of panel separation."
+        "comment": "The modal/drawer backdrop. Solved, not chosen: 0.50 is the strongest scrim that keeps the page behind it legible (body text through the scrim measures 4.85:1, above the 4.5:1 floor; at 0.55 it is 4.09:1 and the page stops being readable). It is also clear of the 0.40-0.45 dead zone where border-default against the scrim collapses to 1.09:1 and the panel loses its outline from the outside. Deliberately NOT overridden in dark: background legibility through the scrim is identical in both themes at the same alpha, because light and dark are the same pair reversed - a heavier dark scrim would cost legibility and buy 0.09:1 of panel separation. Kept in a separate file from semantic/color.json because generate-semantic.mjs writes that file and themes/dark.json wholesale from its contrast step-solver (lines 194-195), and a fixed alpha does not fit a \"pick a ramp step\" model - it would be erased on the next run."
       }
     }
   }

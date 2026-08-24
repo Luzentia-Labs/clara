@@ -98,16 +98,28 @@ const fixed = [
     name: '@luzentialabs/clara-react styles.css (the fixed sheet ceiling, TRD:480 / PRD:1090)',
     path: 'packages/react/dist/styles.css', limit: '15 kB', gzip: true,
   },
-  // Measured once, not per overlay. See the IGNORED comment above.
-  ...(runtimeDeps.length
-    ? [{
-        name: `third-party runtime shared by every overlay (${runtimeDeps.join(', ')})`,
-        path: 'packages/react/dist/clara-client-Modal.js',
-        limit: '18 kB',
-        gzip: true,
-        ignore: PEERS,
-      }]
-    : []),
+  // One entry PER runtime dependency, measured through a chunk that actually imports it.
+  //
+  // The first version named every dependency in one entry and measured a single hardcoded chunk.
+  // A review added a second Radix package and the entry then CLAIMED to cover both while measuring
+  // a chunk that imports only the first - so the second overlay's third-party weight was measured
+  // by nothing, and every per-component budget ignores it. A budget that names more than it
+  // measures is worse than no budget, because the name is what a reader trusts.
+  //
+  // The chunk is found by reading the built chunks for a real import, so an entry cannot outlive
+  // the code it measures, and a dependency nothing imports is reported rather than skipped.
+  ...runtimeDeps.map((dep) => {
+    const importer = builtClients
+      .map((name) => `packages/react/dist/${CLIENT_CHUNK}-${name}.js`)
+      .find((file) => existsSync(file) && readFileSync(file, 'utf8').includes(dep))
+    return { dep, importer }
+  }).filter(({ importer }) => importer !== undefined).map(({ dep, importer }) => ({
+    name: `third-party runtime: ${dep} (shared by every overlay that uses it)`,
+    path: importer,
+    limit: '18 kB',
+    gzip: true,
+    ignore: [...PEERS, ...runtimeDeps.filter((d) => d !== dep)],
+  })),
 ]
 const perComponent = builtClients.map((name) => ({
   name: `${name} (client chunk, D0048)`,

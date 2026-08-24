@@ -19,6 +19,9 @@ This is the D0078 shape-versus-content lesson at its third recurrence, in the on
 2. US-01M0GM61 AC3 - the verifier selected three token comparisons in the tokens package while the DOM-order test that proves the whole stacking redesign lived in the react package under a describe the selector never reached. The story's own Test Plan mutant left all four verifiers green.
 3. US-01M0GM61 AC4 - the verifier owned a test that is not an SSR property, so a purely client-side mutation reddened the SSR criterion.
 
+4. US-01M0GM48 AC8 - `check-verification.mjs` requires a keyboard table to EXIST, not to be true. Rewriting Modal's Escape row to "Does nothing. Use the close button." left `check-verification.mjs --component Modal` green. The table is the specification D0024 says the tests are written from, so a table that contradicts the code inverts the whole TDD claim for that component.
+5. US-01M0GM48 AC8 - the same criterion asserted that Storybook stories, a visual baseline and a recorded manual keyboard pass "all exist", and was stamped `Verified: yes` while the repo had no `.storybook`, no `*.stories.*`, an unwired gate 7, and a verification record whose own text said the manual pass was outstanding. Corrected in the story; the guard could not have caught it.
+
 Each was found by a review seat probing by hand, never by a gate. Every one was fixed at the instance; the guard that should catch the class is unchanged.
 
 Proposed rule: a criterion's Test Plan row already names the production mutant. Require that the file(s) that mutant names are imported by at least one test file containing a test the verifier selects - the same citation-content check `check-verification.mjs` already applies to verification records (D0078). A criterion whose mutant names `ClaraPortal.tsx` and whose verifier selects only tests in `packages/tokens` is then a build failure rather than a review finding.

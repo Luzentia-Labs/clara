@@ -46,7 +46,7 @@ export interface ModalProps {
  *
  * ## What this wraps, and what it refuses to expose
  *
- * Built on Radix Dialog (ADR-004, D0003) for the focus trap, the inert background, the scroll lock
+ * Built on Radix Dialog (ADR-004, D0003) for the focus trap, the hidden background, the scroll lock
  * and the dismissal routes - months of WAI-ARIA work that is not worth re-deriving. None of Radix's
  * surface reaches Clara's: no `asChild`, no `onOpenChange`, no `data-state`. `onClose` is a Clara
  * name taking a Clara shape, and `check-api` fails the build on any of the three leaking.
@@ -101,8 +101,18 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
     if (open) return
     const target = returnFocus?.current ?? openerRef.current
     openerRef.current = null
-    if (!target?.isConnected) return
-    target.focus()
+    // A disconnected target is the ordinary case, not an edge one: a menu item that opens a dialog
+    // is unmounted with the menu, and a Modal that starts `open` on mount never had an opener at
+    // all. Falling through here left focus on `document.body` - the exact strand the component
+    // exists to prevent - and `onCloseAutoFocus` is preventDefault'ed, so Radix's own fallback
+    // could not run either. Both routes were untested.
+    if (target?.isConnected) { target.focus(); return }
+    // Nothing named survives, so put focus somewhere a keyboard user can continue from rather than
+    // at the top of the document. `body` is not a position; the first focusable element is.
+    const fallback = document.querySelector<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )
+    fallback?.focus()
   }, [open, returnFocus])
 
   // Radix reports every dismissal as a transition to closed. Clara's contract is one callback for
@@ -129,7 +139,12 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
             // Runs inside the portal, in the commit that mounts the content - which is the only
             // place a named ref is populated (D0090) AND the last moment `document.activeElement`
             // is still the element that opened the dialog.
-            openerRef.current = document.activeElement as HTMLElement | null
+            // `document.activeElement` is `<body>` when nothing was focused - a dialog rendered
+            // `open` on mount, or one whose opener was removed in the same commit. Body is
+            // CONNECTED, so storing it produced a "valid" restoration target that focuses nothing
+            // and reads as `activeElement === document.body`, which is the strand itself.
+            const active = document.activeElement
+            openerRef.current = active && active !== document.body ? (active as HTMLElement) : null
             if (!initialFocus?.current) return
             // Radix would otherwise focus the first tabbable element, which is the close button.
             event.preventDefault()
@@ -142,8 +157,11 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
         >
           <div className="clara-modal__header">
             <Dialog.Title id={titleId} className="clara-modal__title">{title}</Dialog.Title>
+            {/* No `onClick={onClose}` here. `Dialog.Close` already routes through `onOpenChange`,
+                so adding one called `onClose` TWICE on this route and once on every other - which a
+                consumer notices as a double-submitted form, not as a focus bug. */}
             <Dialog.Close asChild>
-              <IconButton icon={<CloseIcon />} label="Close" variant="secondary" onClick={onClose} />
+              <IconButton icon={<CloseIcon />} label="Close" variant="secondary" />
             </Dialog.Close>
           </div>
           {description

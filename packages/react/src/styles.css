@@ -401,6 +401,13 @@
 }
 
 .clara-modal {
+  /* Clara ships no reset (`@layer clara.reset` is empty by design), so `box-sizing` is this
+     component's own responsibility. Without it the padding and border are added OUTSIDE the
+     computed width, so `calc(100vw - 2 x padding)` renders WIDER than the viewport and
+     `max-height` becomes the stated height plus the box - the gutter and the "header and footer
+     stay put" promise both fail in a real browser, and jsdom computes no layout so nothing here
+     could see it. */
+  box-sizing: border-box;
   position: fixed;
   z-index: var(--clara-layer-overlay);
   top: 50%;

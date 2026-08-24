@@ -82,7 +82,10 @@ const NAMED_COLOURS = [
   'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white',
   'whitesmoke', 'yellow', 'yellowgreen',
 ]
-const UNITS = 'px|rem|em|pt|pc|cm|mm|in|q|ch|ex|vh|vw|vmin|vmax|svh|lvh|dvh'
+// `s` and `ms` were absent, so two hand-typed durations passed the literal rule while the guard
+// reported "no literals". Motion is a design value like any other - D0094 turns entirely on a
+// component not being able to type one - and the tier 1 duration steps exist to be referenced.
+const UNITS = 'px|rem|em|pt|pc|cm|mm|in|q|ch|ex|vh|vw|vmin|vmax|svh|lvh|dvh|ms|s'
 const LITERAL = new RegExp(
   '(#[0-9a-f]{3,8}\\b' +
   '|\\brgba?\\([^)]*\\)|\\bhsla?\\([^)]*\\)|\\boklch\\([^)]*\\)|\\boklab\\([^)]*\\)' +
@@ -326,6 +329,43 @@ const FORBIDDEN = [
 ]
 
 /**
+ * Where the VALUE is the contract, not merely the declaration.
+ *
+ * SHAPE_CONTRACT asserts a property is declared, which is the right check for "this control has a
+ * box". It is the wrong check whenever a specific value is the criterion: a review flipped
+ * `.clara-modal__body` to `overflow-y: visible` - the exact mutant Modal's AC5 names - and every
+ * Modal test, the CSS guard and the whole AC gate stayed green, because the property was still
+ * declared. Presence and correctness are different questions and both are worth asking.
+ *
+ * `[selector, prop, test, why]`. `test` receives the declared value, lowercased and trimmed.
+ */
+const VALUE_CONTRACT = [
+  ['.clara-modal__body', 'overflow-y', (v) => /^(auto|scroll|overlay)$/.test(v),
+    'the BODY is the scroll container (AC5); `visible` scrolls the whole panel and takes the header and footer with it'],
+  ['.clara-modal', 'background', (v) => v.includes('--clara-color-bg-surface'),
+    'the panel is an opaque surface that resolves per theme; a scrim or a fixed colour renders a dark modal on a light ground'],
+  ['.clara-modal__scrim', 'background', (v) => v.includes('--clara-color-bg-scrim'),
+    'the scrim is the token whose alpha was solved against page legibility (D0092)'],
+  // AC9/D0088: one shared layer, and tree order separates scrim from panel. A calc() offset here is
+  // a per-role constant wearing a token, and it is exactly the thing the layer scale removed.
+  ['.clara-modal', 'z-index', (v) => v === 'var(--clara-layer-overlay)',
+    'scrim and panel share ONE layer and are separated by tree order (D0088); an offset re-introduces the per-role constant'],
+  ['.clara-modal__scrim', 'z-index', (v) => v === 'var(--clara-layer-overlay)',
+    'scrim and panel share ONE layer and are separated by tree order (D0088)'],
+]
+
+/**
+ * Properties a selector may not declare AT ALL.
+ *
+ * Modal has no motion, decided rather than omitted (D0094): a centred dialog has no spatial origin,
+ * and shipping the reduced-motion treatment as the only treatment means Clara can add motion later
+ * but never take it away from somebody relying on its absence. The stylesheet said "the absence is
+ * asserted, not assumed" while nothing asserted it - adding both a `transition` and an `animation`
+ * left the full suite and every guard green.
+ */
+const NO_MOTION = ['.clara-modal', '.clara-modal__scrim', '.clara-modal__body', '.clara-modal__header', '.clara-modal__footer']
+
+/**
  * Every focusable thing this stylesheet renders must have a `:focus-visible` rule.
  *
  * A review deleted the whole `.clara-input:focus-visible` block and every gate stayed green - and
@@ -443,6 +483,38 @@ for (const [selector, banned] of FORBIDDEN.filter(([sel]) => inScope(sel))) {
         if (banned[decl.prop] === decl.value.trim()) {
           problems.push(`${selector} declares \`${decl.prop}: ${decl.value}\`, which removes it from the accessibility tree - the point of the class is to be unseen and still READ`)
         }
+      })
+    })
+  }
+}
+
+// Declared values, for the selectors where the value IS the criterion.
+for (const [selector, prop, ok, why] of VALUE_CONTRACT.filter(([sel]) => inScope(sel))) {
+  let found = false
+  for (const file of files) {
+    postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+      if (!unconditional(rule)) return
+      if (!(rule.selectors ?? []).includes(selector)) return
+      rule.walkDecls((decl) => {
+        if (decl.prop.toLowerCase() !== prop) return
+        found = true
+        const value = decl.value.trim().toLowerCase()
+        if (ok(value)) return
+        problems.push(`${selector} declares \`${prop}: ${decl.value.trim()}\`, which does not satisfy its contract - ${why}`)
+      })
+    })
+  }
+  if (!found) problems.push(`${selector} declares no \`${prop}\` - ${why}`)
+}
+
+// Properties that must be absent entirely.
+for (const selector of NO_MOTION.filter((sel) => inScope(sel))) {
+  for (const file of files) {
+    postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+      if (!(rule.selectors ?? []).includes(selector)) return
+      rule.walkDecls((decl) => {
+        if (!/^(transition|animation)(-|$)/.test(decl.prop.toLowerCase())) return
+        problems.push(`${selector} declares \`${decl.prop}\` - Modal has no motion by decision (D0094), not by omission. Adding one is a decision to revisit, not a stylesheet edit.`)
       })
     })
   }

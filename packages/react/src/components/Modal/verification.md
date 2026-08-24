@@ -19,7 +19,7 @@ to the element that opened it, asserted by element identity rather than by "some
 | Shift+Tab | The same in reverse. From the first, wraps to the last. |
 | Escape | Closes and returns focus to the opener. Works from inside a text input. |
 | Enter, in the footer's primary action | Commits, then returns focus to the opener like every other route. |
-| Tab, into background content | Impossible - the background is inert, not merely trapped. |
+| Tab, into background content | Impossible - the background is unreachable, not merely trapped. |
 | Click on the scrim | Closes, and returns focus to the opener. |
 | Click inside the panel | Does not close. A drag starting inside and ending on the scrim does not close either. |
 
@@ -50,9 +50,19 @@ a real pass or, as here, that it is outstanding.
 IconButton's `label` is: an unnamed dialog is announced as "dialog" and nothing more, and making the
 omission a compile error is cheaper than an audit finding.
 
-The background is marked inert, so it is unreachable rather than merely trapped. The distinction is
-load-bearing and is asserted directly: an implementation that keeps Radix's Tab trap but drops the
-inert marking still cycles focus correctly, so a Tab-only test cannot see the regression.
+The background is **unreachable**, not merely Tab-trapped - but the mechanism is `aria-hidden` on
+the siblings plus a focus scope that pulls focus back, NOT the `inert` attribute. An earlier version
+of this record said "marked inert", which named a mechanism Clara does not use; the distinction
+matters because `inert` is what a reader would grep for and would not find.
+
+The distinction between unreachable and trapped is still load-bearing and is asserted directly:
+an implementation that keeps the Tab trap but drops the hiding still cycles focus correctly, so a
+Tab-only test cannot see the regression. The test focuses a background element programmatically and
+asserts focus does not land there.
+
+Known limit: axe reports `aria-hidden-focus` as *incomplete* rather than as a violation, and the
+harness drops incomplete results (D0032), so axe is not what catches a regression here - the
+programmatic-focus assertion is.
 
 There is no motion (D0094), and consequently no `prefers-reduced-motion` branch - there is nothing
 to reduce. A centred dialog has no spatial origin, and its state change is already the least

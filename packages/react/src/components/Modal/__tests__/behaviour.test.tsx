@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { runAxe } from '../../../../../../test/axe'
@@ -7,6 +7,7 @@ import { ClaraProvider } from '../../../theme/ClaraProvider'
 import { Modal } from '../Modal'
 import { Button } from '../../Button/Button'
 import { Input } from '../../Input/Input'
+import { Field } from '../../Field/Field'
 
 /**
  * Modal's tests are written from the keyboard interaction table in US-01M0GM48 (D0024: the table is
@@ -14,6 +15,28 @@ import { Input } from '../../Input/Input'
  * asserted SEPARATELY - a single "it restores focus" test passes on an implementation that handles
  * one route and drops the other three, which is the strand this component exists to prevent.
  */
+
+/**
+ * Stub the viewport, and put it back afterwards.
+ *
+ * The scroll-lock test needs a scrollbar to exist, which jsdom has no concept of. The first version
+ * defined these properties and never restored them, so every test that ran after it in the file
+ * saw a 1000px viewport instead of jsdom's 1024 - 13 of 25 of them, and which 13 changed under
+ * `--sequence.shuffle`. A stub that outlives its test is a shared mutable global.
+ */
+const viewportStubs: string[] = []
+function stubViewport (innerWidth: number, clientWidth: number) {
+  Object.defineProperty(window, 'innerWidth', { value: innerWidth, configurable: true })
+  Object.defineProperty(document.documentElement, 'clientWidth', { value: clientWidth, configurable: true })
+  viewportStubs.push('stubbed')
+}
+afterEach(() => {
+  if (!viewportStubs.length) return
+  viewportStubs.length = 0
+  // jsdom's own defaults, restored by deleting the overrides rather than by hardcoding numbers.
+  delete (window as unknown as Record<string, unknown>).innerWidth
+  delete (document.documentElement as unknown as Record<string, unknown>).clientWidth
+})
 
 /** A harness with a real opener, so focus restoration can be asserted by element IDENTITY. */
 function Harness ({
@@ -117,37 +140,171 @@ describe('Modal focus restoration per dismissal route', () => {
   })
 })
 
-describe('Modal marks background inert', () => {
+describe('Modal focus restoration when the target is gone', () => {
+  // Both of these stranded focus on `document.body` and neither was tested. They are not edge
+  // cases: a menu item that opens a dialog is unmounted with the menu, and a Modal rendered `open`
+  // on mount never had an opener at all.
+  it('does not strand focus when the opener is removed while the dialog is open', async () => {
+    function Vanishing () {
+      const [open, setOpen] = useState(false)
+      const [openerGone, setOpenerGone] = useState(false)
+      return (
+        <ClaraProvider>
+          {!openerGone && <button data-testid="opener" onClick={() => { setOpen(true); setOpenerGone(true) }}>Open</button>}
+          <button data-testid="elsewhere">Elsewhere</button>
+          <Modal open={open} onClose={() => setOpen(false)} title="t"><button data-testid="in">x</button></Modal>
+        </ClaraProvider>
+      )
+    }
+    render(<Vanishing />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(document.activeElement).not.toBe(document.body)
+  })
+
+  it('does not strand focus when the dialog was open on mount', async () => {
+    function BornOpen () {
+      const [open, setOpen] = useState(true)
+      return (
+        <ClaraProvider>
+          <button data-testid="elsewhere">Elsewhere</button>
+          <Modal open={open} onClose={() => setOpen(false)} title="t"><button data-testid="in">x</button></Modal>
+        </ClaraProvider>
+      )
+    }
+    render(<BornOpen />)
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(document.activeElement).not.toBe(document.body)
+  })
+
+  it('honours returnFocus over the opener', async () => {
+    // The documented remedy for the case above, and it was asserted by nothing.
+    function WithReturn () {
+      const [open, setOpen] = useState(false)
+      const returnTo = useRef<HTMLButtonElement>(null)
+      return (
+        <ClaraProvider>
+          <button data-testid="opener" onClick={() => setOpen(true)}>Open</button>
+          <button ref={returnTo} data-testid="return-here">Return here</button>
+          <Modal open={open} onClose={() => setOpen(false)} title="t" returnFocus={returnTo}>
+            <button data-testid="in">x</button>
+          </Modal>
+        </ClaraProvider>
+      )
+    }
+    render(<WithReturn />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.getByTestId('return-here')).toHaveFocus())
+  })
+})
+
+describe('Modal size and close affordance', () => {
+  it.each(['sm', 'md', 'lg'] as const)('carries the %s size onto the panel', async (size) => {
+    // `size` was hardcodeable to 'md' with the whole suite green.
+    render(
+      <ClaraProvider>
+        <Modal open onClose={() => {}} title="t" size={size}><span data-testid="in">x</span></Modal>
+      </ClaraProvider>,
+    )
+    expect(await screen.findByRole('dialog')).toHaveClass(`clara-modal--${size}`)
+  })
+
+  it('keeps the close button even when dismissible is false', async () => {
+    // Removing it left every test green. A dialog with no way out is a trap, not a safeguard - the
+    // point of `dismissible={false}` is to stop ACCIDENTAL dismissal, not to remove the exit.
+    render(
+      <ClaraProvider>
+        <Modal open onClose={() => {}} title="t" dismissible={false}><span data-testid="in">x</span></Modal>
+      </ClaraProvider>,
+    )
+    await screen.findByRole('dialog')
+    expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument()
+  })
+
+  it('calls onClose exactly ONCE on the close-button route', async () => {
+    // It fired twice: `Dialog.Close` already routes through `onOpenChange`, and a second
+    // `onClick={onClose}` was wired beside it. A consumer sees that as a double-submitted form.
+    const spy = vi.fn()
+    render(
+      <ClaraProvider>
+        <Modal open onClose={spy} title="t"><span data-testid="in">x</span></Modal>
+      </ClaraProvider>,
+    )
+    await screen.findByRole('dialog')
+    await userEvent.click(screen.getByRole('button', { name: /close/i }))
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls onClose exactly once on Escape and on the scrim too', async () => {
+    const spy = vi.fn()
+    render(
+      <ClaraProvider>
+        <Modal open onClose={spy} title="t"><span data-testid="in">x</span></Modal>
+      </ClaraProvider>,
+    )
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Modal makes the background unreachable', () => {
   it('makes background content unreachable, not merely Tab-trapped', async () => {
-    // The mutant this must fail on is dropping the inert marking while keeping Radix's Tab trap.
+    // The mutant this must fail on is dropping the hiding while keeping Radix's Tab trap.
     // Pressing Tab would still cycle inside the panel, so a Tab-only test stays green. Asserting
     // the background is not REACHABLE is what sees it.
     render(<Harness />)
     await open()
+    // Two separate properties. Hidden from assistive technology (so a screen reader cannot browse
+    // past the dialog), AND unreachable by programmatic focus (so a stray .focus() call cannot land
+    // behind the scrim). Radix uses `aria-hidden` plus a focus scope rather than the `inert`
+    // attribute; the record and the docs used to say "inert", which named a mechanism not in use.
     const background = screen.getByTestId('background-button')
     expect(background.closest('[aria-hidden="true"], [inert]')).not.toBeNull()
     background.focus()
     expect(background).not.toHaveFocus()
+    expect(document.activeElement).not.toBe(background)
   })
 
   it('wraps from the last focusable back to the first, so focus never leaves', async () => {
+    // Containment alone is NOT the assertion. An implementation that pins focus to one element and
+    // never advances satisfies "still inside the dialog" on every press, so the wrap has to be
+    // asserted by IDENTITY: focus must actually move, and must come back round to where it began.
     render(<Harness withInitialFocus />)
     const dialog = await open()
     await waitFor(() => expect(screen.getByTestId('reason')).toHaveFocus())
-    for (let i = 0; i < 8; i++) {
+    const first = document.activeElement
+    const seen = new Set<Element>()
+    for (let i = 0; i < 12; i++) {
       await userEvent.tab()
       expect(dialog.contains(document.activeElement)).toBe(true)
+      seen.add(document.activeElement!)
+      if (document.activeElement === first && seen.size > 1) break
     }
+    expect(seen.size).toBeGreaterThan(1)
+    expect(document.activeElement).toBe(first)
   })
 
   it('wraps backwards too', async () => {
     render(<Harness withInitialFocus />)
     const dialog = await open()
     await waitFor(() => expect(screen.getByTestId('reason')).toHaveFocus())
-    for (let i = 0; i < 8; i++) {
+    const first = document.activeElement
+    const seen = new Set<Element>()
+    for (let i = 0; i < 12; i++) {
       await userEvent.tab({ shift: true })
       expect(dialog.contains(document.activeElement)).toBe(true)
+      seen.add(document.activeElement!)
+      if (document.activeElement === first && seen.size > 1) break
     }
+    expect(seen.size).toBeGreaterThan(1)
+    expect(document.activeElement).toBe(first)
   })
 })
 
@@ -162,8 +319,7 @@ describe('Modal scroll lock causes no shift', () => {
     // injected rules to computed style, so reading the element reports nothing and the test would
     // pass on an implementation that compensates by zero. Same class as SHAPE_CONTRACT.
     const gap = 15
-    Object.defineProperty(document.documentElement, 'clientWidth', { value: 1000 - gap, configurable: true })
-    Object.defineProperty(window, 'innerWidth', { value: 1000, configurable: true })
+    stubViewport(1000, 1000 - gap)
     render(<Harness />)
     await open()
     await waitFor(() => expect(document.body).toHaveStyle({ overflow: 'hidden' }))
@@ -173,8 +329,11 @@ describe('Modal scroll lock causes no shift', () => {
   })
 
   it('releases the lock when it closes', async () => {
+    // Asserting only the release passes on a Modal that never locked - `modal={false}` on Radix's
+    // root satisfied it. The lock has to be observed BEFORE the release is worth anything.
     render(<Harness />)
     await open()
+    await waitFor(() => expect(document.body).toHaveStyle({ overflow: 'hidden' }))
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(document.body).not.toHaveStyle({ overflow: 'hidden' }))
   })
@@ -224,6 +383,16 @@ describe('Modal keyboard table', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   })
 
+  it('commits on Enter in the footer action, and restores focus like every other route', async () => {
+    // A row of the keyboard table with no test. The commit route was only ever exercised by click.
+    render(<Harness />)
+    await open()
+    screen.getByTestId('commit').focus()
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
+  })
+
   it('does NOT close on a click inside the panel', async () => {
     render(<Harness />)
     const dialog = await open()
@@ -249,7 +418,12 @@ describe('Modal keyboard table', () => {
     const dialog = await open()
     await userEvent.keyboard('{Escape}')
     expect(dialog).toBeInTheDocument()
+    // The gesture asserted here must be one that DOES dismiss when `dismissible` is true - a bare
+    // `click` on the scrim does not close a dismissible modal either, so asserting it is a
+    // tautology that passes on any implementation.
     const scrim = document.querySelector('.clara-modal__scrim')!
+    fireEvent.pointerDown(scrim)
+    fireEvent.pointerUp(scrim)
     fireEvent.click(scrim)
     expect(dialog).toBeInTheDocument()
     expect(spy).not.toHaveBeenCalled()
@@ -281,8 +455,25 @@ describe('Modal accessible structure and axe', () => {
   })
 
   it('has no serious or critical axe violations when open', async () => {
+    // The matcher is the assertion. `await runAxe(...)` on its own RESOLVES with the violations and
+    // asserts nothing - this call site shipped without it, and an injected critical `image-alt`
+    // passed. It is the one thing a reviewer checks first about an axe test, and rightly.
     render(<Harness />)
     await open()
-    await runAxe(document.body)
+    await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
+  })
+
+  it('has no serious or critical axe violations in its ERROR state', async () => {
+    // AC8 says "default AND error states". A dialog carrying a failed field is a different tree:
+    // the error text, the aria-describedby chain and the invalid control all only exist here.
+    render(
+      <ClaraProvider>
+        <Modal open onClose={() => {}} title="Reverse this posting" description="Cannot be undone.">
+          <Field label="Reason" error="A reason is required"><Input /></Field>
+        </Modal>
+      </ClaraProvider>,
+    )
+    await screen.findByRole('dialog')
+    await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
   })
 })

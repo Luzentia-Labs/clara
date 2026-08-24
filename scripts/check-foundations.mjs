@@ -14,8 +14,9 @@
  * This asserts the ten deliverables PRD F00 enumerates are each present with a status, that the
  * colour values are real hex, and that the density floors are NUMBERS with units.
  */
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { fail, pass } from './lib/workspace.mjs'
+import { contrastRatio } from './lib/wcag.mjs'
 
 const path = 'design/foundations.md'
 if (!existsSync(path)) fail('foundations', [`${path} does not exist`])
@@ -102,6 +103,122 @@ if (provisional > 0 && !/revisit/i.test(doc)) {
           (orphans.length > 5 ? ` (+${orphans.length - 5} more)` : '') +
           '. The document describes a palette the project does not ship - regenerate it from dist/tokens.css.',
       )
+    }
+  }
+}
+
+/**
+ * The two-part panel boundary (D0092/D0093), re-measured from the shipped tokens.
+ *
+ * Elevation is deferred, and the reason it can be deferred is a measurement: a portalled panel is
+ * distinguishable because ONE of two cues clears the 3:1 non-text floor against the composited
+ * scrim, and it is a DIFFERENT cue in each theme - the panel surface in light, the 1px border in
+ * dark. Exactly the structure of the two-part focus indicator (D0054).
+ *
+ * That was prose in `design/foundations.md` and nothing re-derived it. A review moved the scrim to
+ * 0.42 alpha - inside the dead zone D0092 names, where the border against the scrim collapses to
+ * 1.09:1 - and the full suite, the contrast gate and the token gate all stayed green.
+ *
+ * It cannot live in `contrast-required.json`: `contrastRatio` takes 6-digit hex only, so an alpha
+ * value returns null and reddens that gate as "cannot measure"; and there is no single honest pair
+ * to add, because each candidate pair passes in one theme and fails in the other. A two-part rule
+ * needs a two-part check, which is what this is.
+ */
+const NON_TEXT_FLOOR = 3
+const parseHex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+const over = (fg, bg, alpha) => {
+  const [f, b] = [parseHex(fg), parseHex(bg)]
+  return '#' + f.map((c, i) => Math.round(c * alpha + b[i] * (1 - alpha)).toString(16).padStart(2, '0')).join('')
+}
+
+const tokenSrc = (f) => JSON.parse(readFileSync(`packages/tokens/src/${f}`, 'utf8'))
+const t1 = tokenSrc('primitive/base.json').color
+const alphaPrimitives = existsSync('packages/tokens/src/primitive/alpha.json') ? tokenSrc('primitive/alpha.json').color : {}
+// EVERY semantic source, not just color.json. The scrim deliberately lives in overlay.json
+// (generate-semantic.mjs rewrites color.json wholesale), so reading one file silently skipped the
+// whole measurement below - the guard passed on every mutant because it never ran.
+const semantic = readdirSync('packages/tokens/src/semantic')
+  .filter((f) => f.endsWith('.json'))
+  .reduce((acc, f) => {
+    for (const [family, roles] of Object.entries(tokenSrc(`semantic/${f}`).color ?? {})) {
+      acc[family] = { ...(acc[family] ?? {}), ...roles }
+    }
+    return acc
+  }, {})
+const darkOverrides = tokenSrc('themes/dark.json').color
+const deref = (value, theme) => {
+  const m = /^\{color\.([\w-]+)\.([\w-]+)\}$/.exec(value)
+  if (!m) return value
+  const group = t1[m[1]] ?? alphaPrimitives[m[1]]
+  return group?.[m[2]]?.value ?? value
+}
+const role = (path, theme) => {
+  const [family, name] = path.split('.')
+  const src = theme === 'dark' ? (darkOverrides[family]?.[name] ?? semantic[family]?.[name]) : semantic[family]?.[name]
+  return src ? deref(src.value, theme) : undefined
+}
+
+const scrimRaw = semantic.bg?.scrim ? deref(semantic.bg.scrim.value, 'light') : undefined
+if (scrimRaw) {
+  const alphaMatch = /^#[0-9a-f]{6}([0-9a-f]{2})$/i.exec(scrimRaw)
+  if (!alphaMatch) {
+    problems.push(`color.bg.scrim resolves to "${scrimRaw}", which carries no alpha channel - a scrim with no alpha is an opaque panel`)
+  } else {
+    const alpha = parseInt(alphaMatch[1], 16) / 255
+    const ink = scrimRaw.slice(0, 7)
+    for (const theme of ['light', 'dark']) {
+      const canvas = role('bg.canvas', theme)
+      const panel = role('bg.surface', theme)
+      const border = role('border.default', theme)
+      if (!canvas || !panel || !border) continue
+      const composited = over(ink, canvas, alpha)
+      const panelVsScrim = contrastRatio(panel, composited)
+      const borderVsScrim = contrastRatio(border, composited)
+      if (Math.max(panelVsScrim, borderVsScrim) < NON_TEXT_FLOOR) {
+        problems.push(
+          `${theme}: a portalled panel has NO cue clearing ${NON_TEXT_FLOOR}:1 against the scrim - ` +
+            `panel ${panelVsScrim.toFixed(2)}:1, border ${borderVsScrim.toFixed(2)}:1. ` +
+            'Elevation is deferred (D0093) only because one of the two always clears it; if neither does, ' +
+            'the deferral is no longer justified and deliverable 6 has to be decided.',
+        )
+      }
+      // A scrim must actually DIM, and that is a separate property from the boundary rule above.
+      // `neutral.900` at 50% over the dark canvas composites to the canvas itself - a scrim that
+      // does literally nothing - and the two-part rule still passes it, because the dark BORDER cue
+      // carries the panel on its own. This is why the scrim is true black rather than a ramp step.
+      //
+      // Measured as a LUMINANCE reduction, not as a contrast ratio: near 1.0 the ratio compresses
+      // hard, and the real dark value (1.15:1) sits close enough to the do-nothing case (1.00:1)
+      // that no honest threshold separates them. In luminance the same pair is a 57% reduction
+      // versus 0%, which is not a close call.
+      const relLum = (hex) => {
+        const [r, g, b] = parseHex(hex).map((c) => {
+          const v = c / 255
+          return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+        })
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+      }
+      const before = relLum(canvas)
+      const reduction = before === 0 ? 1 : 1 - relLum(composited) / before
+      if (reduction < 0.25) {
+        problems.push(
+          `${theme}: the scrim composites to ${composited} over a ${canvas} canvas, reducing luminance by ` +
+            `${(reduction * 100).toFixed(0)}% - it barely dims the page. A scrim built from the neutral ramp ` +
+            'rather than from true black does exactly this in dark theme (D0092).',
+        )
+      }
+
+      // The page behind must stay readable, which is what pins the alpha's UPPER bound (D0092).
+      const text = role('fg.default', theme)
+      if (text) {
+        const legible = contrastRatio(over(ink, text, alpha), composited)
+        if (legible < 4.5) {
+          problems.push(
+            `${theme}: page text behind the scrim measures ${legible.toFixed(2)}:1, below the 4.5:1 reading floor - ` +
+              'the scrim is meant to be translucent so the user keeps their place (D0092)',
+          )
+        }
+      }
     }
   }
 }

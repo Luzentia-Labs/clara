@@ -44,12 +44,13 @@
 - **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
-### AC3: Background is inert
+### AC3: Background is unreachable
 
 - **Given** an open Modal
 - **When** I tab repeatedly
-- **Then** focus never reaches background content, which is marked inert
-- **Verify:** vitest "Modal marks background inert"
+- **Then** focus never reaches background content, which is hidden from assistive technology and
+  guarded by the focus scope - NOT via the `inert` attribute, which Clara does not use here
+- **Verify:** vitest "Modal makes the background unreachable"
 - **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
@@ -134,8 +135,15 @@
 
 - **Given** the Modal story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
-- **Verify:** shell node scripts/check-verification.mjs --component Modal
+- **Then** tests, an axe assertion over BOTH the default and the error state, a docs page, a
+  documented keyboard table, and a verification record whose stated gaps are real all exist
+- **And** three things the TSD's definition of done also names are NOT claimed here, because they do
+  not exist in this repo yet and a criterion that certifies absent artefacts is worse than one that
+  omits them: **Storybook stories** (no `.storybook`, no `*.stories.*` anywhere), a **visual
+  baseline** (gate 7 is unwired, US-01M0GMZW), and a **recorded manual keyboard pass** (outstanding,
+  and the verification record says so). This criterion previously asserted all three and was stamped
+  `Verified: yes` while none of them existed
+- **Verify:** shell node scripts/check-verification.mjs --component Modal && npx vitest run -t "Modal accessible structure and axe"
 - **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
@@ -175,7 +183,7 @@
 | Shift+Tab | The same in reverse. From the first, wraps to the last. |
 | Escape | Closes the modal and returns focus to the element that opened it. Works from any focused element inside, including inside a text input. |
 | Enter, in the footer's primary action | Commits. Focus returns to the opener, the same as every other route. |
-| Tab, into background content | Impossible. The background is inert while the modal is open, so nothing behind it takes a tab stop - asserted by tabbing past the last element rather than by reading an attribute. |
+| Tab, into background content | Impossible. The background is hidden from assistive technology and the focus scope pulls focus back, so nothing behind it is reachable - asserted by focusing a background element programmatically, not by reading an attribute. |
 | Click on the scrim | Closes, and returns focus to the opener. The same route as Escape, and asserted separately because a shared code path is an assumption until it is tested. |
 | Click inside the panel | Does not close. A drag that STARTS inside the panel and ends on the scrim does not close either - selecting text in a modal and releasing outside it is the ordinary way this misfires. |
 
@@ -185,7 +193,7 @@
 | --- | --- | --- |
 | AC1 | Focus the panel itself instead of a named element, or move the focus effect out of the portalled content into Modal's own body - the second is silent, because it fails only by finding a null ref (D0090). | Named focus targets |
 | AC2 | Restore focus on Escape only, leaving scrim-click, close-button and commit to the browser. Three of the four routes then land focus on `document.body`, which is the strand this story exists to prevent. | Restoration per route |
-| AC3 | Drop the inert marking from the background. Radix still traps Tab, so a test that only presses Tab stays green - the mutant is caught by asserting the background is not reachable, not that Tab cycles. | Background is inert |
+| AC3 | Drop the background hiding (`modal={false}`). Radix still traps Tab, so a test that only presses Tab stays green - the mutant is caught by asserting the background is not reachable, not that Tab cycles. | Background is unreachable |
 | AC4 | Lock scroll with `overflow: hidden` and no scrollbar-width compensation, so the page jumps sideways by the scrollbar width the moment the modal opens. | No scrollbar shift |
 | AC5 | Let the whole panel scroll instead of the body, so a long modal scrolls its header and footer off screen. | Content scrolls internally |
 | AC6 | Hand-type a z-index, drop the companion `position` from the base class, or reference a tier 1 primitive - each is a separate entry in `prove-guards-fail.mjs`. | Token-only styling |
@@ -193,7 +201,7 @@
 | AC9 | Put the panel in its own portal host, or give the scrim and panel different z-index values - either re-introduces a per-role constant and breaks nesting in one direction. | Nesting resolves by open order, not by a constant |
 | AC10 | Spread the Radix props through to Clara's surface, so `asChild` and `onOpenChange` become permanent public API. | The Radix boundary holds |
 | AC11 | Remove `@radix-ui/*` from the build's external list, which inlines 15.19 kB gzipped into Modal's chunk against a 5 kB budget. | Radix stays external, so the budget stays honest |
-| AC8 | Export Modal with no verification record, no docs page, or a keyboard table that does not match the one above. | Definition of done |
+| AC8 | Export Modal with no verification record or no docs page. NOTE: a keyboard table that CONTRADICTS the code is not caught - `check-verification.mjs` checks the table exists, not that it is true, and rewriting the Escape row to "Does nothing" leaves the gate green. That is the same class as CR-01M0SKZ6 and is recorded there rather than left implied here. | Definition of done |
 
 ## Revision History
 

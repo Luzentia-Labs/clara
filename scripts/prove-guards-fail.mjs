@@ -1162,6 +1162,62 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // SHAPE_CONTRACT checks a property is DECLARED. For a scroll container the value is the whole
+    // point, and `visible` satisfied the declaration while turning off the behaviour AC5 names.
+    name: 'a scroll container whose overflow value turns the scrolling off',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy its contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('overflow-y: auto;', 'overflow-y: visible;'))
+    },
+  },
+  {
+    // A panel painted with a theme-invariant token renders a dark modal on a light ground, and the
+    // theme/density matrix cannot see it - it reads attributes off the portal wrapper.
+    name: 'an overlay panel painted with a token that does not resolve per theme',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy its contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(
+        '  background: var(--clara-color-bg-surface);\n  color: var(--clara-color-fg-default);',
+        '  background: var(--clara-color-bg-scrim);\n  color: var(--clara-color-fg-default);'))
+    },
+  },
+  {
+    // D0094: no motion, decided rather than omitted. The stylesheet claimed the absence was
+    // asserted while nothing asserted it.
+    name: 'motion added to an overlay that decided not to have any',
+    guard: 'check-component-css.mjs',
+    expect: /has no motion by decision/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(
+        '  background: var(--clara-color-bg-scrim);',
+        '  background: var(--clara-color-bg-scrim);\n  transition: opacity 120ms ease-out;'))
+    },
+  },
+  {
+    // The scrim's alpha is solved against two measured bounds, and both were prose until now.
+    name: 'a scrim alpha that leaves the page behind it unreadable',
+    guard: 'check-foundations.mjs',
+    expect: /below the 4\.5:1 reading floor/,
+    stage: patch('packages/tokens/src/primitive/alpha.json', (m) => {
+      m.color['black-alpha']['50'].value = '#000000A6'
+    }),
+  },
+  {
+    // A scrim built from the neutral ramp instead of true black does nothing at all in dark, and
+    // the two-part boundary rule still passes it because the dark BORDER cue carries the panel.
+    name: 'a scrim built from the ramp, which does not dim the dark theme at all',
+    guard: 'check-foundations.mjs',
+    expect: /barely dims the page/,
+    stage: patch('packages/tokens/src/primitive/alpha.json', (m) => {
+      m.color['black-alpha']['50'].value = '#1f1e1d80'
+    }),
+  },
+  {
     // A z-index on a statically positioned element is ignored by the browser, and jsdom computes no
     // layout, so the surface would have no stacking at all with every gate green.
     name: 'a layer token on an element with no non-static position, where it is inert',

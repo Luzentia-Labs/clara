@@ -79,7 +79,8 @@ dimming is already an unmistakable signal. Because there is no animation, there 
 
 - `role="dialog"` with `aria-modal`, named by `title` and described by `description`.
 - Focus moves in on open and cannot leave: Tab wraps at both ends.
-- The background is **inert**, not merely focus-trapped, so a screen reader cannot browse it either.
+- The background is **unreachable**, not merely focus-trapped: its content is hidden from assistive
+  technology while the dialog is open, so a screen reader cannot browse past the dialog either.
 - Escape works from inside a text input.
 - The page behind is scroll-locked, with the scrollbar's width given back as padding so nothing
   shifts sideways when the dialog opens.

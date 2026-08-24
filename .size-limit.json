@@ -31,7 +31,7 @@
     "gzip": true
   },
   {
-    "name": "third-party runtime shared by every overlay (@radix-ui/react-dialog)",
+    "name": "third-party runtime: @radix-ui/react-dialog (shared by every overlay that uses it)",
     "path": "packages/react/dist/clara-client-Modal.js",
     "limit": "18 kB",
     "gzip": true,
