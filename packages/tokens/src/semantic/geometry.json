@@ -89,42 +89,27 @@
     "base": {
       "value": "{layer.0}",
       "type": "number",
-      "comment": "Page content. Everything below is measured from here."
+      "comment": "Page content. The scale is measured from here."
     },
     "raised": {
       "value": "{layer.1}",
       "type": "number",
-      "comment": "A sticky table header or a raised card - still in the document, just above its siblings."
+      "comment": "In-document chrome that must clear its siblings - a sticky table header, a raised card."
     },
-    "dropdown": {
+    "overlay": {
       "value": "{layer.2}",
       "type": "number",
-      "comment": "A menu or listbox anchored to a control. Above content, below anything modal."
-    },
-    "scrim": {
-      "value": "{layer.3}",
-      "type": "number",
-      "comment": "A modal's backdrop. Named `scrim`, not `overlay`: `overlay` is this repo's word for the whole family, and a consumer reaching for it would land under the modal rather than above it."
-    },
-    "modal": {
-      "value": "{layer.4}",
-      "type": "number",
-      "comment": "Modal and Drawer surfaces, above their own scrim."
-    },
-    "popover": {
-      "value": "{layer.5}",
-      "type": "number",
-      "comment": "A Popover, a Select listbox or a menu opened FROM INSIDE a Modal. Above modal on purpose - see the note below."
+      "comment": "EVERY portalled surface and its scrim: modal, drawer, popover, menu, listbox. One layer on purpose - which of two overlays is on top depends on which was opened last, and the browser already answers that by DOM order. A per-role constant cannot: a menu must sit under a modal that opens over it, and over a modal opened from inside it."
     },
     "tooltip": {
-      "value": "{layer.6}",
+      "value": "{layer.3}",
       "type": "number",
-      "comment": "A Tooltip describes whatever is on top, so it sits above all of it."
+      "comment": "Above every overlay regardless of open order, because a tooltip describes whatever is currently on top."
     },
     "toast": {
-      "value": "{layer.7}",
+      "value": "{layer.4}",
       "type": "number",
-      "comment": "Toasts are the last thing that must never be covered: they may be the only report that something failed."
+      "comment": "Above everything, because a toast may be the only report that something failed."
     }
   }
 }

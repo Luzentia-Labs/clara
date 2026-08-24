@@ -403,22 +403,10 @@
       "type": "number"
     },
     "3": {
-      "value": "1100",
-      "type": "number"
-    },
-    "4": {
-      "value": "1200",
-      "type": "number"
-    },
-    "5": {
-      "value": "1300",
-      "type": "number"
-    },
-    "6": {
       "value": "1400",
       "type": "number"
     },
-    "7": {
+    "4": {
       "value": "1500",
       "type": "number"
     }

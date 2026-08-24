@@ -160,3 +160,54 @@ describe('portal renders nothing on the server', () => {
     expect(document.body.contains(el)).toBe(true)
   })
 })
+
+describe('portals stack by open order', () => {
+  /**
+   * The mechanism the layer scale depends on, and therefore the thing that has to be asserted
+   * rather than assumed.
+   *
+   * Every portalled surface shares one layer, so which of two overlays paints on top is decided by
+   * DOM order: among positioned elements with equal z-index in the same stacking context, later in
+   * tree order paints later. That is only correct if each portal APPENDS its host to document.body,
+   * so a later-opened overlay is a later sibling. If the host were prepended, or reused, or mounted
+   * anywhere but the end, the model would invert silently and no z-index assertion would notice.
+   *
+   * jsdom paints nothing, so this asserts the DOM relationship the painting rule reads - which is
+   * the property, not a proxy for it.
+   */
+  it('appends each host to the end of the body, so later opens are later siblings', async () => {
+    render(
+      <ClaraProvider>
+        <ClaraPortal><span data-testid="first">first</span></ClaraPortal>
+      </ClaraProvider>,
+    )
+    const first = await screen.findByTestId('first')
+
+    render(
+      <ClaraProvider>
+        <ClaraPortal><span data-testid="second">second</span></ClaraPortal>
+      </ClaraProvider>,
+    )
+    const second = await screen.findByTestId('second')
+
+    const hostOf = (el: HTMLElement) => {
+      let node: HTMLElement | null = el
+      while (node?.parentElement && node.parentElement !== document.body) node = node.parentElement
+      return node
+    }
+    const position = Node.DOCUMENT_POSITION_FOLLOWING
+    // eslint-disable-next-line no-bitwise -- compareDocumentPosition returns a bitmask
+    expect(hostOf(first)!.compareDocumentPosition(hostOf(second)!) & position).toBeTruthy()
+  })
+
+  it('removes its host on unmount, so a closed overlay leaves nothing behind to stack against', async () => {
+    const { unmount } = render(
+      <ClaraProvider><ClaraPortal><span data-testid="gone">x</span></ClaraPortal></ClaraProvider>,
+    )
+    await screen.findByTestId('gone')
+    const before = document.body.childElementCount
+    unmount()
+    expect(document.body.childElementCount).toBeLessThan(before)
+    expect(screen.queryByTestId('gone')).toBeNull()
+  })
+})

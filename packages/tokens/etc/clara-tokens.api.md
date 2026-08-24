@@ -428,37 +428,19 @@ export const Layer1 = "10";
 export const Layer2 = "1000";
 
 // @public (undocumented)
-export const Layer3 = "1100";
+export const Layer3 = "1400";
 
 // @public (undocumented)
-export const Layer4 = "1200";
-
-// @public (undocumented)
-export const Layer5 = "1300";
-
-// @public (undocumented)
-export const Layer6 = "1400";
-
-// @public (undocumented)
-export const Layer7 = "1500";
+export const Layer4 = "1500";
 
 // @public (undocumented)
 export const LayerBase = "0";
 
 // @public (undocumented)
-export const LayerDropdown = "1000";
-
-// @public (undocumented)
-export const LayerModal = "1200";
-
-// @public (undocumented)
-export const LayerPopover = "1300";
+export const LayerOverlay = "1000";
 
 // @public (undocumented)
 export const LayerRaised = "10";
-
-// @public (undocumented)
-export const LayerScrim = "1100";
 
 // @public (undocumented)
 export const LayerToast = "1500";

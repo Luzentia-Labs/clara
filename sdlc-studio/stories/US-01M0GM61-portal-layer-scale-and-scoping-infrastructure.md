@@ -71,9 +71,13 @@ does, and adds the layer scale beside it.
 
 - **Given** the layer scale
 - **When** two overlays are nested
-- **Then** the ORDER is right by construction: a popover sits above a modal (so a Select opened
-  from inside a Modal clears the surface it was opened from), a modal above its own scrim, and the
-  scrim above any dropdown that was already open
+- **Then** nesting resolves by OPEN ORDER, not by a per-role constant: every portalled surface
+  shares one layer, `ClaraPortal` appends each host to the body, and the browser paints equal
+  z-index in tree order - so whichever overlay was opened last is on top, which is correct whether
+  a menu is opened inside a modal or a modal opens over a menu
+- **And** the two relationships that do NOT depend on nesting keep their own layer: a tooltip is
+  above every overlay because it describes whatever is on top, and a toast is above everything
+  because it may be the only report that something failed
 - **And** the composition itself - a real Select inside a real Modal - is NOT asserted here, because
   neither component exists yet. It arrives with Select in EP-01M0GK91, and the ordering this story
   fixes is what makes it work. Asserting a composition of two unbuilt components would be a test of
@@ -133,7 +137,10 @@ does, and adds the layer scale beside it.
 - [x] A server render emits nothing and does not touch `document` (proven by deleting the global)
 - [x] The portal mounts into the document once there is one, outside the React root
 - [x] Every layer the overlays will need is declared, and resolves through a tier 1 step
-- [x] The stacking ORDER holds: popover above modal, modal above scrim, scrim above dropdown, tooltip above all of them, toast above everything
+- [x] Every portalled surface shares one layer, and no per-role step exists to re-introduce the constant
+- [x] Later-opened portals are later DOM siblings, which is what the painting rule reads
+- [x] A closed overlay removes its host, so it leaves nothing behind to stack against
+- [x] Tooltip is above every overlay, and toast above everything, regardless of open order
 - [ ] A real Select inside a real Modal - **not asserted here**, because neither component exists. It arrives with Select in EP-01M0GK91; this story fixes the order that makes it work
 
 
@@ -190,7 +197,7 @@ breaking change. They were added to `tokens.public.lock.json` deliberately for t
 | --- | --- | --- |
 | AC1 | Drop `claraAttributes(settings)` from the portal root, or read the settings from the DOM instead of context - either way the portalled content stops carrying the scope it was written in. | Portal re-applies scope |
 | AC2 | Point a tier 2 layer name at a raw number instead of a tier 1 step, delete one of the eight names, collapse the gap between steps, or override `layer` in a theme or density file - the last of those put a Select behind a Modal at compact density with every gate green until it was covered. | Layer scale is tokenised |
-| AC3 | Swap the `popover` and `modal` steps in `src/semantic/geometry.json`, so a Select opened inside a Modal renders behind it - the test reads the SOURCE, so it dies without a rebuild. An earlier version of this row claimed literal assertions "would not have caught this", which was false: they would. The reason to assert an ORDER is that it states intent and survives a legitimate renumbering, not that literals are blind. | Nested overlays stack correctly |
+| AC3 | Prepend the portal host instead of appending it (`document.body.prepend`), so a later-opened overlay is an EARLIER sibling and the painting rule inverts - one test dies. Or add a per-role layer back to the scale, which re-introduces the constant that could not express both nesting directions. | Nested overlays stack correctly |
 | AC4 | Read `document` unguarded during render (`const host = document.body`). The SSR test deletes `globalThis.document`, so the render throws instead of returning nothing. Note a guarded read - `typeof document !== 'undefined' && ...` - does NOT kill it, and should not: that is the correct pattern, not the defect. | SSR-safe |
 
 ## Revision History

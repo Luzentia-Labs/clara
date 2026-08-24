@@ -21,7 +21,7 @@ const pkg = join(__dirname, '../..')
 const primitives = JSON.parse(readFileSync(join(pkg, 'src/primitive/base.json'), 'utf8'))
 const semantic = JSON.parse(readFileSync(join(pkg, 'src/semantic/geometry.json'), 'utf8'))
 
-const NAMES = ['base', 'raised', 'dropdown', 'scrim', 'modal', 'popover', 'tooltip', 'toast'] as const
+const NAMES = ['base', 'raised', 'overlay', 'tooltip', 'toast'] as const
 
 /** Resolve a `{layer.4}` reference to its number, through tier 1 as the tier rules require. */
 const layer = (name: string): number => {
@@ -39,13 +39,22 @@ describe('the overlay layer scale is tokenised', () => {
     for (const name of NAMES) expect(Number.isFinite(layer(name))).toBe(true)
   })
 
-  it('leaves room between layers for a component to sit between two of them', () => {
-    // Adjacent steps 1 apart would force the next overlay to renumber the scale. The gap is the
-    // affordance: `calc(var(--clara-layer-modal) + 1)` without a token change.
-    const ordered = ['dropdown', 'scrim', 'modal', 'popover', 'tooltip', 'toast'].map(layer)
-    for (const [i, value] of ordered.slice(1).entries()) {
-      expect(value - ordered[i]!).toBeGreaterThanOrEqual(100)
+  it('gives every portalled surface ONE layer, so open order decides between them', () => {
+    // The scale deliberately has no per-role step for modal, drawer, popover, menu or listbox.
+    // Which of two overlays is on top depends on which was opened last, and a constant cannot
+    // express that: a menu must sit UNDER a modal that opens over it, and OVER a modal opened from
+    // inside it. The browser already answers it - equal z-index paints in tree order - and
+    // ClaraPortal appends each host to document.body, so later opens are later siblings.
+    const layers = Object.keys(semantic.layer)
+    for (const role of ['modal', 'drawer', 'popover', 'dropdown', 'menu', 'listbox', 'scrim']) {
+      expect(layers, `a per-role layer for ${role} re-introduces the constant this scale removed`).not.toContain(role)
     }
+    expect(layers).toContain('overlay')
+  })
+
+  it('leaves room above the overlay layer for the two that must always win', () => {
+    expect(layer('tooltip') - layer('overlay')).toBeGreaterThanOrEqual(100)
+    expect(layer('toast') - layer('tooltip')).toBeGreaterThanOrEqual(100)
   })
 
   it('starts at zero, so the scale is measured from the page rather than floating above it', () => {
@@ -54,8 +63,8 @@ describe('the overlay layer scale is tokenised', () => {
 
   it('is NOT overridden per theme or per density', () => {
     // Stacking order is not a themed property, and an override would be invisible to every other
-    // assertion here: a `layer.popover` in compact.json puts a Select behind a Modal at compact
-    // density with the whole suite and every guard green. Found by a review, not by a gate.
+    // assertion here: a `layer.overlay` in compact.json changes the stacking at one density only,
+    // with the whole suite and every guard green. Found by a review, not by a gate.
     for (const file of ['compact.json', 'dark.json', 'light.json']) {
       const path = join(pkg, 'src/themes', file)
       if (!existsSync(path)) continue
@@ -66,33 +75,20 @@ describe('the overlay layer scale is tokenised', () => {
 })
 
 describe('the overlay stacking order', () => {
-  it('puts a modal above its own scrim, and the scrim above any open dropdown', () => {
-    // Opening a Modal must cover a menu that was already open, or the menu floats over the scrim
-    // and looks interactive while the modal holds the focus.
-    expect(layer('modal')).toBeGreaterThan(layer('scrim'))
-    expect(layer('scrim')).toBeGreaterThan(layer('dropdown'))
+  it('puts every portalled surface above in-document content', () => {
+    expect(layer('overlay')).toBeGreaterThan(layer('raised'))
+    expect(layer('raised')).toBeGreaterThan(layer('base'))
   })
 
-  it('puts a popover ABOVE a modal, which is the whole reason the scale is ordered this way', () => {
-    // A Select opened from INSIDE a Modal is the case that breaks naive scales: its listbox has to
-    // clear the modal surface it was opened from, or the user picks from a list they cannot see.
-    expect(layer('popover')).toBeGreaterThan(layer('modal'))
+  it('puts a tooltip above every overlay, whatever was opened last', () => {
+    // Not nesting-dependent: a tooltip describes whatever is currently on top, so it is one of the
+    // two relationships that IS global and therefore does belong in the scale.
+    expect(layer('tooltip')).toBeGreaterThan(layer('overlay'))
   })
 
-  it('puts a tooltip above everything it might describe', () => {
-    for (const under of ['base', 'raised', 'dropdown', 'scrim', 'modal', 'popover']) {
-      expect(layer('tooltip')).toBeGreaterThan(layer(under))
-    }
-  })
-
-  it('puts toasts at the top, because a toast may be the only report that something failed', () => {
-    for (const under of ['base', 'raised', 'dropdown', 'scrim', 'modal', 'popover', 'tooltip']) {
+  it('puts toasts above everything, because a toast may be the only report that something failed', () => {
+    for (const under of ['base', 'raised', 'overlay', 'tooltip']) {
       expect(layer('toast')).toBeGreaterThan(layer(under))
     }
-  })
-
-  it('orders the in-document layers from the page upward', () => {
-    expect(layer('raised')).toBeGreaterThan(layer('base'))
-    expect(layer('dropdown')).toBeGreaterThan(layer('raised'))
   })
 })
