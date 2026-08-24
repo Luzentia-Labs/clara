@@ -189,8 +189,8 @@ breaking change. They were added to `tokens.public.lock.json` deliberately for t
 | Criterion | Mutant - the production change this test must fail on | Title |
 | --- | --- | --- |
 | AC1 | Drop `claraAttributes(settings)` from the portal root, or read the settings from the DOM instead of context - either way the portalled content stops carrying the scope it was written in. | Portal re-applies scope |
-| AC2 | Point a tier 2 layer name at a raw number instead of a tier 1 step (the token gate catches that), or delete one of the eight names so a component has no layer to reach for. | Layer scale is tokenised |
-| AC3 | Swap the `popover` and `modal` values, so a Select opened inside a Modal renders behind it. The ordering test dies; asserting the eight literals would not have. | Nested overlays stack correctly |
+| AC2 | Point a tier 2 layer name at a raw number instead of a tier 1 step, delete one of the eight names, collapse the gap between steps, or override `layer` in a theme or density file - the last of those put a Select behind a Modal at compact density with every gate green until it was covered. | Layer scale is tokenised |
+| AC3 | Swap the `popover` and `modal` steps in `src/semantic/geometry.json`, so a Select opened inside a Modal renders behind it - the test reads the SOURCE, so it dies without a rebuild. An earlier version of this row claimed literal assertions "would not have caught this", which was false: they would. The reason to assert an ORDER is that it states intent and survives a legitimate renumbering, not that literals are blind. | Nested overlays stack correctly |
 | AC4 | Read `document` unguarded during render (`const host = document.body`). The SSR test deletes `globalThis.document`, so the render throws instead of returning nothing. Note a guarded read - `typeof document !== 'undefined' && ...` - does NOT kill it, and should not: that is the correct pattern, not the defect. | SSR-safe |
 
 ## Revision History

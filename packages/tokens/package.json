@@ -45,7 +45,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "pnpm clean && pnpm generate && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && node ../../scripts/lib/finalize-dual.mjs . && vite build --config record.config.mjs",
-    "test": "echo \"no tests yet\" && exit 0",
+    "test": "vitest run --root ../.. packages/tokens",
     "typecheck": "pnpm generate && tsc --noEmit -p tsconfig.json",
     "clean": "node -e \"for(const d of ['dist','build','src/generated','.record-scratch'])require('fs').rmSync(d,{recursive:true,force:true})\"",
     "generate": "node style-dictionary.config.js",

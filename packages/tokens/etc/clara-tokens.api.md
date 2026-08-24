@@ -452,13 +452,13 @@ export const LayerDropdown = "1000";
 export const LayerModal = "1200";
 
 // @public (undocumented)
-export const LayerOverlay = "1100";
-
-// @public (undocumented)
 export const LayerPopover = "1300";
 
 // @public (undocumented)
 export const LayerRaised = "10";
+
+// @public (undocumented)
+export const LayerScrim = "1100";
 
 // @public (undocumented)
 export const LayerToast = "1500";

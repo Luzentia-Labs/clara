@@ -147,11 +147,16 @@ describe('portal renders nothing on the server', () => {
     }
   })
 
-  it('mounts into the document once there IS one', async () => {
-    render(<ClaraProvider theme="dark"><ClaraPortal><span data-testid="late">here</span></ClaraPortal></ClaraProvider>)
+  it('mounts into the document once there IS one, OUTSIDE the React root', async () => {
+    const { container } = render(
+      <ClaraProvider theme="dark"><ClaraPortal><span data-testid="late">here</span></ClaraPortal></ClaraProvider>,
+    )
     const el = await screen.findByTestId('late')
     expect(el.closest('[data-clara-theme]')).toHaveAttribute('data-clara-theme', 'dark')
-    // and it landed outside the React root, which is what makes it a portal
+    // `document.body.contains(el)` was the assertion here, under this same comment - and it is true
+    // of every rendered element, so replacing the portal with a plain inline div left it green.
+    // What makes it a portal is that the content is NOT inside the container React rendered into.
+    expect(container.contains(el)).toBe(false)
     expect(document.body.contains(el)).toBe(true)
   })
 })

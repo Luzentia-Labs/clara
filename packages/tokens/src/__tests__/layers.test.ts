@@ -1,40 +1,47 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { readFileSync, existsSync } from 'node:fs'
+import { join } from 'node:path'
 
 /**
- * The stacking order, asserted as an ORDER rather than as eight numbers.
+ * The stacking order, read from the token SOURCE rather than the built stylesheet.
  *
- * Asserting each token's literal value would pass on any set of numbers, including one that puts a
- * tooltip under a modal - it would only prove that somebody typed what they typed. What matters is
- * the relative order, and every pair below is a real decision that a reader should be able to
- * check against the reasoning rather than against a magic number.
+ * The first version of this file read `dist/tokens.css`, which is gitignored and produced only by
+ * `pnpm build` - and the AC verifier is a bare `vitest run -t` with no build step. So swapping
+ * `modal` and `popover` in the source left both criteria GREEN until somebody rebuilt, which meant
+ * `reconcile --verify` could stamp them against a source it had never read. `density.test.ts` next
+ * door already reads the source and resolves references itself; this now follows it (D0065 - the
+ * property, not a proxy for it).
+ *
+ * The order is asserted as an ORDER rather than as eight literal values. Literals would catch a
+ * swap too - the earlier claim that they would not was simply wrong - but they pin numbers that a
+ * legitimate renumbering should be free to change, while every pair below states an intent a reader
+ * can check against the reasoning.
  */
-const css = readFileSync(
-  resolve(dirname(fileURLToPath(import.meta.url)), '../../dist/tokens.css'),
-  'utf8',
-)
+const pkg = join(__dirname, '../..')
+const primitives = JSON.parse(readFileSync(join(pkg, 'src/primitive/base.json'), 'utf8'))
+const semantic = JSON.parse(readFileSync(join(pkg, 'src/semantic/geometry.json'), 'utf8'))
 
-/** The resolved numeric value of a semantic layer token, following its tier 1 reference. */
+const NAMES = ['base', 'raised', 'dropdown', 'scrim', 'modal', 'popover', 'tooltip', 'toast'] as const
+
+/** Resolve a `{layer.4}` reference to its number, through tier 1 as the tier rules require. */
 const layer = (name: string): number => {
-  const semantic = new RegExp(`--clara-layer-${name}:\\s*var\\(--clara-layer-(\\d+)\\)`).exec(css)
-  expect(semantic, `--clara-layer-${name} is not declared, or does not reference a tier 1 step`).not.toBeNull()
-  const primitive = new RegExp(`--clara-layer-${semantic![1]}:\\s*(\\d+)`).exec(css)
-  expect(primitive, `tier 1 step --clara-layer-${semantic![1]} is not declared`).not.toBeNull()
-  return Number(primitive![1])
+  const entry = semantic.layer?.[name]
+  expect(entry, `--clara-layer-${name} is not declared in the semantic layer`).toBeDefined()
+  const ref = /^\{layer\.(\d+)\}$/.exec(String(entry.value))
+  expect(ref, `layer.${name} = "${entry.value}" must reference a tier 1 step, not carry a raw value`).not.toBeNull()
+  const step = primitives.layer?.[ref![1]]
+  expect(step, `tier 1 step layer.${ref![1]} is not declared`).toBeDefined()
+  return Number(step.value)
 }
 
 describe('the overlay layer scale is tokenised', () => {
   it('declares every layer the components will need', () => {
-    for (const name of ['base', 'raised', 'dropdown', 'scrim', 'modal', 'popover', 'tooltip', 'toast']) {
-      expect(Number.isFinite(layer(name))).toBe(true)
-    }
+    for (const name of NAMES) expect(Number.isFinite(layer(name))).toBe(true)
   })
 
   it('leaves room between layers for a component to sit between two of them', () => {
     // Adjacent steps 1 apart would force the next overlay to renumber the scale. The gap is the
-    // affordance: a component can take `calc(var(--clara-layer-modal) + 1)` without a token change.
+    // affordance: `calc(var(--clara-layer-modal) + 1)` without a token change.
     const ordered = ['dropdown', 'scrim', 'modal', 'popover', 'tooltip', 'toast'].map(layer)
     for (const [i, value] of ordered.slice(1).entries()) {
       expect(value - ordered[i]!).toBeGreaterThanOrEqual(100)
@@ -44,12 +51,24 @@ describe('the overlay layer scale is tokenised', () => {
   it('starts at zero, so the scale is measured from the page rather than floating above it', () => {
     expect(layer('base')).toBe(0)
   })
+
+  it('is NOT overridden per theme or per density', () => {
+    // Stacking order is not a themed property, and an override would be invisible to every other
+    // assertion here: a `layer.popover` in compact.json puts a Select behind a Modal at compact
+    // density with the whole suite and every guard green. Found by a review, not by a gate.
+    for (const file of ['compact.json', 'dark.json', 'light.json']) {
+      const path = join(pkg, 'src/themes', file)
+      if (!existsSync(path)) continue
+      const overrides = JSON.parse(readFileSync(path, 'utf8'))
+      expect(Object.keys(overrides.layer ?? {}), `${file} overrides the layer scale`).toHaveLength(0)
+    }
+  })
 })
 
 describe('the overlay stacking order', () => {
   it('puts a modal above its own scrim, and the scrim above any open dropdown', () => {
     // Opening a Modal must cover a menu that was already open, or the menu floats over the scrim
-    // and looks interactive while the modal has taken the focus.
+    // and looks interactive while the modal holds the focus.
     expect(layer('modal')).toBeGreaterThan(layer('scrim'))
     expect(layer('scrim')).toBeGreaterThan(layer('dropdown'))
   })
