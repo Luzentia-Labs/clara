@@ -1,0 +1,45 @@
+{
+  "modal": {
+    "padding": {
+      "value": "{space.section}",
+      "type": "dimension"
+    },
+    "gap": {
+      "value": "{space.stack}",
+      "type": "dimension"
+    },
+    "radius": {
+      "value": "{radius.surface}",
+      "type": "dimension"
+    },
+    "border-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    },
+    "width-sm": {
+      "value": "24rem",
+      "type": "dimension",
+      "comment": "A raw dimension on purpose. Tier 2 `size` carries control-height and target-min - a dialog width has no semantic ancestor there, and inventing one would put a modal-shaped value in the public layer where every component can reach it. Tier 3 is private and per-component, which is exactly what a dialog width is."
+    },
+    "width-md": {
+      "value": "32rem",
+      "type": "dimension",
+      "comment": "A raw dimension on purpose. Tier 2 `size` carries control-height and target-min - a dialog width has no semantic ancestor there, and inventing one would put a modal-shaped value in the public layer where every component can reach it. Tier 3 is private and per-component, which is exactly what a dialog width is."
+    },
+    "width-lg": {
+      "value": "48rem",
+      "type": "dimension",
+      "comment": "A raw dimension on purpose. Tier 2 `size` carries control-height and target-min - a dialog width has no semantic ancestor there, and inventing one would put a modal-shaped value in the public layer where every component can reach it. Tier 3 is private and per-component, which is exactly what a dialog width is."
+    },
+    "max-height": {
+      "value": "85vh",
+      "type": "dimension",
+      "comment": "How much of the viewport a dialog may take before its body starts scrolling. Viewport-relative by nature, so it has no tier 2 ancestor - the same reasoning as the widths."
+    },
+    "viewport-max": {
+      "value": "100vw",
+      "type": "dimension",
+      "comment": "The full viewport width, from which the padding is subtracted so a dialog never overflows a narrow screen."
+    }
+  }
+}

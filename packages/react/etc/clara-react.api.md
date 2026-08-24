@@ -15,6 +15,7 @@ import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { ReactPortal } from 'react';
 import { RefAttributes } from 'react';
+import { RefObject } from 'react';
 import { TextareaHTMLAttributes } from 'react';
 
 // @public
@@ -275,6 +276,26 @@ export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>,
     external?: boolean;
     // (undocumented)
     href: string;
+}
+
+// @public
+export const Modal: ForwardRefExoticComponent<ModalProps & RefAttributes<HTMLDivElement>>;
+
+// @public (undocumented)
+export interface ModalProps {
+    children?: ReactNode;
+    // (undocumented)
+    className?: string;
+    description?: string;
+    dismissible?: boolean;
+    footer?: ReactNode;
+    initialFocus?: RefObject<HTMLElement | null>;
+    onClose: () => void;
+    open: boolean;
+    returnFocus?: RefObject<HTMLElement | null>;
+    // (undocumented)
+    size?: 'sm' | 'md' | 'lg';
+    title: string;
 }
 
 // @public (undocumented)

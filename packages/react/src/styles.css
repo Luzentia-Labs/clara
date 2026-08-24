@@ -388,3 +388,70 @@
   cursor: pointer;
   min-height: var(--clara-size-target-min);
 }
+
+/* Modal (US-01M0GM48). The scrim and the panel are siblings in one ClaraPortal host: both take the
+   shared overlay layer and NEITHER takes a per-role z-index, because equal z-index paints in tree
+   order and the panel follows the scrim (D0088). No `transition` and no `animation` anywhere here,
+   deliberately - see D0094; the absence is asserted, not assumed. */
+.clara-modal__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--clara-layer-overlay);
+  background: var(--clara-color-bg-scrim);
+}
+
+.clara-modal {
+  position: fixed;
+  z-index: var(--clara-layer-overlay);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  max-height: var(--clara-modal-max-height);
+  width: calc(var(--clara-modal-viewport-max) - var(--clara-modal-padding) - var(--clara-modal-padding));
+  background: var(--clara-color-bg-surface);
+  color: var(--clara-color-fg-default);
+  border: var(--clara-modal-border-width) solid var(--clara-color-border-default);
+  border-radius: var(--clara-modal-radius);
+  padding: var(--clara-modal-padding);
+  gap: var(--clara-modal-gap);
+}
+
+.clara-modal--sm { max-width: var(--clara-modal-width-sm); }
+.clara-modal--md { max-width: var(--clara-modal-width-md); }
+.clara-modal--lg { max-width: var(--clara-modal-width-lg); }
+
+.clara-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--clara-modal-gap);
+}
+
+.clara-modal__title {
+  font-size: var(--clara-font-heading-sm);
+  color: var(--clara-color-fg-default);
+  margin: var(--clara-space-none);
+}
+
+.clara-modal__description {
+  font-size: var(--clara-font-body);
+  color: var(--clara-color-fg-muted);
+  margin: var(--clara-space-none);
+}
+
+/* The BODY scrolls, not the panel. A panel that scrolls takes its header and footer with it. */
+.clara-modal__body {
+  overflow-y: auto;
+  min-height: var(--clara-space-none);
+  display: flex;
+  flex-direction: column;
+  gap: var(--clara-modal-gap);
+}
+
+.clara-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--clara-space-control-gap);
+}

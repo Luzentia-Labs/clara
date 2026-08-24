@@ -29,6 +29,7 @@
   an effect, so the content lands on its second commit and an effect in Modal's own body would find
   a null ref (D0090). This criterion fails if the implementation moves it outward
 - **Verify:** vitest "Modal initial focus target"
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC2: Restoration per route
@@ -40,6 +41,7 @@
   implementation that handles one route and drops the other three, which is the defect this
   criterion exists to prevent
 - **Verify:** vitest "Modal focus restoration per dismissal route"
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC3: Background is inert
@@ -48,6 +50,7 @@
 - **When** I tab repeatedly
 - **Then** focus never reaches background content, which is marked inert
 - **Verify:** vitest "Modal marks background inert"
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC4: No scrollbar shift
@@ -56,6 +59,7 @@
 - **When** it opens on a scrollable page
 - **Then** scroll lock causes no layout shift
 - **Verify:** vitest "Modal scroll lock causes no shift"
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC5: Content scrolls internally
@@ -63,7 +67,11 @@
 - **Given** a Modal with long content
 - **When** it renders
 - **Then** the body scrolls while header and footer stay fixed
-- **Verify:** vitest "Modal body scrolls internally"
+- **And** the verifier runs the CSS guard as well as the test, because jsdom computes no layout:
+  flipping `.clara-modal__body` to `overflow-y: visible` left every Modal test green. The
+  declaration is the only observable, so SHAPE_CONTRACT is what actually proves this criterion
+- **Verify:** shell npx vitest run -t "Modal body scrolls internally" && node scripts/check-component-css.mjs --component Modal
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC6: Token-only styling
@@ -72,6 +80,7 @@
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC7: Both themes and densities
@@ -80,6 +89,7 @@
 - **When** it renders in dark theme and compact density
 - **Then** it holds its visual baseline in all four combinations
 - **Verify:** vitest "Modal theme and density matrix"
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC9: Nesting resolves by open order, not by a constant
@@ -91,6 +101,7 @@
 - **And** no per-role z-index exists between the scrim and the panel: the panel follows the scrim in
   the host, and tree order is what separates them
 - **Verify:** vitest "Modal stacks by open order"
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC10: The Radix boundary holds
@@ -102,6 +113,7 @@
 - **And** this is the most permanent thing in the story: a leaked prop name cannot be withdrawn
   after publish
 - **Verify:** shell node scripts/api-report.mjs && node scripts/check-client-boundary.mjs
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC11: Radix stays external, so the budget stays honest
@@ -115,6 +127,7 @@
   Radix Dialog is 15.19 kB gzipped, three times the whole per-component budget, so bundling it
   would not be a rounding error
 - **Verify:** shell node scripts/check-bundled-peers.mjs && npx size-limit
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 ### AC8: Definition of done
@@ -123,6 +136,7 @@
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
 - **Verify:** shell node scripts/check-verification.mjs --component Modal
+- **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.

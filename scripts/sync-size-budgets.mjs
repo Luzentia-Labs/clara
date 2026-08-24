@@ -38,6 +38,29 @@ const builtCount = classification.components.filter((c) => c.status === 'built')
 const PEERS = ['react', 'react-dom', 'react/jsx-runtime', 'react-dom/client']
 
 /**
+ * Runtime dependencies are ignored in the PER-COMPONENT budgets for the same reason peers are, and
+ * then measured ONCE in a budget of their own - which peers do not get, and the difference matters.
+ *
+ * A consumer already has React. It does not already have Radix. So Radix cannot simply be excluded
+ * and forgotten: `@radix-ui/react-dialog` is 15.19 kB gzipped, three times the entire per-component
+ * limit, and it arrives in the consumer's application the first time they import a Modal.
+ *
+ * But charging it to Modal is not right either. It is shared by every overlay - Modal, Drawer,
+ * Popover, DropdownMenu, Select, Tooltip - so a consumer using six of them pays it once. Leaving it
+ * in Modal's budget would report 14.77 kB against a 5 kB limit, hide the 0.95 kB that is actually
+ * Clara's code, and make the number meaningless the moment the second overlay ships and reports the
+ * same 15 kB again.
+ *
+ * So: per-component budgets measure Clara, and one explicit entry measures the third-party runtime.
+ * The cost stays visible and bounded rather than ignored, and neither number is 90% somebody else's
+ * library - which is the failure this file's peer comment already names.
+ */
+const runtimeDeps = Object.keys(
+  JSON.parse(readFileSync('packages/react/package.json', 'utf8')).dependencies ?? {},
+).filter((name) => !name.startsWith('@luzentialabs/'))
+const IGNORED = [...PEERS, ...runtimeDeps]
+
+/**
  * The react entry's budget SCALES with the number of components it re-exports.
  *
  * It was 5 kB - the per-component figure, reused. That is a cap on a barrel that re-exports every
@@ -68,20 +91,30 @@ const ENTRY_FLOOR_BYTES = 5000
 const entryLimit = `${Math.max(ENTRY_FLOOR_BYTES, builtCount * ENTRY_BYTES_PER_COMPONENT)} B`
 
 const fixed = [
-  { name: `@luzentialabs/clara-react (ESM entry, ${builtCount} components x ${ENTRY_BYTES_PER_COMPONENT} B, floor ${ENTRY_FLOOR_BYTES} B)`, path: 'packages/react/dist/index.js', limit: entryLimit, gzip: true, ignore: PEERS },
+  { name: `@luzentialabs/clara-react (ESM entry, ${builtCount} components x ${ENTRY_BYTES_PER_COMPONENT} B, floor ${ENTRY_FLOOR_BYTES} B)`, path: 'packages/react/dist/index.js', limit: entryLimit, gzip: true, ignore: IGNORED },
   { name: '@luzentialabs/clara-icons (ESM entry)', path: 'packages/icons/dist/index.js', limit: '5 kB', gzip: true },
   { name: '@luzentialabs/clara-tokens (ESM entry)', path: 'packages/tokens/dist/index.js', limit: '5 kB', gzip: true },
   {
     name: '@luzentialabs/clara-react styles.css (the fixed sheet ceiling, TRD:480 / PRD:1090)',
     path: 'packages/react/dist/styles.css', limit: '15 kB', gzip: true,
   },
+  // Measured once, not per overlay. See the IGNORED comment above.
+  ...(runtimeDeps.length
+    ? [{
+        name: `third-party runtime shared by every overlay (${runtimeDeps.join(', ')})`,
+        path: 'packages/react/dist/clara-client-Modal.js',
+        limit: '18 kB',
+        gzip: true,
+        ignore: PEERS,
+      }]
+    : []),
 ]
 const perComponent = builtClients.map((name) => ({
   name: `${name} (client chunk, D0048)`,
   path: `packages/react/dist/${CLIENT_CHUNK}-${name}.js`,
   limit: PER_COMPONENT_LIMIT,
   gzip: true,
-  ignore: PEERS,
+  ignore: IGNORED,
 }))
 const wanted = [...fixed, ...perComponent]
 const current = existsSync(BUDGET_FILE) ? JSON.parse(readFileSync(BUDGET_FILE, 'utf8')) : []

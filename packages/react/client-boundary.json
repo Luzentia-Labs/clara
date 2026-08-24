@@ -27,61 +27,6 @@
       "status": "built"
     },
     {
-      "name": "Card",
-      "boundary": "server",
-      "status": "planned"
-    },
-    {
-      "name": "DescriptionList",
-      "boundary": "server",
-      "status": "planned"
-    },
-    {
-      "name": "Divider",
-      "boundary": "server",
-      "status": "built"
-    },
-    {
-      "name": "EmptyState",
-      "boundary": "server",
-      "status": "planned"
-    },
-    {
-      "name": "Grid",
-      "boundary": "server",
-      "status": "built"
-    },
-    {
-      "name": "Heading",
-      "boundary": "server",
-      "status": "built"
-    },
-    {
-      "name": "Inline",
-      "boundary": "server",
-      "status": "built"
-    },
-    {
-      "name": "Skeleton",
-      "boundary": "server",
-      "status": "planned"
-    },
-    {
-      "name": "Stack",
-      "boundary": "server",
-      "status": "built"
-    },
-    {
-      "name": "Tag",
-      "boundary": "server",
-      "status": "planned"
-    },
-    {
-      "name": "Text",
-      "boundary": "server",
-      "status": "built"
-    },
-    {
       "name": "Button",
       "boundary": "client",
       "status": "built"
@@ -92,7 +37,32 @@
       "status": "built"
     },
     {
+      "name": "Card",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
       "name": "Checkbox",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "CheckboxGroup",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "ClaraPortal",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "ClaraProvider",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "ClaraScope",
       "boundary": "client",
       "status": "built"
     },
@@ -112,9 +82,19 @@
       "status": "planned"
     },
     {
+      "name": "DescriptionList",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
       "name": "Dialog",
       "boundary": "client",
       "status": "planned"
+    },
+    {
+      "name": "Divider",
+      "boundary": "server",
+      "status": "built"
     },
     {
       "name": "Drawer",
@@ -127,8 +107,23 @@
       "status": "planned"
     },
     {
+      "name": "EmptyState",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
       "name": "Field",
       "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "Grid",
+      "boundary": "server",
+      "status": "built"
+    },
+    {
+      "name": "Heading",
+      "boundary": "server",
       "status": "built"
     },
     {
@@ -137,8 +132,18 @@
       "status": "built"
     },
     {
+      "name": "Inline",
+      "boundary": "server",
+      "status": "built"
+    },
+    {
       "name": "Input",
       "boundary": "client",
+      "status": "built"
+    },
+    {
+      "name": "Link",
+      "boundary": "server",
       "status": "built"
     },
     {
@@ -147,14 +152,29 @@
       "status": "planned"
     },
     {
+      "name": "Modal",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
       "name": "MultiSelect",
       "boundary": "client",
       "status": "planned"
     },
     {
+      "name": "NumberInput",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
       "name": "Pagination",
       "boundary": "client",
       "status": "planned"
+    },
+    {
+      "name": "PasswordInput",
+      "boundary": "client",
+      "status": "built"
     },
     {
       "name": "Popover",
@@ -172,9 +192,24 @@
       "status": "built"
     },
     {
+      "name": "SearchInput",
+      "boundary": "client",
+      "status": "built"
+    },
+    {
       "name": "Select",
       "boundary": "client",
       "status": "planned"
+    },
+    {
+      "name": "Skeleton",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Stack",
+      "boundary": "server",
+      "status": "built"
     },
     {
       "name": "Switch",
@@ -182,9 +217,29 @@
       "status": "built"
     },
     {
+      "name": "Table",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "TableSortButton",
+      "boundary": "client",
+      "status": "planned"
+    },
+    {
       "name": "Tabs",
       "boundary": "client",
       "status": "planned"
+    },
+    {
+      "name": "Tag",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
+      "name": "Text",
+      "boundary": "server",
+      "status": "built"
     },
     {
       "name": "Textarea",
@@ -205,56 +260,6 @@
       "name": "Tooltip",
       "boundary": "client",
       "status": "planned"
-    },
-    {
-      "name": "Table",
-      "boundary": "server",
-      "status": "planned"
-    },
-    {
-      "name": "TableSortButton",
-      "boundary": "client",
-      "status": "planned"
-    },
-    {
-      "name": "ClaraProvider",
-      "boundary": "client",
-      "status": "built"
-    },
-    {
-      "name": "ClaraScope",
-      "boundary": "client",
-      "status": "built"
-    },
-    {
-      "name": "ClaraPortal",
-      "boundary": "client",
-      "status": "built"
-    },
-    {
-      "name": "Link",
-      "boundary": "server",
-      "status": "built"
-    },
-    {
-      "name": "PasswordInput",
-      "boundary": "client",
-      "status": "built"
-    },
-    {
-      "name": "NumberInput",
-      "boundary": "client",
-      "status": "built"
-    },
-    {
-      "name": "CheckboxGroup",
-      "boundary": "client",
-      "status": "built"
-    },
-    {
-      "name": "SearchInput",
-      "boundary": "client",
-      "status": "built"
     }
   ]
 }

@@ -299,6 +299,15 @@ const SHAPE_CONTRACT = [
   // NumberInput AC2 asserts tabular figures, so a column of amounts lines up. Nothing else in the
   // repo could see this declaration disappear.
   ['.clara-input--numeric', ['font-variant-numeric']],
+  // Modal AC5 says the BODY scrolls while header and footer stay put. jsdom computes no layout, so
+  // no test can see it: flipping `overflow-y` to `visible` left every Modal test green, because the
+  // strongest thing a jsdom test can assert is that the element exists. The declarations are the
+  // only observable, which is what this contract is for.
+  ['.clara-modal', ['position', 'display', 'max-height', 'background', 'color', 'border', 'border-radius']],
+  ['.clara-modal__scrim', ['position', 'inset', 'background']],
+  ['.clara-modal__body', ['overflow-y']],
+  ['.clara-modal__header', ['display']],
+  ['.clara-modal__footer', ['display']],
   ['.clara-radio-group', ['display', 'gap']],
   ['.clara-checkbox-group', ['display', 'gap']],
   // Load-bearing twice: it hides both groups' legends so the label is not painted twice, and it

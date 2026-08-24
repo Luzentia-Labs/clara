@@ -455,6 +455,33 @@ export const LayerToast = "1500";
 export const LayerTooltip = "1400";
 
 // @public (undocumented)
+export const ModalBorderWidth = "1px";
+
+// @public (undocumented)
+export const ModalGap = "12px";
+
+// @public (undocumented)
+export const ModalMaxHeight = "85vh";
+
+// @public (undocumented)
+export const ModalPadding = "24px";
+
+// @public (undocumented)
+export const ModalRadius = "8px";
+
+// @public (undocumented)
+export const ModalViewportMax = "100vw";
+
+// @public (undocumented)
+export const ModalWidthLg = "48rem";
+
+// @public (undocumented)
+export const ModalWidthMd = "32rem";
+
+// @public (undocumented)
+export const ModalWidthSm = "24rem";
+
+// @public (undocumented)
 export const RadiusControl = "4px";
 
 // @public (undocumented)
