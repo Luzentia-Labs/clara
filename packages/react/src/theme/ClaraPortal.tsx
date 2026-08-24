@@ -1,21 +1,29 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useClaraSettings } from './context'
 import { claraAttributes } from './resolve'
 
-export interface ClaraPortalProps { children?: ReactNode }
+export interface ClaraPortalProps {
+  /**
+   * Whether the overlay is open. REQUIRED, and load-bearing - see the stacking contract below.
+   *
+   * This is not inferable from `children`. An earlier version decided it by asking whether the
+   * children would render anything, which a review defeated in one line: wrap the same conditional
+   * in a fragment, or hand the portal a component that returns `null` while closed - which is what
+   * every exit animation does - and the portal read as OPEN with nothing in it.
+   */
+  open: boolean
+  children?: ReactNode
+}
 
 /**
- * True when React would paint something for these children.
+ * Layout effects run before paint, so the portalled content is in the DOM by the time the browser
+ * draws the frame in which the overlay opened.
  *
- * `{open && <Menu/>}` yields `false` and `{open ? <Menu/> : null}` yields `null`; both are the
- * ordinary way a React developer opens and closes an overlay, and both must read as CLOSED here.
+ * Chosen at module scope, not in render: `useLayoutEffect` warns when it runs on the server, and a
+ * component that reads `document` DURING RENDER breaks SSR outright (PRD F23, AC4).
  */
-const rendersContent = (children: ReactNode): boolean => {
-  if (children === null || children === undefined || typeof children === 'boolean') return false
-  if (Array.isArray(children)) return children.some(rendersContent)
-  return true
-}
+const useHostEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect
 
 /**
  * Renders into `document.body` while keeping the theme and density of where it was WRITTEN.
@@ -29,31 +37,58 @@ const rendersContent = (children: ReactNode): boolean => {
  * No `theme`, `density` or `portalContainer` prop, deliberately (TRD Section 4 rule 2, D0018).
  * Solving this with props would mean the same three props on every overlay, permanently.
  *
- * ## The stacking contract (D0088) - load-bearing, not an implementation detail
+ * ## The stacking contract (D0088, D0090) - load-bearing, not an implementation detail
  *
  * Every portalled surface shares one layer (`--clara-layer-overlay`), so which of two overlays
  * paints on top is decided by DOM order: equal z-index paints in tree order. That is only correct
  * if the host for an overlay is appended to `document.body` AT THE MOMENT IT OPENS - so this
- * component creates the host when it HAS content and removes it when the content goes away, rather
- * than holding one host for its whole lifetime.
+ * component creates the host when `open` becomes true and removes it when `open` becomes false,
+ * rather than holding one host for its whole lifetime.
  *
  * The distinction is the whole model. A host created once at mount pins sibling order to MOUNT
- * order, and then `<ClaraPortal>{open && <Menu/>}</ClaraPortal>` mounted before a Modal paints its
- * menu underneath however late it was opened - the exact inversion the per-role scale was deleted
- * to avoid. It is not a corner case: a Toast viewport is conventionally mounted once at app start,
- * and Radix `forceMount` / `Presence` keep a portal mounted through an exit animation.
+ * order, so a Toast viewport mounted at app start paints under an overlay opened long afterwards -
+ * the exact inversion the per-role scale was deleted to avoid.
  *
- * Asserted by `portals stack by open order` in `theming.test.tsx`, which AC3 of US-01M0GM61 runs.
+ * `open` is a REQUIRED prop rather than something inferred from `children` because the inference
+ * cannot be made safe. A child that renders `null` is indistinguishable from a child that renders
+ * something, from outside; and rendering `null` while closed is precisely what a Radix `Presence`
+ * wrapper, a `forceMount` exit animation, and any ordinary extracted `<Overlay/>` component all do.
+ *
+ * ## What an overlay may assume about timing - READ THIS BEFORE WRITING FOCUS MANAGEMENT
+ *
+ * The portalled content does not exist until this component's SECOND commit. The host is created in
+ * an effect (it has to be - see the note in the body), so the first commit after `open` turns true
+ * renders nothing, and the content arrives in the commit that the host's state update causes.
+ *
+ * The consequence, and it is the one that bites: **an effect in the component that OPENS the
+ * overlay runs too early.** `useEffect(() => ref.current?.focus(), [open])` in a Modal's own body
+ * finds `ref.current === null`. That is the epic's headline criterion - "every overlay names its
+ * initial focus target on open" - failing silently, in a way axe cannot see.
+ *
+ * **Focus from INSIDE the portal**, in an effect belonging to the portalled content, or from a
+ * callback ref on the element itself. Both run in the commit that puts the content in the DOM. This
+ * is also how Radix does it, and ADR-004 adopts Radix to inherit exactly this kind of answer.
+ *
+ * Layout, not passive, so nothing is painted before the content lands - there is no visible flash,
+ * only an ordering constraint on effects.
+ *
+ * Asserted by `the overlay stacking order in the DOM` in `theming.test.tsx`, which AC3 runs.
  */
-export function ClaraPortal ({ children }: ClaraPortalProps) {
+export function ClaraPortal ({ open, children }: ClaraPortalProps) {
   const settings = useClaraSettings()
   const [host, setHost] = useState<HTMLElement | null>(null)
-  const open = rendersContent(children)
 
-  // The host is created in an effect: `document` does not exist during a server render, and a
-  // component that reads it while rendering breaks SSR (PRD F23). Server-rendering an overlay's
-  // content is not meaningful anyway - it has nowhere to go until there is a document.
-  useEffect(() => {
+  // The host is created in an effect, and the effect is the LAST possible moment: `document` does
+  // not exist during a server render, and a component that reads it while rendering breaks SSR
+  // (PRD F23). A lazy `useState(() => document.createElement('div'))` guarded by `typeof document`
+  // looks like it would work and does not - `renderToStaticMarkup` runs under jsdom in this repo's
+  // own test environment, where `document` IS defined, so the guard passes and React then throws
+  // "Portals are not currently supported by the server renderer". The guard has to be "am I on the
+  // client", which no render-time expression can answer, so it is an effect.
+  //
+  // It is a LAYOUT effect where there is a document, so the content commits before paint. A passive
+  // effect would let the browser paint the opened overlay's frame with nothing in it.
+  useHostEffect(() => {
     if (!open) { setHost(null); return }
     const el = document.createElement('div')
     document.body.appendChild(el)

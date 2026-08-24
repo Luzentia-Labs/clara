@@ -122,6 +122,7 @@ export function ClaraPortal(input: ClaraPortalProps): ReactPortal | null;
 export interface ClaraPortalProps {
     // (undocumented)
     children?: ReactNode;
+    open: boolean;
 }
 
 // @public

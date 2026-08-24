@@ -120,6 +120,18 @@ function stageWorkspace ({ withOutput = false, withGit = false, withStories = fa
  * scoped, and then attributed by filename. The path an acceptance criterion takes is the path that
  * most needs a fail-proof.
  */
+/**
+ * Write a throwaway component into the staged tree.
+ *
+ * The inline-z-index mutations used to patch a source string inside `ClaraPortal.tsx`, so any
+ * unrelated edit to that component reported them as a stale mutation rather than a surviving one.
+ * A file that exists only for the mutation cannot go stale.
+ */
+const probeComponent = (body) => (stage) => {
+  writeFileSync(join(stage, 'packages/react/src/theme/__prove-zindex.tsx'),
+    `export function ProveZIndex () {\n${body}\n}\n`)
+}
+
 const runGuard = (script, cwd, args = []) => {
   try {
     execFileSync('node', [join(scriptsDir, script), ...args], { cwd, stdio: 'pipe' })
@@ -1069,12 +1081,74 @@ const OUTPUT_CASES = [
     name: 'a hand-typed z-index in an inline style, where no stylesheet walk can see it',
     guard: 'check-component-css.mjs',
     expect: /inline zIndex is not a layer token/,
+    stage: probeComponent('  return <div style={{ zIndex: 999999 }} />'),
+  },
+  {
+    // One line of legal CSS put the hand-typed number back with the z-index rule fully green: a
+    // component that redefines --clara-layer-overlay overrides it for its whole subtree.
+    name: 'a component redefining a layer token, which makes the scale a local literal',
+    guard: 'check-component-css.mjs',
+    expect: /redefines --clara-layer-overlay/,
     stage: (stage) => {
-      const f = join(stage, 'packages/react/src/theme/ClaraPortal.tsx')
-      writeFileSync(f, readFileSync(f, 'utf8').replace(
-        'return createPortal(<div {...claraAttributes(settings)}>',
-        'return createPortal(<div style={{ zIndex: 999999 }} {...claraAttributes(settings)}>',
-      ))
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + '\n.probe { --clara-layer-overlay: 999999; position: fixed; z-index: var(--clara-layer-overlay); }\n')
+    },
+  },
+  {
+    // A position that applies only at one breakpoint does not satisfy an obligation that holds
+    // always - the escape SHAPE_CONTRACT's own docblock names, at a rule written afterwards.
+    name: 'a layer token whose companion position hides inside a media query',
+    guard: 'check-component-css.mjs',
+    expect: /no unconditional non-static/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + '\n@media (min-width: 3000px) { .probe { position: fixed } }\n.probe { z-index: var(--clara-layer-overlay); }\n')
+    },
+  },
+  {
+    // The inline walk matched a literal property assignment only. A shorthand over a const is the
+    // shortest way past it, and Radix-positioned overlays build style objects exactly like this.
+    name: 'a hand-typed z-index reaching an inline style through a shorthand property',
+    guard: 'check-component-css.mjs',
+    expect: /inline zIndex is set from a variable/,
+    stage: probeComponent('  const zIndex = 999999\n  return <div style={{ zIndex }} />'),
+  },
+  {
+    // Setting it through the DOM rather than through JSX is invisible to a JSX-only walk.
+    name: 'a hand-typed z-index written straight onto element.style',
+    guard: 'check-component-css.mjs',
+    expect: /assigned through element\.style/,
+    stage: probeComponent('  const el = document.createElement("div")\n  el.style.zIndex = String(999999)\n  return null'),
+  },
+  {
+    // And through the CSSOM, which is neither JSX nor a stylesheet.
+    name: 'a hand-typed z-index set through style.setProperty',
+    guard: 'check-component-css.mjs',
+    expect: /z-index "999999" does not resolve/,
+    stage: probeComponent('  const el = document.createElement("div")\n  el.style.setProperty("z-index", "999999")\n  return null'),
+  },
+  {
+    // A legal nudge, written enough times to clear a layer boundary. Every term passes on its own.
+    name: 'a single-digit offset chained until it clears the layer above',
+    guard: 'check-component-css.mjs',
+    expect: /nudges a layer token by/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + `\n.probe { position: fixed; z-index: calc(var(--clara-layer-overlay)${' + 9'.repeat(10)}); }\n`)
+    },
+  },
+  {
+    // The tier rule was case-sensitive while CSS is not, two lines above a check this repo had
+    // already made case-insensitive for the same reason.
+    name: 'a tier 1 primitive read through an uppercase VAR()',
+    guard: 'check-component-css.mjs',
+    expect: /a tier 1 primitive/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.probe { COLOR: VAR(--clara-color-neutral-600); }\n')
     },
   },
   {
@@ -1082,7 +1156,7 @@ const OUTPUT_CASES = [
     // layout, so the surface would have no stacking at all with every gate green.
     name: 'a layer token on an element with no non-static position, where it is inert',
     guard: 'check-component-css.mjs',
-    expect: /declares z-index but no non-static/,
+    expect: /has no unconditional non-static/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8') + '\n.probe { z-index: var(--clara-layer-overlay); }\n')

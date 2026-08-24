@@ -79,6 +79,23 @@ describe('the overlay layer scale is tokenised', () => {
   })
 })
 
+describe('the overlay layer scale is documented', () => {
+  it('matches the table consumers are told to read', () => {
+    // The docs table carries the NUMBERS, because an application has to keep its own chrome below
+    // `overlay` and cannot do that against a name alone. A table nothing checks drifts: retargeting
+    // `layer.3` in the source left the documented 1400 in place with every gate green.
+    const docs = join(__dirname, '../../../../apps/docs/src/content/foundations/tokens.md')
+    const table = readFileSync(docs, 'utf8')
+    const documented = new Map(
+      [...table.matchAll(/^\|\s*`--clara-layer-([\w-]+)`\s*\|\s*(\d+)\s*\|/gm)].map((m) => [m[1], Number(m[2])]),
+    )
+    expect([...documented.keys()].sort(), 'the docs table lists a different set of layers').toEqual([...NAMES].sort())
+    for (const [name, value] of documented) {
+      expect(value, `the docs say --clara-layer-${name} is ${value}`).toBe(layer(name))
+    }
+  })
+})
+
 describe('the overlay stacking order', () => {
   it('puts every portalled surface above in-document content', () => {
     expect(layer('overlay')).toBeGreaterThan(layer('raised'))

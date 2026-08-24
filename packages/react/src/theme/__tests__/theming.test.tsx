@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -76,7 +76,7 @@ describe('portal inherits scoped theme', () => {
     render(
       <ClaraProvider theme="light" density="comfortable">
         <ClaraScope theme="dark" density="compact">
-          <ClaraPortal><span data-testid="overlay">content</span></ClaraPortal>
+          <ClaraPortal open><span data-testid="overlay">content</span></ClaraPortal>
         </ClaraScope>
       </ClaraProvider>,
     )
@@ -91,7 +91,7 @@ describe('portal inherits scoped theme', () => {
   it('a scope that changes only density keeps the inherited theme', async () => {
     render(
       <ClaraProvider theme="dark">
-        <ClaraScope density="compact"><ClaraPortal><span data-testid="o">c</span></ClaraPortal></ClaraScope>
+        <ClaraScope density="compact"><ClaraPortal open><span data-testid="o">c</span></ClaraPortal></ClaraScope>
       </ClaraProvider>,
     )
     const host = (await screen.findByTestId('o')).closest('[data-clara-theme]')
@@ -101,7 +101,7 @@ describe('portal inherits scoped theme', () => {
 
   it('mounts into the document once there IS one, OUTSIDE the React root', async () => {
     const { container } = render(
-      <ClaraProvider theme="dark"><ClaraPortal><span data-testid="late">here</span></ClaraPortal></ClaraProvider>,
+      <ClaraProvider theme="dark"><ClaraPortal open><span data-testid="late">here</span></ClaraPortal></ClaraProvider>,
     )
     const el = await screen.findByTestId('late')
     expect(el.closest('[data-clara-theme]')).toHaveAttribute('data-clara-theme', 'dark')
@@ -140,7 +140,7 @@ describe('portal renders nothing on the server', () => {
   it('produces empty markup and does not touch document', () => {
     const html = renderToStaticMarkup(
       <ClaraProvider theme="dark">
-        <ClaraPortal><span>should not appear</span></ClaraPortal>
+        <ClaraPortal open><span>should not appear</span></ClaraPortal>
       </ClaraProvider>,
     )
     expect(html).not.toContain('should not appear')
@@ -154,7 +154,7 @@ describe('portal renders nothing on the server', () => {
     delete globalThis.document
     try {
       expect(() => renderToStaticMarkup(
-        <ClaraProvider><ClaraPortal><span>x</span></ClaraPortal></ClaraProvider>,
+        <ClaraProvider><ClaraPortal open><span>x</span></ClaraPortal></ClaraProvider>,
       )).not.toThrow()
     } finally {
       globalThis.document = real
@@ -180,14 +180,14 @@ describe('the overlay stacking order in the DOM', () => {
   it('appends each host to the end of the body, so later opens are later siblings', async () => {
     render(
       <ClaraProvider>
-        <ClaraPortal><span data-testid="first">first</span></ClaraPortal>
+        <ClaraPortal open><span data-testid="first">first</span></ClaraPortal>
       </ClaraProvider>,
     )
     const first = await screen.findByTestId('first')
 
     render(
       <ClaraProvider>
-        <ClaraPortal><span data-testid="second">second</span></ClaraPortal>
+        <ClaraPortal open><span data-testid="second">second</span></ClaraPortal>
       </ClaraProvider>,
     )
     const second = await screen.findByTestId('second')
@@ -204,16 +204,35 @@ describe('the overlay stacking order in the DOM', () => {
 
   it('creates NO host while it is closed, so mount order cannot decide the stacking', async () => {
     // The model is OPEN order. A host created once at mount pins sibling order to MOUNT order, and
-    // then a Toast viewport mounted at app start - or any `<ClaraPortal>{open && ...}</ClaraPortal>`
-    // that has been on the page a while - paints under an overlay opened long after it.
+    // then a Toast viewport mounted at app start - or any overlay whose portal has been on the page
+    // a while - paints under an overlay opened long after it.
     const before = document.body.childElementCount
     render(
       <ClaraProvider>
-        <ClaraPortal>{false}</ClaraPortal>
-        <ClaraPortal>{null}</ClaraPortal>
+        <ClaraPortal open={false}><span data-testid="never">never</span></ClaraPortal>
+        <ClaraPortal open={false}><span data-testid="also-never">never</span></ClaraPortal>
       </ClaraProvider>,
     )
     await waitFor(() => expect(document.body.childElementCount).toBe(before + 1)) // the React root only
+    expect(screen.queryByTestId('never')).toBeNull()
+  })
+
+  it('reads `open`, not what its children happen to render', async () => {
+    // This is why `open` is a required prop and not an inference over `children`. Every shape below
+    // renders nothing, and a predicate over the child node calls each of them OPEN: a fragment
+    // hides the conditional one level down, and a child component that returns null while closed is
+    // exactly what a Radix `Presence` wrapper and any extracted <Overlay/> do. The inference version
+    // of this component created a host for all three and the mount-order inversion came back.
+    const Presence = ({ show }: { show: boolean }) => (show ? <span>content</span> : null)
+    const before = document.body.childElementCount
+    render(
+      <ClaraProvider>
+        <ClaraPortal open={false}><>{false && <span>wrapped</span>}</></ClaraPortal>
+        <ClaraPortal open={false}><Presence show={false} /></ClaraPortal>
+        <ClaraPortal open={false}>{''}</ClaraPortal>
+      </ClaraProvider>,
+    )
+    await waitFor(() => expect(document.body.childElementCount).toBe(before + 1))
   })
 
   it('orders by OPEN order, not mount order: the portal opened last is the later sibling', async () => {
@@ -227,8 +246,8 @@ describe('the overlay stacking order in the DOM', () => {
         <ClaraProvider>
           <button onClick={() => setTop(true)}>open top</button>
           <button onClick={() => setBottom(true)}>open bottom</button>
-          <ClaraPortal>{top ? <span data-testid="mounted-first">first</span> : null}</ClaraPortal>
-          <ClaraPortal>{bottom ? <span data-testid="mounted-second">second</span> : null}</ClaraPortal>
+          <ClaraPortal open={top}><span data-testid="mounted-first">first</span></ClaraPortal>
+          <ClaraPortal open={bottom}><span data-testid="mounted-second">second</span></ClaraPortal>
         </ClaraProvider>
       )
     }
@@ -251,13 +270,53 @@ describe('the overlay stacking order in the DOM', () => {
     expect(earlier.compareDocumentPosition(hostOf(last)!) & following).toBeTruthy()
   })
 
+  it('commits its content in time for an effect INSIDE the portal, but not for the opener\'s', async () => {
+    // The timing contract thirteen overlays inherit, asserted rather than assumed.
+    //
+    // The host is created in an effect, so the content lands on this component's SECOND commit.
+    // An effect in the component that OPENS the overlay therefore runs too early and finds a null
+    // ref - which is the epic's headline criterion ("every overlay names its initial focus target
+    // on open") failing silently. An effect belonging to the portalled CONTENT runs in the commit
+    // that puts it in the DOM, and sees it. Focus management must live there.
+    //
+    // This asserts the boundary in both directions on purpose: if a later change makes the opener's
+    // effect work, this test fails and the docblock telling authors to focus from inside becomes
+    // wrong - which is a thing worth being told about.
+    const fromOpener: (string | null)[] = []
+    const fromInside: (string | null)[] = []
+
+    function Inside () {
+      const ref = useRef<HTMLInputElement>(null)
+      useEffect(() => { fromInside.push(ref.current?.getAttribute('data-testid') ?? null) }, [])
+      return <input ref={ref} data-testid="first-control" />
+    }
+    function Opener () {
+      const [open, setOpen] = useState(false)
+      useEffect(() => {
+        if (open) fromOpener.push(document.querySelector('[data-testid="first-control"]') ? 'found' : null)
+      }, [open])
+      return (
+        <ClaraProvider>
+          <button onClick={() => setOpen(true)}>open</button>
+          <ClaraPortal open={open}><Inside /></ClaraPortal>
+        </ClaraProvider>
+      )
+    }
+    render(<Opener />)
+    fireEvent.click(screen.getByText('open'))
+    await screen.findByTestId('first-control')
+
+    expect(fromInside).toEqual(['first-control'])
+    expect(fromOpener).toEqual([null])
+  })
+
   it('removes its host when it CLOSES, not only when it unmounts', async () => {
     function Toggle () {
       const [open, setOpen] = useState(true)
       return (
         <ClaraProvider>
           <button onClick={() => setOpen(false)}>close</button>
-          <ClaraPortal>{open ? <span data-testid="closing">x</span> : null}</ClaraPortal>
+          <ClaraPortal open={open}><span data-testid="closing">x</span></ClaraPortal>
         </ClaraProvider>
       )
     }
@@ -271,7 +330,7 @@ describe('the overlay stacking order in the DOM', () => {
 
   it('removes its host on unmount, so a closed overlay leaves nothing behind to stack against', async () => {
     const { unmount } = render(
-      <ClaraProvider><ClaraPortal><span data-testid="gone">x</span></ClaraPortal></ClaraProvider>,
+      <ClaraProvider><ClaraPortal open><span data-testid="gone">x</span></ClaraPortal></ClaraProvider>,
     )
     await screen.findByTestId('gone')
     const before = document.body.childElementCount

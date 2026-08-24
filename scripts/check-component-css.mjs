@@ -24,7 +24,7 @@ import postcss from 'postcss'
 import ts from 'typescript'
 import { focusableClassGroups, claraClassesByComponent } from './lib/focusable.mjs'
 import { componentsInFile } from './lib/module-exports.mjs'
-import { fail, pass } from './lib/workspace.mjs'
+import { fail, pass, readWorkspace } from './lib/workspace.mjs'
 
 const RULE = 'component-css'
 
@@ -130,38 +130,90 @@ const zIndexProblems = (decl, where) => {
   const tokens = inner.match(LAYER_VAR)
   if (!tokens || tokens.length !== 1) return reject('does not resolve through exactly one layer token')
 
-  const rest = inner.replace(LAYER_VAR, ' ').trim()
+  const rest = inner.replace(LAYER_VAR, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ').trim()
   if (rest === '') return []
   if (!calc) return reject('mixes a layer token with something else')
   // Inside calc() the only thing allowed beside the token is a small +/- nudge. Multiplication,
   // division and multi-digit addends are how a hand-typed number smuggles itself back in.
+  //
+  // The MAGNITUDE is summed, not checked per term: `+ 9` written ten times is a hand-typed 90, and
+  // written forty-five times it clears the tooltip layer, with every single term a legal nudge.
+  let offset = 0
+  let sign = 1
   for (const bit of rest.split(/\s+/).filter(Boolean)) {
-    if (bit === '+' || bit === '-') continue
-    if (/^[+-]?\d$/.test(bit)) continue
-    return reject('may only add or subtract a single-digit offset from a layer token inside calc()')
+    if (bit === '+') { sign = 1; continue }
+    if (bit === '-') { sign = -1; continue }
+    const term = /^([+-]?)(\d)$/.exec(bit)
+    if (!term) return reject('may only add or subtract a single-digit offset from a layer token inside calc()')
+    offset += (term[1] === '-' ? -1 : sign) * Number(term[2])
+    sign = 1
   }
+  if (Math.abs(offset) > 9) return reject(`nudges a layer token by ${offset}, and the scale admits at most 9 - a bigger offset is a hand-typed z-index spelled as a sum`)
   return []
 }
 
 /**
- * The same rule for inline styles. `style={{ zIndex: 999999 }}` is not CSS this guard walks, and
- * thirteen of the components about to be written are overlays that Radix positions with inline
- * styles as a matter of course - so a `.css`-only check would have left the scale advisory exactly
- * where it matters most. Read from the JSX with TypeScript's parser, for the same reason the
- * focusable-class list is (D0051): a regex over source text is the parser this repo keeps losing to.
+ * The same rule for inline styles, and for the DOM APIs that set one.
+ *
+ * `style={{ zIndex: 999999 }}` is not CSS this guard walks, and thirteen of the components about to
+ * be written are overlays that Radix positions with inline styles as a matter of course - so a
+ * `.css`-only check would have left the scale advisory exactly where it matters most. Read from the
+ * JSX with TypeScript's parser, for the same reason the focusable-class list is (D0051): a regex
+ * over source text is the parser this repo keeps losing to.
+ *
+ * The first version matched only a literal `{ zIndex: <literal> }`. A review walked past it five
+ * ways: a shorthand `{ zIndex }` over a const, a computed key `{ ['zIndex']: n }`,
+ * `el.style.zIndex = ...`, `style.setProperty('z-index', ...)` and `setAttribute('style', ...)`.
+ * The rule is stated the other way round now - any appearance of a z-index-setting name is a
+ * problem UNLESS it is a string literal that resolves through the scale - because a denylist of
+ * shapes is a list of the shapes somebody happened to think of.
  */
+const Z_NAMES = new Set(['zIndex', 'z-index'])
+
 const inlineZIndexProblems = (file, rel) => {
   const out = []
   const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const at = (node) => `${rel}:${source.getLineAndCharacterOfPosition(node.getStart()).line + 1}`
+  const literal = (node) => (node && (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) ? node.text : null)
+  const opaque = (where, what) => [`${where}: ${what} - a z-index must be a string literal reading var(--clara-layer-*), so its value can be checked. Anything computed is a hand-typed number this gate cannot see.`]
+
+  const check = (node, value, what) => {
+    const text = literal(value)
+    out.push(...(text === null ? opaque(at(node), what) : zIndexProblems({ prop: 'z-index', value: text }, at(node))))
+  }
+
   const visit = (node) => {
-    if (ts.isPropertyAssignment(node) && (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name))
-      && node.name.text === 'zIndex') {
-      const at = `${rel}:${source.getLineAndCharacterOfPosition(node.getStart()).line + 1}`
-      const init = node.initializer
-      const text = (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)) ? init.text : null
-      out.push(...(text === null
-        ? [`${at}: inline zIndex is not a layer token - write a string reading var(--clara-layer-*)`]
-        : zIndexProblems({ prop: 'z-index', value: text }, at)))
+    if (ts.isPropertyAssignment(node)) {
+      const name = node.name
+      const named = (ts.isIdentifier(name) || ts.isStringLiteral(name)) ? name.text
+        : ts.isComputedPropertyName(name) ? (literal(name.expression) ?? '')
+          : ''
+      if (Z_NAMES.has(named)) check(node, node.initializer, 'inline zIndex is not a layer token')
+    }
+    // `{ zIndex }` - shorthand over a const declared somewhere else entirely.
+    if (ts.isShorthandPropertyAssignment(node) && Z_NAMES.has(node.name.text)) {
+      out.push(...opaque(at(node), 'inline zIndex is set from a variable'))
+    }
+    if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken
+      && ts.isPropertyAccessExpression(node.left)) {
+      // `el.style.zIndex = ...`
+      if (Z_NAMES.has(node.left.name.text) && /(^|\.)style$/.test(node.left.expression.getText())) {
+        check(node, node.right, 'z-index assigned through element.style')
+      }
+      // `el.style.cssText = ...` - a whole stylesheet the CSS walk never sees.
+      if (node.left.name.text === 'cssText' && /z-index/i.test(node.right.getText())) {
+        out.push(...opaque(at(node), 'z-index set through cssText'))
+      }
+    }
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
+      const method = node.expression.name.text
+      if (method === 'setProperty' && Z_NAMES.has(literal(node.arguments[0]) ?? '')) {
+        check(node, node.arguments[1], 'z-index set through style.setProperty')
+      }
+      if (method === 'setAttribute' && literal(node.arguments[0]) === 'style'
+        && /z-index/i.test(node.arguments[1]?.getText() ?? '')) {
+        out.push(...opaque(at(node), 'z-index set by writing a whole style attribute'))
+      }
     }
     ts.forEachChild(node, visit)
   }
@@ -182,13 +234,20 @@ for (const file of files) {
   const root_ = postcss.parse(readFileSync(file, 'utf8'), { from: file })
   root_.walkDecls((decl) => {
     const at = `${rel}:${decl.source?.start?.line ?? '?'}`
-    for (const m of decl.value.matchAll(/var\(\s*(--clara-[\w-]+)/g)) {
+    for (const m of decl.value.matchAll(/var\(\s*(--clara-[\w-]+)/gi)) {
       const name = m[1].replace(/^--clara-/, '')
       declarations++
       if (allowed.has(name)) continue
       problems.push(tier1.has(name)
         ? `${at}: reads --clara-${name}, a tier 1 primitive - component CSS may read tier 2 or tier 3 only`
         : `${at}: reads --clara-${name}, which is not a token this build emits`)
+    }
+    // A component may not REDEFINE a token the build emits. `--clara-layer-overlay: 999999` on a
+    // component's own rule is legal CSS, inherits to every descendant, and put the hand-typed
+    // number back with the z-index rule fully green - a scale is only a scale if its values come
+    // from the token build.
+    if (/^--clara-/i.test(decl.prop) && allowed.has(decl.prop.replace(/^--clara-/i, ''))) {
+      problems.push(`${at}: redefines ${decl.prop}, which the token build emits - a component that redefines a token overrides it for its whole subtree, which makes the token's value a local literal`)
     }
     // A custom-property DEFINITION and a structural property are not design values.
     if (decl.prop.startsWith('--') || STRUCTURAL.test(decl.prop)) return
@@ -455,13 +514,18 @@ for (const file of files) {
 const positionsBySelector = new Map()
 for (const file of files) {
   postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+    // Only an UNCONDITIONAL position counts. `position: fixed` inside `@media (min-width: 3000px)`
+    // applies only sometimes, so it does not satisfy an obligation that holds always - the same
+    // escape SHAPE_CONTRACT's docblock calls out, not carried across when this rule was written.
+    if (!unconditional(rule)) return
     for (const sel of rule.selectors ?? []) {
-      const key = sel.trim()
       rule.walkDecls((decl) => {
         if (decl.prop.toLowerCase() !== 'position') return
-        const set = positionsBySelector.get(key) ?? new Set()
-        set.add(decl.value.trim().toLowerCase())
-        positionsBySelector.set(key, set)
+        if (decl.value.trim().toLowerCase() === 'static') return
+        // Recorded against the BASE class, because that is where a component declares its box.
+        // `.clara-modal[data-state="open"] { z-index }` is satisfied by `position` on
+        // `.clara-modal` - and `[data-state]` is what Radix stamps, so every overlay writes it.
+        positionsBySelector.set(baseClass(sel.trim()), true)
       })
     }
   })
@@ -470,18 +534,20 @@ for (const file of files) {
   postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
     if (!rule.some?.((n) => n.type === 'decl' && n.prop.toLowerCase() === 'z-index')) return
     for (const sel of rule.selectors ?? []) {
-      const key = sel.trim()
-      if (!inScope(key.split(':')[0])) continue
-      const positions = [...(positionsBySelector.get(key) ?? [])].filter((v) => v !== 'static')
-      if (!positions.length) {
-        problems.push(`${relative(root, file)}: ${key} declares z-index but no non-static \`position\` - z-index is inert on a statically positioned element, so the layer token has no effect`)
-      }
+      const base = baseClass(sel.trim())
+      if (!inScope(base)) continue
+      if (positionsBySelector.get(base)) continue
+      problems.push(`${relative(root, file)}: ${sel.trim()} declares z-index but ${base} has no unconditional non-static \`position\` - z-index is inert on a statically positioned element, so the layer token has no effect`)
     }
   })
 }
 
 // The same rule over the JSX, where a Radix-positioned overlay is most likely to type one.
-const sourceFiles = walk(join(root, 'packages/react/src'))
+// Every workspace package's source, not just clara-react. `packages/icons/src` was outside both
+// walks, so an inline z-index there was unchecked - and the reason to read the workspace file
+// rather than hardcode a list is the one `lib/workspace.mjs` already records.
+const sourceFiles = readWorkspace(root)
+  .flatMap(({ dir }) => walk(join(root, dir, 'src')))
   .filter((f) => (f.endsWith('.tsx') || f.endsWith('.ts')) && !f.includes('__tests__'))
 for (const file of sourceFiles) {
   problems.push(...inlineZIndexProblems(file, relative(root, file)))

@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/src/theme/ClaraPortal.tsx, packages/react/src/theme/__tests__/theming.test.tsx, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/geometry.json, packages/tokens/src/__tests__/layers.test.ts, scripts/check-component-css.mjs, scripts/prove-guards-fail.mjs
+> **Affects:** packages/react/src/theme/ClaraPortal.tsx, packages/react/src/theme/__tests__/theming.test.tsx, packages/react/etc/clara-react.api.md, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/geometry.json, packages/tokens/src/__tests__/layers.test.ts, packages/tokens/tokens.public.lock.json, apps/docs/src/content/foundations/tokens.md, scripts/check-component-css.mjs, scripts/prove-guards-fail.mjs
 > **Points:** 5
 
 ## User Story
@@ -78,6 +78,10 @@ does, and adds the layer scale beside it.
 - **And** the two relationships that do NOT depend on nesting keep their own layer: a tooltip is
   above every overlay because it describes whatever is on top, and a toast is above everything
   because it may be the only report that something failed
+- **And** `open` is an explicit REQUIRED prop on `ClaraPortal`, not inferred from `children`: a
+  child that renders `null` is indistinguishable from one that renders something, and rendering
+  `null` while closed is what a Radix `Presence` wrapper, a `forceMount` exit animation and any
+  ordinary extracted `<Overlay/>` all do. Two review seats defeated the inference independently
 - **And** the composition itself - a real Select inside a real Modal - is NOT asserted here, because
   neither component exists yet. It arrives with Select in EP-01M0GK91, and the ordering this story
   fixes is what makes it work. Asserting a composition of two unbuilt components would be a test of
@@ -98,9 +102,16 @@ does, and adds the layer scale beside it.
 ### AC5: The scale is enforced, not advisory
 
 - **Given** the component-CSS guard
-- **When** a component hand-types a z-index, in a stylesheet or in an inline style
-- **Then** the build fails, and the guard is proved able to fail rather than assumed to be
-- **And** a layer token on a statically positioned element - where the browser ignores it - fails too
+- **When** a component hand-types a z-index in any of the shapes below
+- **Then** the build fails, and the guard is proved able to fail on each of them rather than assumed to be
+- **And** the shapes are: a bare integer in a stylesheet; the same in capitals; a large addend hidden
+  in a `calc()` over a layer token; a legal single-digit nudge chained until it clears the layer
+  above; an inline `style={{ zIndex }}` in JSX, as a literal, a shorthand over a variable or a
+  computed key; an assignment through `element.style`, `style.setProperty`, `setAttribute('style')`
+  or `cssText`; a layer token on a statically positioned element, where the browser ignores it; and
+  a component REDEFINING a layer token, which overrides it for the component's whole subtree
+- **And** the criterion claims coverage of these shapes and no more. It is a denylist of the escapes
+  three review rounds actually found, which is not the same as proving the scale cannot be escaped
 - **Verify:** shell node scripts/check-component-css.mjs && node scripts/prove-guards-fail.mjs
 - **Verified:** yes (2026-08-24)
 - **Verification target:** functional
@@ -138,6 +149,7 @@ does, and adds the layer scale beside it.
 | A Modal opened while a menu is already open | The modal and its scrim cover the menu, because the modal was opened LAST. This is the direction a per-role constant gets wrong: the same two components in the other order need the opposite answer, and one number cannot give both. |
 | A component that needs to sit above its own siblings | It can, without a token change: `calc(var(--clara-layer-overlay) + 1)` is available, and the guard admits a single-digit offset for exactly this. Anything larger is rejected, because a big addend is a hand-typed z-index wearing a token. |
 | A portal that is mounted but closed (`{open && <Menu/>}`) | It creates no host at all, and creates one when it opens. The whole model rests on this: a host created once at mount pins sibling order to MOUNT order, so a Toast viewport mounted at app start would paint under an overlay opened long after it. |
+| An overlay focusing its first control on open | It must do so from INSIDE the portal - an effect on the portalled content, or a callback ref. The host is created in an effect, so the content lands on `ClaraPortal`'s second commit and an effect in the component that OPENS the overlay runs too early and finds a null ref. Asserted in both directions, and the constraint thirteen overlays inherit. |
 | A toast raised while a modal is open | It is visible. Toasts are last in the scale because a toast may be the only report that something failed. |
 
 
@@ -152,7 +164,15 @@ does, and adds the layer scale beside it.
 - [x] Later-opened portals are later DOM siblings, which is what the painting rule reads
 - [x] A mounted-but-closed portal creates no host, so mount order cannot decide the stacking
 - [x] Opening the later-written portal FIRST still leaves the last-opened one on top
-- [x] A hand-typed z-index fails the build - in a stylesheet, in capitals, inside a calc(), and inline in JSX
+- [x] A hand-typed z-index fails the build - in a stylesheet, in capitals, inside a calc(), chained as
+  legal nudges, inline in JSX as a literal, a shorthand or a computed key, and through `element.style`,
+  `setProperty`, `setAttribute` and `cssText`
+- [x] A component redefining a layer token fails the build, and so does a layer token on a statically
+  positioned element
+- [x] A `<Presence>`-style child that renders nothing while closed does NOT open the portal
+- [x] The documented layer table matches the tokens it documents
+- [x] The portalled content has committed by the time an effect INSIDE the portal runs, and has NOT
+  by the time the OPENING component's effect runs - the constraint every overlay's focus code inherits
 - [x] A closed overlay removes its host, so it leaves nothing behind to stack against
 - [x] Tooltip is above every overlay, and toast above everything, regardless of open order
 - [ ] A real Select inside a real Modal - **not asserted here**, because neither component exists. It arrives with Select in EP-01M0GK91; this story fixes the order that makes it work
@@ -211,9 +231,9 @@ breaking change. They were added to `tokens.public.lock.json` deliberately for t
 | --- | --- | --- |
 | AC1 | Drop `claraAttributes(settings)` from the portal root, or read the settings from the DOM instead of context - either way the portalled content stops carrying the scope it was written in. | Portal re-applies scope |
 | AC2 | Point a tier 2 layer name at a raw number instead of a tier 1 step, delete one of the five names, ADD a sixth (`layer.sheet`), collapse the gap above `overlay`, or override `layer` in a theme or density file. The added name matters as much as the deleted one: a denylist of seven role words let `layer.sheet` re-introduce the constant with all eight tests green. | Layer scale is tokenised |
-| AC3 | Prepend the portal host instead of appending it (`document.body.prepend`), so a later-opened overlay is an EARLIER sibling and the painting rule inverts. Or create the host at MOUNT rather than at open (drop the `open` gate from the effect), which pins sibling order to mount order and inverts the model for any portal that was on the page before it was opened. Both are proved to fail. | Nested overlays stack correctly |
+| AC3 | Prepend the portal host instead of appending it (`document.body.prepend`), so a later-opened overlay is an EARLIER sibling and the painting rule inverts. Or create the host at MOUNT rather than at open (drop the `open` gate from the effect), which pins sibling order to mount order. Or go back to inferring open from `children`, which reads a `<Presence>` wrapper that renders nothing as OPEN. All three are proved to fail. | Nested overlays stack correctly |
 | AC4 | Read `document` unguarded during render (`const host = document.body`). The SSR test deletes `globalThis.document`, so the render throws instead of returning nothing. Note a guarded read - `typeof document !== 'undefined' && ...` - does NOT kill it, and should not: that is the correct pattern, not the defect. | SSR-safe |
-| AC5 | Neuter `zIndexProblems` to `return []`, or delete the inline-style walk, or compare `decl.prop` case-sensitively - each leaves the scale advisory again. `prove-guards-fail.mjs` carries five entries for this rule, so all of them turn `check:prove-guards` red. | The scale is enforced, not advisory |
+| AC5 | Neuter `zIndexProblems` to `return []`; delete the inline-style walk; compare `decl.prop` case-sensitively; drop the `unconditional()` call from the position rule; stop summing the calc offset; stop rejecting a redefined layer token - each leaves one of the escapes open again. `prove-guards-fail.mjs` carries ten entries over this rule, and neutering any one clause leaves exactly the entry that names it surviving, which is what makes them independent rather than one mutant counted ten times. | The scale is enforced, not advisory |
 
 ## Revision History
 

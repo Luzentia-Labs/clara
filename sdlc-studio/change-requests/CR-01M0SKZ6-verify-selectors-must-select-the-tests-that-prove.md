@@ -25,7 +25,11 @@ Proposed rule: a criterion's Test Plan row already names the production mutant. 
 
 ## Impact
 
-{{who this affects and what breaks}}
+**Who this affects:** every story in the project, and `reconcile --verify` - the pre-release gate AGENTS.md names as what makes "Done" mean done. 50 verifiers across 88 stories run through this guard today.
+
+**What breaks if it is not done:** nothing breaks loudly, which is the problem. A criterion whose selector reaches the wrong tests reports `Verified: yes` on a green run, and the tests it selects genuinely pass - so there is no red build, no failing assertion, and no artifact that looks wrong. It is found only by a human applying the criterion's own mutant by hand, which has now happened three times in two epics. The cost of leaving it is that the release gate's guarantee is weaker than it reads, and nobody can tell which criteria are affected without repeating the manual probe on all 50.
+
+**What breaks if it IS done:** existing stories whose selectors are mis-aimed start failing `pnpm check`. That is the point, but it is a migration: expect a first run to surface several, each needing a selector fix or a criterion rewrite. Land it with the fixes, not before them.
 
 ## Acceptance Criteria
 
