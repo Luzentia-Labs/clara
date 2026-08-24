@@ -1032,6 +1032,63 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // D0087/D0088 made the layer scale binding, and the rule that binds it was proved by nothing:
+    // neutering `zIndexProblems` to `return []` left check:component-css AND check:prove-guards both
+    // PASS. Four entries, because two review passes defeated the first two versions with real CSS.
+    name: 'a hand-typed z-index in component CSS',
+    guard: 'check-component-css.mjs',
+    expect: /does not resolve through exactly one layer token/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.probe { position: fixed; z-index: 999999; }\n')
+    },
+  },
+  {
+    // CSS property names are case-insensitive; PostCSS preserves the author's case.
+    name: 'a hand-typed z-index written in capitals, which a case-sensitive prop test misses',
+    guard: 'check-component-css.mjs',
+    expect: /does not resolve through exactly one layer token/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.probe { position: fixed; Z-INDEX: 999999; }\n')
+    },
+  },
+  {
+    // "The value CONTAINS a layer token" was never the property. This is a hand-typed 999999.
+    name: 'a hand-typed z-index smuggled past a containment test inside calc()',
+    guard: 'check-component-css.mjs',
+    expect: /may only add or subtract a single-digit offset/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + '\n.probe { position: fixed; z-index: calc(999999 + 0 * var(--clara-layer-overlay)); }\n')
+    },
+  },
+  {
+    // Thirteen overlays are React components, and Radix positions them with inline styles.
+    name: 'a hand-typed z-index in an inline style, where no stylesheet walk can see it',
+    guard: 'check-component-css.mjs',
+    expect: /inline zIndex is not a layer token/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/theme/ClaraPortal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(
+        'return createPortal(<div {...claraAttributes(settings)}>',
+        'return createPortal(<div style={{ zIndex: 999999 }} {...claraAttributes(settings)}>',
+      ))
+    },
+  },
+  {
+    // A z-index on a statically positioned element is ignored by the browser, and jsdom computes no
+    // layout, so the surface would have no stacking at all with every gate green.
+    name: 'a layer token on an element with no non-static position, where it is inert',
+    guard: 'check-component-css.mjs',
+    expect: /declares z-index but no non-static/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.probe { z-index: var(--clara-layer-overlay); }\n')
+    },
+  },
+  {
     name: 'a component losing its box, checked the way its acceptance criterion checks it',
     guard: 'check-component-css.mjs',
     args: ['--component', 'Field'],

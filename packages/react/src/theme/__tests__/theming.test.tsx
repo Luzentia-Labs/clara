@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { ClaraProvider } from '../ClaraProvider'
 import { ClaraScope } from '../ClaraScope'
@@ -97,6 +98,19 @@ describe('portal inherits scoped theme', () => {
     expect(host).toHaveAttribute('data-clara-theme', 'dark')
     expect(host).toHaveAttribute('data-clara-density', 'compact')
   })
+
+  it('mounts into the document once there IS one, OUTSIDE the React root', async () => {
+    const { container } = render(
+      <ClaraProvider theme="dark"><ClaraPortal><span data-testid="late">here</span></ClaraPortal></ClaraProvider>,
+    )
+    const el = await screen.findByTestId('late')
+    expect(el.closest('[data-clara-theme]')).toHaveAttribute('data-clara-theme', 'dark')
+    // `document.body.contains(el)` was the assertion here, under this same comment - and it is true
+    // of every rendered element, so replacing the portal with a plain inline div left it green.
+    // What makes it a portal is that the content is NOT inside the container React rendered into.
+    expect(container.contains(el)).toBe(false)
+    expect(document.body.contains(el)).toBe(true)
+  })
 })
 
 describe('no theme flash on hydration', () => {
@@ -147,21 +161,9 @@ describe('portal renders nothing on the server', () => {
     }
   })
 
-  it('mounts into the document once there IS one, OUTSIDE the React root', async () => {
-    const { container } = render(
-      <ClaraProvider theme="dark"><ClaraPortal><span data-testid="late">here</span></ClaraPortal></ClaraProvider>,
-    )
-    const el = await screen.findByTestId('late')
-    expect(el.closest('[data-clara-theme]')).toHaveAttribute('data-clara-theme', 'dark')
-    // `document.body.contains(el)` was the assertion here, under this same comment - and it is true
-    // of every rendered element, so replacing the portal with a plain inline div left it green.
-    // What makes it a portal is that the content is NOT inside the container React rendered into.
-    expect(container.contains(el)).toBe(false)
-    expect(document.body.contains(el)).toBe(true)
-  })
 })
 
-describe('portals stack by open order', () => {
+describe('the overlay stacking order in the DOM', () => {
   /**
    * The mechanism the layer scale depends on, and therefore the thing that has to be asserted
    * rather than assumed.
@@ -198,6 +200,73 @@ describe('portals stack by open order', () => {
     const position = Node.DOCUMENT_POSITION_FOLLOWING
     // eslint-disable-next-line no-bitwise -- compareDocumentPosition returns a bitmask
     expect(hostOf(first)!.compareDocumentPosition(hostOf(second)!) & position).toBeTruthy()
+  })
+
+  it('creates NO host while it is closed, so mount order cannot decide the stacking', async () => {
+    // The model is OPEN order. A host created once at mount pins sibling order to MOUNT order, and
+    // then a Toast viewport mounted at app start - or any `<ClaraPortal>{open && ...}</ClaraPortal>`
+    // that has been on the page a while - paints under an overlay opened long after it.
+    const before = document.body.childElementCount
+    render(
+      <ClaraProvider>
+        <ClaraPortal>{false}</ClaraPortal>
+        <ClaraPortal>{null}</ClaraPortal>
+      </ClaraProvider>,
+    )
+    await waitFor(() => expect(document.body.childElementCount).toBe(before + 1)) // the React root only
+  })
+
+  it('orders by OPEN order, not mount order: the portal opened last is the later sibling', async () => {
+    // Both portals are mounted together and closed; the SECOND one opens first, the FIRST one
+    // opens second. Under a mount-time host the earlier-mounted portal would be the earlier
+    // sibling and paint underneath despite being opened last - the inversion D0088 exists to stop.
+    function Pair () {
+      const [top, setTop] = useState(false)
+      const [bottom, setBottom] = useState(false)
+      return (
+        <ClaraProvider>
+          <button onClick={() => setTop(true)}>open top</button>
+          <button onClick={() => setBottom(true)}>open bottom</button>
+          <ClaraPortal>{top ? <span data-testid="mounted-first">first</span> : null}</ClaraPortal>
+          <ClaraPortal>{bottom ? <span data-testid="mounted-second">second</span> : null}</ClaraPortal>
+        </ClaraProvider>
+      )
+    }
+    render(<Pair />)
+    // Opened SECOND-in-the-tree first...
+    fireEvent.click(screen.getByText('open bottom'))
+    await screen.findByTestId('mounted-second')
+    // ...then FIRST-in-the-tree, which must therefore end up on top.
+    fireEvent.click(screen.getByText('open top'))
+    const last = await screen.findByTestId('mounted-first')
+
+    const hostOf = (el: HTMLElement) => {
+      let node: HTMLElement | null = el
+      while (node?.parentElement && node.parentElement !== document.body) node = node.parentElement
+      return node
+    }
+    const following = Node.DOCUMENT_POSITION_FOLLOWING
+    const earlier = hostOf(screen.getByTestId('mounted-second'))!
+    // eslint-disable-next-line no-bitwise -- compareDocumentPosition returns a bitmask
+    expect(earlier.compareDocumentPosition(hostOf(last)!) & following).toBeTruthy()
+  })
+
+  it('removes its host when it CLOSES, not only when it unmounts', async () => {
+    function Toggle () {
+      const [open, setOpen] = useState(true)
+      return (
+        <ClaraProvider>
+          <button onClick={() => setOpen(false)}>close</button>
+          <ClaraPortal>{open ? <span data-testid="closing">x</span> : null}</ClaraPortal>
+        </ClaraProvider>
+      )
+    }
+    render(<Toggle />)
+    await screen.findByTestId('closing')
+    const before = document.body.childElementCount
+    fireEvent.click(screen.getByText('close'))
+    await waitFor(() => expect(document.body.childElementCount).toBe(before - 1))
+    expect(screen.queryByTestId('closing')).toBeNull()
   })
 
   it('removes its host on unmount, so a closed overlay leaves nothing behind to stack against', async () => {

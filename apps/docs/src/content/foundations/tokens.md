@@ -85,3 +85,36 @@ Every legal foreground/background pairing in Clara is enumerated and measured in
 CI fails on any that misses its threshold - 4.5:1 for text, 3:1 for non-text, per WCAG 2.2 AA.
 Nothing is waived. A pairing that is not listed is documented as unsupported, which is a real
 answer and a testable one.
+
+## Stacking
+
+Clara's overlays share one layer, and the browser decides which of two is on top.
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--clara-layer-base` | 0 | Page content. The scale is measured from here rather than floating above it |
+| `--clara-layer-raised` | 10 | In-document chrome that lifts off the page - a sticky table header |
+| `--clara-layer-overlay` | 1000 | Every portalled surface: modal, drawer, popover, menu, listbox, and a modal's scrim |
+| `--clara-layer-tooltip` | 1400 | Above every overlay, because a tooltip describes whatever is on top |
+| `--clara-layer-toast` | 1500 | Above everything, because a toast may be the only report that something failed |
+
+There is deliberately no per-role layer - no `modal` name, no `popover` name. Which of two overlays
+paints on top depends on which was opened last, and a constant cannot express that: a menu must sit
+UNDER a modal opened over it, and OVER a modal opened from inside it. The same number cannot be
+right in both directions.
+
+So Clara gives every portalled surface the one `overlay` layer and lets the browser resolve it.
+Among positioned elements with equal `z-index`, later in tree order paints later - and `ClaraPortal`
+appends its host to `document.body` **at the moment the overlay opens**, so the last thing opened is
+the last sibling. It removes the host when the overlay closes, which is what keeps open order and
+DOM order the same thing.
+
+### What this asks of your application
+
+**Keep your own chrome below 1000.** A sticky header or a third-party widget at `z-index: 9999`
+covers every Clara overlay. `--clara-layer-raised` (10) is there for in-document chrome; the range
+between 10 and 1000 is yours.
+
+**If you portal your own overlays, append them to `document.body` when they open** - not at mount.
+A host created once and held for the page's lifetime pins its position to mount order, so it paints
+under an overlay opened long after it. This is the one thing the model depends on.

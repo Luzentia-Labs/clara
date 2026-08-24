@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/src/theme/ClaraPortal.tsx, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/geometry.json, packages/tokens/src/__tests__/layers.test.ts, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/theme/ClaraPortal.tsx, packages/react/src/theme/__tests__/theming.test.tsx, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/geometry.json, packages/tokens/src/__tests__/layers.test.ts, scripts/check-component-css.mjs, scripts/prove-guards-fail.mjs
 > **Points:** 5
 
 ## User Story
@@ -43,9 +43,9 @@ does, and adds the layer scale beside it.
 | TRD ADR-006 | Architecture | Theme and density travel by React context, and the portal root re-applies them | AC1 asserts the portal root carries the resolved values, from a scope it has left in the DOM |
 | TRD Section 4 rule 2 (D0018) | API | No overlay takes a `theme`, `density` or `portalContainer` prop | Solving scoping with props would mean three props on nine overlays, permanently |
 | PRD F23 | SSR | A component must not read `document` during render | AC4 deletes `globalThis.document` to prove the render path never reaches for it |
-| PRD F01 / D0007 | API stability | Tier 2 tokens are public API and permanent from first publish | The eight layer names are added to `tokens.public.lock.json` deliberately |
-| TRD Section 6 | Tokens | Tier 2 references tier 1; it never carries a raw value | The scale is tier 1 steps (`layer.0`-`layer.7`) with tier 2 role names over them |
-| D0087 | Tokens | Putting LAYERS in tier 2 EXTENDS the tier rules rather than following them - PRD:245 places z-index layers at tier 1, and D0056 extended tier 2 to geometry without mentioning layers | Eight permanent public names, recorded as a decision rather than asserted as an inheritance. An earlier version of this row cited TRD Section 6 as the authority, which constrains what tier 2 may reference, not that a layer family belongs there |
+| PRD F01 / D0007 | API stability | Tier 2 tokens are public API and permanent from first publish | The five layer names are added to `tokens.public.lock.json` deliberately |
+| TRD Section 6 | Tokens | Tier 2 references tier 1; it never carries a raw value | The scale is tier 1 steps (`layer.0`-`layer.4`) with tier 2 role names over them |
+| D0088 | Tokens | Putting LAYERS in tier 2 EXTENDS the tier rules rather than following them - PRD:245 places z-index layers at tier 1, and D0056 extended tier 2 to geometry without mentioning layers | Five permanent public names, recorded as a decision rather than asserted as an inheritance. An earlier version of this row cited TRD Section 6 as the authority, which constrains what tier 2 may reference, not that a layer family belongs there. It then cited D0087, which proposed EIGHT per-role names; D0088 supersedes it, because a per-role constant cannot be right in both nesting directions |
 
 ## Acceptance Criteria
 
@@ -95,6 +95,16 @@ does, and adds the layer scale beside it.
 - **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
+### AC5: The scale is enforced, not advisory
+
+- **Given** the component-CSS guard
+- **When** a component hand-types a z-index, in a stylesheet or in an inline style
+- **Then** the build fails, and the guard is proved able to fail rather than assumed to be
+- **And** a layer token on a statically positioned element - where the browser ignores it - fails too
+- **Verify:** shell node scripts/check-component-css.mjs && node scripts/prove-guards-fail.mjs
+- **Verified:** yes (2026-08-24)
+- **Verification target:** functional
+
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
 
 ## Scope
@@ -124,9 +134,10 @@ does, and adds the layer scale beside it.
 | --- | --- |
 | A portal opened inside a scope that changes only density | It keeps the inherited theme and takes the new density. Scoping is an override of the resolved settings, not a replacement of them. |
 | A server render that includes a portal | It renders nothing, and reads no browser global. An overlay has nowhere to go before there is a document, so nothing is the correct output rather than a limitation. |
-| A Select opened from inside a Modal | The listbox clears the modal surface. This is why `popover` sits ABOVE `modal` in the scale - a naive "modal is highest" order puts the list behind the thing it was opened from. |
-| A Modal opened while a menu is already open | The scrim covers the menu. `scrim` is above `dropdown` for exactly this: a menu floating over the scrim looks interactive while the modal holds the focus. |
-| A component that needs to sit between two layers | It can, without a token change: the steps are 100 apart, so `calc(var(--clara-layer-modal) + 1)` is available. |
+| A Select opened from inside a Modal | The listbox clears the modal surface, because it was opened LAST and its portal host is therefore the later sibling. No per-role token is involved. A naive "modal is highest" constant would have put the list behind the thing it was opened from. |
+| A Modal opened while a menu is already open | The modal and its scrim cover the menu, because the modal was opened LAST. This is the direction a per-role constant gets wrong: the same two components in the other order need the opposite answer, and one number cannot give both. |
+| A component that needs to sit above its own siblings | It can, without a token change: `calc(var(--clara-layer-overlay) + 1)` is available, and the guard admits a single-digit offset for exactly this. Anything larger is rejected, because a big addend is a hand-typed z-index wearing a token. |
+| A portal that is mounted but closed (`{open && <Menu/>}`) | It creates no host at all, and creates one when it opens. The whole model rests on this: a host created once at mount pins sibling order to MOUNT order, so a Toast viewport mounted at app start would paint under an overlay opened long after it. |
 | A toast raised while a modal is open | It is visible. Toasts are last in the scale because a toast may be the only report that something failed. |
 
 
@@ -139,6 +150,9 @@ does, and adds the layer scale beside it.
 - [x] Every layer the overlays will need is declared, and resolves through a tier 1 step
 - [x] Every portalled surface shares one layer, and no per-role step exists to re-introduce the constant
 - [x] Later-opened portals are later DOM siblings, which is what the painting rule reads
+- [x] A mounted-but-closed portal creates no host, so mount order cannot decide the stacking
+- [x] Opening the later-written portal FIRST still leaves the last-opened one on top
+- [x] A hand-typed z-index fails the build - in a stylesheet, in capitals, inside a calc(), and inline in JSX
 - [x] A closed overlay removes its host, so it leaves nothing behind to stack against
 - [x] Tooltip is above every overlay, and toast above everything, regardless of open order
 - [ ] A real Select inside a real Modal - **not asserted here**, because neither component exists. It arrives with Select in EP-01M0GK91; this story fixes the order that makes it work
@@ -184,7 +198,7 @@ does, and adds the layer scale beside it.
 | -- | -- | -- |
 
 *Not applicable - this is a library with no deployed runtime. Note one thing that is NOT reversible:
-the eight tier 2 layer names are public API from the first publish, so renaming one later is a
+the five tier 2 layer names are public API from the first publish, so renaming one later is a
 breaking change. They were added to `tokens.public.lock.json` deliberately for that reason.*
 
 ## Open Questions
@@ -196,9 +210,10 @@ breaking change. They were added to `tokens.public.lock.json` deliberately for t
 | Criterion | Mutant - the production change this test must fail on | Title |
 | --- | --- | --- |
 | AC1 | Drop `claraAttributes(settings)` from the portal root, or read the settings from the DOM instead of context - either way the portalled content stops carrying the scope it was written in. | Portal re-applies scope |
-| AC2 | Point a tier 2 layer name at a raw number instead of a tier 1 step, delete one of the eight names, collapse the gap between steps, or override `layer` in a theme or density file - the last of those put a Select behind a Modal at compact density with every gate green until it was covered. | Layer scale is tokenised |
-| AC3 | Prepend the portal host instead of appending it (`document.body.prepend`), so a later-opened overlay is an EARLIER sibling and the painting rule inverts - one test dies. Or add a per-role layer back to the scale, which re-introduces the constant that could not express both nesting directions. | Nested overlays stack correctly |
+| AC2 | Point a tier 2 layer name at a raw number instead of a tier 1 step, delete one of the five names, ADD a sixth (`layer.sheet`), collapse the gap above `overlay`, or override `layer` in a theme or density file. The added name matters as much as the deleted one: a denylist of seven role words let `layer.sheet` re-introduce the constant with all eight tests green. | Layer scale is tokenised |
+| AC3 | Prepend the portal host instead of appending it (`document.body.prepend`), so a later-opened overlay is an EARLIER sibling and the painting rule inverts. Or create the host at MOUNT rather than at open (drop the `open` gate from the effect), which pins sibling order to mount order and inverts the model for any portal that was on the page before it was opened. Both are proved to fail. | Nested overlays stack correctly |
 | AC4 | Read `document` unguarded during render (`const host = document.body`). The SSR test deletes `globalThis.document`, so the render throws instead of returning nothing. Note a guarded read - `typeof document !== 'undefined' && ...` - does NOT kill it, and should not: that is the correct pattern, not the defect. | SSR-safe |
+| AC5 | Neuter `zIndexProblems` to `return []`, or delete the inline-style walk, or compare `decl.prop` case-sensitively - each leaves the scale advisory again. `prove-guards-fail.mjs` carries five entries for this rule, so all of them turn `check:prove-guards` red. | The scale is enforced, not advisory |
 
 ## Revision History
 

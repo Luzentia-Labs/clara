@@ -65,20 +65,18 @@ Modal, Drawer, Popover, Tooltip, DropdownMenu, and the feedback set. This is the
 
 ## Gaps between stories, found by the foundation's spec review
 
-Two of this epic's own acceptance criteria are owned by no story, which is the "solved once in the
+Two of this epic's own acceptance criteria were owned by no story, which is the "solved once in the
 architecture rather than nine times" failure appearing at the epic level rather than in a component:
 
-- **Scroll lock without layout shift** is an epic AC and appears only in Modal AC4. Drawer's five
-  criteria contain none, and Drawer locks scroll for the same reason Modal does. Either the
-  behaviour belongs in the shared overlay infrastructure with one criterion over it, or Drawer needs
-  its own - but it must not be Modal's alone.
+- **Scroll lock without layout shift** was an epic AC appearing only in Modal AC4, while Drawer
+  locks scroll for the same reason Modal does. **Now owned:** Drawer AC6 (US-01M0GMWW). Recording
+  it in prose was necessary and not sufficient - a criterion with no story is a criterion nothing
+  runs, so it has been given the second component that needs it rather than left as a note.
 - **A portalled overlay rendering dark and compact, captured as a visual baseline** is an epic AC
-  owned by nobody. DropdownMenu AC5 covers whole-page dark/compact, which is a different case: the
-  point of the portalled one is that the overlay has LEFT the scoped subtree. It also cannot be
-  captured until gate 7 is wired (US-01M0GMZW).
-
-Both are recorded here rather than silently absorbed, so whoever picks up Drawer or DropdownMenu
-finds them.
+  owned by nobody, and cannot be given an owner today: it cannot be captured until visual regression
+  (gate 7, US-01M0GMZW) is wired. DropdownMenu AC5 covers whole-page dark/compact, which is a
+  different case - the point of the portalled one is that the overlay has LEFT the scoped subtree.
+  **Outstanding**, and it belongs to whichever overlay story is being written when gate 7 lands.
 
 ## Open Questions
 

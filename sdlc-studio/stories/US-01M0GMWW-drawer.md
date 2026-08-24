@@ -58,6 +58,17 @@
 - **Verify:** shell node scripts/check-verification.mjs --component Drawer
 - **Verification target:** functional
 
+### AC6: Scroll lock without layout shift
+
+- **Given** a Drawer that is open
+- **When** the page behind it would otherwise scroll
+- **Then** it does not, and locking the scroll causes no layout shift from the scrollbar being removed
+- **And** this is asserted here rather than left to Modal AC4: a Drawer locks scroll for the same
+  reason a Modal does, and an epic acceptance criterion owned by one of the two components is the
+  "solved once or nine times" failure appearing at epic level (found by the foundation's spec review)
+- **Verify:** vitest "Drawer locks scroll"
+- **Verification target:** functional
+
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
 
 ## Scope

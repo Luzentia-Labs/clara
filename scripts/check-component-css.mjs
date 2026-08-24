@@ -21,6 +21,7 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import postcss from 'postcss'
+import ts from 'typescript'
 import { focusableClassGroups, claraClassesByComponent } from './lib/focusable.mjs'
 import { componentsInFile } from './lib/module-exports.mjs'
 import { fail, pass } from './lib/workspace.mjs'
@@ -105,15 +106,67 @@ const STRUCTURAL = /^(opacity|flex|order|grid-|line-height|font-weight|content|t
  * Every `z-index` must resolve through the layer scale.
  *
  * A bare integer is invisible to the literal rule (which requires a unit), so this is its own
- * check. `calc()` over a layer token is allowed - the scale leaves 100 between steps precisely so
- * a component can take `calc(var(--clara-layer-modal) + 1)` without a token change.
+ * check. `calc()` over a layer token is allowed - the scale leaves room above `overlay` precisely
+ * so a component can take `calc(var(--clara-layer-overlay) + 1)` without a token change - but only
+ * as a single-digit nudge.
+ *
+ * Two review defeats shaped the grammar below, and both were real CSS a browser honours:
+ * `Z-INDEX: 999999` walked past a case-sensitive `decl.prop !== 'z-index'` (CSS property names are
+ * case-insensitive and PostCSS preserves the author's case), and
+ * `calc(999999 + 0 * var(--clara-layer-overlay))` walked past a test that only asked whether the
+ * value CONTAINED a layer token. Containment was never the property; resolving through the scale
+ * is. Both are proved to fail in `prove-guards-fail.mjs`.
  */
+const LAYER_VAR = /var\(\s*--clara-layer-[\w-]+\s*\)/gi
+
 const zIndexProblems = (decl, where) => {
-  if (decl.prop !== 'z-index') return []
+  if (decl.prop.toLowerCase() !== 'z-index') return []
   const value = decl.value.trim()
-  if (/var\(--clara-layer-[\w-]+\)/.test(value)) return []
-  if (/^(auto|inherit|initial|unset|revert)$/.test(value)) return []
-  return [`${where}: z-index "${value}" does not resolve through the layer scale - use var(--clara-layer-*), or calc() over one. A hand-typed z-index is how a stacking order becomes whichever number was typed last.`]
+  const reject = (why) => [`${where}: z-index "${value}" ${why} - use var(--clara-layer-*), or calc() over one with a single-digit offset. A hand-typed z-index is how a stacking order becomes whichever number was typed last.`]
+  if (/^(auto|inherit|initial|unset|revert)$/i.test(value)) return []
+
+  const calc = /^calc\(([\s\S]*)\)$/i.exec(value)
+  const inner = (calc ? calc[1] : value).trim()
+  const tokens = inner.match(LAYER_VAR)
+  if (!tokens || tokens.length !== 1) return reject('does not resolve through exactly one layer token')
+
+  const rest = inner.replace(LAYER_VAR, ' ').trim()
+  if (rest === '') return []
+  if (!calc) return reject('mixes a layer token with something else')
+  // Inside calc() the only thing allowed beside the token is a small +/- nudge. Multiplication,
+  // division and multi-digit addends are how a hand-typed number smuggles itself back in.
+  for (const bit of rest.split(/\s+/).filter(Boolean)) {
+    if (bit === '+' || bit === '-') continue
+    if (/^[+-]?\d$/.test(bit)) continue
+    return reject('may only add or subtract a single-digit offset from a layer token inside calc()')
+  }
+  return []
+}
+
+/**
+ * The same rule for inline styles. `style={{ zIndex: 999999 }}` is not CSS this guard walks, and
+ * thirteen of the components about to be written are overlays that Radix positions with inline
+ * styles as a matter of course - so a `.css`-only check would have left the scale advisory exactly
+ * where it matters most. Read from the JSX with TypeScript's parser, for the same reason the
+ * focusable-class list is (D0051): a regex over source text is the parser this repo keeps losing to.
+ */
+const inlineZIndexProblems = (file, rel) => {
+  const out = []
+  const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const visit = (node) => {
+    if (ts.isPropertyAssignment(node) && (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name))
+      && node.name.text === 'zIndex') {
+      const at = `${rel}:${source.getLineAndCharacterOfPosition(node.getStart()).line + 1}`
+      const init = node.initializer
+      const text = (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)) ? init.text : null
+      out.push(...(text === null
+        ? [`${at}: inline zIndex is not a layer token - write a string reading var(--clara-layer-*)`]
+        : zIndexProblems({ prop: 'z-index', value: text }, at)))
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(source)
+  return out
 }
 
 const walk = (p) => !existsSync(p) ? []
@@ -390,6 +443,48 @@ for (const file of files) {
     if (!inScope(sel.split(',')[0].trim().split(':')[0])) return
     problems.push(...zIndexProblems(decl, `${file.slice(root.length + 1)} (${sel})`))
   })
+}
+
+/**
+ * A `z-index` on a `position: static` element is inert - the browser ignores it entirely, so a
+ * portalled surface can take `var(--clara-layer-overlay)`, pass every gate, and have no stacking at
+ * all. jsdom computes no layout, so no test in this repo can see it; this is the same class as
+ * SHAPE_CONTRACT above, and the same cheapest check that can see it: the companion declaration must
+ * exist somewhere for that selector.
+ */
+const positionsBySelector = new Map()
+for (const file of files) {
+  postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+    for (const sel of rule.selectors ?? []) {
+      const key = sel.trim()
+      rule.walkDecls((decl) => {
+        if (decl.prop.toLowerCase() !== 'position') return
+        const set = positionsBySelector.get(key) ?? new Set()
+        set.add(decl.value.trim().toLowerCase())
+        positionsBySelector.set(key, set)
+      })
+    }
+  })
+}
+for (const file of files) {
+  postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
+    if (!rule.some?.((n) => n.type === 'decl' && n.prop.toLowerCase() === 'z-index')) return
+    for (const sel of rule.selectors ?? []) {
+      const key = sel.trim()
+      if (!inScope(key.split(':')[0])) continue
+      const positions = [...(positionsBySelector.get(key) ?? [])].filter((v) => v !== 'static')
+      if (!positions.length) {
+        problems.push(`${relative(root, file)}: ${key} declares z-index but no non-static \`position\` - z-index is inert on a statically positioned element, so the layer token has no effect`)
+      }
+    }
+  })
+}
+
+// The same rule over the JSX, where a Radix-positioned overlay is most likely to type one.
+const sourceFiles = walk(join(root, 'packages/react/src'))
+  .filter((f) => (f.endsWith('.tsx') || f.endsWith('.ts')) && !f.includes('__tests__'))
+for (const file of sourceFiles) {
+  problems.push(...inlineZIndexProblems(file, relative(root, file)))
 }
 
 if (problems.length) fail(RULE, problems)
