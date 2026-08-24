@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Modal/**, packages/react/src/components/Modal/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Modal/**, packages/react/src/components/Modal/verification.md, packages/react/src/index.ts, packages/react/package.json, packages/react/vite.config.ts, packages/react/client-boundary.json, packages/react/src/styles.css, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/color.json, packages/tokens/src/themes/dark.json, packages/tokens/tokens.public.lock.json, apps/docs/src/content/foundations/tokens.md, design/foundations.md, .size-limit.json, scripts/check-component-css.mjs
 > **Points:** 8
 
 ## User Story
@@ -22,7 +22,12 @@
 
 - **Given** a Modal
 - **When** it opens
-- **Then** focus moves to its named initial target, not to the document body
+- **Then** focus moves to a NAMED element - the one the author marked as the initial target, or the
+  Modal's own close button when none is marked - never to the document body and never to the panel
+  itself. Asserted by element identity, not by "something is focused"
+- **And** the focus is applied from INSIDE the portalled content. `ClaraPortal` creates its host in
+  an effect, so the content lands on its second commit and an effect in Modal's own body would find
+  a null ref (D0090). This criterion fails if the implementation moves it outward
 - **Verify:** vitest "Modal initial focus target"
 - **Verification target:** functional
 
@@ -31,6 +36,9 @@
 - **Given** an open Modal
 - **When** it closes by Escape, outside click, close button, or successful commit
 - **Then** focus returns to the named restoration target on every route, asserted by element identity
+- **And** all four routes are asserted separately. A single "it restores focus" test passes on an
+  implementation that handles one route and drops the other three, which is the defect this
+  criterion exists to prevent
 - **Verify:** vitest "Modal focus restoration per dismissal route"
 - **Verification target:** functional
 
@@ -74,6 +82,41 @@
 - **Verify:** vitest "Modal theme and density matrix"
 - **Verification target:** functional
 
+### AC9: Nesting resolves by open order, not by a constant
+
+- **Given** a Modal open over a menu, or a menu opened from inside a Modal
+- **When** both are on screen
+- **Then** whichever was opened LAST paints on top, because scrim and panel share one portal host as
+  siblings and every portalled surface shares `--clara-layer-overlay` (D0088)
+- **And** no per-role z-index exists between the scrim and the panel: the panel follows the scrim in
+  the host, and tree order is what separates them
+- **Verify:** vitest "Modal stacks by open order"
+- **Verification target:** functional
+
+### AC10: The Radix boundary holds
+
+- **Given** Clara's public API report
+- **When** Modal is exported
+- **Then** no Radix type, prop name, or `data-*` attribute appears in it - specifically not
+  `asChild`, `onOpenChange` or `data-state` (ADR-004, D0003), and Modal is classified `client`
+- **And** this is the most permanent thing in the story: a leaked prop name cannot be withdrawn
+  after publish
+- **Verify:** shell node scripts/api-report.mjs && node scripts/check-client-boundary.mjs
+- **Verification target:** functional
+
+### AC11: Radix stays external, so the budget stays honest
+
+- **Given** the built package
+- **When** the size budget runs
+- **Then** `@radix-ui/react-dialog` is NOT inlined into any chunk, and Modal's own chunk is within
+  the 5 kB per-component budget
+- **And** the build's external list is derived from the manifest rather than hand-listed, so
+  "declared dependencies and peers stay external" lives in one place instead of two. Measured:
+  Radix Dialog is 15.19 kB gzipped, three times the whole per-component budget, so bundling it
+  would not be a rounding error
+- **Verify:** shell node scripts/check-bundled-peers.mjs && npx size-limit
+- **Verification target:** functional
+
 ### AC8: Definition of done
 
 - **Given** the Modal story
@@ -104,6 +147,39 @@
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Keyboard interaction table
+
+> D0024: this table is the SPECIFICATION, and its tests are written before the implementation. It
+> follows the WAI-ARIA Authoring Practices dialog (modal) pattern, which is what Radix implements -
+> the table states what Clara guarantees, so a Radix change that breaks one of these rows is caught
+> here rather than by a consumer.
+
+| Key | Result |
+| --- | --- |
+| Tab | Moves to the next focusable element INSIDE the panel. From the last, wraps to the first - focus never leaves an open modal. |
+| Shift+Tab | The same in reverse. From the first, wraps to the last. |
+| Escape | Closes the modal and returns focus to the element that opened it. Works from any focused element inside, including inside a text input. |
+| Enter, in the footer's primary action | Commits. Focus returns to the opener, the same as every other route. |
+| Tab, into background content | Impossible. The background is inert while the modal is open, so nothing behind it takes a tab stop - asserted by tabbing past the last element rather than by reading an attribute. |
+| Click on the scrim | Closes, and returns focus to the opener. The same route as Escape, and asserted separately because a shared code path is an assumption until it is tested. |
+| Click inside the panel | Does not close. A drag that STARTS inside the panel and ends on the scrim does not close either - selecting text in a modal and releasing outside it is the ordinary way this misfires. |
+
+## Test Plan
+
+| Criterion | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- |
+| AC1 | Focus the panel itself instead of a named element, or move the focus effect out of the portalled content into Modal's own body - the second is silent, because it fails only by finding a null ref (D0090). | Named focus targets |
+| AC2 | Restore focus on Escape only, leaving scrim-click, close-button and commit to the browser. Three of the four routes then land focus on `document.body`, which is the strand this story exists to prevent. | Restoration per route |
+| AC3 | Drop the inert marking from the background. Radix still traps Tab, so a test that only presses Tab stays green - the mutant is caught by asserting the background is not reachable, not that Tab cycles. | Background is inert |
+| AC4 | Lock scroll with `overflow: hidden` and no scrollbar-width compensation, so the page jumps sideways by the scrollbar width the moment the modal opens. | No scrollbar shift |
+| AC5 | Let the whole panel scroll instead of the body, so a long modal scrolls its header and footer off screen. | Content scrolls internally |
+| AC6 | Hand-type a z-index, drop the companion `position` from the base class, or reference a tier 1 primitive - each is a separate entry in `prove-guards-fail.mjs`. | Token-only styling |
+| AC7 | Give the panel one background that does not resolve per theme, so the dark modal renders on a light surface. | Both themes and densities |
+| AC9 | Put the panel in its own portal host, or give the scrim and panel different z-index values - either re-introduces a per-role constant and breaks nesting in one direction. | Nesting resolves by open order, not by a constant |
+| AC10 | Spread the Radix props through to Clara's surface, so `asChild` and `onOpenChange` become permanent public API. | The Radix boundary holds |
+| AC11 | Remove `@radix-ui/*` from the build's external list, which inlines 15.19 kB gzipped into Modal's chunk against a 5 kB budget. | Radix stays external, so the budget stays honest |
+| AC8 | Export Modal with no verification record, no docs page, or a keyboard table that does not match the one above. | Definition of done |
 
 ## Revision History
 

@@ -23,6 +23,7 @@ import { manualChunks } from '../../scripts/lib/chunk-plan.mjs'
  * `./package.json` (D0006); the chunks are internal files the entry imports.
  */
 const classification = JSON.parse(readFileSync(new URL('./client-boundary.json', import.meta.url), 'utf8'))
+const manifest = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
 
 export default defineConfig({
   plugins: [
@@ -41,7 +42,15 @@ export default defineConfig({
       cssFileName: 'styles',
     },
     rollupOptions: {
-      external: [/^react($|\/)/, /^react-dom($|\/)/, /^@luzentialabs\//],
+      // Every DECLARED dependency and peer stays external, read from the manifest rather than
+      // listed here. `check-bundled-peers` states exactly this rule - "declared dependencies and
+      // peers must stay external" - and a hardcoded list is a second place for that rule to live,
+      // which is how the two disagree the first time somebody adds a dependency. Adding
+      // `@radix-ui/react-dialog` did precisely that: it was bundled, and the guard caught it.
+      external: [
+        ...Object.keys({ ...manifest.dependencies, ...manifest.peerDependencies })
+          .map((name) => new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|/)`)),
+      ],
       // Clara's CSS is deliberately not tree-shaken (AGENTS.md): consumers get ONE styles.css.
       // Rollup's default would drop a stylesheet whose importing module has no surviving export,
       // which silently breaks the `./styles.css` subpath the exports map promises. Consumers
