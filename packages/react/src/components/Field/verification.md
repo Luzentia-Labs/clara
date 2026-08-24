@@ -34,6 +34,46 @@ What IS verified is above, by tests that run. What a real pass adds is the part 
 whether the focus order feels right, whether the ring is actually visible against each surface, and
 what a screen reader says rather than what the accessibility tree contains.
 
+## Browser accessibility-API evidence (2026-08-24, automated)
+
+Not a VoiceOver pass. Recorded because it is real evidence gathered from a real browser rather than
+from jsdom, and because it answers three of the five questions the manual check asks - narrowing
+what a human still has to do rather than pretending to have done it.
+
+**Method.** The built package (`packages/react/dist`) server-rendered into a static page with the
+built `tokens.css` and `styles.css`, served over HTTP, opened in Chromium under Playwright. The
+accessibility properties come from Chromium's own AX engine via the Chrome DevTools Protocol
+(`Accessibility.getFullAXTree`), not from a library's re-implementation of the accname spec.
+
+**Fixture.** `<Field label="Supplier reference" description="As it appears on the invoice"
+error="This supplier is not on the approved list"><Input/></Field>`, plus a no-error variant and a
+required variant.
+
+| Variant | Computed accessible name | Computed accessible description | invalid | required |
+| --- | --- | --- | --- | --- |
+| label + description + error | `Supplier reference` | `As it appears on the invoice This supplier is not on the approved list` | true | false |
+| label + description | `Supplier reference` | `As it appears on the invoice` | false | false |
+| label + description + required | `Supplier reference` | `As it appears on the invoice` | false | true |
+
+What this settles, at the accessibility-API level a screen reader reads from:
+
+- The **description precedes the error** in the computed description string, which is the order the
+  manual check asks about.
+- The **error appears exactly once**, though it is reachable by two routes (`aria-describedby` and
+  `aria-errormessage`). Doubling was the specific risk; the browser does not double it.
+- The **name comes from `aria-labelledby`** and is not polluted by the description or the error.
+
+What this does NOT settle, and what still needs a human:
+
+- **What VoiceOver actually speaks**, verbatim, and in what order. A computed description string is
+  the input to a screen reader's presentation, not the presentation. VoiceOver decides what to
+  speak, when to speak it, and what to suppress.
+- **Whether the error is re-announced** when it appears after interaction rather than on load.
+- The same in **WebKit**: `page.accessibility` was removed in Playwright 1.62, and WebKit exposes no
+  CDP equivalent, so the table above is Chromium only.
+
+## Recorded manual keyboard pass (continued)
+
 **To record one:** walk every row of the keyboard table above, in both themes and both densities,
 pointer unused; then replace this section with the date, the OS and browsers, and the result per
 row - including anything surprising. `check-verification.mjs` requires this section to state either

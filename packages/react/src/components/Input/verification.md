@@ -40,6 +40,49 @@ What IS verified is above, by tests that run. What a real pass adds is the part 
 whether the focus order feels right, whether the ring is actually visible against each surface, and
 what a screen reader says rather than what the accessibility tree contains.
 
+## Autofill: measured baseline, and why the check is still outstanding (2026-08-24)
+
+Not an autofill pass. What follows is the measured Clara side of the comparison, and a record of
+why the browser side could not be automated - so the next attempt does not repeat the dead ends.
+
+**Measured in Chromium, from the built package** (server-rendered, `tokens.css` + `styles.css`,
+served over HTTP, `getComputedStyle` on the real element), light theme, comfortable density:
+
+| Property | Value |
+| --- | --- |
+| `color` | `rgb(31, 30, 29)` |
+| `background-color` | `rgb(255, 255, 255)` |
+| `background-image` | `none` |
+| `border-top` | `1px solid rgb(149, 146, 142)` |
+| `border-top` (invalid field) | `1px solid rgb(88, 86, 84)` |
+| `min-height` | `48px` |
+| `font-size` | `14px` |
+
+Confirmed by grep across the whole repo: **no `:-webkit-autofill` or `:autofill` rule exists**, so
+nothing in Clara contests the browser's paint. That is the documented position (D0033), not an
+oversight.
+
+**Why it could not be automated.** Three routes were tried and all are closed:
+
+1. `Autofill.enable` + `Autofill.trigger` over CDP - enables, then returns `Field not found`. The
+   domain drives Chrome's credit-card autofill component, which is not present in the Chromium build
+   Playwright ships. Tried against both an address form and a `cc-*` form.
+2. Saving a profile and picking the suggestion - the autofill dropdown is native browser UI, not
+   DOM, so no automation driver can select from it.
+3. Forcing the pseudo-class - `:-webkit-autofill` is set by the browser's autofill engine and cannot
+   be applied from script or from a stylesheet.
+
+Applying Chrome's known autofill background by hand and measuring the contrast would produce a
+number, but it would be a number about a colour this repo chose to assume, which is the class of
+evidence D0065 exists to reject.
+
+**What a human still has to do**, and it is short: save an address in Chrome and in Safari, load the
+fixture, let it fill, and answer four questions - is the text still readable on the browser's
+background, is the border still visible, does the focus ring still show, and is the error styling
+still distinguishable. The fixture generator is preserved in the check brief.
+
+## Recorded manual keyboard pass (continued)
+
 **To record one:** walk every row of the keyboard table above, in both themes and both densities,
 pointer unused; then replace this section with the date, the OS and browsers, and the result per
 row - including anything surprising. `check-verification.mjs` requires this section to state either

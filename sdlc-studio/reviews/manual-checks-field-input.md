@@ -3,6 +3,17 @@
 > These are the only things standing between the form framework and a closed epic. Both need a
 > human at a browser; neither is automatable from this repo. Roughly 15 minutes together.
 >
+> **Update 2026-08-24.** Automation was attempted properly before asking again. The built package
+> was server-rendered into a real page and driven in Chromium under Playwright. That eliminated
+> three of the five questions in Check 1 - the accessible description, its order and its
+> de-duplication now come from Chromium's own AX engine, recorded in the Field verification record -
+> and it produced the measured Clara baseline for Check 2. It could not do the two things that
+> matter most: hear VoiceOver, and make a browser autofill. The dead ends are recorded in the Input
+> verification record so nobody repeats them. What is below is what is genuinely left.
+>
+> **A fixture generator is ready.** `node scripts/make-manual-fixture.mjs` writes the pages this
+> needs and prints the URL; you do not have to build a harness.
+>
 > Record what you actually observe, including anything surprising. A record that says something
 > unexpected happened is worth more than one that says "as documented" - this epic already caught
 > itself writing the second kind without doing the work.
