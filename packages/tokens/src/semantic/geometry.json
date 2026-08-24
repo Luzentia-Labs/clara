@@ -101,10 +101,10 @@
       "type": "number",
       "comment": "A menu or listbox anchored to a control. Above content, below anything modal."
     },
-    "overlay": {
+    "scrim": {
       "value": "{layer.3}",
       "type": "number",
-      "comment": "A modal's scrim. Above every dropdown, so opening a Modal covers an open menu."
+      "comment": "A modal's backdrop. Named `scrim`, not `overlay`: `overlay` is this repo's word for the whole family, and a consumer reaching for it would land under the modal rather than above it."
     },
     "modal": {
       "value": "{layer.4}",

@@ -91,7 +91,30 @@ const LITERAL = new RegExp(
   'gi',
 )
 // Properties where a literal is structural rather than a design value.
-const STRUCTURAL = /^(z-index|opacity|flex|order|grid-|line-height|font-weight|content|transform|scale)/
+//
+// `z-index` was here and should not have been. It IS a design value - it is the whole subject of
+// the layer scale - and exempting it made that scale advisory: a spec review appended
+// `z-index: 999999` to this stylesheet and the guard passed. Thirteen overlay components could
+// each have typed a number with every gate green, which is precisely the defect the scale exists
+// to prevent ("each overlay picks a z-index and the answer becomes whichever number was typed
+// last"). It is now checked separately below, because the literal regex needs a unit and a bare
+// integer never matched it either.
+const STRUCTURAL = /^(opacity|flex|order|grid-|line-height|font-weight|content|transform|scale)/
+
+/**
+ * Every `z-index` must resolve through the layer scale.
+ *
+ * A bare integer is invisible to the literal rule (which requires a unit), so this is its own
+ * check. `calc()` over a layer token is allowed - the scale leaves 100 between steps precisely so
+ * a component can take `calc(var(--clara-layer-modal) + 1)` without a token change.
+ */
+const zIndexProblems = (decl, where) => {
+  if (decl.prop !== 'z-index') return []
+  const value = decl.value.trim()
+  if (/var\(--clara-layer-[\w-]+\)/.test(value)) return []
+  if (/^(auto|inherit|initial|unset|revert)$/.test(value)) return []
+  return [`${where}: z-index "${value}" does not resolve through the layer scale - use var(--clara-layer-*), or calc() over one. A hand-typed z-index is how a stacking order becomes whichever number was typed last.`]
+}
 
 const walk = (p) => !existsSync(p) ? []
   : statSync(p).isFile() ? [p]
@@ -358,6 +381,14 @@ for (const file of files) {
         declaredBy.set(key, decl.value.trim())
       })
     }
+  })
+}
+
+for (const file of files) {
+  postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkDecls((decl) => {
+    const sel = decl.parent?.selector ?? ''
+    if (!inScope(sel.split(',')[0].trim().split(':')[0])) return
+    problems.push(...zIndexProblems(decl, `${file.slice(root.length + 1)} (${sel})`))
   })
 }
 

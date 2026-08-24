@@ -27,7 +27,7 @@ const layer = (name: string): number => {
 
 describe('the overlay layer scale is tokenised', () => {
   it('declares every layer the components will need', () => {
-    for (const name of ['base', 'raised', 'dropdown', 'overlay', 'modal', 'popover', 'tooltip', 'toast']) {
+    for (const name of ['base', 'raised', 'dropdown', 'scrim', 'modal', 'popover', 'tooltip', 'toast']) {
       expect(Number.isFinite(layer(name))).toBe(true)
     }
   })
@@ -35,7 +35,7 @@ describe('the overlay layer scale is tokenised', () => {
   it('leaves room between layers for a component to sit between two of them', () => {
     // Adjacent steps 1 apart would force the next overlay to renumber the scale. The gap is the
     // affordance: a component can take `calc(var(--clara-layer-modal) + 1)` without a token change.
-    const ordered = ['dropdown', 'overlay', 'modal', 'popover', 'tooltip', 'toast'].map(layer)
+    const ordered = ['dropdown', 'scrim', 'modal', 'popover', 'tooltip', 'toast'].map(layer)
     for (const [i, value] of ordered.slice(1).entries()) {
       expect(value - ordered[i]!).toBeGreaterThanOrEqual(100)
     }
@@ -50,8 +50,8 @@ describe('the overlay stacking order', () => {
   it('puts a modal above its own scrim, and the scrim above any open dropdown', () => {
     // Opening a Modal must cover a menu that was already open, or the menu floats over the scrim
     // and looks interactive while the modal has taken the focus.
-    expect(layer('modal')).toBeGreaterThan(layer('overlay'))
-    expect(layer('overlay')).toBeGreaterThan(layer('dropdown'))
+    expect(layer('modal')).toBeGreaterThan(layer('scrim'))
+    expect(layer('scrim')).toBeGreaterThan(layer('dropdown'))
   })
 
   it('puts a popover ABOVE a modal, which is the whole reason the scale is ordered this way', () => {
@@ -61,13 +61,13 @@ describe('the overlay stacking order', () => {
   })
 
   it('puts a tooltip above everything it might describe', () => {
-    for (const under of ['base', 'raised', 'dropdown', 'overlay', 'modal', 'popover']) {
+    for (const under of ['base', 'raised', 'dropdown', 'scrim', 'modal', 'popover']) {
       expect(layer('tooltip')).toBeGreaterThan(layer(under))
     }
   })
 
   it('puts toasts at the top, because a toast may be the only report that something failed', () => {
-    for (const under of ['base', 'raised', 'dropdown', 'overlay', 'modal', 'popover', 'tooltip']) {
+    for (const under of ['base', 'raised', 'dropdown', 'scrim', 'modal', 'popover', 'tooltip']) {
       expect(layer('toast')).toBeGreaterThan(layer(under))
     }
   })

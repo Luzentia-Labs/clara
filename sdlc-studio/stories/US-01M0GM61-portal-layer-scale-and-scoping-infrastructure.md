@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/src/utils/portal.tsx, packages/tokens/dist/tokens.css
+> **Affects:** packages/react/src/theme/ClaraPortal.tsx, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/geometry.json, packages/tokens/src/__tests__/layers.test.ts, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story
@@ -45,6 +45,7 @@ does, and adds the layer scale beside it.
 | PRD F23 | SSR | A component must not read `document` during render | AC4 deletes `globalThis.document` to prove the render path never reaches for it |
 | PRD F01 / D0007 | API stability | Tier 2 tokens are public API and permanent from first publish | The eight layer names are added to `tokens.public.lock.json` deliberately |
 | TRD Section 6 | Tokens | Tier 2 references tier 1; it never carries a raw value | The scale is tier 1 steps (`layer.0`-`layer.7`) with tier 2 role names over them |
+| D0087 | Tokens | Putting LAYERS in tier 2 EXTENDS the tier rules rather than following them - PRD:245 places z-index layers at tier 1, and D0056 extended tier 2 to geometry without mentioning layers | Eight permanent public names, recorded as a decision rather than asserted as an inheritance. An earlier version of this row cited TRD Section 6 as the authority, which constrains what tier 2 may reference, not that a layer family belongs there |
 
 ## Acceptance Criteria
 
@@ -120,7 +121,7 @@ does, and adds the layer scale beside it.
 | A portal opened inside a scope that changes only density | It keeps the inherited theme and takes the new density. Scoping is an override of the resolved settings, not a replacement of them. |
 | A server render that includes a portal | It renders nothing, and reads no browser global. An overlay has nowhere to go before there is a document, so nothing is the correct output rather than a limitation. |
 | A Select opened from inside a Modal | The listbox clears the modal surface. This is why `popover` sits ABOVE `modal` in the scale - a naive "modal is highest" order puts the list behind the thing it was opened from. |
-| A Modal opened while a menu is already open | The scrim covers the menu. `overlay` is above `dropdown` for exactly this: a menu floating over the scrim looks interactive while the modal holds the focus. |
+| A Modal opened while a menu is already open | The scrim covers the menu. `scrim` is above `dropdown` for exactly this: a menu floating over the scrim looks interactive while the modal holds the focus. |
 | A component that needs to sit between two layers | It can, without a token change: the steps are 100 apart, so `calc(var(--clara-layer-modal) + 1)` is available. |
 | A toast raised while a modal is open | It is visible. Toasts are last in the scale because a toast may be the only report that something failed. |
 
