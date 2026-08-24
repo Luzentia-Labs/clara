@@ -63,6 +63,23 @@ Modal, Drawer, Popover, Tooltip, DropdownMenu, and the feedback set. This is the
 - Focus management is the single most common accessibility defect in component libraries and passes every axe rule when broken. The identity assertions are the mitigation
 - Nested overlays (a Select inside a Modal) are where z-index and focus trapping interact badly; the layer scale must be defined before the first overlay ships
 
+## Gaps between stories, found by the foundation's spec review
+
+Two of this epic's own acceptance criteria are owned by no story, which is the "solved once in the
+architecture rather than nine times" failure appearing at the epic level rather than in a component:
+
+- **Scroll lock without layout shift** is an epic AC and appears only in Modal AC4. Drawer's five
+  criteria contain none, and Drawer locks scroll for the same reason Modal does. Either the
+  behaviour belongs in the shared overlay infrastructure with one criterion over it, or Drawer needs
+  its own - but it must not be Modal's alone.
+- **A portalled overlay rendering dark and compact, captured as a visual baseline** is an epic AC
+  owned by nobody. DropdownMenu AC5 covers whole-page dark/compact, which is a different case: the
+  point of the portalled one is that the overlay has LEFT the scoped subtree. It also cannot be
+  captured until gate 7 is wired (US-01M0GMZW).
+
+Both are recorded here rather than silently absorbed, so whoever picks up Drawer or DropdownMenu
+finds them.
+
 ## Open Questions
 
 _None open. Every PRD open question is closed (D0001-D0016) or promoted to F31._
