@@ -87,8 +87,10 @@ ambiguous signal in the system.
   `check:component-css` NO_MOTION
 - That the scrim's alpha still clears its three measured floors, re-derived from the token sources
   rather than trusted as prose - `check:foundations`
-- That nothing focusable and no text sits on the scrim, which is a decision (D0092) rather than an
-  omission - Clara's light focus ring measures 1.86:1 against the light scrim composite
+- That nothing focusable and no text is painted over the scrim - asserted over the whole portal
+  host, so a control rendered as a SIBLING of the scrim is caught as well as a child. That is a
+  decision (D0092) rather than an omission: Clara's light focus ring measures 1.86:1 against the
+  light scrim composite, so a control there would fail WCAG today
 - No Radix type, prop name or `data-*` attribute on the public surface - `check:api`
 - Radix stays external and is not inlined into any chunk - `check:bundled-peers`
 - Modal's own chunk is 1.98 kB gzipped against a 5 kB budget; the shared Radix runtime is 14.84 kB
@@ -109,10 +111,14 @@ ambiguous signal in the system.
   here can observe a layout shift. What is asserted is that the page is locked and that the width
   the scrollbar occupied is handed back as padding, derived from a stubbed viewport rather than
   hardcoded. The outcome itself needs the manual pass or gate 7.
-- **The scrim's chosen alpha is not pinned, only its floors are.** `check:foundations` rejects a
-  scrim that loses the panel boundary, fails to dim, or makes the page unreadable. It does not
-  reject the 0.40-0.45 band D0092 avoids for margin - at 0.42 the light panel cue is 3.03:1 and
-  clears the floor. Moving the scrim within that band is a decision to revisit, not a build failure.
+- **The scrim's alpha is pinned by its floors and by D0092's rejected band, not by the exact value.**
+  `check:foundations` re-derives four things from the token sources, per theme: the cue that theme
+  relies on clears 3:1 against the composited scrim, the scrim dims the page by at least 25% of its
+  luminance, page text behind it stays above 4.5:1, and the alpha is outside the 0.40-0.45 band
+  D0092 rejects. Moving the scrim to any other value that satisfies all four is a decision to
+  revisit rather than a build failure. This paragraph previously said the band was NOT rejected,
+  which was true when written and false one commit later - it is the CR-01M0SKZ6 class appearing in
+  a stated gap rather than in a keyboard row.
 - **Nesting is asserted one level deep.** Modal-over-menu and menu-over-Modal are decided by DOM
   order (D0088) and the host ordering is asserted, but the composition with a real Select or
   DropdownMenu cannot be tested until those components exist (EP-01M0GK91).

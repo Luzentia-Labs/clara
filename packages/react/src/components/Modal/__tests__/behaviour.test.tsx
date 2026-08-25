@@ -370,26 +370,39 @@ describe('Modal makes the background unreachable', () => {
 })
 
 describe('Modal keeps the scrim empty', () => {
-  it('has nothing focusable on the scrim', async () => {
-    // The ux seat's decision (D0092) is that nothing is drawn on the scrim, and it is a decision
-    // rather than an omission: Clara's light focus ring measures 1.86:1 against the light scrim
-    // composite, so a focusable control there would fail WCAG today and would need the scrim, the
-    // ring, or both to move. That was prose and nothing enforced it - a Clara IconButton inside the
-    // overlay passed every test and every guard.
+  /**
+   * D0092: nothing is drawn ON the scrim, and it is a decision rather than an omission - Clara's
+   * light focus ring measures 1.86:1 against the light scrim composite, so a control there fails
+   * WCAG today and would need the scrim, the ring, or both to move.
+   *
+   * Asserted over the whole PORTAL HOST, not over the scrim element's subtree. Scoping to
+   * `scrim.querySelectorAll(...)` pinned "nothing inside the overlay element", which is not the
+   * decision: a floating dismiss affordance drawn over the backdrop is rendered as a SIBLING of the
+   * overlay, and that is exactly where a designer would put one. The subtree form let it through.
+   */
+  const hostOf = (el: Element) => {
+    let node: Element | null = el
+    while (node?.parentElement && node.parentElement !== document.body) node = node.parentElement
+    return node!
+  }
+
+  it('has nothing focusable painted over the scrim', async () => {
     render(<Harness />)
-    await open()
+    const dialog = await open()
     const scrim = document.querySelector('.clara-modal__scrim')!
-    const focusable = scrim.querySelectorAll(
+    const focusable = [...hostOf(scrim).querySelectorAll<HTMLElement>(
       'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    )
-    expect([...focusable].map((el) => el.tagName)).toEqual([])
+    )].filter((el) => !dialog.contains(el))
+    expect(focusable.map((el) => el.getAttribute('data-testid') ?? el.tagName)).toEqual([])
   })
 
-  it('carries no text on the scrim either, so nothing needs a contrast pairing there', async () => {
+  it('carries no text over the scrim either, so nothing needs a contrast pairing there', async () => {
     render(<Harness />)
-    await open()
+    const dialog = await open()
     const scrim = document.querySelector('.clara-modal__scrim')!
-    expect(scrim.textContent?.trim() ?? '').toBe('')
+    const host = hostOf(scrim)
+    const outside = [...host.children].filter((el) => el !== dialog && !el.contains(dialog))
+    expect(outside.map((el) => el.textContent?.trim() ?? '').join('')).toBe('')
   })
 })
 
@@ -590,13 +603,18 @@ describe('Modal accessible structure and axe', () => {
 })
 
 describe('Modal test hygiene', () => {
-  it('leaves the viewport exactly as it found it', () => {
-    // The scroll-lock test stubs `window.innerWidth` and `documentElement.clientWidth`. Two
-    // previous versions leaked: the first never restored them (15 tests ran at a fake 1000px), and
-    // the second restored by `delete`, which removes jsdom's own data property outright so the same
-    // 15 saw `undefined`. This asserts jsdom's real defaults - `clientWidth` is 0 because jsdom
-    // computes no layout, which is exactly why the stub was needed in the first place.
-    expect(window.innerWidth).toBe(1024)
-    expect(document.documentElement.clientWidth).toBe(0)
+  it('restores the viewport exactly, whatever order the tests run in', () => {
+    // Asserting jsdom's constants alone is a POSITIONAL canary: move this describe above the
+    // scroll-lock one and it passes whether or not `stubViewport` ever restores anything. So the
+    // stub is exercised HERE, in this test, and the restore is asserted directly - which holds in
+    // any order and under `--sequence.shuffle`.
+    const before = { inner: window.innerWidth, client: document.documentElement.clientWidth }
+    stubViewport(1000, 985)
+    expect(window.innerWidth).toBe(1000)
+    expect(document.documentElement.clientWidth).toBe(985)
+    while (savedViewport.length) savedViewport.pop()!()
+    expect({ inner: window.innerWidth, client: document.documentElement.clientWidth }).toEqual(before)
+    // And jsdom's real defaults, so a leak from an earlier test in the file is still visible.
+    expect(before).toEqual({ inner: 1024, client: 0 })
   })
 })
