@@ -1309,6 +1309,30 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // A contract selector may be COMPOUND. `.clara-modal__body > *` could never match a class node
+    // value, so that row was protected only by its exact-string branch and a descendant selector
+    // re-entered a CRITICAL one round after it was fixed.
+    name: 'a compound contract defeated by prefixing a descendant selector',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy .clara-modal__body > \*'s `flex` contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-modal .clara-modal__body > * { flex: 1; }\n')
+    },
+  },
+  {
+    // NO_MOTION was left out of the parser conversion, so it stayed an exact-string match over five
+    // literals - and `.clara-modal--sm` is a selector Modal already ships.
+    name: 'motion added through a modifier the exact-string motion rule could not see',
+    guard: 'check-component-css.mjs',
+    expect: /has no motion by decision/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + '\n.clara-modal--sm { transition: opacity var(--clara-duration-fast) ease-out; }\n')
+    },
+  },
+  {
     // A blanket reset removes the whole box with nothing left to point at.
     name: 'an overlay panel stripped by a blanket all: revert',
     guard: 'check-component-css.mjs',

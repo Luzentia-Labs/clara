@@ -162,6 +162,65 @@ describe('Modal focus restoration per dismissal route', () => {
   })
 })
 
+describe('Modal focus restoration when the dialog is unmounted while open', () => {
+  // `{open && <Modal open .../>}` is the first thing a React developer writes, and it is what a
+  // router does on a redirect. There is no open -> closed transition: the component goes away.
+  // Clara suppresses Radix's restore and owns it in an effect, which does not run on unmount - so
+  // focus was stranded on document.body on all four routes, in the behaviour this component is
+  // named for, while the docs page promised it was handled.
+  function Conditional ({ onClose: spy }: { onClose?: () => void } = {}) {
+    const [open, setOpen] = useState(false)
+    const close = () => { setOpen(false); spy?.() }
+    return (
+      <ClaraProvider>
+        <button data-testid="opener" onClick={() => setOpen(true)}>Open</button>
+        {open && (
+          <Modal open onClose={close} title="Reverse this posting"
+            footer={<Button onClick={close} data-testid="commit">Reverse</Button>}>
+            <button data-testid="second">Second</button>
+          </Modal>
+        )}
+      </ClaraProvider>
+    )
+  }
+
+  it('restores focus after Escape when the Modal is conditionally rendered', async () => {
+    render(<Conditional />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    expect(screen.getByTestId('opener')).not.toHaveFocus()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
+  })
+
+  it('restores focus after the close button when conditionally rendered', async () => {
+    render(<Conditional />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    await userEvent.click(screen.getByRole('button', { name: /close/i }))
+    await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
+  })
+
+  it('restores focus after a commit when conditionally rendered', async () => {
+    render(<Conditional />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    await userEvent.click(screen.getByTestId('commit'))
+    await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
+  })
+
+  it('restores focus after a scrim click when conditionally rendered', async () => {
+    render(<Conditional />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    const scrim = document.querySelector('.clara-modal__scrim')!
+    fireEvent.pointerDown(scrim)
+    fireEvent.pointerUp(scrim)
+    fireEvent.click(scrim)
+    await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
+  })
+})
+
 describe('Modal focus restoration when the target is gone', () => {
   // Both of these stranded focus on `document.body` and neither was tested. They are not edge
   // cases: a menu item that opens a dialog is unmounted with the menu, and a Modal rendered `open`
@@ -207,6 +266,10 @@ describe('Modal focus restoration when the target is gone', () => {
       const [n, setN] = useState(0)
       return (
         <ClaraProvider>
+          {/* A focusable element BEFORE the clicked one. Without it the test asserts focus on the
+              button it just clicked, which is also where the broken fallback loop puts focus - so
+              it passed against the worst form of the bug. Round 2's finding, re-introduced here. */}
+          <a href="#main" data-testid="first-focusable">Skip</a>
           <button data-testid="skip" onClick={() => setN(n + 1)}>Bump {n}</button>
           <Modal open={false} onClose={() => {}} title="t"><span>x</span></Modal>
         </ClaraProvider>
@@ -432,9 +495,17 @@ describe('Modal keeps the scrim empty', () => {
     render(<Harness />)
     const dialog = await open()
     const scrim = document.querySelector('.clara-modal__scrim')!
-    const host = hostOf(scrim)
-    const outside = [...host.children].filter((el) => el !== dialog && !el.contains(dialog))
-    expect(outside.map((el) => el.textContent?.trim() ?? '').join('')).toBe('')
+    // The same DEEP walk the focusable row uses. Filtering `host.children` walked to ClaraPortal's
+    // outer host, whose single child is the theme scope, which always contains the dialog - so the
+    // filter emptied the list every time and the assertion could not fail in any direction. The
+    // focusable row became a full guard and this one became no guard, in the same commit.
+    const text = [...hostOf(scrim).querySelectorAll('*')]
+      .filter((el) => !dialog.contains(el) && el !== dialog)
+      .flatMap((el) => [...el.childNodes])
+      .filter((n) => n.nodeType === Node.TEXT_NODE)
+      .map((n) => n.textContent?.trim() ?? '')
+      .filter(Boolean)
+    expect(text).toEqual([])
   })
 })
 
@@ -573,6 +644,40 @@ describe('Modal theme and density matrix', () => {
     const scope = (await screen.findByTestId('in')).closest('[data-clara-theme]')!
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
+  })
+})
+
+describe('Modal focus never scrolls the page', () => {
+  it('passes preventScroll on every focus call it makes', async () => {
+    // A SPY on the real method, not a read of the source file. The first version read `Modal.tsx`
+    // and matched `.focus(`, which broke under Stryker: mutation testing rewrites the file it is
+    // measuring, so the test read instrumented code and failed the dry run. Reading your own source
+    // is not a behavioural assertion anyway - this one observes the calls.
+    //
+    // jsdom ignores `preventScroll`, so this asserts the ARGUMENT, not the outcome. The outcome
+    // (Chromium measured a close scrolling the page from y=4000 to 0 without it) is gate 7's, and
+    // the verification record says so.
+    render(<Harness withInitialFocus />)
+    await open()
+    await waitFor(() => expect(screen.getByTestId('reason')).toHaveFocus())
+
+    // The spy is installed for the CLOSE only. Radix and testing-library both call `focus()`
+    // without options during setup, so a spy over the whole test asserts their behaviour rather
+    // than Clara's - it failed on correct code, which is its own kind of useless test.
+    const calls: Array<FocusOptions | undefined> = []
+    const real = HTMLElement.prototype.focus
+    HTMLElement.prototype.focus = function focus (options?: FocusOptions) {
+      calls.push(options)
+      return real.call(this, options)
+    }
+    try {
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
+    } finally {
+      HTMLElement.prototype.focus = real
+    }
+    expect(calls.length).toBeGreaterThan(0)
+    expect(calls.filter((o) => o?.preventScroll !== true)).toEqual([])
   })
 })
 

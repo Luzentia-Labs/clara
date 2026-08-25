@@ -105,17 +105,37 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
   // skip link and `scrollY` went 4000 to 0. Round 1's version usually no-op'd; round 2's
   // try-until-it-takes loop made the theft reliable, which is a fix making a bug worse.
   const wasOpen = useRef(false)
+
+  // Restoring on UNMOUNT as well as on close.
+  //
+  // `{open && <Modal open .../>}` is the first thing a React developer writes, and it is what a
+  // router does on a redirect. There is no open -> closed transition in that case: the component
+  // simply goes away. Clara suppresses Radix's own restore (`onCloseAutoFocus` preventDefault) and
+  // owns restoration in the effect below, which never runs on unmount - so focus was stranded on
+  // `document.body` on ALL FOUR routes, in the one behaviour this component is named for, while the
+  // docs page promised "you do not have to do anything for that to work".
+  //
+  // A ref-reading cleanup rather than a second effect, because it must see the LATEST opener and
+  // `returnFocus` without re-subscribing on every render.
+  const restore = useRef<() => void>(() => {})
+  useEffect(() => () => { if (wasOpen.current) restore.current() }, [])
+
   useEffect(() => {
     if (open) { wasOpen.current = true; return }
     if (!wasOpen.current) return
     wasOpen.current = false
+    restore.current()
+  }, [open, returnFocus])
+
+  restore.current = () => {
     const target = returnFocus?.current ?? openerRef.current
     openerRef.current = null
+    wasOpen.current = false
     // A disconnected target is the ordinary case, not an edge one: a menu item that opens a dialog
     // is unmounted with the menu, and a Modal that starts `open` on mount never had an opener at
     // all. Falling through here left focus on `document.body` - the exact strand the component
     // exists to prevent - and `onCloseAutoFocus` is preventDefault'ed, so Radix's own fallback
-    // could not run either. Both routes were untested.
+    // could not run either.
     if (target?.isConnected) { target.focus({ preventScroll: true }); return }
     // Nothing named survives, so put focus somewhere a keyboard user can continue from rather than
     // at the top of the document. `body` is not a position; the first focusable element is.
@@ -135,7 +155,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
       candidate.focus({ preventScroll: true })
       if (document.activeElement === candidate) return
     }
-  }, [open, returnFocus])
+  }
 
   // Radix reports every dismissal as a transition to closed. Clara's contract is one callback for
   // all of them, so this is the single place the two vocabularies meet - and it is internal.
@@ -170,7 +190,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
             if (!initialFocus?.current) return
             // Radix would otherwise focus the first tabbable element, which is the close button.
             event.preventDefault()
-            initialFocus.current.focus()
+            initialFocus.current.focus({ preventScroll: true })
           }}
           // Clara restores focus itself, in the effect above. Radix's restore runs against a portal
           // host Clara has already removed, so letting it also try means two mechanisms racing for

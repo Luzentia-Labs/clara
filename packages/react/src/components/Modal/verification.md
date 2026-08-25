@@ -70,7 +70,7 @@ ambiguous signal in the system.
 
 ## What is verified automatically
 
-- The behaviour above, in `__tests__/behaviour.test.tsx` - 43 tests, including all four dismissal
+- The behaviour above, in `__tests__/behaviour.test.tsx` - 50 tests, including all four dismissal
   routes asserted separately, each asserting that focus LEFT the opener before it came back (two of
   them previously passed against an implementation that did nothing, because `userEvent.click`
   leaves focus on the button it clicked)
@@ -87,13 +87,15 @@ ambiguous signal in the system.
   `check:component-css` NO_MOTION
 - That the scrim's alpha still clears its three measured floors, re-derived from the token sources
   rather than trusted as prose - `check:foundations`
-- That nothing focusable and no text is painted over the scrim - asserted over the whole portal
-  host, so a control rendered as a SIBLING of the scrim is caught as well as a child. That is a
+- That nothing focusable and no text is painted over the scrim - both asserted with the same deep
+  walk over the whole portal host, so a control or a caption rendered as a SIBLING of the scrim is
+  caught as well as a child. The text half was briefly asserted by a `.children` filter that could
+  not fail in any direction; that is fixed and pinned. That is a
   decision (D0092) rather than an omission: Clara's light focus ring measures 1.86:1 against the
   light scrim composite, so a control there would fail WCAG today
 - No Radix type, prop name or `data-*` attribute on the public surface - `check:api`
 - Radix stays external and is not inlined into any chunk - `check:bundled-peers`
-- Modal's own chunk is 1.98 kB gzipped against a 5 kB budget; the shared Radix runtime is 14.84 kB
+- Modal's own chunk is 2.07 kB gzipped against a 5 kB budget; the shared Radix runtime is 14.91 kB
   against an 18 kB ceiling, measured once rather than charged to each overlay - `pnpm size`. A
   declared runtime dependency that no built chunk imports is a build failure, not a silent skip
 - `ref` reaches the panel and `className` merges rather than replaces - both are published API and
@@ -119,6 +121,11 @@ ambiguous signal in the system.
   revisit rather than a build failure. This paragraph previously said the band was NOT rejected,
   which was true when written and false one commit later - it is the CR-01M0SKZ6 class appearing in
   a stated gap rather than in a keyboard row.
+- **`preventScroll` is asserted as a CALL, not as an outcome.** jsdom ignores the option entirely,
+  so the test reads the source and requires every `.focus(` in `Modal.tsx` to pass it. The outcome -
+  Chromium measured a close scrolling the page from y=4000 to 0 without it - belongs to gate 7.
+  Without even the source assertion, deleting two characters re-introduces the jump with a fully
+  green gate, which is why a source read is worth having and why it is described as what it is.
 - **Nesting is asserted one level deep.** Modal-over-menu and menu-over-Modal are decided by DOM
   order (D0088) and the host ordering is asserted, but the composition with a real Select or
   DropdownMenu cannot be tested until those components exist (EP-01M0GK91).

@@ -539,6 +539,20 @@ const familyMatches = (prop, family) => new RegExp(`^${family}(-|$)`).test(prop.
 
 /** Does this selector target the element? Parsed, not string-sliced. */
 const targetsElement = (sel, base) => {
+  // A contract selector may be COMPOUND - `.clara-modal__body > *` names the children of an
+  // element. Comparing that whole string against class node values can never match, so that row
+  // was protected only by the exact-string branch and `.clara-modal .clara-modal__body > *` walked
+  // straight through, re-entering a CRITICAL at 18px one round after it was fixed. Match the
+  // compound by its own shape: the class part must target, and the trailing combinator must agree.
+  const compound = /^(\.[\w-]+)\s*(>|\s)\s*(\*|[.\w-]+)$/.exec(base)
+  if (compound) {
+    const [, parentClass, , child] = compound
+    const parts = sel.trim().split(/\s*>\s*|\s+/)
+    if (parts.length < 2) return false
+    const last = parts[parts.length - 1]
+    const childMatches = child === '*' ? true : last === child || last.includes(child.replace(/^\./, ''))
+    return childMatches && parts.slice(0, -1).some((p) => targetsElement(p, parentClass))
+  }
   const wanted = base.replace(/^\./, '')
   let hit = false
   try {
@@ -587,11 +601,17 @@ for (const [selector, family, ok, why] of VALUE_CONTRACT.filter(([sel]) => inSco
 for (const selector of NO_MOTION.filter((sel) => inScope(sel))) {
   for (const file of files) {
     postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
-      if (!(rule.selectors ?? []).includes(selector)) return
-      rule.walkDecls((decl) => {
-        if (!/^(transition|animation)(-|$)/.test(decl.prop.toLowerCase())) return
-        problems.push(`${selector} declares \`${decl.prop}\` - Modal has no motion by decision (D0094), not by omission. Adding one is a decision to revisit, not a stylesheet edit.`)
-      })
+      for (const sel of rule.selectors ?? []) {
+        // Parsed, like every other contract. This rule was left out of that conversion and stayed
+        // an exact-string match over five literals, so `.clara-modal--sm { transition: ... }` - a
+        // selector Modal already ships - and `:is(.clara-modal) { animation: ... }` both passed,
+        // and D0094's "the absence is asserted, not assumed" was true of five strings only.
+        if (sel.trim() !== selector && !targetsElement(sel, selector)) continue
+        rule.walkDecls((decl) => {
+          if (!/^(transition|animation)(-|$)/.test(decl.prop.toLowerCase())) return
+          problems.push(`${sel.trim()} declares \`${decl.prop}\` - Modal has no motion by decision (D0094), not by omission. Adding one is a decision to revisit, not a stylesheet edit.`)
+        })
+      }
     })
   }
 }
