@@ -26,6 +26,25 @@ Render any Clara application with `data-clara-theme="dark"` and a Checkbox, Radi
 
 Declare `color-scheme` alongside the theme attribute so the user agent paints its own controls to match - light under the light theme, dark under the dark one. Check the interaction with `useSystemTheme.ts` and confirm what it does to the autofill measurement in D0097 (the seat predicts a consumer-set `color-scheme: dark` moves `border-default` to 3.915:1, which is better, not worse).
 
+## Observed before and after (2026-08-25, Chromium)
+
+The first attempt to look at this used the autofill fixture, which shows nothing: it carries only
+text inputs and a button, every one of them styled by Clara. **A page that cannot show the defect
+cannot show the fix either**, so `/native-dark.html` was added - checkbox, switch, radios, a date
+picker, a number spinner and a tall block that forces a scrollbar.
+
+A/B by removing `color-scheme: dark` from the built stylesheet and reloading:
+
+| Surface | Without the declaration | With it |
+| --- | --- | --- |
+| Unchecked checkbox | **white** box on the dark page | dark grey, matching the surface |
+| Radio buttons | **white** circles | dark grey |
+| Date picker's calendar icon | **dark on dark** - effectively invisible | light, and legible |
+
+The date picker is the sharpest case: the user agent painted a dark glyph for a light theme it
+believed it was in, onto Clara's dark surface, so the control's only affordance disappeared. No
+contrast gate in this repo can see that, because Clara does not paint it.
+
 ## Verification depth: functional, and why not higher
 
 The declaration is asserted in the BUILT stylesheets by

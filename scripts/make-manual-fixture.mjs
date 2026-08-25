@@ -72,6 +72,43 @@ const autofillBody = (theme) => page(`Clara - autofill check (Input AC4, ${theme
     h('button', { type: 'submit', className: 'clara-button clara-button--primary clara-button--md' }, 'Save supplier'),
   )))
 
+/**
+ * The controls the USER AGENT paints, not Clara.
+ *
+ * `styles.css` sets `appearance: auto` on checkbox, radio and switch, so their glyphs, the
+ * scrollbar, and any native picker are drawn by the browser in whichever livery `color-scheme`
+ * names. That is the whole subject of BG-01M0W799 - and it is invisible on the autofill fixture,
+ * which carries only text inputs and a button, all of them styled by Clara. A page that cannot show
+ * the defect cannot show the fix either.
+ *
+ * The tall block forces a scrollbar, because the scrollbar is the one UA surface every application
+ * has whether or not it uses a checkbox.
+ */
+const nativeControls = (theme) => page(`Clara - user-agent controls (${theme})`, theme, renderToStaticMarkup(
+  h(React.Fragment, null,
+    h('section', { key: 'c' },
+      h('h2', null, 'Painted by the browser, not by Clara'),
+      h(C.Checkbox, { label: 'Approved for payment', defaultChecked: true }),
+      h(C.Checkbox, { label: 'On hold' }),
+      h(C.Switch, { label: 'Notify the requester', defaultChecked: true }),
+      h(C.RadioGroup, {
+        label: 'Payment terms',
+        name: 'terms',
+        options: [
+          { value: '30', label: 'Net 30' },
+          { value: '60', label: 'Net 60' },
+        ],
+      }),
+    ),
+    h('section', { key: 'n' },
+      h('h2', null, 'Native pickers and spinners'),
+      h('label', null, 'Date ', h('input', { type: 'date', className: 'clara-input' })),
+      h('label', null, 'Number ', h('input', { type: 'number', className: 'clara-input' })),
+    ),
+    h('div', { key: 't', style: { height: '2000px' } },
+      h('p', null, 'A tall block, so the page has a scrollbar to look at.')),
+  )))
+
 const pages = {
   '/': `<!doctype html><meta charset="utf-8"><title>Clara manual checks</title>
 <body style="font:16px/1.6 system-ui;max-width:34rem;margin:3rem auto;padding:0 1rem">
@@ -81,10 +118,16 @@ const pages = {
 <li><a href="/voiceover.html">Field AC6 - VoiceOver</a> (Safari, VoiceOver on with Cmd+F5)</li>
 <li><a href="/autofill-light.html">Input AC4 - autofill, light</a> and
     <a href="/autofill-dark.html">dark</a> (Chrome and Safari, with an address saved)</li>
+<li><a href="/native-dark.html">BG-01M0W799 - user-agent controls, dark</a> and
+    <a href="/native-light.html">light</a>. Checkbox glyphs, the switch, radios, the date and
+    number pickers, and the scrollbar are painted by the BROWSER. Under the fix they follow the
+    Clara theme; before it they were light on a dark page.</li>
 </ol></body>`,
   '/voiceover.html': voiceover,
   '/autofill-light.html': autofillBody('light'),
   '/autofill-dark.html': autofillBody('dark'),
+  '/native-light.html': nativeControls('light'),
+  '/native-dark.html': nativeControls('dark'),
 }
 
 const port = Number(process.argv[2] ?? 4173)
@@ -96,6 +139,7 @@ createServer((req, res) => {
   console.log(`Manual-check fixtures: http://127.0.0.1:${port}/`)
   console.log('  Field AC6  -> /voiceover.html      (Safari + VoiceOver)')
   console.log('  Input AC4  -> /autofill-light.html (Chrome and Safari, address saved)')
+  console.log('  BG-01M0W799 -> /native-dark.html    (browser-painted controls + scrollbar)')
   console.log('Ctrl+C to stop.')
 })
 
