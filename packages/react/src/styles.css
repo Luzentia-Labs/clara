@@ -328,6 +328,56 @@
 .clara-skeleton--half { width: 50%; }
 .clara-skeleton--quarter { width: 25%; }
 .clara-skeleton-group { display: grid; gap: var(--clara-skeleton-gap); }
+
+/*
+ * ProgressBar (D0100).
+ *
+ * DETERMINATE DOES NOT ANIMATE, and no `transition` may be added here. The fill's width is DATA: a
+ * transitioned width shows a number that is not the current value for the length of the
+ * transition, while `aria-valuenow` already reports the new one - so a sighted user and a
+ * screen-reader user would read different values off the same component.
+ *
+ * INDETERMINATE traverses. One quarter-track segment travels inline-start to inline-end, and the
+ * period falls out of geometry rather than being chosen: the segment displaces track + segment =
+ * 1.25 track-widths = five feature-widths, so `step x 5`. Never `alternate` - a bar that bounces
+ * backwards reads as a failure or an undo.
+ */
+.clara-progress {
+  block-size: var(--clara-progress-height);
+  inline-size: 100%;
+  border-radius: var(--clara-progress-radius);
+  background: var(--clara-progress-track-bg);
+  overflow: hidden;
+}
+.clara-progress__fill {
+  block-size: 100%;
+  border-radius: var(--clara-progress-radius);
+  background: var(--clara-progress-fill-bg);
+}
+.clara-progress--indeterminate .clara-progress__fill {
+  inline-size: 25%;
+  animation: clara-traverse var(--clara-progress-cycle) linear infinite;
+}
+@keyframes clara-traverse {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+
+/*
+ * The traverse is a TRANSLATION, which is the case condition 1 of D0100's Class B rule exists for -
+ * apparent self-motion is what triggers the vestibular response. So it is removed, and the liveness
+ * it carried is replaced: the fill becomes the FULL track and cycles between two existing tokens on
+ * the same period. A quarter segment parked anywhere would read as a percentage, which AC2 forbids.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .clara-progress--indeterminate .clara-progress__fill {
+    inline-size: 100%;
+    animation: clara-progress-pulse var(--clara-progress-cycle) linear infinite alternate;
+  }
+  @keyframes clara-progress-pulse {
+    to { background: var(--clara-progress-fill-idle); }
+  }
+}
 .clara-spinner__ring {
   width: var(--clara-spinner-size);
   height: var(--clara-spinner-size);

@@ -37,6 +37,11 @@
     "target-min": {
       "value": "{space.6}",
       "type": "dimension"
+    },
+    "bar-thickness": {
+      "value": "{size.bar.default}",
+      "type": "dimension",
+      "comment": "The thickness of a status band - a progress track, and later a meter. Deliberately DENSITY-INVARIANT: the band carries no text, so nothing else scales with it, and thinning it in compact makes it harder to see for exactly the user who chose compact to fit more on screen. Tier 2 had no size for a small fixed dimension, so a progress track could only be sized from a SPACING token, which density re-tunes as a gap."
     }
   },
   "radius": {

@@ -417,6 +417,12 @@
         "value": "32px",
         "type": "dimension"
       }
+    },
+    "bar": {
+      "default": {
+        "value": "8px",
+        "type": "dimension"
+      }
     }
   },
   "easing": {

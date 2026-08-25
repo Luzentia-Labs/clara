@@ -1,0 +1,28 @@
+{
+  "progress": {
+    "track-bg": {
+      "value": "{color.bg.subtle}",
+      "type": "color"
+    },
+    "fill-bg": {
+      "value": "{color.bg.accent-emphasis}",
+      "type": "color"
+    },
+    "fill-idle": {
+      "value": "{color.bg.accent-subtle}",
+      "type": "color"
+    },
+    "height": {
+      "value": "{size.bar-thickness}",
+      "type": "dimension"
+    },
+    "radius": {
+      "value": "{radius.round}",
+      "type": "dimension"
+    },
+    "cycle": {
+      "value": "calc({duration.step} * 5)",
+      "type": "duration"
+    }
+  }
+}

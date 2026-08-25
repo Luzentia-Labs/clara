@@ -395,6 +395,22 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // The SECOND name Radix exports for the same primitive. `DialogPortal` is a first-class export
+    // of @radix-ui/react-dialog and the one an editor's auto-import offers, and the match was
+    // `=== 'Portal'`, so it caught half the idiom (round 8). Two entries on this branch rather than
+    // one, deliberately: a single probe cannot show that BOTH names are matched, because narrowing
+    // the match to either name alone still fails on a probe carrying both.
+    name: 'an overlay reaching for a Radix portal under its prefixed export name',
+    guard: 'check-overlay-contract.mjs',
+    expect: /renders <DialogPortal>, a Radix portal/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
+      writeFileSync(f, `import { DialogPortal } from '@radix-ui/react-dialog'\n`
+        + readFileSync(f, 'utf8')
+        + `\nexport function ModalPrefixedProbe () { return <DialogPortal /> }\n`)
+    },
+  },
+  {
     // ONLY the ClaraPortal rule: the portal element is gone and no Radix portal replaces it. The
     // IMPORT is deliberately left in place, because an unused import satisfying the check is one
     // of the defeats the text-matching version shipped with.

@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 1 |
+| inbox | 2 |
 | Superseded | 1 |
-| **Total** | **10** |
+| **Total** | **11** |
 
 ## By Severity
 
@@ -35,6 +35,7 @@
 | [BG-01M0WR22](BG-01M0WR22-sm-controls-declare-a-target-floor-below-24px.md) | sm controls declare a target floor below 24px, or none at all | major | Medium | Fixed | -- | -- | 2026-08-25 |
 | [BG-01M0WZEM](BG-01M0WZEM-the-button-loading-spinner-never-spins-there-is.md) | The Button loading spinner never spins - there is no animation anywhere in Clara | major | Medium | Fixed | -- | -- | 2026-08-26 |
 | [BG-01M0WZGB](BG-01M0WZGB-the-component-css-literal-gate-does-not-treat.md) | The component-CSS literal gate does not treat a percentage as a literal | major | Medium | inbox | -- | -- | 2026-08-26 |
+| [BG-01M0XJBW](BG-01M0XJBW-four-known-bypasses-of-the-overlay-portal-binding.md) | Four known bypasses of the overlay-portal binding, each needing analysis the guard does not do | major | Medium | inbox | -- | -- | 2026-08-26 |
 
 ## Notes
 

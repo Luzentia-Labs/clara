@@ -88,7 +88,12 @@ function portalUsage (files) {
             for (const el of clause.namedBindings.elements) {
               if (el.isTypeOnly) continue
               const imported = (el.propertyName ?? el.name).text
-              if (isRadix && imported === 'Portal') radixLocal.add(el.name.text)
+              // `/Portal$/`, not `=== 'Portal'`. Radix exports every primitive under BOTH names -
+              // `Portal` and `DialogPortal` are both first-class exports of
+              // @radix-ui/react-dialog, and `DialogPortal` is the one an editor's auto-import
+              // offers. Matching only the bare name caught half the idiom the docblock calls "the
+              // one an author actually reaches for" (round 8).
+              if (isRadix && /Portal$/.test(imported)) radixLocal.add(el.name.text)
             }
           } else if (ts.isNamespaceImport(clause.namedBindings) && isRadix) {
             radixNamespace.add(clause.namedBindings.name.text)
@@ -168,14 +173,21 @@ for (const { name } of built) {
   }
 
   const rules = rulesFor(stylesheet, classBase(name))
+  // The layer token must be declared UNCONDITIONALLY. `walkRules` descends into at-rules, so an
+  // overlay whose only layer token sat inside `@media print` satisfied this while stacking on
+  // `auto` on screen - the identical media-query evasion `check-component-css` already carries a
+  // dedicated prove entry for at a neighbouring joint, walked into again (round 8).
+  const unconditional = rules.filter((rule) => rule.parent?.type !== 'atrule'
+    || /^(layer|supports)$/i.test(rule.parent.name))
   if (!rules.length) {
     problems.push(`${where}: ${name} is an overlay with no stylesheet rule of its own, so it can carry no layer token`)
-  } else if (!rules.some((rule) => rule.some?.((decl) =>
+  } else if (!unconditional.some((rule) => rule.some?.((decl) =>
     decl.type === 'decl' && decl.prop === 'z-index' && /var\(\s*--clara-layer-/.test(decl.value)))) {
     problems.push(
       `${where}: ${name} is an overlay and no rule of its own takes \`z-index\` from a layer token. ` +
       'A surface nobody gave a z-index gets `auto`, and the z-index rule is a denylist against ' +
-      'hand-typed numbers, so declaring nothing passes it (D0087)',
+      'hand-typed numbers, so declaring nothing passes it (D0087). A token inside a conditional ' +
+      'at-rule such as `@media print` does not count - it leaves the surface on `auto` on screen',
     )
   }
 }

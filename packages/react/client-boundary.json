@@ -199,7 +199,7 @@
     {
       "name": "ProgressBar",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Radio",

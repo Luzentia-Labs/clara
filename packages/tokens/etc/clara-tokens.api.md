@@ -590,6 +590,24 @@ export const ModalWidthMd = "32rem";
 export const ModalWidthSm = "24rem";
 
 // @public (undocumented)
+export const ProgressCycle = "calc(200ms * 5)";
+
+// @public (undocumented)
+export const ProgressFillBg = "#616db7";
+
+// @public (undocumented)
+export const ProgressFillIdle = "#f5f7fe";
+
+// @public (undocumented)
+export const ProgressHeight = "8px";
+
+// @public (undocumented)
+export const ProgressRadius = "9999px";
+
+// @public (undocumented)
+export const ProgressTrackBg = "#f2f0ed";
+
+// @public (undocumented)
 export const RadiusControl = "4px";
 
 // @public (undocumented)
@@ -612,6 +630,12 @@ export const RadiusSm = "2px";
 
 // @public (undocumented)
 export const RadiusSurface = "8px";
+
+// @public (undocumented)
+export const SizeBarDefault = "8px";
+
+// @public (undocumented)
+export const SizeBarThickness = "8px";
 
 // @public (undocumented)
 export const SizeControlComfortable = "40px";

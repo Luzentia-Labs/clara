@@ -685,10 +685,17 @@ const declaredBy = new Map()
 for (const file of files) {
   postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
     if (!unconditional(rule)) return
+    // A keyframe selector is scoped to its own `@keyframes` block, so `to` in `clara-spin` and `to`
+    // in `clara-traverse` are different rules that happen to share a name. Keying them together
+    // reported the second animation in the file as overriding the first - a false positive that
+    // would arrive for every component that ever adds a second keyframe.
+    const keyframes = rule.parent?.type === 'atrule' && /keyframes$/i.test(rule.parent.name)
+      ? `@${rule.parent.params}|`
+      : ''
     for (const sel of rule.selectors ?? []) {
-      if (!inScope(sel.split(':')[0])) continue
+      if (!keyframes && !inScope(sel.split(':')[0])) continue
       rule.walkDecls((decl) => {
-        const key = `${sel}|${decl.prop}`
+        const key = `${keyframes}${sel}|${decl.prop}`
         const seen = declaredBy.get(key)
         if (seen !== undefined && seen !== decl.value.trim()) {
           problems.push(

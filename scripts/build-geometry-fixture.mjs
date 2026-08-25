@@ -92,6 +92,8 @@ export function buildGeometryFixture ({ root = defaultRoot, out } = {}) {
     // all, so a green unit test asserting this would be a false green by construction.
     kase('motion-button-loading', 'motion', h(C.Button, { size: 'md', loading: true }, 'Saving')),
     kase('motion-spinner', 'motion', h(C.Spinner, { label: 'Loading invoices' })),
+    kase('motion-progress-determinate', 'motion', h(C.ProgressBar, { label: 'Posting invoices', value: 62 })),
+    kase('motion-progress-indeterminate', 'motion', h(C.ProgressBar, { label: 'Checking supplier', indeterminate: true })),
 
     // --- type floor: body never below 14px in any density (TSD 7 row 4, PRD:333) ---
     kase('text-body', 'text', h(C.Text, null, 'Total payable on the agreed terms.')),

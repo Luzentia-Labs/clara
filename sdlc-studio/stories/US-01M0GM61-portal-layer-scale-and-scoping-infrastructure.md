@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Sofia Marchetti
-> **Affects:** packages/react/src/theme/ClaraPortal.tsx, packages/react/src/theme/__tests__/theming.test.tsx, packages/react/etc/clara-react.api.md, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/geometry.json, packages/tokens/src/__tests__/layers.test.ts, packages/tokens/tokens.public.lock.json, apps/docs/src/content/foundations/tokens.md, scripts/check-component-css.mjs, scripts/prove-guards-fail.mjs
+> **Affects:** scripts/check-overlay-contract.mjs, packages/react/client-boundary.json, packages/react/src/theme/ClaraPortal.tsx, packages/react/src/theme/__tests__/theming.test.tsx, packages/react/etc/clara-react.api.md, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/geometry.json, packages/tokens/src/__tests__/layers.test.ts, packages/tokens/tokens.public.lock.json, apps/docs/src/content/foundations/tokens.md, scripts/check-component-css.mjs, scripts/prove-guards-fail.mjs
 > **Points:** 5
 
 ## User Story
@@ -122,7 +122,7 @@ does, and adds the layer scale beside it.
 - **And** the criterion claims coverage of these shapes and no more. It is a denylist of the escapes
   three review rounds actually found, which is not the same as proving the scale cannot be escaped
 - **Verify:** shell node scripts/check-component-css.mjs && node scripts/prove-guards-fail.mjs
-- **Verified:** no (2026-08-25)
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
@@ -273,9 +273,20 @@ breaking change. They were added to `tokens.public.lock.json` deliberately for t
 
 - **Given** any component classified as an overlay in `client-boundary.json`
 - **When** it is built
-- **Then** it RENDERS a `<ClaraPortal>` element and takes its `z-index` from a layer token, and
-  CI fails naming it if it does either any other way - including through a destructured
-  `import { Portal } from '@radix-ui/...'`, which is the idiom an author actually reaches for
+- **Then** it RENDERS a `<ClaraPortal>` element and takes its `z-index` from an UNCONDITIONALLY
+  declared layer token
+- **And** CI fails naming it for the shapes below, each of which has been observed failing: a Radix
+  portal imported as `{ Portal }` or under its prefixed export name `{ DialogPortal }`, imported as
+  a namespace and rendered `<Dialog.Portal>`, or aliased at import; `ClaraPortal` present only as a
+  comment, an unused import, or a type-only import; a component with no stylesheet rule of its own;
+  and a layer token whose only declaration sits inside a conditional at-rule such as `@media print`,
+  which leaves the surface on `auto` on screen
+- **And** the criterion claims coverage of these shapes and no more. Like AC5, it is a denylist of
+  the evasions review actually found, which is not the same as proving the binding cannot be
+  bypassed. Four known bypasses are recorded rather than hidden: a Radix portal re-exported through
+  a local file, an alias bound outside the import (`const P = Portal`), a `<ClaraPortal>` rendered
+  only inside an unreachable branch, and cross-file resolution generally. They are filed, not fixed
+  here, because each needs cross-file resolution, alias data flow or reachability analysis
 - **Verify:** shell node scripts/check-overlay-contract.mjs
 - **Verified:** yes (2026-08-25)
 - **Verification target:** functional
@@ -319,7 +330,7 @@ breaking change. They were added to `tokens.public.lock.json` deliberately for t
 | AC5 | scripts/check-component-css.mjs | Neuter `zIndexProblems` to `return []`; delete the inline-style walk; compare `decl.prop` case-sensitively; drop the `unconditional()` call from the position rule; stop summing the calc offset; stop rejecting a redefined layer token - each leaves one of the escapes open again. `prove-guards-fail.mjs` carries a set of entries over this rule, and the relationship between a clause and its entries is the claim - not a count. **Why not a count.** This cell has stated a stale number in three consecutive review rounds: "ten" when there were eleven; then "four" survivors when there were seven; then "five" and "fourteen" when they were six and fifteen - each written stale by the very edit that added the entry invalidating it. A number in prose beside a growing list is a claim nobody re-derives, so it is replaced by the property plus the way to measure it: - **A fine-grained clause leaves exactly the entry that names it.** Neuter one arm - the computed key, `cssText`, `setAttribute('style')`, the uppercase read, the fallback - and exactly one entry survives. - **The two COARSE clauses are shared by several entries, so they leave more.** Measure, do not guess: `zIndexProblems -> return []`, and `inlineZIndexProblems -> return []`, then count `SURVIVED` lines from `node scripts/prove-guards-fail.mjs`. As of 2026-08-26 that is six and seven respectively, twelve for both together. That is what makes the entries independent rather than one mutant counted many times, and it stays true as entries are added | The scale is enforced, not advisory |
 | AC6 | packages/tokens/style-dictionary.config.js, packages/react/src/theme/ClaraPortal.tsx | Remove the `[data-clara-theme], [data-clara-density]` block the token build appends, so tier 3 resolves once at `:root` again (this is BG-01M0WQY1 restored); separately, stop stamping `claraAttributes` on the portal root, so the portalled surface matches no scope selector at all. The first gives `tier 3 froze at the root instead of following the portal's scope`; the second reddens the attribute assertions in the same test. Neither is visible to jsdom, which resolves no custom properties. | A portal resolves its tokens against the scope it was written in |
 | AC7 | packages/react/src/theme/ClaraPortal.tsx | Create the host at MOUNT rather than on open (a `[]`-dependency effect), so the content is present on the first commit and an effect in the OPENER finds it. That is the timing D0090 says overlays must not rely on, and it is the mutant AC3 already kills - the point of this row is that AC7 selects the timing test BY NAME, so moving it out of AC3's describe cannot silently orphan it. | The second-commit timing contract is gated by name |
-| AC8 | packages/react/src/components/Modal/Modal.tsx, packages/react/src/styles.css, packages/react/client-boundary.json | Swap `ClaraPortal` for `Dialog.Portal` in Modal - the specific substitution an author reaches for, and the one TRD ADR-006 forbids because a Radix portal drops content on `document.body` with no `data-clara-*`. Separately, delete Modal's `z-index: var(--clara-layer-overlay)` entirely rather than replacing it with a number: declaring nothing passes the z-index denylist and stacks on `auto`. The two portal rules get SEPARATE entries in `prove-guards-fail.mjs` with non-alternating expectations, each mutated to trigger exactly one of them - a Radix portal ALONGSIDE ClaraPortal for the Radix rule, and the portal element removed with its import left in place for the other. One mutation with an alternating `expect` pinned neither, and deleting either branch left the prover at exit 0 (round 7); `check-stylesheets` had the identical trap recorded under CR-01M0MBGN AC4 and it was walked into again. | An overlay is obliged to use the mechanism, not merely offered it |
+| AC8 | packages/react/src/components/Modal/Modal.tsx, packages/react/src/styles.css, packages/react/client-boundary.json | Swap `ClaraPortal` for `Dialog.Portal` in Modal - the specific substitution an author reaches for, and the one TRD ADR-006 forbids because a Radix portal drops content on `document.body` with no `data-clara-*`. Separately, delete Modal's `z-index: var(--clara-layer-overlay)` entirely rather than replacing it with a number: declaring nothing passes the z-index denylist and stacks on `auto`. The portal rules get SEPARATE entries in `prove-guards-fail.mjs` with non-alternating expectations, each mutated to trigger exactly one branch - and the Radix branch carries TWO, one per export name, because a single probe carrying both names cannot show that both are matched: narrowing the match to either alone still fails on it - a Radix portal ALONGSIDE ClaraPortal for the Radix rule, and the portal element removed with its import left in place for the other. One mutation with an alternating `expect` pinned neither, and deleting either branch left the prover at exit 0 (round 7); `check-stylesheets` had the identical trap recorded under CR-01M0MBGN AC4 and it was walked into again. | An overlay is obliged to use the mechanism, not merely offered it |
 
 ## Revision History
 

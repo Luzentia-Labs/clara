@@ -367,6 +367,15 @@ export type PolymorphicPropsWithRef<C extends ElementType, Props = Record<never,
 // @public
 export type PolymorphicRef<C extends ElementType> = ComponentPropsWithRef<C>['ref'];
 
+// @public
+export function ProgressBar(input: ProgressBarProps): JSX_2.Element;
+
+// Warning: (ae-forgotten-export) The symbol "ProgressBarDeterminateProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ProgressBarIndeterminateProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type ProgressBarProps = ProgressBarDeterminateProps | ProgressBarIndeterminateProps;
+
 // @public (undocumented)
 export function RadioGroup(input: RadioGroupProps): JSX_2.Element;
 

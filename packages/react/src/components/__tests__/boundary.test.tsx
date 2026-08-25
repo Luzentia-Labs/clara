@@ -61,6 +61,7 @@ const REQUIRED_PROPS: Record<string, Record<string, unknown>> = {
   Badge: { children: 'Draft' },
   Tag: { children: 'Draft' },
   Spinner: { label: 'Loading invoices' },
+  ProgressBar: { label: 'Posting invoices', value: 62 },
   SkeletonGroup: { label: 'Loading invoices', children: null },
 }
 

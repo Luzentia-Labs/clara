@@ -364,3 +364,67 @@ test.describe('a busy indicator states liveness (D0100)', () => {
       .toBeGreaterThan(1)
   })
 })
+
+/**
+ * A determinate bar's width is DATA, not animation (D0100).
+ *
+ * A transitioned width shows a number that is not the current value for the length of the
+ * transition, while `aria-valuenow` already reports the new one - so a sighted user and a
+ * screen-reader user read different values off the same component. The exact-zero comparison is
+ * deliberate: it is what catches the 1ms transition that looks like compliance.
+ */
+test.describe('progress states its value rather than animating toward it (D0100)', () => {
+  const FILL = (kind: string) => `[data-case="motion-progress-${kind}"] .clara-progress__fill`
+
+  test('determinate neither animates nor transitions', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.goto(`file://${FIXTURE}`)
+    const seen = await page.evaluate((sel) => {
+      const s = getComputedStyle(document.querySelector(sel)!)
+      return { animation: s.animationName, transition: s.transitionDuration, width: s.inlineSize }
+    }, FILL('determinate'))
+
+    expect(seen.animation, 'a determinate bar animating means the bar and aria-valuenow disagree').toBe('none')
+    expect(seen.transition, 'a transitioned width lies about the current value for its duration').toBe('0s')
+    // And it is actually showing the datum, so the assertions above are not over an empty element.
+    expect(parseFloat(seen.width)).toBeGreaterThan(0)
+  })
+
+  test('indeterminate traverses, forever, and never backwards', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.goto(`file://${FIXTURE}`)
+    const seen = await page.evaluate((sel) => {
+      const s = getComputedStyle(document.querySelector(sel)!)
+      return { name: s.animationName, iterations: s.animationIterationCount, direction: s.animationDirection }
+    }, FILL('indeterminate'))
+
+    expect(seen.name).not.toBe('none')
+    expect(seen.iterations).toBe('infinite')
+    // A bar that bounces backwards reads as a failure or an undo, which is a different message
+    // from "still working".
+    expect(seen.direction, 'an indeterminate bar must not reverse').toBe('normal')
+  })
+
+  test('under reduced motion it stops traversing and cycles colour instead', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto(`file://${FIXTURE}`)
+
+    const sample = () => page.evaluate((sel) => {
+      const s = getComputedStyle(document.querySelector(sel)!)
+      return { transform: s.transform, background: s.backgroundColor }
+    }, FILL('indeterminate'))
+
+    const samples = []
+    for (let i = 0; i < 3; i++) {
+      samples.push(await sample())
+      await page.waitForTimeout(260)
+    }
+
+    // A traverse is a TRANSLATION, which is the case condition 1 of the Class B rule exists for.
+    expect([...new Set(samples.map((s) => s.transform))],
+      'the reduced treatment still translates the fill').toHaveLength(1)
+    // And liveness survives, or the motion was destroyed rather than reduced.
+    expect(new Set(samples.map((s) => s.background)).size,
+      'the reduced treatment is static, so it no longer says the system is working').toBeGreaterThan(1)
+  })
+})
