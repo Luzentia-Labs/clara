@@ -377,6 +377,29 @@ const OUTPUT_CASES = [
     stage: (stage) => writeFileSync(join(stage, 'packages/react/dist/rogue.css'), '.x{color:red}\n'),
   },
   {
+    // The portal half. US-01M0GM61 headlines "one portal mechanism", and until this guard existed
+    // nothing obliged any overlay to use it - which is verbatim D0087's own rationale about the
+    // z-index scale, true of the portal for as long as the portal existed (round 6).
+    name: 'an overlay reaching for a Radix portal instead of ClaraPortal',
+    guard: 'check-overlay-contract.mjs',
+    expect: /does not render through ClaraPortal|renders `\w+\.Portal`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8').replaceAll('ClaraPortal', 'Dialog.Portal'))
+    },
+  },
+  {
+    // The stacking half. Declaring NO z-index passes the z-index rule, because that rule is a
+    // denylist against hand-typed numbers rather than a requirement to use the scale.
+    name: 'an overlay that declares no layer token at all, so it stacks on auto',
+    guard: 'check-overlay-contract.mjs',
+    expect: /takes `z-index` from a layer token/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replaceAll('z-index: var(--clara-layer-overlay);', 'top: 0;'))
+    },
+  },
+  {
     // The classification is driven by what is EXPORTED, not by the list, so the mutation that
     // matters adds an export rather than editing the file. A guard keyed off the list would
     // report a happy 39-classified PASS while an unclassified component shipped.
@@ -1187,6 +1210,20 @@ const OUTPUT_CASES = [
     guard: 'check-component-css.mjs',
     expect: /z-index set through cssText/,
     stage: probeComponent('  const el = document.createElement("div")\n  el.style.cssText = "z-index: 999999"\n  return null'),
+  },
+  {
+    // AC5 says the guard "says so in its own diagnostic rather than reporting the generic 'does not
+    // resolve'". That clause had no entry, so deleting the branch left this prover at exit 0 and
+    // the whole AC gate green while the shape failed with the exact message AC5 forbids - the same
+    // unproven-clause defect the three entries above were added to remove, in the same criterion
+    // and in the same edit (US-01M0GM61 round 6).
+    name: 'a layer token given a fallback, refused without saying why',
+    guard: 'check-component-css.mjs',
+    expect: /supplies a FALLBACK to a layer token/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, `${readFileSync(f, 'utf8')}\n.clara-probe-fb { position: fixed; z-index: var(--clara-layer-overlay, 0); }\n`)
+    },
   },
   {
     // A legal nudge, written enough times to clear a layer boundary. Every term passes on its own.

@@ -46,8 +46,16 @@ const useHostEffect = typeof document === 'undefined' ? useEffect : useLayoutEff
  * rather than holding one host for its whole lifetime.
  *
  * The distinction is the whole model. A host created once at mount pins sibling order to MOUNT
- * order, so a Toast viewport mounted at app start paints under an overlay opened long afterwards -
- * the exact inversion the per-role scale was deleted to avoid.
+ * order, so a surface mounted early paints under one opened later - the exact inversion the
+ * per-role scale was deleted to avoid.
+ *
+ * The example has to be two surfaces on the SAME layer, because tree order only decides between
+ * siblings a z-index has not already separated: a Drawer that is mounted but closed, and a Popover
+ * opened afterwards, both on `layer.overlay`. An earlier version of this comment used a Toast
+ * viewport against an overlay, which cannot happen - `layer.toast` is 1500 against `layer.overlay`
+ * at 1000, and the higher z-index wins whatever the tree says. The rule was right and the example
+ * was impossible, which is worse than no example: twelve overlays inherit this mechanism and the
+ * next reader would have learned a false model of it (US-01M0GM61 round 6).
  *
  * `open` is a REQUIRED prop rather than something inferred from `children` because the inference
  * cannot be made safe. A child that renders `null` is indistinguishable from a child that renders

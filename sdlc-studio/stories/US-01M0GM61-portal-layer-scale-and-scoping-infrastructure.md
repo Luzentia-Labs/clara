@@ -157,7 +157,7 @@ does, and adds the layer scale beside it.
 | A Select opened from inside a Modal | The listbox clears the modal surface, because it was opened LAST and its portal host is therefore the later sibling. No per-role token is involved. A naive "modal is highest" constant would have put the list behind the thing it was opened from. |
 | A Modal opened while a menu is already open | The modal and its scrim cover the menu, because the modal was opened LAST. This is the direction a per-role constant gets wrong: the same two components in the other order need the opposite answer, and one number cannot give both. |
 | A component that needs to sit above its own siblings | It can, without a token change: `calc(var(--clara-layer-overlay) + 1)` is available, and the guard admits a single-digit offset for exactly this. Anything larger is rejected, because a big addend is a hand-typed z-index wearing a token. |
-| A portal that is mounted but closed (`{open && <Menu/>}`) | It creates no host at all, and creates one when it opens. The whole model rests on this: a host created once at mount pins sibling order to MOUNT order, so a Toast viewport mounted at app start would paint under an overlay opened long after it. |
+| A portal that is mounted but closed (`{open && <Menu/>}`) | It creates no host at all, and creates one when it opens. The whole model rests on this: a host created once at mount pins sibling order to MOUNT order, so a mounted-but-closed Drawer would paint under an overlay opened long after it. |
 | An overlay focusing its first control on open | It must do so from INSIDE the portal - an effect on the portalled content, or a callback ref. The host is created in an effect, so the content lands on `ClaraPortal`'s second commit and an effect in the component that OPENS the overlay runs too early and finds a null ref. Asserted in both directions, and the constraint thirteen overlays inherit. |
 | A toast raised while a modal is open | It is visible. Toasts are last in the scale because a toast may be the only report that something failed. |
 
@@ -269,6 +269,31 @@ breaking change. They were added to `tokens.public.lock.json` deliberately for t
 > the test sits inside the describe AC3's selector happens to match, so moving it to a describe of
 > its own would silently orphan the one assertion that holds it (round 5, anton-reis).
 
+### AC8: An overlay is obliged to use the mechanism, not merely offered it
+
+- **Given** any component classified as an overlay in `client-boundary.json`
+- **When** it is built
+- **Then** it renders through `ClaraPortal` and takes its `z-index` from a layer token, and CI
+  fails naming it if it does either any other way
+- **Verify:** shell node scripts/check-overlay-contract.mjs
+- **Verified:** yes (2026-08-25)
+- **Verification target:** functional
+
+> **This story headlines a mechanism nothing obliged anyone to use.** "One portal mechanism", "the
+> scoping problem is solved once in the architecture rather than nine times in props" - and until
+> this criterion, `Modal` was the only component that used it because `Modal` was written by
+> somebody who had read this story. The other eleven could each have reached for `Popover.Portal`,
+> `Tooltip.Portal` or `Toast.Viewport` and got no scope attributes, no open-order host and no layer
+> token, with every gate green - AC6 included, because AC6 renders a bare `ClaraPortal` rather than
+> a component.
+>
+> That is verbatim what D0087 records about the z-index scale: *a scale nothing obliges a component
+> to use is exactly the defect the story exists to prevent*. The sentence was true of the portal for
+> as long as the portal existed (round 6, anton-reis).
+>
+> The stacking half is separate and equally load-bearing: the z-index rule is a DENYLIST against
+> hand-typed numbers, so an overlay declaring no `z-index` at all passes it and stacks on `auto`.
+
 ## Test Plan
 
 | Criterion | Touches | Mutant - the production change this test must fail on | Title |
@@ -277,9 +302,10 @@ breaking change. They were added to `tokens.public.lock.json` deliberately for t
 | AC2 | packages/tokens/src/semantic/geometry.json, packages/tokens/src/primitive/base.json, apps/docs/src/content/foundations/tokens.md | Point a tier 2 layer name at a raw number instead of a tier 1 step, delete one of the five names, ADD a sixth (`layer.sheet`), collapse the gap above `overlay`, or override `layer` in a theme or density file. The added name matters as much as the deleted one: a denylist of seven role words let `layer.sheet` re-introduce the constant with all eight tests green.. Separately, edit ONLY the documented table (`tokens.md`, tooltip 1400 -> 1450) so the docs and the tokens disagree: the narrow selector `"...is tokenised"` stayed green on this, which is why the verifier was widened to `"the overlay layer scale is"` | Layer scale is tokenised |
 | AC3 | packages/react/src/theme/ClaraPortal.tsx | Prepend the portal host instead of appending it (`document.body.prepend`), so a later-opened overlay is an EARLIER sibling and the painting rule inverts. Or create the host at MOUNT rather than at open (drop the `open` gate from the effect), which pins sibling order to mount order. Or go back to inferring open from `children`, which reads a `<Presence>` wrapper that renders nothing as OPEN. All three are proved to fail. | Nested overlays stack correctly |
 | AC4 | packages/react/src/theme/ClaraPortal.tsx | Read `document` unguarded during render (`const host = document.body`). The SSR test deletes `globalThis.document`, so the render throws instead of returning nothing. Note a guarded read - `typeof document !== 'undefined' && ...` - does NOT kill it, and should not: that is the correct pattern, not the defect. | SSR-safe |
-| AC5 | scripts/check-component-css.mjs | Neuter `zIndexProblems` to `return []`; delete the inline-style walk; compare `decl.prop` case-sensitively; drop the `unconditional()` call from the position rule; stop summing the calc offset; stop rejecting a redefined layer token - each leaves one of the escapes open again. `prove-guards-fail.mjs` carries **fourteen** entries over this rule. The count was written as ten and was wrong twice over: eleven existed, and three of the five inline shapes this criterion ENUMERATES - a computed key, `setAttribute('style')` and `cssText` - had no entry at all, so the clause claiming they are "proved able to fail" was assumed. Deleting those three branches left this criterion green with the escapes reopened (round 5, anton-reis). The three entries now exist and were observed failing. Neutering a fine-grained clause leaves exactly the entry that names it surviving; the two COARSE neuters in this row's own list do not - `zIndexProblems -> return []` leaves five survivors and deleting the inline walk leaves four, because those clauses are shared by several entries. | The scale is enforced, not advisory |
+| AC5 | scripts/check-component-css.mjs | Neuter `zIndexProblems` to `return []`; delete the inline-style walk; compare `decl.prop` case-sensitively; drop the `unconditional()` call from the position rule; stop summing the calc offset; stop rejecting a redefined layer token - each leaves one of the escapes open again. `prove-guards-fail.mjs` carries **fourteen** entries over this rule. The count was written as ten and was wrong twice over: eleven existed, and three of the five inline shapes this criterion ENUMERATES - a computed key, `setAttribute('style')` and `cssText` - had no entry at all, so the clause claiming they are "proved able to fail" was assumed. Deleting those three branches left this criterion green with the escapes reopened (round 5, anton-reis). The three entries now exist and were observed failing. Neutering a fine-grained clause leaves exactly the entry that names it surviving; the two COARSE neuters in this row's own list do not - `zIndexProblems -> return []` leaves five survivors and deleting the inline walk leaves seven, because those clauses are shared by several entries. | The scale is enforced, not advisory |
 | AC6 | packages/tokens/style-dictionary.config.js, packages/react/src/theme/ClaraPortal.tsx | Remove the `[data-clara-theme], [data-clara-density]` block the token build appends, so tier 3 resolves once at `:root` again (this is BG-01M0WQY1 restored); separately, stop stamping `claraAttributes` on the portal root, so the portalled surface matches no scope selector at all. The first gives `tier 3 froze at the root instead of following the portal's scope`; the second reddens the attribute assertions in the same test. Neither is visible to jsdom, which resolves no custom properties. | A portal resolves its tokens against the scope it was written in |
 | AC7 | packages/react/src/theme/ClaraPortal.tsx | Create the host at MOUNT rather than on open (a `[]`-dependency effect), so the content is present on the first commit and an effect in the OPENER finds it. That is the timing D0090 says overlays must not rely on, and it is the mutant AC3 already kills - the point of this row is that AC7 selects the timing test BY NAME, so moving it out of AC3's describe cannot silently orphan it. | The second-commit timing contract is gated by name |
+| AC8 | packages/react/src/components/Modal/Modal.tsx, packages/react/src/styles.css, packages/react/client-boundary.json | Swap `ClaraPortal` for `Dialog.Portal` in Modal - the specific substitution an author reaches for, and the one TRD ADR-006 forbids because a Radix portal drops content on `document.body` with no `data-clara-*`. Separately, delete Modal's `z-index: var(--clara-layer-overlay)` entirely rather than replacing it with a number: declaring nothing passes the z-index denylist and stacks on `auto`. Both are entries in `prove-guards-fail.mjs`, so the criterion is proved able to fail rather than assumed to be. | An overlay is obliged to use the mechanism, not merely offered it |
 
 ## Revision History
 

@@ -8,7 +8,8 @@
     "ClaraProvider": "Client-only: resolves the system colour-scheme preference in an effect, and holds context state.",
     "ButtonGroup": "Client-only: roving tabindex needs state and a DOM effect (US-01M0GM3S AC1).",
     "Field": "Client-only, reclassified during implementation: Field renders a context Provider, and a Server Component cannot - so it and every control reading that context are client-only. The context object itself lives in lib/, not components/, because it is infrastructure rather than a component and does not belong in this classification.",
-    "Checkbox": "Client-only: `indeterminate` is a DOM property that must be set in an effect."
+    "Checkbox": "Client-only: `indeterminate` is a DOM property that must be set in an effect.",
+    "_overlay": "`overlay: true` marks a component that renders a surface floating above the page. check-overlay-contract.mjs requires every BUILT overlay to render through ClaraPortal and to take its stacking from a layer token. Without it, US-01M0GM61's portal is a mechanism nothing obliges anyone to use - which is verbatim the defect D0087 records about the z-index scale."
   },
   "components": [
     {
@@ -69,17 +70,20 @@
     {
       "name": "Combobox",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "DatePicker",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "DateRangePicker",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "DescriptionList",
@@ -99,12 +103,14 @@
     {
       "name": "Drawer",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "DropdownMenu",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "EmptyState",
@@ -154,12 +160,14 @@
     {
       "name": "Modal",
       "boundary": "client",
-      "status": "built"
+      "status": "built",
+      "overlay": true
     },
     {
       "name": "MultiSelect",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "NumberInput",
@@ -179,7 +187,8 @@
     {
       "name": "Popover",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "Radio",
@@ -199,7 +208,8 @@
     {
       "name": "Select",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "Skeleton",
@@ -249,17 +259,20 @@
     {
       "name": "TimePicker",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "Toast",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     },
     {
       "name": "Tooltip",
       "boundary": "client",
-      "status": "planned"
+      "status": "planned",
+      "overlay": true
     }
   ]
 }

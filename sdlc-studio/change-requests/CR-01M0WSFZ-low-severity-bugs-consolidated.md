@@ -42,6 +42,14 @@ Each finding here is Low-severity on its own; the batch is triaged, then actione
   | `.clara-field__description` | e.g. "As it appears on the invoice" | Instructional help text. A user reads it to fill the field correctly. |
 
   All three are painted, not screen-reader-only - measured at 12px in Chromium in both densities.
+- **A Tooltip on a Toast action button renders underneath the toast**: The tier 2 layer scale places `layer.tooltip` at `{layer.3}` = 1400 and `layer.toast` at `{layer.4}` = 1500. Each token's own comment states a rule, and the two rules contradict each other in one composition:
+
+  - `tooltip`: *"Above every overlay regardless of open order, because a tooltip describes whatever is currently on top."*
+  - `toast`: *"Above everything, because a toast may be the only report that something failed."*
+
+  A Toast may carry an action - "Retry", "Undo", "View" - and that action may have a tooltip. The tooltip then describes the thing currently on top and renders under it, which is the one case where a tooltip is useless: it is covered by exactly the element it explains.
+
+  Neither component exists yet, so nothing is broken today. The tokens that decide it are tier 2, public and permanent at publish.
 
 ## Revision History
 

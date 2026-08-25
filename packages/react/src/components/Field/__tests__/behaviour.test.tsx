@@ -400,7 +400,7 @@ describe('CheckboxGroup group semantics', () => {
 // in the base theme, with no test failing. That is what these assertions are for.
 //
 // Contrast is NOT measured here - jsdom computes no layout, so `check:contrast` measures it against
-// real token values instead. Neither is appearance: visual regression (gate 7, US-01M0GMZW) is not
+// real token values instead. Neither is appearance: visual regression (gate 7, US-01M0WSME) is not
 // wired, so nothing in this file proves how any of this LOOKS.
 const themeCss = readFileSync(resolve(__dirname, '../../../../../tokens/dist/themes/dark.css'), 'utf8')
 const densityCss = readFileSync(resolve(__dirname, '../../../../../tokens/dist/themes/compact.css'), 'utf8')
