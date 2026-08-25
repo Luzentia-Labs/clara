@@ -104,8 +104,10 @@
 - **Then** whichever was opened LAST paints on top, because scrim and panel share one portal host as
   siblings and every portalled surface shares `--clara-layer-overlay` (D0088)
 - **And** no per-role z-index exists between the scrim and the panel: the panel follows the scrim in
-  the host, and tree order is what separates them
-- **Verify:** vitest "Modal stacks by open order"
+  the host, and tree order is what separates them. The CSS guard runs in this verifier because the
+  host ordering is a DOM fact a test can see, while "neither surface carries an offset" is a
+  stylesheet fact it cannot
+- **Verify:** shell npx vitest run -t "Modal stacks by open order" && node scripts/check-component-css.mjs --component Modal
 - **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 

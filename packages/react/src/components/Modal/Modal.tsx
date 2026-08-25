@@ -97,8 +97,18 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
   // the capture records the wrong element and the restore then does nothing. Radix's open event
   // fires before it moves focus, which is the one moment the opener is still current.
   const openerRef = useRef<HTMLElement | null>(null)
+  // Restoration runs on the open -> closed TRANSITION, never on mount.
+  //
+  // Without this a Modal rendered `open={false}` - the ordinary state of every dialog on the page -
+  // ran the restore on its first commit with both targets null, fell into the fallback loop, and
+  // took focus from whatever the user was on. Measured in Chromium: focus jumped to the page's
+  // skip link and `scrollY` went 4000 to 0. Round 1's version usually no-op'd; round 2's
+  // try-until-it-takes loop made the theft reliable, which is a fix making a bug worse.
+  const wasOpen = useRef(false)
   useEffect(() => {
-    if (open) return
+    if (open) { wasOpen.current = true; return }
+    if (!wasOpen.current) return
+    wasOpen.current = false
     const target = returnFocus?.current ?? openerRef.current
     openerRef.current = null
     // A disconnected target is the ordinary case, not an edge one: a menu item that opens a dialog
@@ -106,7 +116,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
     // all. Falling through here left focus on `document.body` - the exact strand the component
     // exists to prevent - and `onCloseAutoFocus` is preventDefault'ed, so Radix's own fallback
     // could not run either. Both routes were untested.
-    if (target?.isConnected) { target.focus(); return }
+    if (target?.isConnected) { target.focus({ preventScroll: true }); return }
     // Nothing named survives, so put focus somewhere a keyboard user can continue from rather than
     // at the top of the document. `body` is not a position; the first focusable element is.
     //
@@ -120,7 +130,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
     )
     for (const candidate of candidates) {
       if (candidate.closest('[hidden], [inert], [aria-hidden="true"]')) continue
-      candidate.focus()
+      // `preventScroll`, because focusing scrolls the element into view by default and a dialog
+      // closing must not move the page the user was reading.
+      candidate.focus({ preventScroll: true })
       if (document.activeElement === candidate) return
     }
   }, [open, returnFocus])

@@ -201,12 +201,18 @@ for (const file of readdirSync(storiesDir).filter((f) => f.startsWith('US') && f
       })
     }
     const sourceTargets = paths.filter((t) => SOURCE_EXT.test(t))
-    if (!sourceTargets.length && paths.every((t) => !readsAsset(t))) {
+    // Assets are checked whether or not the row ALSO names a source file. Gating this on
+    // "the row names no source file" let a mixed `Touches` skip it entirely: AC9 names both
+    // `Modal.tsx` and `styles.css`, the .tsx satisfied the import rule, and the stylesheet half -
+    // the half jsdom cannot see - went unchecked.
+    const assetTargets = paths.filter((t) => !SOURCE_EXT.test(t))
+    const unreadable = assetTargets.filter((t) => !readsAsset(t))
+    if (unreadable.length && !/\bshell\b/.test(verify)) {
       // An asset no test can import - a stylesheet, a token source, a docs page. A vitest-only
       // verifier over one of those is green by construction: jsdom computes no layout and reads no
       // markdown. The verifier has to run something that actually reads the file.
       problems.push(
-        `${file} ${ac}: \`Touches\` is ${paths.join(', ')}, which no test imports, but the verifier is vitest only - ` +
+        `${file} ${ac}: \`Touches\` names ${unreadable.join(', ')}, which no test imports or reads, but the verifier is vitest only - ` +
         'a test cannot see a change to an asset it does not load, so this criterion needs a guard in its verifier too',
       )
       continue

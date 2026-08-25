@@ -43,7 +43,7 @@ function stageWorkspace ({ withOutput = false, withGit = false, withStories = fa
   staged.add(stage)
   for (const rel of [
     'pnpm-workspace.yaml', 'LICENSE', 'package.json', 'design/foundations.md',
-    'ci-gates.json', '.github/workflows/ci.yml', '.github/workflows/release.yml',
+    'ci-gates.json', '.github/workflows/ci.yml', '.github/workflows/release.yml', '.size-limit.json',
     'apps/docs/src/content/foundations/tokens.md',
     'sdlc-studio/trd.md', 'sdlc-studio/stories/_index.md', 'CONTRIBUTING.md',
   ]) {
@@ -1166,7 +1166,7 @@ const OUTPUT_CASES = [
     // point, and `visible` satisfied the declaration while turning off the behaviour AC5 names.
     name: 'a scroll container whose overflow value turns the scrolling off',
     guard: 'check-component-css.mjs',
-    expect: /does not satisfy .clara-modal__body's contract/,
+    expect: /does not satisfy .clara-modal__body's `overflow` contract/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8').replace('overflow-y: auto;', 'overflow-y: visible;'))
@@ -1177,7 +1177,7 @@ const OUTPUT_CASES = [
     // theme/density matrix cannot see it - it reads attributes off the portal wrapper.
     name: 'an overlay panel painted with a token that does not resolve per theme',
     guard: 'check-component-css.mjs',
-    expect: /does not satisfy .clara-modal's contract/,
+    expect: /does not satisfy .clara-modal's `background` contract/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8').replace(
@@ -1203,7 +1203,7 @@ const OUTPUT_CASES = [
     // scrim token in BOTH themes and every gate stayed green.
     name: 'an overlay panel repainted through the longhand the value contract did not check',
     guard: 'check-component-css.mjs',
-    expect: /does not satisfy .clara-modal's contract/,
+    expect: /does not satisfy .clara-modal's `background` contract/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-modal { background-color: var(--clara-color-bg-scrim); }\n')
@@ -1213,7 +1213,7 @@ const OUTPUT_CASES = [
     // Selector matching was string-identical, so a descendant rule turned the scroll container off.
     name: 'a value contract defeated by a descendant selector',
     guard: 'check-component-css.mjs',
-    expect: /does not satisfy .clara-modal__body's contract/,
+    expect: /does not satisfy .clara-modal__body's `overflow` contract/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-modal .clara-modal__body { overflow-y: visible; }\n')
@@ -1223,7 +1223,7 @@ const OUTPUT_CASES = [
     // `[data-state]` is what Radix stamps, so it is the selector every overlay actually writes.
     name: 'a per-role z-index reintroduced through an attribute selector',
     guard: 'check-component-css.mjs',
-    expect: /does not satisfy .clara-modal's contract/,
+    expect: /does not satisfy .clara-modal's `z-index` contract/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8')
@@ -1253,6 +1253,95 @@ const OUTPUT_CASES = [
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8').replace('  flex-shrink: 0;', '  flex-basis: auto;'))
     },
+  },
+  {
+    // `background` -> `background-color` -> `background-image`. Each round supplied the next name,
+    // which is why the contract is now a family prefix that fails closed.
+    name: 'an overlay panel repainted through a gradient, a property no list enumerated',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy .clara-modal's `background` contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + '\n.clara-modal { background-image: linear-gradient(var(--clara-color-bg-scrim), var(--clara-color-bg-scrim)); }\n')
+    },
+  },
+  {
+    // The shorthand sets what the longhand contract pinned.
+    name: 'a scroll container turned off through the overflow shorthand',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy .clara-modal__body's `overflow` contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-modal__body { overflow: visible; }\n')
+    },
+  },
+  {
+    // `flex: 1` resets flex-shrink to 1, so the fix that pinned flex-shrink was overridden rather
+    // than deleted - and a 2000px chart rendered at 18px, worse than before the fix.
+    name: 'a scroll container whose children shrink again through the flex shorthand',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy .clara-modal__body > \*'s `flex` contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-modal__body > * { flex: 1; }\n')
+    },
+  },
+  {
+    // Split-and-pop selector matching walked past both of these.
+    name: 'a contract defeated by a comma inside :is()',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy .clara-modal's `z-index` contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + '\n:is(.clara-modal, .clara-nothing) { z-index: calc(var(--clara-layer-overlay) + 1); }\n')
+    },
+  },
+  {
+    name: 'a contract defeated by selecting the class without a class selector',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy .clara-modal's `background` contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + '\n[class~="clara-modal"] { background-color: var(--clara-color-bg-scrim); }\n')
+    },
+  },
+  {
+    // A blanket reset removes the whole box with nothing left to point at.
+    name: 'an overlay panel stripped by a blanket all: revert',
+    guard: 'check-component-css.mjs',
+    expect: /discards every declaration the contracts rely on/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-modal { all: revert; }\n')
+    },
+  },
+  {
+    // Any theme that was not literally `dark` got measured against LIGHT values under its own name.
+    name: 'a third theme whose scrim is measured against the wrong theme entirely',
+    guard: 'check-foundations.mjs',
+    expect: /^\s+hc: page text behind the scrim/m,
+    stage: (stage) => {
+      const alpha = join(stage, 'packages/tokens/src/primitive/alpha.json')
+      const m = JSON.parse(readFileSync(alpha, 'utf8'))
+      m.color['black-alpha']['95'] = { value: '#000000F2', type: 'color' }
+      writeFileSync(alpha, JSON.stringify(m, null, 2) + '\n')
+      const hc = JSON.parse(readFileSync(join(stage, 'packages/tokens/src/themes/dark.json'), 'utf8'))
+      hc.color.bg.scrim = { value: '{color.black-alpha.95}', type: 'color' }
+      writeFileSync(join(stage, 'packages/tokens/src/themes/hc.json'), JSON.stringify(hc, null, 2) + '\n')
+    },
+  },
+  {
+    // `includes` matched a package name that is a PREFIX of a real one and fabricated a budget.
+    name: 'a runtime dependency matched as a substring of another package name',
+    guard: 'sync-size-budgets.mjs',
+    args: ['--check'],
+    expect: /@radix-ui\/react-dialo is a declared runtime dependency/,
+    stage: patch('packages/react/package.json', (m) => {
+      m.dependencies['@radix-ui/react-dialo'] = '^1.0.0'
+    }),
   },
   {
     // The dark leg resolved the LIGHT token, so a dark override making the page unreadable passed.
@@ -1370,7 +1459,7 @@ const OUTPUT_CASES = [
     name: 'a vitest-only verifier over a mutant in an asset no test can load',
     guard: 'check-story-verifiers.mjs',
     withStories: true,
-    expect: /which no test imports, but the verifier is vitest only/,
+    expect: /which no test imports or reads, but the verifier is vitest only/,
     stage: (stage) => {
       const f = join(stage, 'sdlc-studio/stories/US-01M0GM48-modal.md')
       writeFileSync(f, readFileSync(f, 'utf8').replace(

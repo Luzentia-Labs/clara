@@ -126,7 +126,12 @@ const fixed = [
   ...runtimeDeps.map((dep) => {
     const importer = builtClients
       .map((name) => `packages/react/dist/${CLIENT_CHUNK}-${name}.js`)
-      .find((file) => existsSync(file) && readFileSync(file, 'utf8').includes(dep))
+      // Matched as a whole IMPORT SPECIFIER, not as a substring. `includes` made
+      // `@radix-ui/react-dialo` - a typo, or a real package that is a prefix of another - match
+      // Modal's chunk and fabricate an 18 kB budget over code that does not import it.
+      .find((file) => existsSync(file)
+        && new RegExp(`["'\`]${dep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(/[^"'\`]*)?["'\`]`)
+          .test(readFileSync(file, 'utf8')))
     // A declared runtime dependency with no importer is REPORTED, not skipped. The previous
     // version filtered it away, so adding a second Radix package produced no budget entry at all
     // while quietly adding it to every per-component `ignore` list - its weight measured by

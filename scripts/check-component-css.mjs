@@ -21,6 +21,7 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import postcss from 'postcss'
+import selectorParser from 'postcss-selector-parser'
 import ts from 'typescript'
 import { focusableClassGroups, claraClassesByComponent } from './lib/focusable.mjs'
 import { componentsInFile } from './lib/module-exports.mjs'
@@ -347,17 +348,26 @@ const FORBIDDEN = [
  * `[selector, prop, test, why]`. `test` receives the declared value, lowercased and trimmed.
  */
 const VALUE_CONTRACT = [
-  ['.clara-modal__body', 'overflow-y', (v) => /^(auto|scroll|overlay)$/.test(v),
-    'the BODY is the scroll container (AC5); `visible` scrolls the whole panel and takes the header and footer with it'],
-  ['.clara-modal', 'background', (v) => v.includes('--clara-color-bg-surface'),
-    'the panel is an opaque surface that resolves per theme; a scrim or a fixed colour renders a dark modal on a light ground'],
-  ['.clara-modal__scrim', 'background', (v) => v.includes('--clara-color-bg-scrim'),
-    'the scrim is the token whose alpha was solved against page legibility (D0092)'],
+  // `[selector, family, ok(prop, value), why]`. The family is a PREFIX: every `overflow*`,
+  // `background*` and `flex*` declaration on the element is checked, so a property nobody thought
+  // to enumerate fails rather than slips through.
+  ['.clara-modal__body', 'overflow', (prop, v) => (
+    prop === 'overflow-x' ? true : /^(auto|scroll|overlay)$/.test(v.split(/\s+/)[0] ?? '')
+  ), 'the BODY is the scroll container (AC5); `visible` scrolls the whole panel and takes the header and footer with it. The `overflow` shorthand sets it too'],
+  ['.clara-modal__body > *', 'flex', (prop, v) => (
+    prop === 'flex-shrink' ? v === '0' : prop === 'flex' ? /^0(\s|$)/.test(v) : true
+  ), 'children of the scroll container must not shrink (AC5) - a flex column squashes a fixed-height chart to nothing instead of scrolling it, and the `flex` shorthand resets flex-shrink to 1'],
+  ['.clara-modal', 'background', (prop, v) => (
+    prop === 'background-image' ? v === 'none' : v.includes('--clara-color-bg-surface')
+  ), 'the panel is an opaque surface that resolves per theme; a scrim, a fixed colour or a gradient renders a dark modal on a light ground'],
+  ['.clara-modal__scrim', 'background', (prop, v) => (
+    prop === 'background-image' ? v === 'none' : v.includes('--clara-color-bg-scrim')
+  ), 'the scrim is the token whose alpha was solved against page legibility (D0092)'],
   // AC9/D0088: one shared layer, and tree order separates scrim from panel. A calc() offset here is
   // a per-role constant wearing a token, and it is exactly the thing the layer scale removed.
-  ['.clara-modal', 'z-index', (v) => v === 'var(--clara-layer-overlay)',
+  ['.clara-modal', 'z-index', (prop, v) => v === 'var(--clara-layer-overlay)',
     'scrim and panel share ONE layer and are separated by tree order (D0088); an offset re-introduces the per-role constant'],
-  ['.clara-modal__scrim', 'z-index', (v) => v === 'var(--clara-layer-overlay)',
+  ['.clara-modal__scrim', 'z-index', (prop, v) => v === 'var(--clara-layer-overlay)',
     'scrim and panel share ONE layer and are separated by tree order (D0088)'],
 ]
 
@@ -506,23 +516,50 @@ for (const [selector, banned] of FORBIDDEN.filter(([sel]) => inScope(sel))) {
 //    `[data-state]` is the selector form the z-index rule's own comment says every overlay writes.
 // 2. A property has a FAMILY. Checking `background` alone let `background-color` repaint the panel
 //    50%-black in both themes with every gate green.
-const PROP_FAMILY = { background: ['background', 'background-color'] }
 /**
- * Does this selector paint the element the contract is about?
+ * The contract is stated as a FAMILY that fails CLOSED, and the selector is PARSED.
  *
- * Matched on a CLASS boundary, not by substring. BEM makes the two easy to confuse and they are
- * opposites: `.clara-modal--sm` is the same element with a modifier and inherits the contract,
- * while `.clara-modal__scrim` is a DIFFERENT element and must not. A substring test made every
- * scrim rule a violation of the panel's contract.
+ * Both are corrections of the same mistake. The first three versions of this check were lists of
+ * literal strings, and a review walked through them one name at a time:
+ * `background` -> `background-color` -> `background-image: linear-gradient(scrim, scrim)`;
+ * `overflow-y` -> the `overflow` shorthand; `flex-shrink: 0` -> `flex: 1`. And the selector was
+ * matched by splitting on combinators and testing the last token, which `:is(.clara-modal, .x)`
+ * and `[class~="clara-modal"]` both walk past.
+ *
+ * A whitelist of names cannot be complete over CSS - each round supplies the next name. So the
+ * rule is inverted: ANY declaration whose property matches the family prefix must satisfy the
+ * contract, so an unenumerated property is a failure rather than a gap. And the selector is parsed
+ * with the same parser Vite already ships rather than a split-and-pop.
+ *
+ * This is a floor, not a proof. The complete answer is asserting COMPUTED values on a rendered
+ * panel in a real browser, which reads the cascade's output and is immune to every defeat above -
+ * that is gate 7 (US-01M0GMZW), still unwired, and this review is the evidence for it.
  */
+const familyMatches = (prop, family) => new RegExp(`^${family}(-|$)`).test(prop.toLowerCase())
+
+/** Does this selector target the element? Parsed, not string-sliced. */
 const targetsElement = (sel, base) => {
-  const last = sel.trim().split(/\s*[>+~]\s*|\s+/).pop() ?? ''
-  const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  // The base class, optionally with a `--modifier`, then anything that is not more class name.
-  return new RegExp(`${escaped}(--[\\w-]+)?(?![\\w-])`).test(last)
+  const wanted = base.replace(/^\./, '')
+  let hit = false
+  try {
+    selectorParser((root) => {
+      root.walkClasses((node) => {
+        // The base class itself, or a `--modifier` of it. NOT a `__element` of it: BEM modifier and
+        // BEM element look alike to a substring test and are opposites - `.clara-modal--sm` is the
+        // same element and inherits the contract, `.clara-modal__scrim` is a different one.
+        if (node.value === wanted || node.value.startsWith(`${wanted}--`)) hit = true
+      })
+      // `[class~="clara-modal"]` selects by class without ever writing a class selector.
+      root.walkAttributes((node) => {
+        const v = (node.value ?? '').replace(/^["']|["']$/g, '')
+        if (node.attribute === 'class' && (v === wanted || v.startsWith(`${wanted}--`))) hit = true
+      })
+    }).processSync(sel)
+  } catch { return sel.includes(base) }
+  return hit
 }
-for (const [selector, prop, ok, why] of VALUE_CONTRACT.filter(([sel]) => inScope(sel))) {
-  const family = PROP_FAMILY[prop] ?? [prop]
+
+for (const [selector, family, ok, why] of VALUE_CONTRACT.filter(([sel]) => inScope(sel))) {
   let satisfied = false
   for (const file of files) {
     postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
@@ -530,15 +567,20 @@ for (const [selector, prop, ok, why] of VALUE_CONTRACT.filter(([sel]) => inScope
         const own = sel.trim() === selector
         if (!own && !targetsElement(sel, selector)) continue
         rule.walkDecls((decl) => {
-          if (!family.includes(decl.prop.toLowerCase())) return
+          if (!familyMatches(decl.prop, family)) return
           const value = decl.value.trim().toLowerCase()
-          if (ok(value)) { if (own && unconditional(rule)) satisfied = true; return }
-          problems.push(`${sel.trim()} declares \`${decl.prop}: ${decl.value.trim()}\`, which does not satisfy ${selector}'s contract - ${why}`)
+          if (ok(decl.prop.toLowerCase(), value)) { if (own && unconditional(rule)) satisfied = true; return }
+          problems.push(`${sel.trim()} declares \`${decl.prop}: ${decl.value.trim()}\`, which does not satisfy ${selector}'s \`${family}\` contract - ${why}`)
+        })
+        // A blanket reset removes the whole box with nothing to point at.
+        rule.walkDecls((decl) => {
+          if (!/^(all)$/i.test(decl.prop)) return
+          problems.push(`${sel.trim()} declares \`${decl.prop}: ${decl.value.trim()}\`, which discards every declaration the contracts rely on`)
         })
       }
     })
   }
-  if (!satisfied) problems.push(`${selector} declares no \`${prop}\` that satisfies its contract - ${why}`)
+  if (!satisfied) problems.push(`${selector} declares no \`${family}\` that satisfies its contract - ${why}`)
 }
 
 // Properties that must be absent entirely.

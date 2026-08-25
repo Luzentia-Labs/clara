@@ -15,6 +15,7 @@
  * colour values are real hex, and that the density floors are NUMBERS with units.
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import { fail, pass } from './lib/workspace.mjs'
 import { contrastRatio } from './lib/wcag.mjs'
 
@@ -161,19 +162,30 @@ const deref = (value, theme) => {
 }
 const role = (path, theme) => {
   const [family, name] = path.split('.')
-  const src = theme === 'dark' ? (darkOverrides[family]?.[name] ?? semantic[family]?.[name]) : semantic[family]?.[name]
+  const src = overridesFor(theme)[family]?.[name] ?? semantic[family]?.[name]
   return src ? deref(src.value, theme) : undefined
 }
 
+// Every theme override file, keyed by its own name. Hardcoding `dark` meant any OTHER theme was
+// measured against LIGHT values under that theme's name - a `hc.json` copied byte-for-byte from
+// `dark.json` passed as `dark` and failed as `hc` in the same run. `light` is the base, which is
+// why it has no file.
+const overridesFor = (theme) => {
+  if (theme === 'light') return {}
+  const f = join('packages/tokens/src/themes', `${theme}.json`)
+  return existsSync(f) ? (JSON.parse(readFileSync(f, 'utf8')).color ?? {}) : {}
+}
 const scrimFor = (theme) => {
-  // Per THEME. The first version resolved the light token and reused it for both legs, so a dark
-  // override at 0.95 alpha - a scrim that makes the page unreadable - passed. `themes/dark.json`
-  // was never consulted by the check that exists to read it.
-  const src = theme === 'dark' ? (darkOverrides.bg?.scrim ?? semantic.bg?.scrim) : semantic.bg?.scrim
+  // Per THEME. The first version resolved the light token and reused it for every leg, so a dark
+  // override at 0.95 alpha - a scrim that makes the page unreadable - passed.
+  const src = overridesFor(theme).bg?.scrim ?? semantic.bg?.scrim
   return src ? deref(src.value, theme) : undefined
 }
 
 const themeFiles = readdirSync('packages/tokens/src/themes').filter((f) => f.endsWith('.json'))
+// Every theme file plus the light base. `compact` is a DENSITY, not a theme - nothing in the
+// colour model varies by density, which is why the ux seat's "at both densities" hand-off is
+// answered by gate 7 rather than here.
 const THEMES = ['light', ...themeFiles.map((f) => f.replace(/\.json$/, '')).filter((t) => t !== 'compact')]
 for (const theme of THEMES) {
   const scrimRaw = scrimFor(theme)

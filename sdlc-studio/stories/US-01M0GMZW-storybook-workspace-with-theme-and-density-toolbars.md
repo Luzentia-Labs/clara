@@ -16,6 +16,27 @@
 **I want** a playground where every component can be seen in all four theme and density combinations
 **So that** I can choose the right component and props before writing code
 
+## Evidence for wiring this (added 2026-08-25, from Modal's review rounds)
+
+Three adversarial rounds on Modal (US-01M0GM48) produced a concrete argument for this story, and it
+is recorded here so whoever picks it up does not have to rediscover it. Every one of these was found
+by rendering in Chromium by hand, and none is observable from jsdom or from a stylesheet:
+
+| What was wrong | Why nothing here could see it |
+| --- | --- |
+| A 2000px child rendered at 18px and the modal body did not scroll (`flex: 1` overriding `flex-shrink: 0`) | jsdom computes no layout |
+| The panel rendered wider than the viewport (`box-sizing` missing, Clara ships no reset) | jsdom computes no layout |
+| `.focus()` on a `[hidden]` element was a silent no-op, so focus landed on `document.body` | jsdom honours no `hidden` |
+| Closing a dialog scrolled the page from y=4000 to 0 (`focus()` without `preventScroll`) | jsdom has no scroll position |
+
+D0096 records the boundary: the text-based CSS contracts in `check-component-css.mjs` are a floor.
+They read the stylesheet, not the cascade, so they cannot see specificity, source order, inheritance,
+or a later rule overriding an earlier one. A computed-style assertion on a rendered panel catches all
+four rows above for free, and is immune to the syntactic dodges that took three rounds to close
+(`background-image`, the `overflow` shorthand, `:is()`, `[class~=]`).
+
+**This is now the highest-value unbuilt story in the epic** - twelve more overlays inherit the floor.
+
 ## Acceptance Criteria
 
 ### AC1: Toolbars exist

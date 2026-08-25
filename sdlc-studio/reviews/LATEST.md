@@ -10,16 +10,16 @@
 **The form framework is built and its ten stories verify clean**, after **five rounds of
 adversarial review, each of which rejected the previous round's work**. The Field plus nine controls
 (Input, Textarea, NumberInput, PasswordInput, SearchInput, Checkbox, Switch, RadioGroup,
-CheckboxGroup) are on `main`, with 920 tests and every gate green. Nothing is on npm. The stories
+CheckboxGroup) are on `main`, with 922 tests and every gate green. Nothing is on npm. The stories
 are **not yet transitioned to Done** - that waits on the round-4 review and the operator's own
 sign-off, because the author never records their own verdict.
 
 ## Numbers
 
-- `pnpm check` runs **28 guards**; `prove-guards-fail` kills **110 mutations** on a staged copy.
-- **920 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- `pnpm check` runs **28 guards**; `prove-guards-fail` kills **118 mutations** on a staged copy.
+- **922 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **95 decisions**. Stories: **39 Done of 88**. `main` is the only branch - this project is
+- **96 decisions**. Stories: **39 Done of 88**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line

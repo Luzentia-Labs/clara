@@ -186,6 +186,38 @@ describe('Modal focus restoration when the target is gone', () => {
     expect(screen.getByTestId('elsewhere')).toHaveFocus()
   })
 
+  it('a CLOSED Modal takes no focus on mount', async () => {
+    // The ordinary state of every dialog on a page is closed. The restore effect ran on the first
+    // commit with both targets null, fell into the fallback loop, and stole focus from whatever the
+    // user was on - measured in Chromium jumping to the skip link and scrolling the page to the
+    // top. Restoration now runs only on the open -> closed transition.
+    render(
+      <ClaraProvider>
+        <a href="#main" data-testid="skip">Skip to content</a>
+        <button data-testid="opener">Open</button>
+        <Modal open={false} onClose={() => {}} title="t"><span>x</span></Modal>
+      </ClaraProvider>,
+    )
+    await waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeNull())
+    expect(document.activeElement).toBe(document.body)
+  })
+
+  it('a Modal that never opened takes no focus when it re-renders', async () => {
+    function Rerender () {
+      const [n, setN] = useState(0)
+      return (
+        <ClaraProvider>
+          <button data-testid="skip" onClick={() => setN(n + 1)}>Bump {n}</button>
+          <Modal open={false} onClose={() => {}} title="t"><span>x</span></Modal>
+        </ClaraProvider>
+      )
+    }
+    render(<Rerender />)
+    const skip = screen.getByTestId('skip')
+    await userEvent.click(skip)
+    expect(skip).toHaveFocus()
+  })
+
   it('skips hidden candidates rather than focusing one and landing on the body', async () => {
     // `.focus()` on a hidden element is a silent no-op, so "the first match of the selector" is not
     // the first FOCUSABLE element. Asserted by identity: focus must land on the visible button, not
