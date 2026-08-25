@@ -51,7 +51,7 @@
     "check:component-css": "node scripts/check-component-css.mjs",
     "check:density-tokens": "npx vitest run packages/tokens/src/__tests__/density.test.ts --silent",
     "check:geometry": "playwright test e2e/geometry.spec.ts",
-    "check:scoping": "playwright test e2e/scoping.spec.ts",
+    "check:scoping": "pnpm --filter @clara-internal/storybook build && playwright test e2e/scoping.spec.ts",
     "check:storybook": "pnpm --filter @clara-internal/storybook build && playwright test e2e/storybook.spec.ts",
     "check:axe": "npx vitest run packages/react/src/components/__tests__/primitives.test.tsx packages/react/src/components/__tests__/typography.test.tsx packages/react/src/components/__tests__/Table.test.tsx packages/react/src/components/__tests__/matrix.test.tsx packages/react/src/components/Field/__tests__/behaviour.test.tsx packages/react/src/components/Field/__tests__/field.test.tsx packages/react/src/components/Modal/__tests__/behaviour.test.tsx -t \"axe\" --silent",
     "check:icons": "node scripts/check-icons.mjs",

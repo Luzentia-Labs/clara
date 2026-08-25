@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
-import { readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { createServer, type Server } from 'node:http'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { join, extname } from 'node:path'
 import { createRequire } from 'node:module'
 
 /**
@@ -113,4 +114,98 @@ test('a nested compact scope re-resolves tier 3 against its own tier 2', async (
   // correctly moved to 4px - the same freeze, in the dimension that is measurable as geometry.
   expect(seen.compact.paddingTop, 'Button padding did not follow the compact scope')
     .not.toEqual(seen.root.paddingTop)
+})
+
+/**
+ * The PORTALLED half of the contract (US-01M0GM61 AC6).
+ *
+ * The three tests above are in-document scopes. A portal is the case TRD ADR-006 actually exists
+ * for: the content is moved to `document.body`, physically outside the element that carries the
+ * scope, and must keep that scope anyway.
+ *
+ * AC1 stated this at the attribute level - "the portal root carries the resolved
+ * `data-clara-theme` and `data-clara-density`" - and BG-01M0WQY1 is the proof that attributes are
+ * not the claim: every attribute was correct there while nothing rendered followed. So this
+ * asserts the RESOLVED values on a portalled component, in both dimensions.
+ *
+ * It runs against the Storybook build because a portal only exists after a client render, and
+ * Storybook is the one bundle in this repo that mounts the built package in a browser. The static
+ * SSR fixture the tests above use renders no portal at all - `ClaraPortal` returns null on the
+ * server by design (AC4).
+ */
+const STATIC = join(root, 'apps/storybook/storybook-static')
+const TYPES: Record<string, string> = {
+  '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
+  '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml',
+  '.woff2': 'font/woff2', '.png': 'image/png',
+}
+
+test.describe('a portal keeps the scope it was written in', () => {
+  let server: Server
+  let origin: string
+
+  test.beforeAll(async () => {
+    if (!existsSync(join(STATIC, 'iframe.html'))) {
+      throw new Error(`no Storybook build at ${STATIC} - run \`pnpm check:scoping\`, which builds it first`)
+    }
+    server = createServer((req, res) => {
+      const path = (req.url ?? '/').split('?')[0] ?? '/'
+      const file = join(STATIC, path === '/' ? 'index.html' : decodeURIComponent(path))
+      if (!file.startsWith(STATIC) || !existsSync(file)) { res.writeHead(404); res.end(); return }
+      res.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' })
+      res.end(readFileSync(file))
+    })
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
+    const address = server.address()
+    origin = `http://127.0.0.1:${typeof address === 'object' && address ? address.port : 0}`
+  })
+
+  test.afterAll(async () => {
+    await new Promise<void>((resolve) => server.close(() => resolve()))
+  })
+
+  test('resolves tier 2 AND tier 3 against its written scope, in both dimensions', async ({ page }) => {
+    await page.goto(`${origin}/iframe.html?id=theme-claraportal--scoped-to-where-it-was-written`
+      + '&viewMode=story&globals=theme:light;density:comfortable')
+    await page.locator('[data-probe="portalled"] button').waitFor({ state: 'visible' })
+
+    const seen = await page.evaluate(() => {
+      const read = (selector: string) => {
+        const el = document.querySelector(selector) as HTMLElement
+        const s = getComputedStyle(el)
+        const scope = el.closest('[data-clara-theme]')
+        return {
+          background: s.backgroundColor,
+          height: Math.round(el.getBoundingClientRect().height),
+          tier2: s.getPropertyValue('--clara-color-bg-surface').trim(),
+          tier3: s.getPropertyValue('--clara-button-secondary-bg').trim(),
+          theme: scope?.getAttribute('data-clara-theme') ?? null,
+          density: scope?.getAttribute('data-clara-density') ?? null,
+        }
+      }
+      return {
+        inDocument: read('[data-probe="page"] > button'),
+        portalled: read('[data-probe="portalled"] button'),
+        // The portal really did leave the subtree it was written in.
+        escaped: document.querySelector('[data-probe="portalled"]')?.closest('[data-probe="page"]') === null,
+      }
+    })
+
+    expect(seen.escaped, 'the portalled content never left its writing subtree, so this proves nothing').toBe(true)
+
+    // The attributes - necessary, and NOT the claim.
+    expect(seen.portalled.theme).toBe('dark')
+    expect(seen.portalled.density).toBe('compact')
+    expect(seen.inDocument.theme).toBe('light')
+
+    // The claim: what the browser resolved, in both dimensions, through a tier 3 alias.
+    expect(seen.portalled.tier2, 'tier 2 did not follow the portal').not.toEqual(seen.inDocument.tier2)
+    expect(seen.portalled.tier3, 'tier 3 froze at the root instead of following the portal\'s scope')
+      .toEqual(seen.portalled.tier2)
+    expect(seen.portalled.background, 'the portalled surface painted the page theme, not its own')
+      .not.toEqual(seen.inDocument.background)
+    // Density, measured as geometry on the scale D0098 fixed.
+    expect(seen.inDocument.height).toBe(40)
+    expect(seen.portalled.height).toBe(32)
+  })
 })

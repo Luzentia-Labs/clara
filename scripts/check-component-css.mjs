@@ -132,6 +132,16 @@ const zIndexProblems = (decl, where) => {
   const calc = /^calc\(([\s\S]*)\)$/i.exec(value)
   const inner = (calc ? calc[1] : value).trim()
   const tokens = inner.match(LAYER_VAR)
+  // A fallback is refused DELIBERATELY, and says so. `var(--clara-layer-overlay, 0)` is legal CSS
+  // and looks defensive, but the build always emits every layer token, so the fallback is either
+  // dead or it is silently substituting a hand-typed stacking order on the one day the token is
+  // missing - which is the day you most want a red build. Reported separately because the generic
+  // "does not resolve" message left an author guessing at a shape the gate refuses on purpose
+  // (US-01M0GM61 rounds 3 and 5).
+  if (/var\(\s*--clara-layer-[a-z0-9-]+\s*,/.test(value)) {
+    return reject('supplies a FALLBACK to a layer token. The build emits every layer token, so a '
+      + 'fallback is either dead or it hides a missing token behind a hand-typed number. Drop it')
+  }
   if (!tokens || tokens.length !== 1) return reject('does not resolve through exactly one layer token')
 
   const rest = inner.replace(LAYER_VAR, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ').trim()
@@ -283,7 +293,7 @@ if (files.length && !declarations) {
  * measures tokens rather than the rules consuming them. This is the cheapest check that can see it:
  * the declarations must exist. They are already forced through tier 2 by the loop above.
  *
- * It is NOT a substitute for visual regression (gate 7, US-01M0GMZW). It cannot see what a control
+ * It is NOT a substitute for visual regression (gate 7, US-01M0WSME). It cannot see what a control
  * looks like - only that the rules giving it a shape are present.
  */
 const SHAPE_CONTRACT = [
@@ -540,7 +550,9 @@ for (const [selector, banned] of FORBIDDEN.filter(([sel]) => inScope(sel))) {
  *
  * This is a floor, not a proof. The complete answer is asserting COMPUTED values on a rendered
  * panel in a real browser, which reads the cascade's output and is immune to every defeat above -
- * that is gate 7 (US-01M0GMZW), still unwired, and this review is the evidence for it.
+ * that is gate 9 (`pnpm check:geometry`), WIRED at ffd1319, and this review was the evidence for
+ * wiring it. It is not gate 7: gate 7 is Chromatic, which diffs screenshots and so catches CHANGE
+ * rather than WRONG (D0099).
  */
 const familyMatches = (prop, family) => new RegExp(`^${family}(-|$)`).test(prop.toLowerCase())
 
@@ -654,7 +666,8 @@ for (const [selector, required] of SHAPE_CONTRACT.filter(([sel]) => inScope(sel)
  * A selector must not be declared twice with CONFLICTING values.
  *
  * Same layer, same specificity: the later rule simply wins, and nothing in this repo can see the
- * result - jsdom computes no layout and gate 7 is unwired. A commit adding a focus ring appended a
+ * result - jsdom computes no layout. Gate 9 now reads the cascade's output in a real browser
+ * (D0099); at the time this was written nothing could. A commit adding a focus ring appended a
  * second `.clara-text--truncate` whose `display: block` overrode the original `inline-block`, so a
  * truncating Text used inline became full width. That is a visual regression delivered as a
  * side-effect of an unrelated edit, which is exactly what a stylesheet makes easy.

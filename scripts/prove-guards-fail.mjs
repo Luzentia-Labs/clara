@@ -1164,6 +1164,31 @@ const OUTPUT_CASES = [
     stage: probeComponent('  const el = document.createElement("div")\n  el.style.setProperty("z-index", "999999")\n  return null'),
   },
   {
+    // AC5's Then-clause enumerates five inline shapes and says the guard "is proved able to fail on
+    // each of them rather than assumed to be". Three of the five had no entry here, so the claim
+    // was assumed: deleting the cssText branch, the setAttribute branch and the computed-key arm of
+    // the property-name resolution left this prover at exit 0 and the story's AC gate at
+    // pass=5 fail=0, with three named escapes reopened (US-01M0GM61 round 5, anton-reis).
+    name: 'a hand-typed z-index reaching an inline style through a computed key',
+    guard: 'check-component-css.mjs',
+    expect: /inline zIndex is not a layer token|does not resolve/,
+    stage: probeComponent("  return <div style={{ ['zIndex']: 999999 }} />"),
+  },
+  {
+    // A whole style attribute written as one string - neither a stylesheet nor a style OBJECT.
+    name: 'a hand-typed z-index written as a whole style attribute',
+    guard: 'check-component-css.mjs',
+    expect: /z-index set by writing a whole style attribute/,
+    stage: probeComponent('  const el = document.createElement("div")\n  el.setAttribute("style", "z-index: 999999")\n  return null'),
+  },
+  {
+    // The CSSOM's bulk-write path, which parses CSS text nothing in this repo walks.
+    name: 'a hand-typed z-index set through style.cssText',
+    guard: 'check-component-css.mjs',
+    expect: /z-index set through cssText/,
+    stage: probeComponent('  const el = document.createElement("div")\n  el.style.cssText = "z-index: 999999"\n  return null'),
+  },
+  {
     // A legal nudge, written enough times to clear a layer boundary. Every term passes on its own.
     name: 'a single-digit offset chained until it clears the layer above',
     guard: 'check-component-css.mjs',
