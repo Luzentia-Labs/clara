@@ -70,11 +70,12 @@ ambiguous signal in the system.
 
 ## What is verified automatically
 
-- The behaviour above, in `__tests__/behaviour.test.tsx` - 40 tests, including all four dismissal
+- The behaviour above, in `__tests__/behaviour.test.tsx` - 43 tests, including all four dismissal
   routes asserted separately, each asserting that focus LEFT the opener before it came back (two of
   them previously passed against an implementation that did nothing, because `userEvent.click`
   leaves focus on the button it clicked)
-- axe (serious and critical) over the open dialog - `__tests__/behaviour.test.tsx`
+- axe (serious and critical) over the open dialog in BOTH its default and its error state -
+  `__tests__/behaviour.test.tsx`
 - Token-only styling, no literals and no tier 1 reads - `check:component-css`
 - The declarations that give the panel and its scrim a box - `check:component-css` SHAPE_CONTRACT -
   and the VALUES that make the BODY a scroll container, the panel a theme-resolving surface, and
@@ -90,8 +91,11 @@ ambiguous signal in the system.
   omission - Clara's light focus ring measures 1.86:1 against the light scrim composite
 - No Radix type, prop name or `data-*` attribute on the public surface - `check:api`
 - Radix stays external and is not inlined into any chunk - `check:bundled-peers`
-- Modal's own chunk is 1.89 kB gzipped against a 5 kB budget; the shared Radix runtime is 14.77 kB
-  against an 18 kB ceiling, measured once rather than charged to each overlay - `pnpm size`
+- Modal's own chunk is 1.98 kB gzipped against a 5 kB budget; the shared Radix runtime is 14.84 kB
+  against an 18 kB ceiling, measured once rather than charged to each overlay - `pnpm size`. A
+  declared runtime dependency that no built chunk imports is a build failure, not a silent skip
+- `ref` reaches the panel and `className` merges rather than replaces - both are published API and
+  both were deletable with the whole suite green
 
 ## Stated gaps
 

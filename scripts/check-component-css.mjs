@@ -306,9 +306,16 @@ const SHAPE_CONTRACT = [
   // no test can see it: flipping `overflow-y` to `visible` left every Modal test green, because the
   // strongest thing a jsdom test can assert is that the element exists. The declarations are the
   // only observable, which is what this contract is for.
-  ['.clara-modal', ['position', 'display', 'max-height', 'background', 'color', 'border', 'border-radius']],
+  // `box-sizing` is here because Clara ships no reset: without it the padding and border sit
+  // OUTSIDE the width, so `calc(100vw - 2 x padding)` renders wider than the viewport. Measured in
+  // Chromium at 562x645 forced to content-box against 512x595 correct - and deleting it left every
+  // gate green, because jsdom computes no layout.
+  ['.clara-modal', ['box-sizing', 'position', 'display', 'max-height', 'background', 'color', 'border', 'border-radius']],
   ['.clara-modal__scrim', ['position', 'inset', 'background']],
   ['.clara-modal__body', ['overflow-y']],
+  // A flex column shrinks its children by default, so a fixed-height child is squashed rather than
+  // scrolled. The rule that stops it is on the CHILDREN, and nothing else can see its absence.
+  ['.clara-modal__body > *', ['flex-shrink']],
   ['.clara-modal__header', ['display']],
   ['.clara-modal__footer', ['display']],
   ['.clara-radio-group', ['display', 'gap']],
@@ -489,22 +496,49 @@ for (const [selector, banned] of FORBIDDEN.filter(([sel]) => inScope(sel))) {
 }
 
 // Declared values, for the selectors where the value IS the criterion.
+//
+// Two asymmetries, both learned the hard way in review:
+//
+// 1. SATISFYING a contract needs the element's OWN unconditional rule (that is SHAPE_CONTRACT's
+//    rule and it is right). VIOLATING one must consider EVERY rule that paints the element -
+//    `.clara-modal .clara-modal__body { overflow-y: visible }` and
+//    `.clara-modal[data-state="open"] { z-index: ... }` both defeat a string-identical match, and
+//    `[data-state]` is the selector form the z-index rule's own comment says every overlay writes.
+// 2. A property has a FAMILY. Checking `background` alone let `background-color` repaint the panel
+//    50%-black in both themes with every gate green.
+const PROP_FAMILY = { background: ['background', 'background-color'] }
+/**
+ * Does this selector paint the element the contract is about?
+ *
+ * Matched on a CLASS boundary, not by substring. BEM makes the two easy to confuse and they are
+ * opposites: `.clara-modal--sm` is the same element with a modifier and inherits the contract,
+ * while `.clara-modal__scrim` is a DIFFERENT element and must not. A substring test made every
+ * scrim rule a violation of the panel's contract.
+ */
+const targetsElement = (sel, base) => {
+  const last = sel.trim().split(/\s*[>+~]\s*|\s+/).pop() ?? ''
+  const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // The base class, optionally with a `--modifier`, then anything that is not more class name.
+  return new RegExp(`${escaped}(--[\\w-]+)?(?![\\w-])`).test(last)
+}
 for (const [selector, prop, ok, why] of VALUE_CONTRACT.filter(([sel]) => inScope(sel))) {
-  let found = false
+  const family = PROP_FAMILY[prop] ?? [prop]
+  let satisfied = false
   for (const file of files) {
     postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkRules((rule) => {
-      if (!unconditional(rule)) return
-      if (!(rule.selectors ?? []).includes(selector)) return
-      rule.walkDecls((decl) => {
-        if (decl.prop.toLowerCase() !== prop) return
-        found = true
-        const value = decl.value.trim().toLowerCase()
-        if (ok(value)) return
-        problems.push(`${selector} declares \`${prop}: ${decl.value.trim()}\`, which does not satisfy its contract - ${why}`)
-      })
+      for (const sel of rule.selectors ?? []) {
+        const own = sel.trim() === selector
+        if (!own && !targetsElement(sel, selector)) continue
+        rule.walkDecls((decl) => {
+          if (!family.includes(decl.prop.toLowerCase())) return
+          const value = decl.value.trim().toLowerCase()
+          if (ok(value)) { if (own && unconditional(rule)) satisfied = true; return }
+          problems.push(`${sel.trim()} declares \`${decl.prop}: ${decl.value.trim()}\`, which does not satisfy ${selector}'s contract - ${why}`)
+        })
+      }
     })
   }
-  if (!found) problems.push(`${selector} declares no \`${prop}\` - ${why}`)
+  if (!satisfied) problems.push(`${selector} declares no \`${prop}\` that satisfies its contract - ${why}`)
 }
 
 // Properties that must be absent entirely.

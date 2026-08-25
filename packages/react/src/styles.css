@@ -457,6 +457,14 @@
   gap: var(--clara-modal-gap);
 }
 
+/* Children do not shrink. A flex column gives every child `flex-shrink: 1`, so a fixed-height child
+   is SQUASHED to fit instead of making the body scroll: a review measured a 2000px chart rendering
+   at 432px in Chromium, with no scrollbar. Text was unaffected, which is why nothing here caught
+   it - the case that breaks is a chart, an iframe or a data grid, which is the ordinary ERP modal. */
+.clara-modal__body > * {
+  flex-shrink: 0;
+}
+
 .clara-modal__footer {
   display: flex;
   justify-content: flex-end;

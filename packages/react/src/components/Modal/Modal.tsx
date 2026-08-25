@@ -109,10 +109,20 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
     if (target?.isConnected) { target.focus(); return }
     // Nothing named survives, so put focus somewhere a keyboard user can continue from rather than
     // at the top of the document. `body` is not a position; the first focusable element is.
-    const fallback = document.querySelector<HTMLElement>(
+    //
+    // "First match of a CSS selector" is NOT the first focusable element, and the difference is the
+    // whole bug: a review proved in Chromium that the selector picks a `[hidden]` button, `.focus()`
+    // on it is a silent no-op, and focus lands on `document.body` - the exact strand this fallback
+    // exists to remove. jsdom cannot see it, because it computes no layout and honours no `hidden`.
+    // So candidates are TRIED, in order, until one actually takes focus.
+    const candidates = document.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
     )
-    fallback?.focus()
+    for (const candidate of candidates) {
+      if (candidate.closest('[hidden], [inert], [aria-hidden="true"]')) continue
+      candidate.focus()
+      if (document.activeElement === candidate) return
+    }
   }, [open, returnFocus])
 
   // Radix reports every dismissal as a transition to closed. Clara's contract is one callback for

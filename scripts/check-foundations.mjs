@@ -165,67 +165,84 @@ const role = (path, theme) => {
   return src ? deref(src.value, theme) : undefined
 }
 
-const scrimRaw = semantic.bg?.scrim ? deref(semantic.bg.scrim.value, 'light') : undefined
-if (scrimRaw) {
+const scrimFor = (theme) => {
+  // Per THEME. The first version resolved the light token and reused it for both legs, so a dark
+  // override at 0.95 alpha - a scrim that makes the page unreadable - passed. `themes/dark.json`
+  // was never consulted by the check that exists to read it.
+  const src = theme === 'dark' ? (darkOverrides.bg?.scrim ?? semantic.bg?.scrim) : semantic.bg?.scrim
+  return src ? deref(src.value, theme) : undefined
+}
+
+const themeFiles = readdirSync('packages/tokens/src/themes').filter((f) => f.endsWith('.json'))
+const THEMES = ['light', ...themeFiles.map((f) => f.replace(/\.json$/, '')).filter((t) => t !== 'compact')]
+for (const theme of THEMES) {
+  const scrimRaw = scrimFor(theme)
+  if (!scrimRaw) continue
   const alphaMatch = /^#[0-9a-f]{6}([0-9a-f]{2})$/i.exec(scrimRaw)
   if (!alphaMatch) {
-    problems.push(`color.bg.scrim resolves to "${scrimRaw}", which carries no alpha channel - a scrim with no alpha is an opaque panel`)
-  } else {
-    const alpha = parseInt(alphaMatch[1], 16) / 255
-    const ink = scrimRaw.slice(0, 7)
-    for (const theme of ['light', 'dark']) {
-      const canvas = role('bg.canvas', theme)
-      const panel = role('bg.surface', theme)
-      const border = role('border.default', theme)
-      if (!canvas || !panel || !border) continue
-      const composited = over(ink, canvas, alpha)
-      const panelVsScrim = contrastRatio(panel, composited)
-      const borderVsScrim = contrastRatio(border, composited)
-      if (Math.max(panelVsScrim, borderVsScrim) < NON_TEXT_FLOOR) {
-        problems.push(
-          `${theme}: a portalled panel has NO cue clearing ${NON_TEXT_FLOOR}:1 against the scrim - ` +
-            `panel ${panelVsScrim.toFixed(2)}:1, border ${borderVsScrim.toFixed(2)}:1. ` +
-            'Elevation is deferred (D0093) only because one of the two always clears it; if neither does, ' +
-            'the deferral is no longer justified and deliverable 6 has to be decided.',
-        )
-      }
-      // A scrim must actually DIM, and that is a separate property from the boundary rule above.
-      // `neutral.900` at 50% over the dark canvas composites to the canvas itself - a scrim that
-      // does literally nothing - and the two-part rule still passes it, because the dark BORDER cue
-      // carries the panel on its own. This is why the scrim is true black rather than a ramp step.
-      //
-      // Measured as a LUMINANCE reduction, not as a contrast ratio: near 1.0 the ratio compresses
-      // hard, and the real dark value (1.15:1) sits close enough to the do-nothing case (1.00:1)
-      // that no honest threshold separates them. In luminance the same pair is a 57% reduction
-      // versus 0%, which is not a close call.
-      const relLum = (hex) => {
-        const [r, g, b] = parseHex(hex).map((c) => {
-          const v = c / 255
-          return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-        })
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b
-      }
-      const before = relLum(canvas)
-      const reduction = before === 0 ? 1 : 1 - relLum(composited) / before
-      if (reduction < 0.25) {
-        problems.push(
-          `${theme}: the scrim composites to ${composited} over a ${canvas} canvas, reducing luminance by ` +
-            `${(reduction * 100).toFixed(0)}% - it barely dims the page. A scrim built from the neutral ramp ` +
-            'rather than from true black does exactly this in dark theme (D0092).',
-        )
-      }
+    problems.push(`${theme}: color.bg.scrim resolves to "${scrimRaw}", which carries no alpha channel - a scrim with no alpha is an opaque panel`)
+    continue
+  }
+  const alpha = parseInt(alphaMatch[1], 16) / 255
+  const ink = scrimRaw.slice(0, 7)
+  const canvas = role('bg.canvas', theme)
+  const panel = role('bg.surface', theme)
+  const border = role('border.default', theme)
+  if (!canvas || !panel || !border) continue
+  const composited = over(ink, canvas, alpha)
 
-      // The page behind must stay readable, which is what pins the alpha's UPPER bound (D0092).
-      const text = role('fg.default', theme)
-      if (text) {
-        const legible = contrastRatio(over(ink, text, alpha), composited)
-        if (legible < 4.5) {
-          problems.push(
-            `${theme}: page text behind the scrim measures ${legible.toFixed(2)}:1, below the 4.5:1 reading floor - ` +
-              'the scrim is meant to be translucent so the user keeps their place (D0092)',
-          )
-        }
-      }
+  // The cue each theme actually RELIES on, per D0093 - not `max(panel, border)`.
+  //
+  // The max form was vacuous in dark: `border.default` is theme-invariant, so border-vs-scrim sits
+  // at 5.5-6.2:1 for every alpha from 0.05 to 0.50 and the dark leg could not be failed by any
+  // scrim value at all. Naming the cue per theme makes each leg falsifiable, which is the point.
+  const cue = theme === 'light'
+    ? { name: 'the panel surface', ratio: contrastRatio(panel, composited) }
+    : { name: 'the 1px border', ratio: contrastRatio(border, composited) }
+  if (cue.ratio < NON_TEXT_FLOOR) {
+    problems.push(
+      `${theme}: ${cue.name} - the cue this theme relies on (D0093) - measures ${cue.ratio.toFixed(2)}:1 ` +
+        `against the scrim, below the ${NON_TEXT_FLOOR}:1 non-text floor. Elevation is deferred only ` +
+        'because each theme has one cue that clears it; if this one does not, deliverable 6 has to be decided.',
+    )
+  }
+
+  // D0092 names 0.40-0.45 as a band to avoid: the light border cue collapses to ~1.1:1 there, so
+  // the panel edge disappears from the outside even though the panel cue still scrapes the floor.
+  // That is a decision, and a decision this project does not enforce is a decision it will lose.
+  if (theme === 'light' && alpha >= 0.395 && alpha <= 0.455) {
+    problems.push(
+      `light: the scrim alpha is ${alpha.toFixed(2)}, inside the 0.40-0.45 band D0092 rejects - ` +
+        `border-vs-scrim collapses to ${contrastRatio(border, composited).toFixed(2)}:1 there and the ` +
+        'panel loses its outline from the outside. Above the floor is not the same as the value that was chosen.',
+    )
+  }
+
+  const relLum = (hex) => {
+    const [r, g, b] = parseHex(hex).map((c) => {
+      const v = c / 255
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+    })
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+  }
+  const before = relLum(canvas)
+  const reduction = before === 0 ? 1 : 1 - relLum(composited) / before
+  if (reduction < 0.25) {
+    problems.push(
+      `${theme}: the scrim composites to ${composited} over a ${canvas} canvas, reducing luminance by ` +
+        `${(reduction * 100).toFixed(0)}% - it barely dims the page. A scrim built from the neutral ramp ` +
+        'rather than from true black does exactly this in dark theme (D0092).',
+    )
+  }
+
+  const text = role('fg.default', theme)
+  if (text) {
+    const legible = contrastRatio(over(ink, text, alpha), composited)
+    if (legible < 4.5) {
+      problems.push(
+        `${theme}: page text behind the scrim measures ${legible.toFixed(2)}:1, below the 4.5:1 reading floor - ` +
+          'the scrim is meant to be translucent so the user keeps their place (D0092)',
+      )
     }
   }
 }

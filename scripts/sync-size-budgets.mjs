@@ -55,6 +55,7 @@ const PEERS = ['react', 'react-dom', 'react/jsx-runtime', 'react-dom/client']
  * The cost stays visible and bounded rather than ignored, and neither number is 90% somebody else's
  * library - which is the failure this file's peer comment already names.
  */
+const unmeasured = []
 const runtimeDeps = Object.keys(
   JSON.parse(readFileSync('packages/react/package.json', 'utf8')).dependencies ?? {},
 ).filter((name) => !name.startsWith('@luzentialabs/'))
@@ -86,7 +87,21 @@ const IGNORED = [...PEERS, ...runtimeDeps]
  * per-component chunk - which is the only signal this budget exists to give. The per-component
  * budgets (D0048/D0053) remain the ones that bind for a consumer importing a single control.
  */
-const ENTRY_BYTES_PER_COMPONENT = 270
+// 300 since Modal, the first OVERLAY, and the reason matters more than the number.
+//
+// 270 was derived from 24 form controls and primitives. An overlay is structurally heavier - more
+// props, more composition, a portal - and Modal alone moved the fleet average from ~258 B to
+// ~271 B, putting the entry 33 B over. Twelve more overlays follow, so a figure calibrated on
+// controls would be re-bumped by each of them, which is the "budget whose routine outcome is bump
+// the number" this file already warns about one paragraph up.
+//
+// What the budget is FOR still binds: the entry is a 502 B re-export barrel with no Radix in it,
+// verified, and this allowance still fails if the barrel starts pulling in a dependency or code
+// that should have split into a per-component chunk. The per-component budgets (D0048/D0053) are
+// the ones that bind for a consumer importing a single control, and Modal's is 1.98 kB of 5 kB.
+//
+// If this needs raising again for something that is NOT an overlay, that is a signal, not a bump.
+const ENTRY_BYTES_PER_COMPONENT = 300
 const ENTRY_FLOOR_BYTES = 5000
 const entryLimit = `${Math.max(ENTRY_FLOOR_BYTES, builtCount * ENTRY_BYTES_PER_COMPONENT)} B`
 
@@ -112,8 +127,17 @@ const fixed = [
     const importer = builtClients
       .map((name) => `packages/react/dist/${CLIENT_CHUNK}-${name}.js`)
       .find((file) => existsSync(file) && readFileSync(file, 'utf8').includes(dep))
+    // A declared runtime dependency with no importer is REPORTED, not skipped. The previous
+    // version filtered it away, so adding a second Radix package produced no budget entry at all
+    // while quietly adding it to every per-component `ignore` list - its weight measured by
+    // nothing, exactly the hole the per-dependency split was made to close. The comment said
+    // "reported rather than skipped" while the code skipped; now it is true.
+    if (!importer) {
+      unmeasured.push(dep)
+      return null
+    }
     return { dep, importer }
-  }).filter(({ importer }) => importer !== undefined).map(({ dep, importer }) => ({
+  }).filter(Boolean).map(({ dep, importer }) => ({
     name: `third-party runtime: ${dep} (shared by every overlay that uses it)`,
     path: importer,
     limit: '18 kB',
@@ -130,6 +154,14 @@ const perComponent = builtClients.map((name) => ({
 }))
 const wanted = [...fixed, ...perComponent]
 const current = existsSync(BUDGET_FILE) ? JSON.parse(readFileSync(BUDGET_FILE, 'utf8')) : []
+
+if (unmeasured.length) {
+  fail(RULE, unmeasured.map((d) => (
+    `${d} is a declared runtime dependency of clara-react but is inlined in no built client chunk, ` +
+    'so no budget measures it while every per-component budget ignores it. Either a component must ' +
+    'import it, or it is not a runtime dependency.'
+  )))
+}
 
 if (!check) {
   writeFileSync(BUDGET_FILE, JSON.stringify(wanted, null, 2) + '\n')

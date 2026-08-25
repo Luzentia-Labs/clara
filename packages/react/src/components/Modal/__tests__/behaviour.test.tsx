@@ -183,7 +183,29 @@ describe('Modal focus restoration when the target is gone', () => {
     await screen.findByRole('dialog')
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(document.activeElement).not.toBe(document.body)
+    expect(screen.getByTestId('elsewhere')).toHaveFocus()
+  })
+
+  it('skips hidden candidates rather than focusing one and landing on the body', async () => {
+    // `.focus()` on a hidden element is a silent no-op, so "the first match of the selector" is not
+    // the first FOCUSABLE element. Asserted by identity: focus must land on the visible button, not
+    // merely be "not body" - which is what the earlier version of these two tests checked.
+    function HiddenFirst () {
+      const [open, setOpen] = useState(true)
+      return (
+        <ClaraProvider>
+          <button data-testid="hidden-btn" hidden>Hidden</button>
+          <div aria-hidden="true"><button data-testid="aria-hidden-btn">Also hidden</button></div>
+          <button data-testid="visible-btn">Visible</button>
+          <Modal open={open} onClose={() => setOpen(false)} title="t"><button data-testid="in">x</button></Modal>
+        </ClaraProvider>
+      )
+    }
+    render(<HiddenFirst />)
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getByTestId('visible-btn')).toHaveFocus()
   })
 
   it('does not strand focus when the dialog was open on mount', async () => {
@@ -200,7 +222,7 @@ describe('Modal focus restoration when the target is gone', () => {
     await screen.findByRole('dialog')
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(document.activeElement).not.toBe(document.body)
+    expect(screen.getByTestId('elsewhere')).toHaveFocus()
   })
 
   it('honours returnFocus over the opener', async () => {
@@ -506,6 +528,32 @@ describe('Modal theme and density matrix', () => {
     const scope = (await screen.findByTestId('in')).closest('[data-clara-theme]')!
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
+  })
+})
+
+describe('Modal public surface', () => {
+  it('forwards ref to the panel', async () => {
+    // The API report publishes `RefAttributes<HTMLDivElement>`, and the forward was deletable with
+    // every test green - a published promise that nothing checked.
+    const ref = { current: null as HTMLDivElement | null }
+    render(
+      <ClaraProvider>
+        <Modal ref={ref} open onClose={() => {}} title="t"><span data-testid="in">x</span></Modal>
+      </ClaraProvider>,
+    )
+    const dialog = await screen.findByRole('dialog')
+    expect(ref.current).toBe(dialog)
+  })
+
+  it('merges className rather than replacing the component class', async () => {
+    render(
+      <ClaraProvider>
+        <Modal open onClose={() => {}} title="t" className="tenant-modal"><span data-testid="in">x</span></Modal>
+      </ClaraProvider>,
+    )
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveClass('clara-modal')
+    expect(dialog).toHaveClass('tenant-modal')
   })
 })
 

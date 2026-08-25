@@ -1166,7 +1166,7 @@ const OUTPUT_CASES = [
     // point, and `visible` satisfied the declaration while turning off the behaviour AC5 names.
     name: 'a scroll container whose overflow value turns the scrolling off',
     guard: 'check-component-css.mjs',
-    expect: /does not satisfy its contract/,
+    expect: /does not satisfy .clara-modal__body's contract/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8').replace('overflow-y: auto;', 'overflow-y: visible;'))
@@ -1177,7 +1177,7 @@ const OUTPUT_CASES = [
     // theme/density matrix cannot see it - it reads attributes off the portal wrapper.
     name: 'an overlay panel painted with a token that does not resolve per theme',
     guard: 'check-component-css.mjs',
-    expect: /does not satisfy its contract/,
+    expect: /does not satisfy .clara-modal's contract/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
       writeFileSync(f, readFileSync(f, 'utf8').replace(
@@ -1197,6 +1197,87 @@ const OUTPUT_CASES = [
         '  background: var(--clara-color-bg-scrim);',
         '  background: var(--clara-color-bg-scrim);\n  transition: opacity 120ms ease-out;'))
     },
+  },
+  {
+    // The value contract checked one property name, so the longhand repainted the panel with the
+    // scrim token in BOTH themes and every gate stayed green.
+    name: 'an overlay panel repainted through the longhand the value contract did not check',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy .clara-modal's contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-modal { background-color: var(--clara-color-bg-scrim); }\n')
+    },
+  },
+  {
+    // Selector matching was string-identical, so a descendant rule turned the scroll container off.
+    name: 'a value contract defeated by a descendant selector',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy .clara-modal__body's contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-modal .clara-modal__body { overflow-y: visible; }\n')
+    },
+  },
+  {
+    // `[data-state]` is what Radix stamps, so it is the selector every overlay actually writes.
+    name: 'a per-role z-index reintroduced through an attribute selector',
+    guard: 'check-component-css.mjs',
+    expect: /does not satisfy .clara-modal's contract/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + '\n.clara-modal[data-state="open"] { z-index: calc(var(--clara-layer-overlay) + 1); }\n')
+    },
+  },
+  {
+    // Clara ships no reset, so the padding and border sat outside the width and the panel rendered
+    // wider than the viewport. jsdom computes no layout; only the declaration is observable.
+    name: 'a full-width overlay losing box-sizing, so its padding overflows the viewport',
+    guard: 'check-component-css.mjs',
+    expect: /declares no `box-sizing`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      const css = readFileSync(f, 'utf8')
+      const i = css.indexOf('.clara-modal {')
+      const j = css.indexOf('}', i)
+      writeFileSync(f, css.slice(0, i) + css.slice(i, j).replace('  box-sizing: border-box;\n', '') + css.slice(j))
+    },
+  },
+  {
+    // A flex column shrinks its children, so a fixed-height child is squashed rather than scrolled.
+    name: 'a scroll container whose children shrink instead of scrolling',
+    guard: 'check-component-css.mjs',
+    expect: /declares no `flex-shrink`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('  flex-shrink: 0;', '  flex-basis: auto;'))
+    },
+  },
+  {
+    // The dark leg resolved the LIGHT token, so a dark override making the page unreadable passed.
+    name: 'a dark-theme scrim override that makes the page behind it unreadable',
+    guard: 'check-foundations.mjs',
+    expect: /dark: page text behind the scrim/,
+    stage: (stage) => {
+      const alpha = join(stage, 'packages/tokens/src/primitive/alpha.json')
+      const m = JSON.parse(readFileSync(alpha, 'utf8'))
+      m.color['black-alpha']['95'] = { value: '#000000F2', type: 'color' }
+      writeFileSync(alpha, JSON.stringify(m, null, 2) + '\n')
+      const dark = join(stage, 'packages/tokens/src/themes/dark.json')
+      const d = JSON.parse(readFileSync(dark, 'utf8'))
+      d.color.bg.scrim = { value: '{color.black-alpha.95}', type: 'color' }
+      writeFileSync(dark, JSON.stringify(d, null, 2) + '\n')
+    },
+  },
+  {
+    // D0092 rejects 0.40-0.45; the max-of-two rule permitted the whole band.
+    name: 'a scrim alpha inside the band its own decision record rejects',
+    guard: 'check-foundations.mjs',
+    expect: /inside the 0\.40-0\.45 band/,
+    stage: patch('packages/tokens/src/primitive/alpha.json', (m) => {
+      m.color['black-alpha']['50'].value = '#0000006B'
+    }),
   },
   {
     // The scrim's alpha is solved against two measured bounds, and both were prose until now.
