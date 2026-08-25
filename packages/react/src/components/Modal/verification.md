@@ -70,7 +70,7 @@ ambiguous signal in the system.
 
 ## What is verified automatically
 
-- The behaviour above, in `__tests__/behaviour.test.tsx` - 57 tests, including all four dismissal
+- The behaviour above, in `__tests__/behaviour.test.tsx` - 59 tests, including all four dismissal
   routes asserted separately, each asserting that focus LEFT the opener before it came back (two of
   them previously passed against an implementation that did nothing, because `userEvent.click`
   leaves focus on the button it clicked)
@@ -142,6 +142,19 @@ ambiguous signal in the system.
   return` taken FALSE - "the candidate refused focus, try the next" - needs an element that is
   focusable to a selector and not to the browser, which is a layout fact. It is the reason the loop
   replaced a single `querySelector`, it was measured in Chromium, and it is gate 7's to cover.
+- **The two-phase restore is correct by construction, not by test.** A named restore must beat
+  another Modal's anonymous fallback regardless of which dialog React's deletion walk reaches
+  first - a review measured a `useConfirm()` provider landing the user on the page's skip link
+  after every confirmed action, in Chromium. The fix runs every named restore in one microtask and
+  queues fallbacks from inside it, so every named target has first refusal under ANY traversal
+  order; that argument is what makes it right, and it does not depend on measurement.
+
+  **No test here discriminates it.** Collapsing the two phases into one leaves all 59 green,
+  including the two provider fixtures written specifically for it: jsdom's deletion traversal does
+  not produce the ordering Chromium does, and traversal order is not something a test can pin. The
+  provider tests assert the correct outcome and would catch a regression that breaks it in jsdom's
+  ordering; they do not prove the phase split. Recorded rather than dressed up, and handed to
+  gate 7 with the rest.
 - **Nesting is asserted one level deep.** Modal-over-menu and menu-over-Modal are decided by DOM
   order (D0088) and the host ordering is asserted, but the composition with a real Select or
   DropdownMenu cannot be tested until those components exist (EP-01M0GK91).

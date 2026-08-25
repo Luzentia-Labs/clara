@@ -28,6 +28,8 @@ by rendering in Chromium by hand, and none is observable from jsdom or from a st
 | The panel rendered wider than the viewport (`box-sizing` missing, Clara ships no reset) | jsdom computes no layout |
 | `.focus()` on a `[hidden]` element was a silent no-op, so focus landed on `document.body` | jsdom honours no `hidden` |
 | Closing a dialog scrolled the page from y=4000 to 0 (`focus()` without `preventScroll`) | jsdom has no scroll position |
+| A `useConfirm()` provider landed the user on the page's skip link after every confirmed action | React's deletion traversal order differs from jsdom's, and traversal order is not something a test can pin |
+| A closed Modal stole focus and scrolled the page on mount, and again under StrictMode | jsdom models neither |
 
 D0096 records the boundary: the text-based CSS contracts in `check-component-css.mjs` are a floor.
 They read the stylesheet, not the cascade, so they cannot see specificity, source order, inheritance,

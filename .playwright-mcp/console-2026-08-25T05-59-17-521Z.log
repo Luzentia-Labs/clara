@@ -1,0 +1,4 @@
+[     112ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://127.0.0.1:5199/@fs/Users/richarddaleumayan/Projects_Personal/clara/.claude/worktrees/agent-acff1862247989ff4/node_modules/.vite/deps/chunk-BAYHHUTG.js?v=c9101aa8:21606
+[     123ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5199/favicon.ico:0
+[   13531ms] [ERROR] aria-hidden JSHandle@node in not contained inside JSHandle@node . Doing nothing @ http://127.0.0.1:5199/probe.tsx:22
+[   13532ms] [ERROR] aria-hidden JSHandle@node in not contained inside JSHandle@node . Doing nothing @ http://127.0.0.1:5199/probe.tsx:22

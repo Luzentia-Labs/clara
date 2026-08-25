@@ -117,7 +117,8 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
   //
   // A ref-reading cleanup rather than a second effect, because it must see the LATEST opener and
   // `returnFocus` without re-subscribing on every render.
-  const restore = useRef<() => void>(() => {})
+  const restoreNamed = useRef<() => boolean>(() => false)
+  const restoreFallback = useRef<() => void>(() => {})
   useEffect(() => () => {
     if (!wasOpen.current) return
     // DEFERRED, unlike the close path, and the ordering is the whole reason.
@@ -131,22 +132,14 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
     // A microtask runs after every synchronous cleanup in the same task, so Clara's restoration is
     // last and wins. The close path stays synchronous because there Radix's restore is suppressed
     // by `onCloseAutoFocus` and the extra tick would be an observable delay for no benefit.
-    const run = restore.current
+    const named = restoreNamed.current
+    const fallback = restoreFallback.current
     queueMicrotask(() => {
-      // Only when focus is actually STRANDED. The deferral that fixed the stranding introduced the
-      // opposite defect: running a tick later means it also runs after anything the APPLICATION
-      // did, so it overrode focus that was already correctly placed. Measured in Chromium on the
-      // mainstream ERP flow - commit, then navigate - the app focused the new record's heading in
-      // a route effect and Clara moved the user to the page's skip link one microtask later.
-      //
-      // It also settles nesting for free. Two Modals dismissed in one commit queue two restores,
-      // and microtasks are FIFO, so the outermost used to run last and win - backwards. Now the
-      // second one sees a real element already focused and leaves it alone.
-      //
-      // Focus on a real, connected element is somebody's decision. Only `document.body` is nobody's.
-      const active = document.activeElement
-      if (active && active !== document.body && active.isConnected) return
-      run()
+      // PHASE 1 - every named restore, before any fallback anywhere. A named target must beat an
+      // anonymous one regardless of which Modal React's deletion walk reached first.
+      if (named()) return
+      // PHASE 2 - a fallback only once every named restore in this commit has had its turn.
+      queueMicrotask(fallback)
     })
   }, [])
 
@@ -162,36 +155,48 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
     if (open) return
     if (!wasOpen.current) return
     wasOpen.current = false
-    restore.current()
+    if (!restoreNamed.current()) restoreFallback.current()
   }, [open, returnFocus])
 
-  restore.current = () => {
+  /**
+   * Restoration in two phases, because a named target must beat an anonymous one REGARDLESS of
+   * which Modal React's deletion walk reaches first.
+   *
+   * With one phase, a confirm dialog whose opener died with the edit dialog under it ran its
+   * fallback, grabbed the document's first focusable element, and the edit Modal's NAMED restore
+   * was then suppressed by the already-focused guard - so an ordinary `useConfirm()` provider left
+   * the user on the page's skip link after every confirmed action. Which Modal goes first is
+   * React's traversal order, not JSX order: invisible and uncontrollable to a consumer.
+   *
+   * Phase 1 runs every named restore. Phase 2 runs a fallback only if phase 1 left nothing focused.
+   * Both phases are microtasks, so both still run before the application's own effects - which is
+   * why an app that focuses a record heading on navigation continues to win over either.
+   */
+  restoreNamed.current = () => {
     const target = returnFocus?.current ?? openerRef.current
     openerRef.current = null
     wasOpen.current = false
-    // A disconnected target is the ordinary case, not an edge one: a menu item that opens a dialog
-    // is unmounted with the menu, and a Modal that starts `open` on mount never had an opener at
-    // all. Falling through here left focus on `document.body` - the exact strand the component
-    // exists to prevent - and `onCloseAutoFocus` is preventDefault'ed, so Radix's own fallback
-    // could not run either.
-    if (target?.isConnected) { target.focus({ preventScroll: true }); return }
-    // Nothing named survives, so put focus somewhere a keyboard user can continue from rather than
-    // at the top of the document. `body` is not a position; the first focusable element is.
+    if (!target?.isConnected) return false
+    target.focus({ preventScroll: true })
+    return true
+  }
+
+  restoreFallback.current = () => {
+    // Focus on a real, connected element is somebody's decision by now - another Modal's named
+    // restore, or the application's. Only `document.body` is nobody's.
+    const active = document.activeElement
+    if (active && active !== document.body && active.isConnected) return
+    // Nothing named survives anywhere, so put focus somewhere a keyboard user can continue from
+    // rather than at the top of the document. `body` is not a position.
     //
-    // "First match of a CSS selector" is NOT the first focusable element, and the difference is the
-    // whole bug: a review proved in Chromium that the selector picks a `[hidden]` button, `.focus()`
-    // on it is a silent no-op, and focus lands on `document.body` - the exact strand this fallback
-    // exists to remove. jsdom cannot see it, because it computes no layout and honours no `hidden`.
-    // So candidates are TRIED, in order, until one actually takes focus.
-    // TWO passes, and the order between them is the whole point.
+    // "First match of a CSS selector" is NOT the first focusable element: a review proved in
+    // Chromium that the selector picks a `[hidden]` button, `.focus()` on it is a silent no-op, and
+    // focus lands on `document.body`. So candidates are TRIED until one takes focus.
     //
-    // PREFER a candidate that is not `aria-hidden` - a background element hidden from assistive
-    // technology is a poor place to land while the page is otherwise intact. But ACCEPT one rather
-    // than leave focus on the body: `aria-hidden` means hidden from assistive technology, it does
-    // not make an element unfocusable, and on the unmount route every background subtree is still
-    // marked while Radix unwinds. A single pass that skipped them skipped ALL candidates and
-    // stranded focus - measured in Chromium as candidates=4, blocked=4. `[hidden]` and `[inert]`
-    // are different: those genuinely cannot take focus, so they are skipped in both passes.
+    // TWO passes. PREFER a candidate that is not `aria-hidden`, but ACCEPT one rather than leave
+    // focus on the body: `aria-hidden` means hidden from assistive technology, it does not make an
+    // element unfocusable, and on the unmount route every background subtree is still marked while
+    // Radix unwinds. `[hidden]` and `[inert]` genuinely cannot take focus, so they are always out.
     const candidates = [...document.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
     )].filter((el) => !el.closest('[hidden], [inert]'))

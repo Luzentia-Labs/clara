@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useRef, useState } from 'react'
+import { StrictMode, createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -321,6 +321,71 @@ describe('Modal focus restoration under StrictMode and a vanished opener', () =>
     // landing place is the button that started the whole flow - never the page's skip link.
     expect(screen.getByTestId('skip')).not.toHaveFocus()
     expect(screen.getByTestId('opener')).toHaveFocus()
+  })
+
+  it.each([
+    ['dialog before children', true],
+    ['dialog after children', false],
+  ])('lands on the real opener with a confirm PROVIDER at the app root (%s)', async (_label, dialogFirst) => {
+    // The ordinary `useConfirm()` shape: a PROVIDER at the app root owns the confirm dialog and
+    // renders the feature as `children`. That nesting is what makes the deletion walk reach the
+    // confirm dialog first - flat siblings do not reproduce it, which is why this fixture is a
+    // provider and not two Modals side by side.
+    //
+    // The confirm dialog's opener dies with the edit dialog, so its ANONYMOUS fallback used to grab
+    // the document's first focusable element and suppress the edit Modal's NAMED restore. Both
+    // child orderings are asserted because traversal order is React's, not JSX's.
+    const Ctx = createContext<(() => void) | null>(null)
+    function ConfirmProvider ({ children, asking, onClose }: {
+      children: ReactNode, asking: boolean, onClose: () => void,
+    }) {
+      const dialog = asking
+        ? <Modal open title="Confirm" onClose={onClose}><button data-testid="yes">Yes</button></Modal>
+        : null
+      return <>{dialogFirst ? <>{dialog}{children}</> : <>{children}{dialog}</>}</>
+    }
+    function Feature ({ edit, onEditClose }: { edit: boolean, onEditClose: () => void }) {
+      const ask = useContext(Ctx)!
+      return (
+        <>
+          <button data-testid="opener">Edit</button>
+          {edit && (
+            <Modal open title="Edit" onClose={onEditClose}>
+              <button data-testid="ask" onClick={ask}>Delete</button>
+            </Modal>
+          )}
+        </>
+      )
+    }
+    function App () {
+      const [edit, setEdit] = useState(false)
+      const [asking, setAsking] = useState(false)
+      // Both dialogs go in ONE commit, which is the case this exists for.
+      const closeBoth = () => { setAsking(false); setEdit(false) }
+      return (
+        <ClaraProvider>
+          <a href="#main" data-testid="skip">Skip</a>
+          <button data-testid="start" onClick={() => setEdit(true)}>Start</button>
+          <Ctx.Provider value={() => setAsking(true)}>
+            <ConfirmProvider asking={asking} onClose={closeBoth}>
+              <Feature edit={edit} onEditClose={() => setEdit(false)} />
+            </ConfirmProvider>
+          </Ctx.Provider>
+        </ClaraProvider>
+      )
+    }
+    render(<App />)
+    await userEvent.click(screen.getByTestId('start'))
+    await waitFor(() => expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1))
+    await userEvent.click(screen.getByTestId('ask'))
+    await waitFor(() => expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(2))
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(0))
+    await new Promise((r) => { setTimeout(r, 0) })
+    // The edit dialog's opener is the only named target that survives, so it is the only correct
+    // landing place - never the page's skip link.
+    expect(screen.getByTestId('skip')).not.toHaveFocus()
+    expect(screen.getByTestId('start')).toHaveFocus()
   })
 
   it('accepts an aria-hidden candidate rather than stranding focus on the body', async () => {

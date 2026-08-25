@@ -138,7 +138,7 @@
   "declared dependencies and peers stay external" lives in one place instead of two. Measured:
   Radix Dialog is 15.19 kB gzipped, three times the whole per-component budget, so bundling it
   would not be a rounding error
-- **Verify:** shell node scripts/check-bundled-peers.mjs && npx size-limit
+- **Verify:** shell pnpm build && node scripts/check-bundled-peers.mjs && npx size-limit
 - **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 

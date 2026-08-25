@@ -1,0 +1,13 @@
+- generic:
+  - generic:
+    - generic:
+      - link:
+        - /url: "#main"
+        - text: Skip to content
+      - button: Open
+      - button: Next step
+  - dialog [ref=f5e8]:
+    - generic [ref=f5e9]:
+      - heading "Edit record" [level=2] [ref=f5e10]
+      - button "Close" [active] [ref=f5e11] [cursor=pointer]
+    - button "Inside" [ref=f5e17]
