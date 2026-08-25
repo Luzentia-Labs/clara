@@ -47,6 +47,11 @@
     "surface": {
       "value": "{radius.lg}",
       "type": "dimension"
+    },
+    "round": {
+      "value": "{radius.full}",
+      "type": "dimension",
+      "comment": "A circle or a pill. Tier 2 had no alias for radius.full, so no component could legally draw a circle."
     }
   },
   "border-width": {
@@ -110,6 +115,25 @@
       "value": "{layer.4}",
       "type": "number",
       "comment": "Above everything, because a toast may be the only report that something failed."
+    }
+  },
+  "duration": {
+    "state-change": {
+      "value": "{duration.fast}",
+      "type": "duration",
+      "comment": "How long ONE state change takes. One-shot, never repeating. D0094 pre-committed this on enter."
+    },
+    "step": {
+      "value": "{duration.base}",
+      "type": "duration",
+      "comment": "How long a repeating indicator takes to advance ONE feature-width. The unit of a cycle, not a cycle."
+    }
+  },
+  "easing": {
+    "enter": {
+      "value": "{easing.decelerate}",
+      "type": "cubicBezier",
+      "comment": "The curve for a thing arriving. One curve, not a family: Clara exits instantly (D0094), so there is no exit curve to name."
     }
   }
 }

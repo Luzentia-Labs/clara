@@ -2,28 +2,35 @@
  * An overlay must USE the mechanisms US-01M0GM61 built for it.
  *
  * That story headlines "one portal mechanism" and "the scoping problem is solved once in the
- * architecture rather than nine times in props", and until this guard existed nothing said so.
- * `Modal` renders through `ClaraPortal`; the other eleven could each reach for `Popover.Portal`,
- * `Tooltip.Portal` or `Toast.Viewport` instead and get no scope attributes, no open-order host and
- * no layer token, with every gate in the repo green - including the browser scoping gate, because
- * that renders a bare `ClaraPortal` rather than a component.
+ * architecture rather than nine times in props", and nothing bound any overlay to it. `Modal` uses
+ * `ClaraPortal` because `Modal` was written by somebody who had read the story; the other eleven
+ * could each reach for a Radix portal and get no scope attributes, no open-order host and no layer
+ * token, with every gate green. That is verbatim D0087's own rationale about the z-index scale -
+ * "a scale nothing obliges a component to use is exactly the defect the story exists to prevent."
  *
- * This is verbatim the defect D0087 records about the z-index scale: "A scale nothing obliges a
- * component to use is exactly the defect the story exists to prevent." The same sentence was true
- * of the portal for as long as the portal existed (US-01M0GM61 round 6).
+ * **This file was rewritten after review (US-01M0GM61 round 7).** Its first version matched text:
+ * a regex over the stylesheet for `.clara-<name>[^{]*\{[^}]*\}`, and `\bClaraPortal\b` over the
+ * source. Every one of those was defeated, and the reviewer defeated them:
  *
- * Two requirements, both read from source rather than inferred from a name:
+ *   - `[^{]*` crosses `}` and comment boundaries, so ANY textual mention of a class bound the NEXT
+ *     rule's block to that component. A Drawer with no stylesheet rule at all passed, because a
+ *     comment above `.clara-modal__scrim` mentioned `.clara-drawer`.
+ *   - `\bClaraPortal\b` was satisfied by `// TODO: move this to ClaraPortal`, and by a type-only
+ *     or unused import.
+ *   - `\b(\w+)\.Portal\b` missed `import { Portal } from '@radix-ui/react-dialog'` entirely - the
+ *     destructured form, which is the idiom an author actually reaches for - and FAILED the build
+ *     on the comment "Deliberately NOT Dialog.Portal", which is the comment a careful author
+ *     writes. This file's own docblock would have tripped it.
  *
- *   1. The component renders `ClaraPortal`. Radix's own portal primitives are refused BY NAME,
- *      because they are the specific wrong answer an author reaches for - and TRD ADR-006 is the
- *      reason: a Radix portal drops the content on `document.body` with no `data-clara-*`, so a
- *      dark scope stops at the trigger.
- *   2. Its stacking comes from a layer token. `z-index: auto` is what a surface gets when nobody
- *      thought about it, and no other guard objects: the z-index rule is a DENYLIST against
- *      hand-typed numbers, so declaring nothing passes it.
+ * So it parses. D0067 records this lesson for this repo already: a hand-rolled parser was the tenth
+ * in the codebase and was replaced with the PostCSS imported ten lines away. Both parsers are
+ * already dependencies here.
  */
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import postcss from 'postcss'
+import selectorParser from 'postcss-selector-parser'
+import ts from 'typescript'
 import { fail, pass } from './lib/workspace.mjs'
 
 const RULE = 'overlay-contract'
@@ -34,13 +41,14 @@ const classification = JSON.parse(readFileSync(join(root, 'packages/react/client
 const overlays = classification.components.filter((c) => c.overlay === true)
 const built = overlays.filter((c) => c.status === 'built')
 
-// A guard that enumerates nothing passes for the wrong reason. Both halves are checked: the flag
-// must exist on somebody, and at least one flagged component must actually be built - otherwise
-// this file reports success over an empty loop for as long as the epic takes.
+// A guard that enumerates nothing passes for the wrong reason, so both halves are checked.
 if (!overlays.length) problems.push('client-boundary.json flags no component `overlay: true` - this guard would be vacuous')
 if (!built.length) problems.push('no flagged overlay is built yet, so this guard checks nothing - it must not report success')
 
-/** Every source file belonging to one component, minus its tests. */
+/** `DropdownMenu` -> `clara-dropdown-menu`. */
+const classBase = (name) => `clara-${name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}`
+
+/** Every source file belonging to one component, minus its tests and stories. */
 const sourcesFor = (name) => {
   const dir = join(root, 'packages/react/src/components', name)
   if (!existsSync(dir)) return []
@@ -50,47 +58,127 @@ const sourcesFor = (name) => {
   return walk(dir).filter((f) => (f.endsWith('.tsx') || f.endsWith('.ts')) && !f.endsWith('.stories.tsx'))
 }
 
+/**
+ * What a component's source actually RENDERS, read from the syntax tree.
+ *
+ * A comment is not a render. An unused import is not a render. A type-only import is not a render.
+ * Only a JSX element counts, which is the thing the runtime does.
+ */
+function portalUsage (files) {
+  const usage = { rendersClaraPortal: false, radixPortals: new Set() }
+
+  for (const file of files) {
+    const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+
+    // Local names bound to a Radix portal, however the author spelled the import:
+    //   `import { Portal } from '@radix-ui/react-dialog'`      -> "Portal"
+    //   `import { Portal as P } from '@radix-ui/react-popover'` -> "P"
+    //   `import * as Dialog from '@radix-ui/react-dialog'`      -> "Dialog" (namespace)
+    const radixLocal = new Set()
+    const radixNamespace = new Set()
+
+    const visit = (node) => {
+      if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+        const from = node.moduleSpecifier.text
+        const isRadix = from.startsWith('@radix-ui/')
+        const clause = node.importClause
+        // `import type { ... }` renders nothing.
+        if (clause && !clause.isTypeOnly && clause.namedBindings) {
+          if (ts.isNamedImports(clause.namedBindings)) {
+            for (const el of clause.namedBindings.elements) {
+              if (el.isTypeOnly) continue
+              const imported = (el.propertyName ?? el.name).text
+              if (isRadix && imported === 'Portal') radixLocal.add(el.name.text)
+            }
+          } else if (ts.isNamespaceImport(clause.namedBindings) && isRadix) {
+            radixNamespace.add(clause.namedBindings.name.text)
+          }
+        }
+      }
+
+      if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+        const tag = node.tagName
+        if (ts.isIdentifier(tag)) {
+          if (tag.text === 'ClaraPortal') usage.rendersClaraPortal = true
+          if (radixLocal.has(tag.text)) usage.radixPortals.add(tag.text)
+        } else if (ts.isPropertyAccessExpression(tag)) {
+          // `<Dialog.Portal>` - only when `Dialog` really is a Radix namespace import.
+          const object = tag.expression
+          if (ts.isIdentifier(object) && radixNamespace.has(object.text) && tag.name.text === 'Portal') {
+            usage.radixPortals.add(`${object.text}.Portal`)
+          }
+        }
+      }
+      ts.forEachChild(node, visit)
+    }
+    visit(source)
+  }
+  return usage
+}
+
+/**
+ * The rules whose selector really targets this component, found by parsing the selector rather
+ * than by matching its text. A mention inside a comment is not a rule, and a rule's block ends at
+ * its own closing brace.
+ */
+function rulesFor (stylesheet, base) {
+  const found = []
+  postcss.parse(stylesheet).walkRules((rule) => {
+    let hit = false
+    for (const selector of rule.selectors) {
+      try {
+        selectorParser((nodes) => {
+          nodes.walkClasses((cls) => {
+            if (cls.value === base || cls.value.startsWith(`${base}__`) || cls.value.startsWith(`${base}--`)) hit = true
+          })
+        }).processSync(selector)
+      } catch {
+        // An unparseable selector is not this guard's to diagnose; check-component-css owns that.
+      }
+    }
+    if (hit) found.push(rule)
+  })
+  return found
+}
+
 const stylesheet = readFileSync(join(root, 'packages/react/src/styles.css'), 'utf8')
 
 for (const { name } of built) {
   const files = sourcesFor(name)
+  const where = relative(root, join('packages/react/src/components', name))
   if (!files.length) {
-    problems.push(`${name} is classified as a built overlay but has no source directory`)
+    problems.push(`${where}: ${name} is classified as a built overlay but has no source directory`)
     continue
   }
 
-  const source = files.map((f) => readFileSync(f, 'utf8')).join('\n')
-  const where = relative(root, join('packages/react/src/components', name))
+  const { rendersClaraPortal, radixPortals } = portalUsage(files)
 
-  if (!/\bClaraPortal\b/.test(source)) {
+  if (!rendersClaraPortal) {
     problems.push(
-      `${where}: ${name} is an overlay and does not render through ClaraPortal - a portal that ` +
-      'does not carry the scope drops a dark subtree back to the page theme (TRD ADR-006)',
+      `${where}: ${name} is an overlay and renders no <ClaraPortal> - a portal that does not carry ` +
+      'the scope drops a dark subtree back to the page theme (TRD ADR-006). An import or a comment ' +
+      'is not a render; this is read from the syntax tree',
+    )
+  }
+  for (const tag of radixPortals) {
+    problems.push(
+      `${where}: ${name} renders <${tag}>, a Radix portal - it drops its content on document.body ` +
+      'with no `data-clara-*`, so the scope stops at the trigger. Use ClaraPortal',
     )
   }
 
-  // Named explicitly: this is the substitution the guard exists to catch, not a hypothetical.
-  const radixPortal = source.match(/\b(\w+)\.Portal\b/)
-  if (radixPortal) {
-    problems.push(
-      `${where}: ${name} renders \`${radixPortal[0]}\` - a Radix portal drops its content on ` +
-      '`document.body` with no `data-clara-*`, so the scope stops at the trigger. Use ClaraPortal',
-    )
-  }
-
-  // The stacking half. Read from the stylesheet, because that is where a z-index legally lives.
-  const selectors = new RegExp(`\\.clara-${name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()}[^{]*\\{[^}]*\\}`, 'g')
-  const rules = stylesheet.match(selectors) ?? []
+  const rules = rulesFor(stylesheet, classBase(name))
   if (!rules.length) {
-    problems.push(`${where}: ${name} is an overlay with no stylesheet rule, so it can carry no layer token`)
-  } else if (!rules.some((r) => /z-index:\s*var\(--clara-layer-/.test(r))) {
+    problems.push(`${where}: ${name} is an overlay with no stylesheet rule of its own, so it can carry no layer token`)
+  } else if (!rules.some((rule) => rule.some?.((decl) =>
+    decl.type === 'decl' && decl.prop === 'z-index' && /var\(\s*--clara-layer-/.test(decl.value)))) {
     problems.push(
-      `${where}: ${name} is an overlay and no rule of its own takes \`z-index\` from a layer ` +
-      'token. A surface nobody gave a z-index gets `auto`, and the z-index rule is a denylist ' +
-      'against hand-typed numbers, so declaring nothing passes it (D0087)',
+      `${where}: ${name} is an overlay and no rule of its own takes \`z-index\` from a layer token. ` +
+      'A surface nobody gave a z-index gets `auto`, and the z-index rule is a denylist against ' +
+      'hand-typed numbers, so declaring nothing passes it (D0087)',
     )
   }
 }
 
 if (problems.length) fail(RULE, problems)
-pass(RULE, `${built.length} built overlay(s) of ${overlays.length} flagged: each renders through ClaraPortal and takes its stacking from a layer token`)
+pass(RULE, `${built.length} built overlay(s) of ${overlays.length} flagged: each RENDERS ClaraPortal and takes its stacking from a layer token`)

@@ -282,13 +282,47 @@
  */
 .clara-button__label--hidden { visibility: hidden; }
 .clara-button--loading { position: relative; }
+/*
+ * The spinner spins (BG-01M0WZEM, D0100).
+ *
+ * It never did. The ring was drawn - four borders with the top transparent - and nothing rotated
+ * it, so `<Button loading>` showed a static three-quarter circle. To a user that does not read as
+ * "working"; it reads as a control that has broken, which is the one thing a busy indicator must
+ * not say. There was no `@keyframes` anywhere in Clara, and no component COULD declare a duration:
+ * tier 1 is off limits to component CSS and tier 2 had no motion family until D0100 added one.
+ *
+ * `radius.round`, not `radius.surface`: 8px on a 14px box is a squircle. Invisible while static,
+ * conspicuous the moment it turns, because a rotating squircle wobbles.
+ *
+ * `linear`, written directly and deliberately not a token: an eased repeating cycle stutters at the
+ * seam where the keyframe wraps, and a spinner that stutters reads as one that is intermittently
+ * hung - the exact meaning it exists to deny. There is no choice here for a token to express.
+ */
+@keyframes clara-spin { to { transform: rotate(1turn); } }
+@keyframes clara-pulse { to { border-color: var(--clara-button-spinner-idle); } }
+
 .clara-button__spinner {
   position: absolute;
   width: var(--clara-font-body);
   height: var(--clara-font-body);
   border: var(--clara-button-border-width) solid currentColor;
   border-top-color: transparent;
-  border-radius: var(--clara-radius-surface);
+  border-radius: var(--clara-button-spinner-radius);
+  animation: clara-spin var(--clara-button-spinner-cycle) linear infinite;
+}
+
+/*
+ * The motion IS the information here, so it is REPLACED rather than removed (D0100). A spinner that
+ * stops is a broken spinner. The replacement displaces nothing - no transform, no size change,
+ * which is what the vestibular response is triggered by - and it still changes on the same period,
+ * so liveness survives. Both endpoints are existing tokens, so the dimmed end is a measured colour
+ * rather than a hand-typed opacity nobody checked.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .clara-button__spinner {
+    border-top-color: currentColor;
+    animation: clara-pulse var(--clara-button-spinner-cycle) linear infinite alternate;
+  }
 }
 .clara-button--sm {
   min-height: var(--clara-size-target-min);

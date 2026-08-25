@@ -422,5 +422,11 @@
         "type": "dimension"
       }
     }
+  },
+  "easing": {
+    "decelerate": {
+      "value": "cubic-bezier(0, 0, 0.58, 1)",
+      "type": "cubicBezier"
+    }
   }
 }

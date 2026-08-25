@@ -280,3 +280,76 @@ test.describe('computed geometry (TSD 7)', () => {
     expect(wrong, `adjacent targets closer than the density floor:\n  ${wrong.join('\n  ')}`).toEqual([])
   })
 })
+
+/**
+ * Motion, where the motion IS the information (D0100, BG-01M0WZEM).
+ *
+ * Separate from the measurements above because each case needs its own page: reduced motion is a
+ * media preference, and `emulateMedia` applies per page rather than per element.
+ *
+ * What this must NOT assert, and why, because the temptation is real:
+ *   - an exact duration. Pinning 800ms moves ownership of a value out of the token layer into a
+ *     test, and makes retuning `duration.base` a breaking test change. The bounds below are
+ *     derived from rules instead - above 333ms because WCAG 2.3.1 caps three flashes per second,
+ *     below 2000ms because past that a user reads the indicator as stopped.
+ *   - a keyframe NAME, or the easing bezier. The reduced-motion assertion samples properties
+ *     instead, so it survives any rename.
+ */
+test.describe('a busy indicator states liveness (D0100)', () => {
+  const LOADING = '[data-case="motion-button-loading"] .clara-button__spinner'
+
+  const animationOf = (page: import('@playwright/test').Page) => page.evaluate((sel) => {
+    const s = getComputedStyle(document.querySelector(sel)!)
+    return {
+      name: s.animationName,
+      seconds: parseFloat(s.animationDuration),
+      iterations: s.animationIterationCount,
+    }
+  }, LOADING)
+
+  test('it animates, and it never stops', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.goto(`file://${FIXTURE}`)
+    const animation = await animationOf(page)
+
+    expect(animation.name, 'the spinner declares no animation - a frozen ring reads as a broken control').not.toBe('none')
+    expect(animation.seconds).toBeGreaterThan(0)
+    // The assertion that GENERALISES the bug: an indicator that animates once and stops is the
+    // frozen ring in a new costume, and it would satisfy every assertion above.
+    expect(animation.iterations, 'a busy indicator that runs a finite number of times stops being one').toBe('infinite')
+    // Bounds, not a value.
+    expect(animation.seconds).toBeGreaterThan(1 / 3)
+    expect(animation.seconds).toBeLessThan(2)
+  })
+
+  test('under reduced motion it displaces nothing, and still changes over time', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto(`file://${FIXTURE}`)
+
+    const animation = await animationOf(page)
+    expect(animation.name, 'the motion was removed rather than replaced - a spinner that stops is a broken spinner').not.toBe('none')
+    expect(animation.iterations).toBe('infinite')
+
+    const sample = () => page.evaluate((sel) => {
+      const s = getComputedStyle(document.querySelector(sel)!)
+      return { transform: s.transform, colour: s.borderTopColor + '|' + s.borderRightColor }
+    }, LOADING)
+
+    // Three samples across the cycle: two could land symmetrically about a peak and read equal.
+    const samples = []
+    for (let i = 0; i < 3; i++) {
+      samples.push(await sample())
+      await page.waitForTimeout(220)
+    }
+
+    // Condition 1 of the Class B rule: no displacement. This is the one the vestibular response
+    // is triggered by, and it is the whole reason the treatment changes under `reduce`.
+    const transforms = new Set(samples.map((s) => s.transform))
+    expect([...transforms], 'the reduced treatment still moves the element').toHaveLength(1)
+
+    // Condition 2: it still changes over time, or liveness has been destroyed rather than reduced.
+    const colours = new Set(samples.map((s) => s.colour))
+    expect(colours.size, 'the reduced treatment is static, so it no longer says the system is working')
+      .toBeGreaterThan(1)
+  })
+})

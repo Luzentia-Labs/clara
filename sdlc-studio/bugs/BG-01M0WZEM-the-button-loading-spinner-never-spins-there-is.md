@@ -1,6 +1,7 @@
 # BG-01M0WZEM: The Button loading spinner never spins - there is no animation anywhere in Clara
 
-> **Status:** inbox
+> **Status:** Fixed
+> **Triaged-by:** Claude Opus 5; agent; claude-opus-5
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -41,6 +42,54 @@ Four components still to build need motion as their PRIMARY affordance: Spinner 
 - **No tier 2 motion tokens.** Tier 1 has `duration.instant/fast/base` (0/120/200ms) and nothing else - no easing, no spin duration. Tier 2 has no motion family at all. Tier 2 is public API and permanent at publish (PRD F01), so the shape of that family is a one-way door.
 - **No reduced-motion convention.** D0094 records that MODAL does not animate and therefore has no `prefers-reduced-motion` branch - "there is nothing to reduce". That is a decision about one component, not a project policy, and a spinner is the opposite case: the motion IS the information, so it cannot simply be removed under reduced-motion. What replaces it has to be decided.
 - **No gate.** `check-component-css.mjs` has a `NO_MOTION` contract used to assert Modal declares none. Nothing asserts that a component which SHOULD animate does, and jsdom cannot see it - `getComputedStyle` in jsdom returns no animation, so this is gate 9's territory (a real browser), not the unit suite's.
+
+## Acceptance Criteria
+
+- **AC1** - A rendered `<Button loading>` animates, and never stops. The iteration count is
+  asserted `infinite` because an indicator that animates once and stops is this bug wearing a new
+  costume, and it would satisfy an "it animates" assertion.
+- **Verify:** shell pnpm check:geometry
+- **Verified:** yes (2026-08-25)
+
+- **AC2** - Under `prefers-reduced-motion: reduce` the motion is REPLACED, not removed: the element
+  displaces nothing across the cycle, and still changes over time. Sampled as properties rather
+  than keyframe names, so it survives a rename.
+- **Verify:** shell pnpm check:geometry
+- **Verified:** yes (2026-08-25)
+
+## Verification
+
+**Verified by:** Claude Opus 5 (agent)
+
+**Verification date:** 2026-08-26
+
+**Verification depth:** functional
+
+Fixed per D0100. `duration.step` at tier 2 (200ms), and the cycle computed where the geometry lives:
+`--clara-button-spinner-cycle: calc(var(--clara-duration-step) * 4)`, because the ring's transparent
+quadrant makes one revolution four feature-widths. `radius.round` was added to tier 2 in the same
+decision - the ring carried `radius.surface`, which is 8px on a 14px box, so it was a squircle that
+would have wobbled visibly the moment it turned.
+
+Mutation-checked, all three assertions, each with its own diagnostic:
+
+- `animation: none` -> *"the spinner declares no animation - a frozen ring reads as a broken
+  control"*. This is the original defect, and the gate now refuses it.
+- `animation-iteration-count: 1` -> *"a busy indicator that runs a finite number of times stops
+  being one"*.
+- Breaking the reduced-motion query so the spinner keeps rotating -> *"the reduced treatment still
+  moves the element"*.
+
+Worth recording, because it nearly produced a false conclusion: the third probe FIRST appeared to
+pass. The mutation was a no-op - the emitted CSS is minified to
+`@media (prefers-reduced-motion:reduce)` with no space, so a replace written against the source
+spelling matched nothing. Tracing what the browser actually computed showed `animation-name` still
+`clara-pulse`, i.e. the block still applying. Re-run against the emitted string, the assertion
+failed as it should. A mutation that does not apply is indistinguishable from a gate that cannot
+fail, and only reading the computed value separates them.
+
+**Not yet adversarially reviewed.** This records that the fix was observed working, not that a
+second seat has signed it off.
 
 ## Revision History
 

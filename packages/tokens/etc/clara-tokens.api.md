@@ -158,6 +158,15 @@ export const ButtonSecondaryBorder = "#585654";
 export const ButtonSecondaryFg = "#1f1e1d";
 
 // @public (undocumented)
+export const ButtonSpinnerCycle = "calc(200ms * 4)";
+
+// @public (undocumented)
+export const ButtonSpinnerIdle = "#585654";
+
+// @public (undocumented)
+export const ButtonSpinnerRadius = "9999px";
+
+// @public (undocumented)
 export const ColorAccent0 = "#ffffff";
 
 // @public (undocumented)
@@ -473,6 +482,18 @@ export const DurationFast = "120ms";
 export const DurationInstant = "0ms";
 
 // @public (undocumented)
+export const DurationStateChange = "120ms";
+
+// @public (undocumented)
+export const DurationStep = "200ms";
+
+// @public (undocumented)
+export const EasingDecelerate = "cubic-bezier(0, 0, 0.58, 1)";
+
+// @public (undocumented)
+export const EasingEnter = "cubic-bezier(0, 0, 0.58, 1)";
+
+// @public (undocumented)
 export const EmptyStateActionGap = "12px";
 
 // @public (undocumented)
@@ -594,6 +615,9 @@ export const RadiusMd = "4px";
 
 // @public (undocumented)
 export const RadiusNone = "0";
+
+// @public (undocumented)
+export const RadiusRound = "9999px";
 
 // @public (undocumented)
 export const RadiusSm = "2px";

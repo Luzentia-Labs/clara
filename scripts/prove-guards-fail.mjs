@@ -377,15 +377,34 @@ const OUTPUT_CASES = [
     stage: (stage) => writeFileSync(join(stage, 'packages/react/dist/rogue.css'), '.x{color:red}\n'),
   },
   {
-    // The portal half. US-01M0GM61 headlines "one portal mechanism", and until this guard existed
-    // nothing obliged any overlay to use it - which is verbatim D0087's own rationale about the
-    // z-index scale, true of the portal for as long as the portal existed (round 6).
-    name: 'an overlay reaching for a Radix portal instead of ClaraPortal',
+    // The guard has TWO independent portal rules, and one mutation with an alternating `expect`
+    // pinned neither: deleting either branch left this prover at exit 0 (US-01M0GM61 round 7).
+    // `check-stylesheets` had the identical trap, recorded thirty lines above under CR-01M0MBGN
+    // AC4, and it was walked into again. So each branch gets its own mutation, chosen to trigger
+    // exactly one of them, and its own non-alternating expectation.
+    //
+    // ONLY the Radix rule: Modal keeps rendering ClaraPortal, and a Radix portal appears beside it.
+    name: 'an overlay reaching for a Radix portal alongside ClaraPortal',
     guard: 'check-overlay-contract.mjs',
-    expect: /does not render through ClaraPortal|renders `\w+\.Portal`/,
+    expect: /renders <\w+>, a Radix portal/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
-      writeFileSync(f, readFileSync(f, 'utf8').replaceAll('ClaraPortal', 'Dialog.Portal'))
+      writeFileSync(f, `import { Portal as RadixPortal } from '@radix-ui/react-dialog'\n`
+        + readFileSync(f, 'utf8')
+        + `\nexport function ModalRadixProbe () { return <RadixPortal /> }\n`)
+    },
+  },
+  {
+    // ONLY the ClaraPortal rule: the portal element is gone and no Radix portal replaces it. The
+    // IMPORT is deliberately left in place, because an unused import satisfying the check is one
+    // of the defeats the text-matching version shipped with.
+    name: 'an overlay that renders no ClaraPortal, with the import still sitting there',
+    guard: 'check-overlay-contract.mjs',
+    expect: /renders no <ClaraPortal>/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        .replaceAll('<ClaraPortal', '<div').replaceAll('</ClaraPortal>', '</div>'))
     },
   },
   {

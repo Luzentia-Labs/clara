@@ -87,6 +87,11 @@ export function buildGeometryFixture ({ root = defaultRoot, out } = {}) {
       options: [{ value: 'net30', label: 'Net 30' }, { value: 'net60', label: 'Net 60' }],
     })),
 
+    // --- motion: a busy indicator's liveness is the information (D0100) ---
+    // Rendered here so gate 9 can read what the browser computed. jsdom returns no animation at
+    // all, so a green unit test asserting this would be a false green by construction.
+    kase('motion-button-loading', 'motion', h(C.Button, { size: 'md', loading: true }, 'Saving')),
+
     // --- type floor: body never below 14px in any density (TSD 7 row 4, PRD:333) ---
     kase('text-body', 'text', h(C.Text, null, 'Total payable on the agreed terms.')),
     kase('text-field', 'text', h(C.Field, { label: 'Supplier reference', description: 'As it appears on the invoice' },

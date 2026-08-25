@@ -50,6 +50,11 @@ Each finding here is Low-severity on its own; the batch is triaged, then actione
   A Toast may carry an action - "Retry", "Undo", "View" - and that action may have a tooltip. The tooltip then describes the thing currently on top and renders under it, which is the one case where a tooltip is useless: it is covered by exactly the element it explains.
 
   Neither component exists yet, so nothing is broken today. The tokens that decide it are tier 2, public and permanent at publish.
+- **Nineteen files still name US-01M0GMZW as gate 7's owner, which D0099 superseded**: D0099 recorded that gate 7 is Chromatic visual regression, owned by `US-01M0WSME`, and that `US-01M0GMZW` builds the Storybook workspace and never delivered a baseline or a diff. `ci-gates.json` was rebound and the citations inside the files US-01M0GM61 owns were corrected.
+
+  Nineteen files still carry the superseded ownership. Thirteen of them are story files repeating some form of *"visual regression is gate 7, unwired, tracked by US-01M0GMZW"*, and one is `sdlc-studio/decisions.md:81` - D0067, status `accepted`, whose substantive claim is correct and only whose owner id is stale.
+
+  A handful of remaining references to `US-01M0GMZW` are CORRECT and must not be swept: `.github/workflows/pages.yml` and `e2e/storybook.spec.ts` cite it for the Storybook workspace, which is exactly what that story delivers.
 
 ## Revision History
 
