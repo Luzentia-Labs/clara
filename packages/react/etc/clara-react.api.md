@@ -410,6 +410,32 @@ export interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
 }
 
 // @public
+export function Skeleton(input: SkeletonProps): JSX_2.Element;
+
+// @public
+export function SkeletonGroup(input: SkeletonGroupProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface SkeletonGroupProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    className?: string;
+    label: string;
+}
+
+// @public (undocumented)
+export interface SkeletonProps {
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    width?: SkeletonWidth;
+}
+
+// @public
+export type SkeletonWidth = 'full' | 'three-quarters' | 'half' | 'quarter';
+
+// @public
 export function Spinner(input: SpinnerProps): JSX_2.Element;
 
 // @public (undocumented)

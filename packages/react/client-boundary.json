@@ -225,7 +225,12 @@
     {
       "name": "Skeleton",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
+    },
+    {
+      "name": "SkeletonGroup",
+      "boundary": "server",
+      "status": "built"
     },
     {
       "name": "Spinner",

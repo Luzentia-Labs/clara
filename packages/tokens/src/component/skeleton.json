@@ -1,0 +1,20 @@
+{
+  "skeleton": {
+    "bg": {
+      "value": "{color.bg.subtle}",
+      "type": "color"
+    },
+    "radius": {
+      "value": "{radius.control}",
+      "type": "dimension"
+    },
+    "height": {
+      "value": "{font.body-lg}",
+      "type": "dimension"
+    },
+    "gap": {
+      "value": "{space.control-gap}",
+      "type": "dimension"
+    }
+  }
+}

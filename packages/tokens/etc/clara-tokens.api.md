@@ -626,6 +626,18 @@ export const SizeControlHeight = "40px";
 export const SizeTargetMin = "24px";
 
 // @public (undocumented)
+export const SkeletonBg = "#f2f0ed";
+
+// @public (undocumented)
+export const SkeletonGap = "8px";
+
+// @public (undocumented)
+export const SkeletonHeight = "16px";
+
+// @public (undocumented)
+export const SkeletonRadius = "4px";
+
+// @public (undocumented)
 export const Space0 = "0";
 
 // @public (undocumented)

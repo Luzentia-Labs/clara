@@ -397,7 +397,11 @@ const VALUE_CONTRACT = [
  * asserted, not assumed" while nothing asserted it - adding both a `transition` and an `animation`
  * left the full suite and every guard green.
  */
-const NO_MOTION = ['.clara-modal', '.clara-modal__scrim', '.clara-modal__body', '.clara-modal__header', '.clara-modal__footer']
+// `.clara-skeleton` joins the list by ruling, not by omission: D0100 decided a skeleton has no
+// motion in EITHER preference, because its information is its shape and a shimmer adds nothing
+// the shape has not said. Without this, the next author 'improves' it back in.
+const NO_MOTION = ['.clara-modal', '.clara-modal__scrim', '.clara-modal__body', '.clara-modal__header', '.clara-modal__footer',
+  '.clara-skeleton', '.clara-skeleton-group']
 
 /**
  * Every focusable thing this stylesheet renders must have a `:focus-visible` rule.
@@ -628,7 +632,12 @@ for (const selector of NO_MOTION.filter((sel) => inScope(sel))) {
         if (sel.trim() !== selector && !targetsElement(sel, selector)) continue
         rule.walkDecls((decl) => {
           if (!/^(transition|animation)(-|$)/.test(decl.prop.toLowerCase())) return
-          problems.push(`${sel.trim()} declares \`${decl.prop}\` - Modal has no motion by decision (D0094), not by omission. Adding one is a decision to revisit, not a stylesheet edit.`)
+          // The decision differs per component, and naming the wrong one sends the reader to the
+          // wrong record: a skeleton's stillness is D0100's ruling, not Modal's D0094.
+          const why = selector.startsWith('.clara-skeleton')
+            ? 'a skeleton has no motion in EITHER preference by decision (D0100) - its information is its SHAPE, and a shimmer adds nothing the shape has not said'
+            : 'Modal has no motion by decision (D0094)'
+          problems.push(`${sel.trim()} declares \`${decl.prop}\` - ${why}, not by omission. Adding one is a decision to revisit, not a stylesheet edit.`)
         })
       }
     })

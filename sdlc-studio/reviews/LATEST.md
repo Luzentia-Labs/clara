@@ -10,14 +10,14 @@
 **The form framework is built and its ten stories verify clean**, after **five rounds of
 adversarial review, each of which rejected the previous round's work**. The Field plus nine controls
 (Input, Textarea, NumberInput, PasswordInput, SearchInput, Checkbox, Switch, RadioGroup,
-CheckboxGroup) are on `main`, with 1034 tests and every gate green. Nothing is on npm. The stories
+CheckboxGroup) are on `main`, with 1048 tests and every gate green. Nothing is on npm. The stories
 are **not yet transitioned to Done** - that waits on the round-4 review and the operator's own
 sign-off, because the author never records their own verdict.
 
 ## Numbers
 
 - `pnpm check` runs **29 guards**; `prove-guards-fail` kills **128 mutations** on a staged copy.
-- **1034 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- **1048 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
 - **102 decisions**. Stories: **42 Done of 89**. `main` is the only branch - this project is
   trunk-based.

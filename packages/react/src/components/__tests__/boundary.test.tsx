@@ -61,6 +61,7 @@ const REQUIRED_PROPS: Record<string, Record<string, unknown>> = {
   Badge: { children: 'Draft' },
   Tag: { children: 'Draft' },
   Spinner: { label: 'Loading invoices' },
+  SkeletonGroup: { label: 'Loading invoices', children: null },
 }
 
 /** Render with the watched globals replaced by getters that record any read. */

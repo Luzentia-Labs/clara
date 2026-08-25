@@ -307,6 +307,27 @@
 @keyframes clara-pulse { to { border-color: var(--clara-spinner-idle); } }
 
 .clara-spinner { display: inline-flex; }
+
+/*
+ * Skeleton - static blocks, and static is the ruling rather than an omission (D0100).
+ *
+ * No shimmer, no pulse, no sweep, in either motion preference. A skeleton's information is its
+ * SHAPE: content is coming, and it will be about this big. A shimmer adds nothing the shape has not
+ * already said, which makes it decoration justified after the fact - and forty shimmering blocks in
+ * a loading list is a crowded screen in the time dimension. `.clara-skeleton` is in the NO_MOTION
+ * contract so this cannot be "improved" back in without the gate saying so.
+ */
+.clara-skeleton {
+  display: block;
+  height: var(--clara-skeleton-height);
+  border-radius: var(--clara-skeleton-radius);
+  background: var(--clara-skeleton-bg);
+}
+.clara-skeleton--full { width: 100%; }
+.clara-skeleton--three-quarters { width: 75%; }
+.clara-skeleton--half { width: 50%; }
+.clara-skeleton--quarter { width: 25%; }
+.clara-skeleton-group { display: grid; gap: var(--clara-skeleton-gap); }
 .clara-spinner__ring {
   width: var(--clara-spinner-size);
   height: var(--clara-spinner-size);
