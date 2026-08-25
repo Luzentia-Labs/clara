@@ -28,9 +28,12 @@ button, and whatever your footer does. There is deliberately not a separate prop
 consumer who has to remember to wire a fourth one will forget, and the symptom is a keyboard user
 stranded on `<body>` with no way back to where they were.
 
-Focus returns to whatever opened the dialog. You do not have to do anything for that to work. Pass
-`returnFocus` only when the opener is about to disappear - a row action whose row the dialog
-deletes, for instance.
+Focus returns to whatever opened the dialog. You do not have to do anything for that to work.
+
+Pass `returnFocus` when the opener is about to disappear - a row action whose row the dialog deletes -
+**or when the mouse route matters in Safari.** WebKit does not focus a `<button>` when you click it,
+so there is nothing for Clara to return to and focus goes to the top of the document instead.
+Keyboard users are unaffected, because they arrive by Tab and the opener really is focused.
 
 ## Name the field, not the dialog
 

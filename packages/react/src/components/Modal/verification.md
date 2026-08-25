@@ -87,6 +87,10 @@ ambiguous signal in the system.
   `check:component-css` NO_MOTION
 - That the scrim's alpha still clears its three measured floors, re-derived from the token sources
   rather than trusted as prose - `check:foundations`
+- The two-phase restore: a named target beats another Modal's anonymous fallback under any
+  traversal order. Collapsing the phases fails the two provider fixtures (2 failed / 60 passed).
+  An earlier version of this record said the collapse left every test green - true when written,
+  false once the phase-1 guard made the ordering visible in jsdom too
 - That nothing focusable and no text is painted over the scrim - both asserted with the same deep
   walk over the whole portal host, so a control or a caption rendered as a SIBLING of the scrim is
   caught as well as a child. The text half was briefly asserted by a `.children` filter that could
@@ -142,19 +146,14 @@ ambiguous signal in the system.
   return` taken FALSE - "the candidate refused focus, try the next" - needs an element that is
   focusable to a selector and not to the browser, which is a layout fact. It is the reason the loop
   replaced a single `querySelector`, it was measured in Chromium, and it is gate 7's to cover.
-- **The two-phase restore is correct by construction, not by test.** A named restore must beat
-  another Modal's anonymous fallback regardless of which dialog React's deletion walk reaches
-  first - a review measured a `useConfirm()` provider landing the user on the page's skip link
-  after every confirmed action, in Chromium. The fix runs every named restore in one microtask and
-  queues fallbacks from inside it, so every named target has first refusal under ANY traversal
-  order; that argument is what makes it right, and it does not depend on measurement.
-
-  **No test here discriminates it.** Collapsing the two phases into one leaves all 59 green,
-  including the two provider fixtures written specifically for it: jsdom's deletion traversal does
-  not produce the ordering Chromium does, and traversal order is not something a test can pin. The
-  provider tests assert the correct outcome and would catch a regression that breaks it in jsdom's
-  ordering; they do not prove the phase split. Recorded rather than dressed up, and handed to
-  gate 7 with the rest.
+- **Safari does not restore to the opener on the MOUSE route.** WebKit does not focus a `<button>`
+  when you click it, so there is nothing for Clara to capture and the fallback places focus at the
+  top of the document instead. Measured: `button#opener` in Chromium, the page's first link in
+  WebKit, on the same fixture. **Keyboard users are unaffected** - they arrive by Tab, so the opener
+  is genuinely focused - and `returnFocus` is a complete escape hatch for the mouse route. It is an
+  engine difference, not a defect in the restoration path, and it is documented rather than worked
+  around because guessing which element a browser "meant" to focus is how this path went wrong four
+  times already.
 - **Nesting is asserted one level deep.** Modal-over-menu and menu-over-Modal are decided by DOM
   order (D0088) and the host ordering is asserted, but the composition with a real Select or
   DropdownMenu cannot be tested until those components exist (EP-01M0GK91).

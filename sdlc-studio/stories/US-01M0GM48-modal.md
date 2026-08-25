@@ -1,10 +1,10 @@
 # US-01M0GM48: Modal
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** packages/react/src/components/Modal/**, packages/react/src/components/Modal/verification.md, packages/react/src/index.ts, packages/react/package.json, packages/react/vite.config.ts, packages/react/client-boundary.json, packages/react/src/styles.css, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/color.json, packages/tokens/src/themes/dark.json, packages/tokens/tokens.public.lock.json, apps/docs/src/content/foundations/tokens.md, design/foundations.md, .size-limit.json, scripts/check-component-css.mjs
@@ -15,6 +15,44 @@
 **As a** Grace Adeyemi
 **I want** a dialog that traps focus and returns me exactly where I was
 **So that** keyboard navigation never strands me behind a closed dialog
+
+## Context
+
+### Persona Reference
+
+**Grace Adeyemi** - the keyboard-only accounts clerk whose route through the product is Tab, Enter
+and Escape. A dialog that strands her behind a closed overlay is not a rough edge, it is a dead end.
+[Seat detail](../personas/seats/grace-adeyemi.md)
+
+**Sofia Marchetti** - the architect who inherits whatever this component decides. Modal is the first
+of thirteen overlays, so its focus contract, its stacking model and its guards are copied twelve
+more times.
+
+### Background
+
+Modal is the first overlay Clara ships, so it is the first consumer of the portal, the layer scale
+and the scrim that US-01M0GM61 built - and the trigger for two foundation questions F00 left open
+(elevation and the scrim colour, settled as D0092-D0094).
+
+The behaviour it is named for is focus: in, trapped, and back where it started. That turned out to
+be the hard part. Nine review rounds found, among others, a closed Modal stealing focus on mount, a
+dialog unmounted while open stranding focus on `document.body`, a `useConfirm()` provider dropping
+the user on the page's skip link, and a disabled opener - the ordinary pending-state idiom - making
+the restore a silent no-op. None of those is visible to jsdom; all were measured in Chromium.
+
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| ADR-004 / D0003 | API | Radix behind a hard isolation boundary - no Radix type, prop name or `data-*` in Clara's surface | AC10 asserts `asChild`, `onOpenChange` and `data-state` are absent from the API report |
+| D0088 | Stacking | Every portalled surface shares one layer; nesting resolves by open order | AC9 puts scrim and panel in ONE host, panel after scrim, neither carrying an offset |
+| D0090 | Timing | The portalled content lands on `ClaraPortal`'s SECOND commit | AC1 applies initial focus from inside the portal; an effect in Modal's body finds a null ref |
+| D0092 | Tokens | `color.bg.scrim` is permanent public API, and nothing is drawn on the scrim | AC7 pins the panel to a theme-resolving background; two tests keep the scrim empty |
+| D0094 | Motion | Modal does not animate, so there is no reduced-motion branch | AC6 asserts the stylesheet declares no `transition` and no `animation` at all |
+| D0096 | Guards | The text-based CSS contracts are a FLOOR, not a proof | AC5/AC7/AC9 run the CSS guard in their verifiers; the cascade itself is gate 7's |
+| PRD F01 / D0007 | API stability | Publishing is a one-way door | `title` and `onClose` are required and permanent; `ModalProps` is 12 Clara-named members |
 
 ## Acceptance Criteria
 
@@ -180,6 +218,104 @@
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Edge Cases & Error Handling
+
+Every row below was found by review, most of them in a real browser. None was anticipated.
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| A CLOSED Modal on the page - the ordinary state of every dialog | It takes no focus and does not scroll the page. Restoration runs on the open-to-closed transition only; running it on mount stole focus and scrolled from y=4000 to 0. |
+| `{open && <Modal open .../>}` - the first idiom a React developer reaches for | Focus returns to the opener. There is no open-to-closed transition here, so the restore is a cleanup as well; without it focus stranded on `document.body` on all four routes. |
+| The opener is removed while the dialog is open - a menu item that opened it | Focus goes to the first element that will actually take it, never to `document.body`. |
+| The opener is DISABLED on close - the pending-state idiom while a save is in flight | The same. `isConnected` is not focusable, so the named restore reports whether focus really took and hands over to the fallback when it did not. |
+| A `useConfirm()` provider: confirm dialog over an edit dialog, both dismissed at once | Focus lands on the edit dialog's opener. A named target beats another Modal's anonymous fallback under any traversal order, which is why restoration runs in two phases. |
+| The application focuses something itself on close - commit, then navigate | The application wins. Focus on a real, connected element is somebody's decision; only `document.body` is nobody's. |
+| StrictMode, the Next.js dev default | Unchanged behaviour. `wasOpen` is set when the portalled content exists, not when `open` flips, so the double-invoke window has no opener to lose. |
+| Safari, dialog opened by MOUSE | Focus goes to the top of the document, not the opener - WebKit does not focus a `<button>` on click, so there is nothing to capture. Keyboard users are unaffected; `returnFocus` is the escape hatch. Documented, not worked around. |
+| A drag that starts inside the panel and ends on the scrim | Does not close. Selecting text in a dialog and releasing outside it is the ordinary way this misfires. |
+| `dismissible={false}` | Escape and the scrim click are blocked; the close button is NOT removed. A dialog with no way out is a trap, not a safeguard. |
+| A long body with a fixed-height child - a chart, an iframe, a data grid | The body scrolls and the child keeps its height. A flex column shrinks its children by default, which rendered a 2000px chart at 18px with no scrollbar. |
+| `root.unmount()` while the dialog is open | Focus moves into the host page's own chrome. Bounded and recorded: nothing distinguishes "the app is gone" from "the dialog closed" without a signal the API does not have. |
+
+## Test Scenarios
+
+- [x] Focus moves to the named initial target, and to the close button - never a destructive action - when none is named
+- [x] Focus returns to the opener by element IDENTITY on all four dismissal routes, each asserting focus LEFT the opener first
+- [x] The same four routes again through a conditionally rendered Modal, which unmounts instead of transitioning
+- [x] A closed Modal takes no focus on mount, and none when it re-renders
+- [x] A named target that cannot take focus hands over to the fallback rather than stranding on the body
+- [x] The application's own focus choice survives, even when the opener is still alive
+- [x] A confirm provider at the app root lands on the real opener, in both child orderings
+- [x] StrictMode does not steal focus
+- [x] Tab and Shift+Tab wrap at both ends, asserted by identity rather than containment
+- [x] The background is unreachable by programmatic focus, not merely Tab-trapped
+- [x] `onClose` fires exactly once per route, counted per route
+- [x] Nothing focusable and no text or graphics are painted over the scrim, as a child OR a sibling
+- [x] The scroll lock compensates by exactly the scrollbar width it removed, derived from a stub
+- [x] Scrim and panel are siblings in ONE portal host, panel after scrim
+- [x] `ref`, `className` and `size` reach the panel; the close button survives `dismissible={false}`
+- [x] axe is clean over the open dialog in BOTH its default and its error state
+- [x] The test file leaves the viewport exactly as it found it
+- [ ] A real Select or DropdownMenu inside a Modal - **not asserted here**, because neither exists yet (EP-01M0GK91)
+- [ ] Anything visual, in any theme or density - **gate 7** (US-01M0GMZW)
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| [US-01M0GM61](US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md) | Blocking | `ClaraPortal`, the layer scale, and the open-order stacking model | Done |
+| [US-01M0GMZW](US-01M0GMZW-storybook-workspace-with-theme-and-density-toolbars.md) | Follows | Gate 7. Four findings in this story were only observable in a real browser, and they are recorded there as the evidence for wiring it | Draft |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| `@radix-ui/react-dialog` | Runtime dependency of `@luzentialabs/clara-react`, external in the build (D0091) | Available |
+| The theme context and portal (ADR-006, D0018) | Internal | Available |
+
+## Estimation
+
+**Points:** 8
+**Complexity:** High - and higher than the estimate. The visual surface is ordinary; the focus
+contract is not. Clara suppresses Radix's own restore in order to satisfy AC2's identity assertion
+across four dismissal routes, which means owning a genuinely subtle piece of behaviour: passive
+effect flush order, React's deletion traversal, microtask versus `setTimeout` interleaving, and
+five distinct ways a connected element can refuse focus.
+
+That trade is recorded rather than assumed. Radix alone does not give per-route identity-asserted
+restoration, which AC2 requires; the cost was nine review rounds, of which rounds 5 to 7 each found
+a defect created by the previous round's fix.
+
+> **Points** are a RELATIVE size on the modified Fibonacci scale (1, 2, 3, 5, 8, 13, 20) - not
+> "how long will this take" but "is this bigger than that one", sized against stories already
+> delivered. Above 8, SPLIT the story.
+
+## Rollback Envelope
+
+> Required when `affects_production_runtime: true`; optional otherwise.
+
+**Affects production runtime:** false
+
+| Component | Reversal | Expected time |
+| --- | --- | --- |
+| -- | -- | -- |
+
+*Not applicable - this is a library with no deployed runtime. What is NOT reversible: `ModalProps`
+is public API from the first publish, so `open`, `onClose`, `title`, `description`, `footer`,
+`size`, `initialFocus`, `returnFocus`, `dismissible`, `className` and `children` are permanent
+names. So is `--clara-color-bg-scrim` (D0092). Both were reviewed for that reason.*
+
+## Open Questions
+
+- **None blocking.** Four things are known-open and carried elsewhere rather than left implied:
+  Safari does not focus a `<button>` on click, so the MOUSE route does not restore to the opener in
+  WebKit (keyboard users unaffected, `returnFocus` is the escape hatch, documented on the docs page);
+  React 19 is a declared peer that nothing here exercises, and this design leans on effect-flush and
+  cleanup ordering; composition with Select and DropdownMenu waits for EP-01M0GK91; and everything
+  visual waits for gate 7.
 
 ## Keyboard interaction table
 

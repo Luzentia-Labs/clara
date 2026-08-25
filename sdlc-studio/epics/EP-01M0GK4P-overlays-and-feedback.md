@@ -44,7 +44,7 @@ Modal, Drawer, Popover, Tooltip, DropdownMenu, and the feedback set. This is the
 ## Story Breakdown
 
 - [ ] [US-01M0GM61: Portal, layer scale, and scoping infrastructure](../stories/US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md)
-- [ ] [US-01M0GM48: Modal](../stories/US-01M0GM48-modal.md)
+- [x] [US-01M0GM48: Modal](../stories/US-01M0GM48-modal.md)
 - [ ] [US-01M0GMWW: Drawer](../stories/US-01M0GMWW-drawer.md)
 - [ ] [US-01M0GMQJ: Popover](../stories/US-01M0GMQJ-popover.md)
 - [ ] [US-01M0GM31: Tooltip](../stories/US-01M0GM31-tooltip.md)

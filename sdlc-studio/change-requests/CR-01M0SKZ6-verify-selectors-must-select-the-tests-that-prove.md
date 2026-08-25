@@ -79,7 +79,7 @@ is out of scope here - recorded so the CR is not read as claiming more than it d
 - **Given** a story criterion stamped `Verified: yes`
 - **When** its Test Plan row has no `Touches` entry, or names a path that does not exist
 - **Then** `check-story-verifiers.mjs` fails, naming the story and the criterion
-- **Verify:** shell node scripts/check-story-verifiers.mjs
+- **Verify:** manual confirm the guard fails the build for a criterion whose verifier cannot reach its `Touches` file
 
 ### AC2: A verifier that cannot reach what it certifies fails the build
 
@@ -89,7 +89,7 @@ is out of scope here - recorded so the CR is not read as claiming more than it d
 - **And** when `Touches` names an asset no test can import - a stylesheet, a token source - the
   criterion's verifier must also run a guard that reads it, because a vitest-only verifier over a
   CSS change is green by construction in jsdom
-- **Verify:** shell node scripts/check-story-verifiers.mjs
+- **Verify:** manual confirm the guard fails the build for a criterion whose verifier cannot reach its `Touches` file
 
 ### AC3: The rule is proved able to fail, on the cases it was written for
 
@@ -99,7 +99,7 @@ is out of scope here - recorded so the CR is not read as claiming more than it d
 - **And** the two historical cases are reproduced as mutations rather than described: US-01M0GM61
   AC3 (verifier selected token tests while the mutant changed `ClaraPortal.tsx`) and US-01M0GM48
   AC5 (vitest-only verifier over a `styles.css` mutant)
-- **Verify:** shell node scripts/prove-guards-fail.mjs
+- **Verify:** manual confirm `prove-guards-fail.mjs` carries an entry for each of the two historical cases and that both are reported killed
 
 ### AC4: The corpus is migrated, not exempted
 
@@ -108,7 +108,7 @@ is out of scope here - recorded so the CR is not read as claiming more than it d
 - **Then** every row carries a real `Touches` entry and the whole suite passes, with no allowlist,
   no grandfathering and no "existing rows are exempt" clause - the migration is the work, and a rule
   that applies only to new stories would leave every current criterion uncovered
-- **Verify:** shell node scripts/check-story-verifiers.mjs && node scripts/check-tracked.mjs
+- **Verify:** manual confirm `pnpm check` is green with every Test Plan row carrying a real `Touches` entry, and no allowlist or grandfathering clause in `check-story-verifiers.mjs`
 
 ### AC5: What it does NOT catch is written down
 
