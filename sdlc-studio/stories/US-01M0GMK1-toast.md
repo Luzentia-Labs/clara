@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Toast/**, packages/react/src/components/Toast/verification.md, scripts/check-component-css.mjs
+> **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Toast/**, packages/react/src/components/Toast/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story
@@ -68,6 +68,28 @@
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
 
+### AC7: A toast arriving over an open tooltip wins
+
+- **Given** an open Tooltip
+- **When** a toast arrives
+- **Then** the toast paints above the tooltip
+- **Verify:** shell pnpm test:e2e -g "a toast arriving over an open tooltip paints above it"
+- **Verification target:** functional
+
+> D0102, and the mirror of Tooltip's AC7. It is what keeps the ruling honest in the other
+> direction: a toast is the NEW information and a tooltip is stale the moment attention moves, so
+> the same pair must resolve the other way when the toast is the thing that just arrived. Together
+> the two criteria are why a constant is wrong here and open order is right.
+>
+> **Inherited constraints.** The Toast stylesheet takes `z-index` from `var(--clara-layer-toast)`,
+> which is deliberately the SAME number as `--clara-layer-tooltip`, and the component sets no
+> `z-index` in JavaScript.
+>
+> **Known residual (D0102, accepted).** A toast arriving into a viewport whose host is already on
+> the page is a later toast in an EARLIER sibling, so a tooltip opened in between can cover it. Not
+> fixed by re-appending the viewport host: moving a live DOM node re-parents its subtree, resetting
+> focus and remounting anything stateful inside.
+
 ## Scope
 
 ### In Scope
@@ -80,6 +102,13 @@
 - Documentation page content (owned by the documentation epic)
 
 ## Technical Notes
+
+**A toast action's accessible name is its explanation.** "Retry", "Undo", "View" are complete. If
+the label needs a tooltip, the action is wrong rather than under-documented, and an action needing
+more than a label belongs behind "View" - which opens a surface with room. Clara does not forbid a
+tooltip on a toast action, because a `ToastAction` slot takes children and a prohibition Clara
+cannot enforce is a wish rather than a design decision. The layering is correct either way (D0102).
+
 
 **TDD.** This component has a documented keyboard interaction table, so the table is the specification and its tests are written first (D0024).
 

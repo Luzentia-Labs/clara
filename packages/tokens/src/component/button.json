@@ -65,18 +65,6 @@
     "focus-width": {
       "value": "{border-width.focus}",
       "type": "dimension"
-    },
-    "spinner-cycle": {
-      "value": "calc({duration.step} * 4)",
-      "type": "duration"
-    },
-    "spinner-radius": {
-      "value": "{radius.round}",
-      "type": "dimension"
-    },
-    "spinner-idle": {
-      "value": "{color.fg.muted}",
-      "type": "color"
     }
   }
 }

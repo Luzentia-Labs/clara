@@ -137,6 +137,7 @@ const SCRIPTS = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scr
  */
 const DOCS_PAGE_FOR = {
   Alert: 'alert.md',
+  Spinner: 'spinner.md',
   EmptyState: 'empty-state.md',
   Badge: 'badge.md',
   Tag: 'tag.md',

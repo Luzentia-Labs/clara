@@ -56,7 +56,9 @@ describe('the overlay layer scale is tokenised', () => {
 
   it('leaves room above the overlay layer for the two that must always win', () => {
     expect(layer('tooltip') - layer('overlay')).toBeGreaterThanOrEqual(100)
-    expect(layer('toast') - layer('tooltip')).toBeGreaterThanOrEqual(100)
+    // No gap between tooltip and toast: they are ONE layer on purpose (D0102), so the headroom
+    // assertion that used to sit here would now be asserting the defect.
+    expect(layer('toast')).toBe(layer('tooltip'))
   })
 
   it('starts at zero, so the scale is measured from the page rather than floating above it', () => {
@@ -108,9 +110,27 @@ describe('the overlay stacking order', () => {
     expect(layer('tooltip')).toBeGreaterThan(layer('overlay'))
   })
 
-  it('puts toasts above everything, because a toast may be the only report that something failed', () => {
-    for (const under of ['base', 'raised', 'overlay', 'tooltip']) {
+  it('gives a tooltip and a toast ONE layer, so arrival order decides between them', () => {
+    // The two comments used to contradict each other, and the collision was real: a Toast action
+    // (Retry, Undo) may carry a tooltip, which then describes the thing on top while rendering
+    // UNDER it - the one case where a tooltip is useless. But the reverse is equally required: a
+    // toast arriving over an already-open tooltip must win, because it is the new information.
+    //
+    // Same pair, both directions, decided by which happened last. A constant expresses a
+    // stacking relationship correctly only when that relationship is UNIDIRECTIONAL (D0102), so
+    // this pair gets open order - the mechanism D0088 and D0089 already built.
+    expect(layer('toast')).toBe(layer('tooltip'))
+    // Both still clear the overlay family, which IS one-directional.
+    for (const under of ['base', 'raised', 'overlay']) {
       expect(layer('toast')).toBeGreaterThan(layer(under))
     }
+  })
+
+  it('leaves no unreferenced step in the primitive scale', () => {
+    // `layer.4` was 1500 and became unreferenced when toast moved down. An orphan step is a loaded
+    // gun: it invites the next agent to "fix" the duplicate value by pointing one token at it,
+    // which would silently restore the per-role constant this decision removed.
+    const referenced = new Set(Object.values(semantic.layer).map((t) => t.value.replace(/[{}]/g, '').split('.')[1]))
+    expect(Object.keys(primitives.layer).sort()).toEqual([...referenced].sort())
   })
 })

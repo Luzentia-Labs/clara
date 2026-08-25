@@ -296,44 +296,55 @@ test.describe('computed geometry (TSD 7)', () => {
  *     instead, so it survives any rename.
  */
 test.describe('a busy indicator states liveness (D0100)', () => {
-  const LOADING = '[data-case="motion-button-loading"] .clara-button__spinner'
+  // Both contexts, because D0100 requires ONE ring shared with Button and a structural class
+  // assertion cannot see whether the shared class actually animates in each place.
+  const RINGS = [
+    '[data-case="motion-button-loading"] .clara-spinner__ring',
+    '[data-case="motion-spinner"] .clara-spinner__ring',
+  ]
 
-  const animationOf = (page: import('@playwright/test').Page) => page.evaluate((sel) => {
-    const s = getComputedStyle(document.querySelector(sel)!)
+  const animationOf = (page: import('@playwright/test').Page, sel: string) => page.evaluate((s) => {
+    const st = getComputedStyle(document.querySelector(s)!)
     return {
-      name: s.animationName,
-      seconds: parseFloat(s.animationDuration),
-      iterations: s.animationIterationCount,
+      name: st.animationName,
+      seconds: parseFloat(st.animationDuration),
+      iterations: st.animationIterationCount,
     }
-  }, LOADING)
+  }, sel)
 
   test('it animates, and it never stops', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto(`file://${FIXTURE}`)
-    const animation = await animationOf(page)
+    for (const sel of RINGS) {
+      const animation = await animationOf(page, sel)
 
-    expect(animation.name, 'the spinner declares no animation - a frozen ring reads as a broken control').not.toBe('none')
-    expect(animation.seconds).toBeGreaterThan(0)
-    // The assertion that GENERALISES the bug: an indicator that animates once and stops is the
-    // frozen ring in a new costume, and it would satisfy every assertion above.
-    expect(animation.iterations, 'a busy indicator that runs a finite number of times stops being one').toBe('infinite')
-    // Bounds, not a value.
-    expect(animation.seconds).toBeGreaterThan(1 / 3)
-    expect(animation.seconds).toBeLessThan(2)
+      expect(animation.name, `${sel} declares no animation - a frozen ring reads as a broken control`).not.toBe('none')
+      expect(animation.seconds).toBeGreaterThan(0)
+      // The assertion that GENERALISES the bug: an indicator that animates once and stops is the
+      // frozen ring in a new costume, and it would satisfy every assertion above.
+      expect(animation.iterations, `${sel} runs a finite number of times, so it stops being a busy indicator`).toBe('infinite')
+      // Bounds, not a value.
+      expect(animation.seconds).toBeGreaterThan(1 / 3)
+      expect(animation.seconds).toBeLessThan(2)
+    }
   })
 
   test('under reduced motion it displaces nothing, and still changes over time', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto(`file://${FIXTURE}`)
 
-    const animation = await animationOf(page)
-    expect(animation.name, 'the motion was removed rather than replaced - a spinner that stops is a broken spinner').not.toBe('none')
-    expect(animation.iterations).toBe('infinite')
+    for (const sel of RINGS) {
+      const animation = await animationOf(page, sel)
+      expect(animation.name, `${sel}: the motion was removed rather than replaced - a spinner that stops is a broken spinner`).not.toBe('none')
+      expect(animation.iterations).toBe('infinite')
+    }
 
+    // Sampled on one ring: they share a class, and the assertions above already proved the shared
+    // class animates in BOTH contexts, which is the part a structural test cannot see.
     const sample = () => page.evaluate((sel) => {
-      const s = getComputedStyle(document.querySelector(sel)!)
-      return { transform: s.transform, colour: s.borderTopColor + '|' + s.borderRightColor }
-    }, LOADING)
+      const st = getComputedStyle(document.querySelector(sel)!)
+      return { transform: st.transform, colour: st.borderTopColor + '|' + st.borderRightColor }
+    }, RINGS[0]!)
 
     // Three samples across the cycle: two could land symmetrically about a peak and read equal.
     const samples = []

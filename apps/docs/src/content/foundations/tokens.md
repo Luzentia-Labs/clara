@@ -111,12 +111,24 @@ Clara's overlays share one layer, and the browser decides which of two is on top
 | `--clara-layer-raised` | 10 | In-document chrome that lifts off the page - a sticky table header |
 | `--clara-layer-overlay` | 1000 | Every portalled surface: modal, drawer, popover, menu, listbox, and a modal's scrim |
 | `--clara-layer-tooltip` | 1400 | Above every overlay, because a tooltip describes whatever is on top |
-| `--clara-layer-toast` | 1500 | Above everything, because a toast may be the only report that something failed |
+| `--clara-layer-toast` | 1400 | The same layer as `tooltip`, deliberately - see below |
 
 There is deliberately no per-role layer - no `modal` name, no `popover` name. Which of two overlays
 paints on top depends on which was opened last, and a constant cannot express that: a menu must sit
 UNDER a modal opened over it, and OVER a modal opened from inside it. The same number cannot be
 right in both directions.
+
+**`tooltip` and `toast` share 1400 for the same reason**, and the equality is deliberate rather
+than an oversight. A Toast may carry an action - "Retry", "Undo" - and that action may carry a
+tooltip, which must paint above the toast or it is covered by the very element it explains. But a
+toast arriving over an already-open tooltip must win, because it is the new information. Same pair,
+both directions, decided by which happened last. A constant is correct only where the relationship
+is one-directional, which is why `tooltip` still sits above `overlay`: nothing ever opens from
+inside a tooltip.
+
+**Clara reserves nothing above 1400.** If your application genuinely needs a surface above
+everything Clara draws, put it above 1400 and Clara will not compete for that band. Keep your own
+in-document chrome below 1000.
 
 So Clara gives every portalled surface the one `overlay` layer and lets the browser resolve it.
 Among positioned elements with equal `z-index`, later in tree order paints later - and `ClaraPortal`

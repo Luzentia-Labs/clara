@@ -109,12 +109,12 @@
     "tooltip": {
       "value": "{layer.3}",
       "type": "number",
-      "comment": "Above every overlay regardless of open order, because a tooltip describes whatever is currently on top."
+      "comment": "Above every overlay regardless of open order, because a tooltip describes whatever is currently on top and nothing ever opens from INSIDE a tooltip. That relationship is one-directional, which is what makes a constant correct here - D0088's rule stated by its operative property. Deliberately the SAME number as `toast`; see there (D0102)."
     },
     "toast": {
-      "value": "{layer.4}",
+      "value": "{layer.3}",
       "type": "number",
-      "comment": "Above everything, because a toast may be the only report that something failed."
+      "comment": "The same layer as `tooltip`, deliberately, NOT one above it. \"Above everything\" was false in the one composition where the two meet: a Toast action (Retry, Undo) may carry a tooltip, and that tooltip describes the thing currently on top while rendering under it - the single case where a tooltip is useless, covered by exactly the element it explains. The relationship is bidirectional (a toast arriving over an open tooltip must win; a tooltip opened on a toast's action must win), so open order decides it, not a constant. A toast's guarantee that it is heard does not rest on z-index anyway: it is announced through a live region and an error toast does not auto-dismiss (D0102)."
     }
   },
   "duration": {

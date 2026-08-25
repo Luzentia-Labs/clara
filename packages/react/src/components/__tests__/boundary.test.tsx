@@ -60,6 +60,7 @@ const REQUIRED_PROPS: Record<string, Record<string, unknown>> = {
   Alert: { intent: 'info', children: 'Message' },
   Badge: { children: 'Draft' },
   Tag: { children: 'Draft' },
+  Spinner: { label: 'Loading invoices' },
 }
 
 /** Render with the watched globals replaced by getters that record any read. */

@@ -1,0 +1,24 @@
+{
+  "spinner": {
+    "cycle": {
+      "value": "calc({duration.step} * 4)",
+      "type": "duration"
+    },
+    "radius": {
+      "value": "{radius.round}",
+      "type": "dimension"
+    },
+    "idle": {
+      "value": "{color.fg.muted}",
+      "type": "color"
+    },
+    "size": {
+      "value": "{font.body}",
+      "type": "dimension"
+    },
+    "track-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    }
+  }
+}

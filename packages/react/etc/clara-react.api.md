@@ -409,6 +409,16 @@ export interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
     onClear?: () => void;
 }
 
+// @public
+export function Spinner(input: SpinnerProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface SpinnerProps {
+    // (undocumented)
+    className?: string;
+    label: string;
+}
+
 // @public (undocumented)
 export const Stack: <C extends ElementType = "div">(props: PolymorphicPropsWithRef<C, StackOwnProps>) => ReactElement | null;
 

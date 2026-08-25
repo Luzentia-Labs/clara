@@ -158,15 +158,6 @@ export const ButtonSecondaryBorder = "#585654";
 export const ButtonSecondaryFg = "#1f1e1d";
 
 // @public (undocumented)
-export const ButtonSpinnerCycle = "calc(200ms * 4)";
-
-// @public (undocumented)
-export const ButtonSpinnerIdle = "#585654";
-
-// @public (undocumented)
-export const ButtonSpinnerRadius = "9999px";
-
-// @public (undocumented)
 export const ColorAccent0 = "#ffffff";
 
 // @public (undocumented)
@@ -557,9 +548,6 @@ export const Layer2 = "1000";
 export const Layer3 = "1400";
 
 // @public (undocumented)
-export const Layer4 = "1500";
-
-// @public (undocumented)
 export const LayerBase = "0";
 
 // @public (undocumented)
@@ -569,7 +557,7 @@ export const LayerOverlay = "1000";
 export const LayerRaised = "10";
 
 // @public (undocumented)
-export const LayerToast = "1500";
+export const LayerToast = "1400";
 
 // @public (undocumented)
 export const LayerTooltip = "1400";
@@ -684,6 +672,21 @@ export const SpaceSection = "24px";
 
 // @public (undocumented)
 export const SpaceStack = "12px";
+
+// @public (undocumented)
+export const SpinnerCycle = "calc(200ms * 4)";
+
+// @public (undocumented)
+export const SpinnerIdle = "#585654";
+
+// @public (undocumented)
+export const SpinnerRadius = "9999px";
+
+// @public (undocumented)
+export const SpinnerSize = "14px";
+
+// @public (undocumented)
+export const SpinnerTrackWidth = "1px";
 
 // @public (undocumented)
 export const TableRowBg = "#ffffff";

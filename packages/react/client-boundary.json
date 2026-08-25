@@ -197,6 +197,11 @@
       "overlay": true
     },
     {
+      "name": "ProgressBar",
+      "boundary": "server",
+      "status": "planned"
+    },
+    {
       "name": "Radio",
       "boundary": "client",
       "status": "planned"
@@ -221,6 +226,11 @@
       "name": "Skeleton",
       "boundary": "server",
       "status": "planned"
+    },
+    {
+      "name": "Spinner",
+      "boundary": "server",
+      "status": "built"
     },
     {
       "name": "Stack",

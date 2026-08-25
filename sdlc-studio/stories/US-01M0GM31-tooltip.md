@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Tooltip/**, packages/react/src/components/Tooltip/verification.md, scripts/check-component-css.mjs
+> **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Tooltip/**, packages/react/src/components/Tooltip/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story
@@ -67,6 +67,24 @@
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
+
+### AC7: Above a toast, because it describes what is on top
+
+- **Given** a Toast carrying an action
+- **When** a Tooltip on that action opens
+- **Then** the tooltip paints above the toast
+- **Verify:** shell pnpm test:e2e -g "a tooltip on a toast action paints above it"
+- **Verification target:** functional
+
+> D0102. The two tokens share one layer and OPEN ORDER decides, so this criterion and Toast's AC7
+> are the two directions of one mechanism - neither is meaningful without the other. Assert with
+> `document.elementFromPoint` inside the overlap, not by comparing computed `z-index` values: D0065
+> records what asserting a proxy for the property cost last time, and here the two elements have
+> the SAME z-index by design, so a comparison would prove nothing.
+>
+> **Inherited constraints.** The Tooltip stylesheet takes `z-index` from
+> `var(--clara-layer-tooltip)`, and the component sets no `z-index` in JavaScript - a computed
+> number in an inline style is the one shape `check-component-css.mjs` cannot see.
 
 ## Scope
 

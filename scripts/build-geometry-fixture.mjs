@@ -91,6 +91,7 @@ export function buildGeometryFixture ({ root = defaultRoot, out } = {}) {
     // Rendered here so gate 9 can read what the browser computed. jsdom returns no animation at
     // all, so a green unit test asserting this would be a false green by construction.
     kase('motion-button-loading', 'motion', h(C.Button, { size: 'md', loading: true }, 'Saving')),
+    kase('motion-spinner', 'motion', h(C.Spinner, { label: 'Loading invoices' })),
 
     // --- type floor: body never below 14px in any density (TSD 7 row 4, PRD:333) ---
     kase('text-body', 'text', h(C.Text, null, 'Total payable on the agreed terms.')),

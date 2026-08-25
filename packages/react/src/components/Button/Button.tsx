@@ -64,7 +64,7 @@ export const Button = polymorphicForwardRef<ButtonOwnProps, 'button'>(function B
         * the button to the spinner's width.
         */}
       <span className={cx('clara-button__label', loading && 'clara-button__label--hidden')}>{children}</span>
-      {loading ? <span className="clara-button__spinner" aria-hidden="true" /> : null}
+      {loading ? <span className="clara-spinner__ring clara-button__spinner" aria-hidden="true" /> : null}
     </Component>
   )
 })

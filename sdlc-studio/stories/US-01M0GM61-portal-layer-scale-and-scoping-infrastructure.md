@@ -122,7 +122,7 @@ does, and adds the layer scale beside it.
 - **And** the criterion claims coverage of these shapes and no more. It is a denylist of the escapes
   three review rounds actually found, which is not the same as proving the scale cannot be escaped
 - **Verify:** shell node scripts/check-component-css.mjs && node scripts/prove-guards-fail.mjs
-- **Verified:** yes (2026-08-25)
+- **Verified:** no (2026-08-25)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
