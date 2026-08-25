@@ -24,18 +24,27 @@ import { Field } from '../../Field/Field'
  * saw a 1000px viewport instead of jsdom's 1024 - 13 of 25 of them, and which 13 changed under
  * `--sequence.shuffle`. A stub that outlives its test is a shared mutable global.
  */
-const viewportStubs: string[] = []
+const savedViewport: Array<() => void> = []
 function stubViewport (innerWidth: number, clientWidth: number) {
-  Object.defineProperty(window, 'innerWidth', { value: innerWidth, configurable: true })
-  Object.defineProperty(document.documentElement, 'clientWidth', { value: clientWidth, configurable: true })
-  viewportStubs.push('stubbed')
+  for (const [obj, prop, value] of [
+    [window, 'innerWidth', innerWidth],
+    [document.documentElement, 'clientWidth', clientWidth],
+  ] as const) {
+    // Capture the REAL descriptor and put it back. The first version used `delete`, and
+    // `window.innerWidth` is an own data property on jsdom's Window - so deleting it removed the
+    // property outright and every later test in the file saw `undefined` rather than jsdom's 1024.
+    // That is the same leak in a new shape, which is why the restore is now a captured descriptor
+    // rather than a remembered number.
+    const original = Object.getOwnPropertyDescriptor(obj, prop)
+    Object.defineProperty(obj, prop, { value, configurable: true, writable: true })
+    savedViewport.push(() => {
+      if (original) Object.defineProperty(obj, prop, original)
+      else delete (obj as unknown as Record<string, unknown>)[prop]
+    })
+  }
 }
 afterEach(() => {
-  if (!viewportStubs.length) return
-  viewportStubs.length = 0
-  // jsdom's own defaults, restored by deleting the overrides rather than by hardcoding numbers.
-  delete (window as unknown as Record<string, unknown>).innerWidth
-  delete (document.documentElement as unknown as Record<string, unknown>).clientWidth
+  while (savedViewport.length) savedViewport.pop()!()
 })
 
 /** A harness with a real opener, so focus restoration can be asserted by element IDENTITY. */
@@ -87,11 +96,16 @@ describe('Modal initial focus target', () => {
     expect(screen.getByRole('dialog')).not.toHaveFocus()
   })
 
-  it('falls back to a named element inside the panel when the author names none', async () => {
+  it('falls back to the CLOSE button, never to a destructive action, when the author names none', async () => {
+    // Identity, not containment. "Focus the last focusable element" satisfies containment and, in
+    // this harness, lands on the footer's "Reverse" button - so a dialog titled "Reverse this
+    // posting" would open with focus on the destructive action and a stray Enter would commit it.
     render(<Harness />)
     const dialog = await open()
-    await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
-    expect(document.activeElement).not.toBe(document.body)
+    const close = screen.getByRole('button', { name: /close/i })
+    await waitFor(() => expect(close).toHaveFocus())
+    expect(document.activeElement).not.toBe(screen.getByTestId('commit'))
+    expect(dialog.contains(document.activeElement)).toBe(true)
   })
 
   it('applies the focus from INSIDE the portal, so it survives the second-commit rule', async () => {
@@ -110,6 +124,10 @@ describe('Modal focus restoration per dismissal route', () => {
   it('restores focus to the opener after Escape', async () => {
     render(<Harness />)
     await open()
+    // Assert focus LEFT the opener first. `userEvent.click` leaves focus on the button it
+    // clicked, so "the opener has focus at the end" is true of an implementation that does
+    // nothing at all - both of these passed against a plain div.
+    expect(screen.getByTestId('opener')).not.toHaveFocus()
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
   })
@@ -117,6 +135,10 @@ describe('Modal focus restoration per dismissal route', () => {
   it('restores focus to the opener after a scrim click', async () => {
     const { container } = render(<Harness />)
     await open()
+    // Assert focus LEFT the opener first. `userEvent.click` leaves focus on the button it
+    // clicked, so "the opener has focus at the end" is true of an implementation that does
+    // nothing at all - both of these passed against a plain div.
+    expect(screen.getByTestId('opener')).not.toHaveFocus()
     const scrim = document.querySelector('.clara-modal__scrim')!
     fireEvent.pointerDown(scrim)
     fireEvent.pointerUp(scrim)
@@ -241,7 +263,7 @@ describe('Modal size and close affordance', () => {
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
-  it('calls onClose exactly once on Escape and on the scrim too', async () => {
+  it('calls onClose exactly once on Escape', async () => {
     const spy = vi.fn()
     render(
       <ClaraProvider>
@@ -250,6 +272,23 @@ describe('Modal size and close affordance', () => {
     )
     await screen.findByRole('dialog')
     await userEvent.keyboard('{Escape}')
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls onClose exactly once on the SCRIM route', async () => {
+    // Previously folded into the Escape test, which named the scrim and never touched it - so a
+    // scrim click firing onClose twice passed. Every route counts its own calls.
+    const spy = vi.fn()
+    render(
+      <ClaraProvider>
+        <Modal open onClose={spy} title="t"><span data-testid="in">x</span></Modal>
+      </ClaraProvider>,
+    )
+    await screen.findByRole('dialog')
+    const scrim = document.querySelector('.clara-modal__scrim')!
+    fireEvent.pointerDown(scrim)
+    fireEvent.pointerUp(scrim)
+    fireEvent.click(scrim)
     expect(spy).toHaveBeenCalledTimes(1)
   })
 })
@@ -305,6 +344,30 @@ describe('Modal makes the background unreachable', () => {
     }
     expect(seen.size).toBeGreaterThan(1)
     expect(document.activeElement).toBe(first)
+  })
+})
+
+describe('Modal keeps the scrim empty', () => {
+  it('has nothing focusable on the scrim', async () => {
+    // The ux seat's decision (D0092) is that nothing is drawn on the scrim, and it is a decision
+    // rather than an omission: Clara's light focus ring measures 1.86:1 against the light scrim
+    // composite, so a focusable control there would fail WCAG today and would need the scrim, the
+    // ring, or both to move. That was prose and nothing enforced it - a Clara IconButton inside the
+    // overlay passed every test and every guard.
+    render(<Harness />)
+    await open()
+    const scrim = document.querySelector('.clara-modal__scrim')!
+    const focusable = scrim.querySelectorAll(
+      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    )
+    expect([...focusable].map((el) => el.tagName)).toEqual([])
+  })
+
+  it('carries no text on the scrim either, so nothing needs a contrast pairing there', async () => {
+    render(<Harness />)
+    await open()
+    const scrim = document.querySelector('.clara-modal__scrim')!
+    expect(scrim.textContent?.trim() ?? '').toBe('')
   })
 })
 
@@ -475,5 +538,17 @@ describe('Modal accessible structure and axe', () => {
     )
     await screen.findByRole('dialog')
     await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
+  })
+})
+
+describe('Modal test hygiene', () => {
+  it('leaves the viewport exactly as it found it', () => {
+    // The scroll-lock test stubs `window.innerWidth` and `documentElement.clientWidth`. Two
+    // previous versions leaked: the first never restored them (15 tests ran at a fake 1000px), and
+    // the second restored by `delete`, which removes jsdom's own data property outright so the same
+    // 15 saw `undefined`. This asserts jsdom's real defaults - `clientWidth` is 0 because jsdom
+    // computes no layout, which is exactly why the stub was needed in the first place.
+    expect(window.innerWidth).toBe(1024)
+    expect(document.documentElement.clientWidth).toBe(0)
   })
 })

@@ -115,9 +115,16 @@ if (provisional > 0 && !/revisit/i.test(doc)) {
  * scrim, and it is a DIFFERENT cue in each theme - the panel surface in light, the 1px border in
  * dark. Exactly the structure of the two-part focus indicator (D0054).
  *
- * That was prose in `design/foundations.md` and nothing re-derived it. A review moved the scrim to
- * 0.42 alpha - inside the dead zone D0092 names, where the border against the scrim collapses to
- * 1.09:1 - and the full suite, the contrast gate and the token gate all stayed green.
+ * That was prose in `design/foundations.md` and nothing re-derived it: the scrim could be moved to
+ * an alpha that fails D0092's reasoning with the full suite, the contrast gate and the token gate
+ * all green.
+ *
+ * WHAT THIS ENFORCES, precisely - an earlier version of this comment implied more. Three floors:
+ * one of the two cues clears 3:1 against the composited scrim in each theme; the scrim reduces the
+ * canvas luminance by at least 25%; and page text behind it stays above 4.5:1. It does NOT enforce
+ * D0092's chosen 0.50, and it does NOT reject the 0.40-0.45 band D0092 avoids - at 0.42 the light
+ * panel cue is 3.03:1, which clears the floor. D0092 chose 0.50 for margin; this guard holds the
+ * floor. A reviewer checked exactly that and was right to.
  *
  * It cannot live in `contrast-required.json`: `contrastRatio` takes 6-digit hex only, so an alpha
  * value returns null and reddens that gate as "cannot measure"; and there is no single honest pair
