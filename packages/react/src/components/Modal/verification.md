@@ -70,7 +70,7 @@ ambiguous signal in the system.
 
 ## What is verified automatically
 
-- The behaviour above, in `__tests__/behaviour.test.tsx` - 55 tests, including all four dismissal
+- The behaviour above, in `__tests__/behaviour.test.tsx` - 57 tests, including all four dismissal
   routes asserted separately, each asserting that focus LEFT the opener before it came back (two of
   them previously passed against an implementation that did nothing, because `userEvent.click`
   leaves focus on the button it clicked)
@@ -95,8 +95,10 @@ ambiguous signal in the system.
   light scrim composite, so a control there would fail WCAG today
 - No Radix type, prop name or `data-*` attribute on the public surface - `check:api`
 - Radix stays external and is not inlined into any chunk - `check:bundled-peers`
-- Modal's own chunk is ~2.1 kB gzipped against a 5 kB budget; the shared Radix runtime is ~14.9 kB
-  against an 18 kB ceiling, measured once rather than charged to each overlay - `pnpm size`. A
+- Modal's own chunk and the shared Radix runtime are both inside their budgets - `pnpm size`.
+  Deliberately no byte figures here: they moved on three consecutive builds and the record drifted
+  behind them each time, which is a stated fact that goes stale by construction. `.size-limit.json`
+  carries the ceilings and the gate carries the measurement. A
   declared runtime dependency that no built chunk imports is a build failure, not a silent skip
 - `ref` reaches the panel and `className` merges rather than replaces - both are published API and
   both were deletable with the whole suite green
@@ -131,6 +133,15 @@ ambiguous signal in the system.
   the same commit. Before that the spy was scoped by TIME rather than by caller, so it covered one
   of three call sites under a name claiming all of them - and not the one the scroll jump was
   measured on. A record that overstates a guard is the CR-01M0SKZ6 class pointed at itself.
+- **Tearing down the whole React root while a dialog is open moves focus into the host page's own
+  chrome.** `root.unmount()` runs the same restoration path, and the fallback then picks the first
+  focusable element on the page - which in an embedded or micro-frontend context is not Clara's.
+  Bounded: no test can distinguish "the app is gone" from "the dialog closed" without a signal the
+  API does not have, and the alternative is leaving focus on `document.body`.
+- **One branch of the fallback is unreachable in jsdom.** `if (document.activeElement === candidate)
+  return` taken FALSE - "the candidate refused focus, try the next" - needs an element that is
+  focusable to a selector and not to the browser, which is a layout fact. It is the reason the loop
+  replaced a single `querySelector`, it was measured in Chromium, and it is gate 7's to cover.
 - **Nesting is asserted one level deep.** Modal-over-menu and menu-over-Modal are decided by DOM
   order (D0088) and the host ordering is asserted, but the composition with a real Select or
   DropdownMenu cannot be tested until those components exist (EP-01M0GK91).

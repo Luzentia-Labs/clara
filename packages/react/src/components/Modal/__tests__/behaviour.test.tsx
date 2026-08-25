@@ -1,4 +1,4 @@
-import { StrictMode, useRef, useState } from 'react'
+import { StrictMode, useEffect, useRef, useState } from 'react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -249,6 +249,78 @@ describe('Modal focus restoration under StrictMode and a vanished opener', () =>
     // fallback in the window before the portal content existed, steal focus to the skip link, and
     // then record the stolen element as the opener.
     await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
+  })
+
+  it('does not override focus the application places after the dialog has gone', async () => {
+    // The mainstream ERP flow: commit, then navigate. The app focuses the new record's heading in
+    // an effect AFTER the Modal has unmounted - which is a tick before Clara's deferred restore,
+    // so the restore used to overwrite it and drop the user on the page's skip link.
+    //
+    // Deliberately NOT focusing inside `onClose`: while the dialog is still mounted Radix's trap
+    // pulls focus straight back, so that scenario tests the trap rather than this. A trace showed
+    // exactly that, and the first version of this test was measuring the wrong thing.
+    function CommitAndNavigate () {
+      const [open, setOpen] = useState(true)
+      const [committed, setCommitted] = useState(false)
+      const heading = useRef<HTMLHeadingElement>(null)
+      useEffect(() => { if (committed) heading.current?.focus() }, [committed])
+      return (
+        <ClaraProvider>
+          <a href="#main" data-testid="skip">Skip</a>
+          <h1 tabIndex={-1} ref={heading} data-testid="heading">Record 42</h1>
+          {open && (
+            <Modal open title="t" onClose={() => { setOpen(false); setCommitted(true) }}>
+              <button data-testid="in">x</button>
+            </Modal>
+          )}
+        </ClaraProvider>
+      )
+    }
+    render(<CommitAndNavigate />)
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    // Give the deferred restore a tick to do the wrong thing, if it is going to.
+    await new Promise((r) => { setTimeout(r, 0) })
+    expect(screen.getByTestId('heading')).toHaveFocus()
+  })
+
+  it('lands on the real opener when a confirm-over-edit pair closes in one commit', async () => {
+    // No consumer focus code at all, which is why this is a component defect rather than an
+    // interaction gap. Two restores queue and microtasks are FIFO, so the outermost used to run
+    // last and win - backwards for nesting - and the user landed on the page's skip link.
+    //
+    // Opened the way a user does, not both `open` on mount: a dialog that was open before anything
+    // was focused captures no opener at all, so a fixture like that tests the fallback instead.
+    function ConfirmOverEdit () {
+      const [edit, setEdit] = useState(false)
+      const [confirm, setConfirm] = useState(false)
+      const closeBoth = () => { setConfirm(false); setEdit(false) }
+      return (
+        <ClaraProvider>
+          <a href="#main" data-testid="skip">Skip</a>
+          <button data-testid="opener" onClick={() => setEdit(true)}>Edit</button>
+          {edit && (
+            <Modal open title="Edit" onClose={() => setEdit(false)}>
+              <button data-testid="ask" onClick={() => setConfirm(true)}>Delete</button>
+            </Modal>
+          )}
+          {confirm && <Modal open title="Confirm" onClose={closeBoth}><button data-testid="yes">Yes</button></Modal>}
+        </ClaraProvider>
+      )
+    }
+    render(<ConfirmOverEdit />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await waitFor(() => expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1))
+    await userEvent.click(screen.getByTestId('ask'))
+    await waitFor(() => expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(2))
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(0))
+    await new Promise((r) => { setTimeout(r, 0) })
+    // The confirm dialog's own opener (`ask`) went away with the edit dialog, so the only correct
+    // landing place is the button that started the whole flow - never the page's skip link.
+    expect(screen.getByTestId('skip')).not.toHaveFocus()
+    expect(screen.getByTestId('opener')).toHaveFocus()
   })
 
   it('accepts an aria-hidden candidate rather than stranding focus on the body', async () => {

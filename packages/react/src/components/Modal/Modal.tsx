@@ -132,7 +132,22 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
     // last and wins. The close path stays synchronous because there Radix's restore is suppressed
     // by `onCloseAutoFocus` and the extra tick would be an observable delay for no benefit.
     const run = restore.current
-    queueMicrotask(() => run())
+    queueMicrotask(() => {
+      // Only when focus is actually STRANDED. The deferral that fixed the stranding introduced the
+      // opposite defect: running a tick later means it also runs after anything the APPLICATION
+      // did, so it overrode focus that was already correctly placed. Measured in Chromium on the
+      // mainstream ERP flow - commit, then navigate - the app focused the new record's heading in
+      // a route effect and Clara moved the user to the page's skip link one microtask later.
+      //
+      // It also settles nesting for free. Two Modals dismissed in one commit queue two restores,
+      // and microtasks are FIFO, so the outermost used to run last and win - backwards. Now the
+      // second one sees a real element already focused and leaves it alone.
+      //
+      // Focus on a real, connected element is somebody's decision. Only `document.body` is nobody's.
+      const active = document.activeElement
+      if (active && active !== document.body && active.isConnected) return
+      run()
+    })
   }, [])
 
   useEffect(() => {
