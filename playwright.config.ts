@@ -20,7 +20,11 @@ export default defineConfig({
   // and dies with "Requiring @playwright/test second time" - a failure with nothing to do
   // with the tests. CI never sees it (no worktrees there), so it only ever breaks locally,
   // while review agents are running, which is the worst time to be reading a confusing error.
-  testIgnore: ['**/node_modules/**', '**/dist/**', '**/.claude/**', '**/.stryker-tmp/**'],
+  // Anchored to this directory, not `**/`: the `**/` form matches the ABSOLUTE path, so a
+  // checkout living under `.claude/worktrees/` ignored every one of its own specs and a
+  // review agent running `pnpm check:geometry` got "No tests found". D0070 puts reviewers in
+  // worktrees, so that made the new gates unrunnable by exactly the seat that must run them.
+  testIgnore: ['**/node_modules/**', '**/dist/**', './.claude/**', './.stryker-tmp/**'],
   fullyParallel: true,
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: `file://${process.cwd()}/e2e/fixtures/` },

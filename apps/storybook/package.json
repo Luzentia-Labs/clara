@@ -5,6 +5,22 @@
   "description": "Component playground and the source Chromatic reads.",
   "type": "module",
   "scripts": {
-    "build": "echo \"not yet implemented\" && exit 1"
+    "dev": "storybook dev -p 6006 --no-open",
+    "build": "storybook build --output-dir storybook-static"
+  },
+  "dependencies": {
+    "@luzentialabs/clara-icons": "workspace:*",
+    "@luzentialabs/clara-react": "workspace:*",
+    "@luzentialabs/clara-tokens": "workspace:*"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "^9.1.20",
+    "@storybook/addon-docs": "^9.1.20",
+    "@storybook/react-vite": "^9.1.20",
+    "@vitejs/plugin-react": "^5.1.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "storybook": "^9.1.20",
+    "vite": "^6.4.3"
   }
 }

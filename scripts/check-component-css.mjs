@@ -250,7 +250,14 @@ for (const file of files) {
     // component's own rule is legal CSS, inherits to every descendant, and put the hand-typed
     // number back with the z-index rule fully green - a scale is only a scale if its values come
     // from the token build.
-    if (/^--clara-/i.test(decl.prop) && allowed.has(decl.prop.replace(/^--clara-/i, ''))) {
+    // `allowed` is tier 2 and tier 3 only, so redefining a tier 1 PRIMITIVE walked straight past
+    // this: `--clara-layer-overlay` is emitted as `var(--clara-layer-2)`, so redefining
+    // `--clara-layer-2` on a component rule moves the overlay layer with `pnpm check` green and
+    // every AC passing. Not layer-specific - `--clara-color-neutral-0` escaped the same way.
+    // Reading tier 1 is already refused above; redefining it has to be too, or the refusal is a
+    // formality with a documented way around it (US-01M0GM61 round 4, anton-reis).
+    const defined = decl.prop.replace(/^--clara-/i, '')
+    if (/^--clara-/i.test(decl.prop) && (allowed.has(defined) || tier1.has(defined))) {
       problems.push(`${at}: redefines ${decl.prop}, which the token build emits - a component that redefines a token overrides it for its whole subtree, which makes the token's value a local literal`)
     }
     // A custom-property DEFINITION and a structural property are not design values.
@@ -752,15 +759,52 @@ for (const file of sourceFiles) {
  */
 const SPACE_AS_SIZE_ALLOWED = []
 const SIZE_PROPS = /^(min-|max-)?(height|width|block-size|inline-size)$/
+
+/**
+ * Resolve an alias chain to the token families it ultimately reads.
+ *
+ * The first version of this rule matched the literal name `--clara-space-*`, which is one hop
+ * deep. `--clara-box-padding-lg` is tier 3 for `{space.section}`, so
+ * `min-height: var(--clara-box-padding-lg)` restored BG-01M0WR22 verbatim - the same 16px floor in
+ * compact - and passed. A rule with a documented way around it is a formality.
+ */
+const emitted = join(root, 'packages/tokens/dist/tokens.css')
+if (!existsSync(emitted)) fail(RULE, ['packages/tokens/dist/tokens.css missing - build the tokens first'])
+const definitions = new Map()
+for (const line of readFileSync(emitted, 'utf8').split('\n')) {
+  const m = line.match(/^\s*(--clara-[a-z0-9-]+)\s*:\s*([^;]+);/)
+  if (m && !definitions.has(m[1])) definitions.set(m[1], m[2])
+}
+const tier2 = new Set(tiers.tier2.map((t) => `--clara-${t.name}`))
+/**
+ * Resolution STOPS at tier 2, which is where meaning lives. Tier 1 is a raw scale with no
+ * semantics: `size.target-min` is a SIZE that happens to alias `{space.6}`, and following the
+ * chain to tier 1 made the rule flag its own recommended replacement. `space.none` likewise
+ * bottoms out at `space.0` and would defeat its own exemption.
+ */
+const semanticOf = (name, seen = new Set()) => {
+  if (seen.has(name) || tier2.has(name)) return new Set([name])
+  seen.add(name)
+  const value = definitions.get(name)
+  const refs = value ? [...value.matchAll(/var\(\s*(--clara-[a-z0-9-]+)/g)].map((m) => m[1]) : []
+  if (!refs.length) return new Set([name])
+  return new Set(refs.flatMap((r) => [...semanticOf(r, seen)]))
+}
 for (const file of files) {
   postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkDecls((decl) => {
     const sel = decl.parent?.selector ?? ''
     if (!SIZE_PROPS.test(decl.prop)) return
     if (SPACE_AS_SIZE_ALLOWED.includes(sel.trim())) return
-    const used = [...decl.value.matchAll(/var\(\s*(--clara-space-[a-z0-9-]+)/g)].map((m) => m[1])
-      .filter((n) => n !== '--clara-space-none')
-    for (const name of used) {
-      problems.push(`${relative(root, file)}: ${sel.trim()} sets \`${decl.prop}\` from \`${name}\` - ` +
+    // Inside `calc()` a spacing token is an ADJUSTMENT to a size that something else determines -
+    // `calc(100% - var(--clara-space-stack))`, or the modal's viewport-max minus its padding. The
+    // defect is a spacing token standing alone AS the size. Flagging the calc form was a false
+    // positive on a pattern this repo already uses correctly.
+    if (/calc\(/.test(decl.value)) return
+    for (const ref of [...decl.value.matchAll(/var\(\s*(--clara-[a-z0-9-]+)/g)].map((m) => m[1])) {
+      const roots = [...semanticOf(ref)].filter((n) => n.startsWith('--clara-space-') && n !== '--clara-space-none')
+      if (!roots.length) continue
+      const via = ref === roots[0] ? '' : ` (via ${ref})`
+      problems.push(`${relative(root, file)}: ${sel.trim()} sets \`${decl.prop}\` from \`${roots[0]}\`${via} - ` +
         'a spacing token is re-tuned by density AS A GAP, so using it as a size silently re-tunes ' +
         'a height or a target floor. Use `--clara-size-*` (target-min, control-height)')
     }

@@ -189,7 +189,7 @@ the restore a silent no-op. None of those is visible to jsdom; all were measured
 - **And** three things the TSD's definition of done also names are NOT claimed here, because they do
   not exist in this repo yet and a criterion that certifies absent artefacts is worse than one that
   omits them: **Storybook stories** (no `.storybook`, no `*.stories.*` anywhere), a **visual
-  baseline** (gate 7 is unwired, US-01M0GMZW), and a **recorded manual keyboard pass** (outstanding,
+  baseline** (gate 7 is unwired, US-01M0WSME), and a **recorded manual keyboard pass** (outstanding,
   and the verification record says so). This criterion previously asserted all three and was stamped
   `Verified: yes` while none of them existed
 - **Verify:** shell node scripts/check-verification.mjs --component Modal && npx vitest run -t "Modal accessible structure and axe"
@@ -258,7 +258,7 @@ Every row below was found by review, most of them in a real browser. None was an
 - [x] axe is clean over the open dialog in BOTH its default and its error state
 - [x] The test file leaves the viewport exactly as it found it
 - [ ] A real Select or DropdownMenu inside a Modal - **not asserted here**, because neither exists yet (EP-01M0GK91)
-- [ ] Anything visual, in any theme or density - **gate 7** (US-01M0GMZW)
+- [ ] Anything visual, in any theme or density - **gate 7** (US-01M0WSME)
 
 ## Dependencies
 
@@ -267,7 +267,7 @@ Every row below was found by review, most of them in a real browser. None was an
 | Story | Type | What's Needed | Status |
 | --- | --- | --- | --- |
 | [US-01M0GM61](US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md) | Blocking | `ClaraPortal`, the layer scale, and the open-order stacking model | Done |
-| [US-01M0GMZW](US-01M0GMZW-storybook-workspace-with-theme-and-density-toolbars.md) | Follows | Gate 7. Four findings in this story were only observable in a real browser, and they are recorded there as the evidence for wiring it | Draft |
+| [US-01M0WSME](US-01M0WSME-storybook-workspace-with-theme-and-density-toolbars.md) | Follows | Gate 7. Four findings in this story were only observable in a real browser, and they are recorded there as the evidence for wiring it | Draft |
 
 ### External Dependencies
 

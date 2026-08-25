@@ -23,7 +23,7 @@ The Field framework and the basic inputs. ERP applications are mostly forms, and
 | PRD F08/F09 | Accessibility | WCAG 2.2 AA; a real label, never a placeholder; readonly is not contrast-exempt | Every control takes its wiring from the Field; axe runs over all four theme x density combinations |
 | PRD F01 | API stability | Tier 2 tokens and every exported name are public API, and publishing is a one-way door | A prop rename after publish is a breaking change, so `disabled`, `labelFor` and the `as` idiom were settled before the first release (D0085) |
 | TRD Section 7 | Boundary | A component with function props or state is client-only | The Field renders a context Provider, so it and every control reading it are client (D0060) |
-| TRD Section 9 | Gates | 19 CI gates, 18 wired | Gate 7 (visual regression) is the one pending, owned by US-01M0GMZW - so nothing here verifies appearance |
+| TRD Section 9 | Gates | 19 CI gates, 18 wired | Gate 7 (visual regression) is the one pending, owned by US-01M0WSME - so nothing here verifies appearance |
 | PRD D0058/D0028 | Keyboard | A disabled control keeps its tab stop | `aria-disabled` + `readOnly`, never the native attribute, and each control suppresses its own interaction (D0064, D0068, D0085) |
 
 ## Business Context
@@ -88,7 +88,7 @@ the Field is a defect ten controls inherit, so it is worth the gate weight this 
 | --- | --- | --- | --- |
 | EP-01M0GKNG (F00 visual language) | Blocking | Done | semantic tokens, density, themes |
 | EP-01M0GKNH (toolchain and release) | Blocking | Done | build, guards, CI |
-| US-01M0GMZW (Storybook + visual regression) | Non-blocking | Draft | owns gate 7 and the two definition-of-done artefacts this epic cannot produce |
+| US-01M0WSME (Storybook + visual regression) | Non-blocking | Draft | owns gate 7 and the two definition-of-done artefacts this epic cannot produce |
 
 ### Blocking
 
@@ -184,7 +184,7 @@ What gates this epic, in the order it runs:
 | `check:axe` / `check:keyboard` | Accessibility and keyboard, over the components that cite them (D0066) |
 | `check:contrast` | 96 pairings across both themes, against real token values - jsdom can see none of this |
 
-**What this plan cannot reach**, named rather than implied: appearance (gate 7, unwired, US-01M0GMZW)
+**What this plan cannot reach**, named rather than implied: appearance (gate 7, unwired, US-01M0WSME)
 and what a screen reader actually says (axe reads the tree, not the speech). Two manual criteria
 remain open for exactly that reason, and neither has been stamped.
 

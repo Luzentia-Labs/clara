@@ -7,14 +7,14 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 46 |
+| Draft | 47 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
 | Review | 0 |
 | Done | 42 |
 | Blocked | 0 |
-| **Total** | **88** |
+| **Total** | **89** |
 
 ## Stories by Epic
 
@@ -113,6 +113,7 @@
 | [US-01M0GM3E](US-01M0GM3E-accessibility-statement-and-gap-register.md) | Accessibility statement and gap register | EP-01M0GKVE | Draft | 3 | -- |
 | [US-01M0MQYN](US-01M0MQYN-manual-chunks-so-the-use-client-directive-survives.md) | Manual chunks so the use client directive survives bundling | EP-01M0GKNH | Done | 8 | Sofia Marchetti |
 | [US-01M0NJZN](US-01M0NJZN-one-chunk-per-client-component-so-budgets-are.md) | One chunk per client component so budgets are real | EP-01M0GKNH | Done | 5 | Sofia Marchetti |
+| [US-01M0WSME](US-01M0WSME-chromatic-visual-regression-blocking-on-unreviewed-diffs.md) | Chromatic visual regression, blocking on unreviewed diffs | EP-01M0GKM4 | Draft | 5 | -- |
 
 ## Notes
 

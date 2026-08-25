@@ -31,6 +31,17 @@ Each finding here is Low-severity on its own; the batch is triaged, then actione
   ```
 
   So the pattern is established, documented, and applied in one of the two places that needs it.
+- **Interactive control labels and field help text render at the 12px caption size**: PRD:333 states the rule: *"Body text minimum is 14px; no Clara component renders text below 12px, and 12px is reserved for non-essential metadata only."* `design/foundations.md:219` puts it the same way - "12px only for genuinely non-essential metadata".
+
+  Three pieces of text take `--clara-font-caption` (12px) today, and none of them is obviously non-essential metadata:
+
+  | Element | What it says | Why it is questionable |
+  | --- | --- | --- |
+  | `.clara-password__toggle` | "Show password" / "Hide password" | The visible, underlined, link-coloured label of an INTERACTIVE control. A user has to read it to operate the control. |
+  | `.clara-search__clear` | "Clear search" | Same - a visible interactive control label. |
+  | `.clara-field__description` | e.g. "As it appears on the invoice" | Instructional help text. A user reads it to fill the field correctly. |
+
+  All three are painted, not screen-reader-only - measured at 12px in Chromium in both densities.
 
 ## Revision History
 

@@ -74,7 +74,7 @@ architecture rather than nine times" failure appearing at the epic level rather 
   runs, so it has been given the second component that needs it rather than left as a note.
 - **A portalled overlay rendering dark and compact, captured as a visual baseline** is an epic AC
   owned by nobody, and cannot be given an owner today: it cannot be captured until visual regression
-  (gate 7, US-01M0GMZW) is wired. DropdownMenu AC5 covers whole-page dark/compact, which is a
+  (gate 7, US-01M0WSME) is wired. DropdownMenu AC5 covers whole-page dark/compact, which is a
   different case - the point of the portalled one is that the overlay has LEFT the scoped subtree.
   **Outstanding**, and it belongs to whichever overlay story is being written when gate 7 lands.
 

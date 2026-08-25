@@ -126,7 +126,7 @@ story is mostly about not inheriting either.
   23 verification records. The guard now requires that section to state either a real pass - naming
   the browsers it was walked in - or that it is outstanding, and a record saying "Not done." fails
 - **And** the two that cannot are named rather than claimed: **Storybook stories** and a **visual baseline** - both
-  belong to US-01M0GMZW, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
+  belong to US-01M0WSME, which wires the Storybook workspace and gate 7 together (`ci-gates.json`
   records gate 7 as `pending`, owned by that story). This AC previously asserted all seven and was stamped `Verified: yes` while five
   did not exist anywhere in the repo
 - **Verify:** shell node scripts/check-verification.mjs --component NumberInput

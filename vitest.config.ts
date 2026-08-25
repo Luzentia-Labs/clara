@@ -33,6 +33,10 @@ export default defineConfig({
         '**/*.d.ts',
         'packages/tokens/src/generated/**',
         '**/__tests__/**',
+        // A story is a fixture the playground renders, not shipped logic. It is not imported
+        // by the package entry so it never reaches the tarball, and holding it to a coverage
+        // threshold would mean writing unit tests for a fixture.
+        '**/*.stories.tsx',
         // Executable scripts, not modules: they run top-level and call process.exit, so unit
         // coverage would mean asserting on a process. They are proven at the integration level by
         // `prove-guards-fail.mjs`, which now pins each rule by its own diagnostic (CR-01M0MBGN AC3).

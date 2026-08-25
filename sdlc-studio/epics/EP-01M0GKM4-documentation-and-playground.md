@@ -48,6 +48,7 @@ Storybook as the component playground and the source Chromatic reads, plus a doc
 - [ ] [US-01M0GMVP: Component page template and per-component docs](../stories/US-01M0GMVP-component-page-template-and-per-component-docs.md)
 - [ ] [US-01M0GMKM: Patterns section](../stories/US-01M0GMKM-patterns-section.md)
 - [ ] [US-01M0GMAV: Copyable examples that are proven to build](../stories/US-01M0GMAV-copyable-examples-that-are-proven-to-build.md)
+- [ ] [US-01M0WSME: Chromatic visual regression, blocking on unreviewed diffs](../stories/US-01M0WSME-chromatic-visual-regression-blocking-on-unreviewed-diffs.md)
 
 ## Risks
 

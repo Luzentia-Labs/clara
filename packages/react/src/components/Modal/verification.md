@@ -111,7 +111,7 @@ ambiguous signal in the system.
 
 - **Screen reader testing is not automated.** axe checks the accessibility tree, not what NVDA or
   VoiceOver announce. PRD F17 names NVDA as a stated gap; it stays one.
-- **Visual regression is not yet wired** (gate 7, US-01M0GMZW), so the rendered appearance is
+- **Visual regression is not yet wired** (gate 7, US-01M0WSME), so the rendered appearance is
   unverified - only the markup, the tokens and the measured contrast are. This is the component
   where that gap bites hardest: the scrim, the elevation reading and the centred panel are all
   visual claims.

@@ -55,6 +55,7 @@
     "clean": "node -e \"for(const d of ['dist','build'])require('fs').rmSync(d,{recursive:true,force:true})\""
   },
   "devDependencies": {
+    "@storybook/react-vite": "^9.1.20",
     "@types/node": "^26.2.0",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",

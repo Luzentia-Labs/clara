@@ -28,7 +28,7 @@ whatever is settled here, which is why the delta is long: almost none of it is M
 | 10 | **SHAPE_CONTRACT** (`check-component-css.mjs`) | jsdom computes no layout, so nothing else can see a modal with no box | `.clara-modal` and `.clara-modal__scrim` get entries | AC6 |
 | 11 | **D0005** - all CSS inside `@layer clara.components` | Modal stylesheet | Automatic through the build; asserted by `check-stylesheets` | AC6 |
 | 12 | **Drawer AC6** (added this run) | Scroll lock is now owned by two stories | The lock is written once in Modal's implementation and reused, not solved twice | AC4 |
-| 13 | **Epic AC** - portalled overlay dark/compact visual baseline | Modal is the obvious first subject | **Still cannot be owned.** It needs gate 7 (US-01M0GMZW), which is not wired. Stays outstanding at epic level rather than being quietly absorbed here | - |
+| 13 | **Epic AC** - portalled overlay dark/compact visual baseline | Modal is the obvious first subject | **Still cannot be owned.** It needs gate 7 (US-01M0WSME), which is not wired. Stays outstanding at epic level rather than being quietly absorbed here | - |
 | 14 | **`as` is Clara's only polymorphism idiom** | Modal | Not polymorphic. A dialog that renders as something else is not a dialog. Stated so the next reader does not have to wonder | - |
 
 ## B. Two things Modal is contractually obliged to decide

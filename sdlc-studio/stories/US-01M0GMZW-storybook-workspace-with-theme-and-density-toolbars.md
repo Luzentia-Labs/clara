@@ -46,7 +46,8 @@ four rows above for free, and is immune to the syntactic dodges that took three 
 - **Given** Storybook
 - **When** it loads
 - **Then** global toggles switch theme and density
-- **Verify:** file apps/storybook/.storybook/preview.tsx
+- **Verify:** shell pnpm check:storybook
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC2: a11y addon is on
@@ -55,6 +56,7 @@ four rows above for free, and is immune to the syntactic dodges that took three 
 - **When** I open the a11y panel
 - **Then** axe violations are visible in the UI
 - **Verify:** grep "addon-a11y" apps/storybook/.storybook/main.ts
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC3: Autodocs from types
@@ -62,7 +64,8 @@ four rows above for free, and is immune to the syntactic dodges that took three 
 - **Given** a component
 - **When** I open its docs tab
 - **Then** the props table is generated from TypeScript with TSDoc descriptions
-- **Verify:** file apps/storybook/.storybook/main.ts
+- **Verify:** shell pnpm check:storybook
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC4: Static build deploys
@@ -70,10 +73,38 @@ four rows above for free, and is immune to the syntactic dodges that took three 
 - **Given** the default branch
 - **When** a merge lands
 - **Then** Storybook builds statically and deploys to GitHub Pages (D0027)
-- **Verify:** grep "storybook" .github/workflows/pages.yml
+- **Verify:** grep "upload-pages-artifact" .github/workflows/pages.yml
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
+
+## Specification delta (2026-08-26)
+
+**Three of the four acceptance criteria verified that a file existed, not that anything worked.**
+AC1 was `file apps/storybook/.storybook/preview.tsx` and AC3 was `file .../main.ts`. A `preview.tsx`
+containing one comment satisfies both, and so does a toolbar that renders and changes nothing.
+
+That is not hypothetical here. During implementation, `storybook build` reported success while
+EVERY story rendered as `ReferenceError: React is not defined` in the preview iframe - the config
+files compiled to bare `React.createElement` calls with no import, because the automatic JSX runtime
+was not reaching them. Both original verifiers passed against that build. The playground was green
+in CI and blank in a browser, which is the exact shape D0099 was recorded about.
+
+AC1 and AC3 now run `pnpm check:storybook`, which builds the playground and asserts in Chromium
+that switching the theme global repaints the canvas, that switching the density global changes a
+Button's computed height to the 40px/32px scale gate 9 holds (D0098), and that the autodocs props
+table is generated from the TypeScript types. AC4 greps for `upload-pages-artifact` rather than the
+word "storybook", which appears in a comment.
+
+AC2 keeps its grep. The a11y ADDON is a panel the author opens while working; the blocking
+assertion is gate 5 (`pnpm check:axe`), which already exists and already runs. Asserting the addon
+is registered is the honest scope of this criterion, and an addon nobody opens is not a gate.
+
+**Gate 7 is no longer bound to this story.** `ci-gates.json` had this story owning "Visual
+regression: no unreviewed diffs", which none of its four criteria deliver - and closing it would
+have left the gate owned by a closed story. Gate 7 is Chromatic (TSD Section 5) and is now owned by
+US-01M0WSME. See D0099.
 
 ## Scope
 

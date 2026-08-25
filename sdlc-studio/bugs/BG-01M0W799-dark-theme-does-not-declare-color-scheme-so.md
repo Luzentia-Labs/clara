@@ -59,7 +59,7 @@ one a `ClaraScope` depends on.
 
 **Not `conversational`:** nothing here can see a user agent PAINT a control. jsdom renders no native
 chrome and computes no layout, so what is asserted is the declaration and its scope, not the glyphs.
-The appearance belongs to gate 7 (US-01M0GMZW), which now carries this alongside its other
+The appearance belongs to gate 7 (US-01M0WSME), which now carries this alongside its other
 browser-only claims.
 
 ## Specification delta

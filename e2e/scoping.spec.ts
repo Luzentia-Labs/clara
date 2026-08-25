@@ -56,8 +56,11 @@ test('every referencing tier 3 alias is re-declared for scopes', () => {
   const names = new Set(tier3.map((t: { name: string }) => `--clara-${t.name}`))
   const sheet = readFileSync(join(root, 'packages/tokens/dist/tokens.css'), 'utf8')
 
-  const scopeBlock = sheet.slice(sheet.indexOf('[data-clara-theme],'))
-  expect(scopeBlock, 'dist/tokens.css emits no scope block at all').not.toEqual('')
+  // `indexOf` returns -1 when the block is absent, and `slice(-1)` is the sheet's LAST CHARACTER,
+  // not ''. So this guard could never fire - it was checking a string that is never empty.
+  const blockAt = sheet.indexOf('[data-clara-theme],')
+  expect(blockAt, 'dist/tokens.css emits no scope block at all').toBeGreaterThan(-1)
+  const scopeBlock = sheet.slice(blockAt)
 
   const referencing = sheet.split('\n')
     .map((l) => l.match(/^\s*(--clara-[a-z0-9-]+)\s*:.*var\(--clara-/))

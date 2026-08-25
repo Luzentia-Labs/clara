@@ -1,0 +1,72 @@
+# Publish the Storybook playground to GitHub Pages (D0027, US-01M0GMZW AC4).
+#
+# Runs only on the default branch and only after CI has passed on that same commit. Publishing a
+# playground from a red commit would put a broken reference in front of every consumer, and the
+# playground is the thing people look at when they want to know what Clara actually does.
+#
+# This deploys the PLAYGROUND. The docs site is a separate story (US-01M0GM8N), and Chromatic
+# reads the same stories from its own run rather than from anything published here
+# (US-01M0WSME).
+name: Pages
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  # Manual redeploy without waiting for a push, e.g. after a Pages settings change.
+  workflow_dispatch:
+
+# Least privilege: read the tree, mint the Pages token, nothing else.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and never cancel one in flight - a half-finished deploy is a broken site,
+# unlike a cancelled CI run.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # `workflow_run` fires on failure too, so the CI conclusion is checked explicitly rather than
+    # assumed. Without this, a red CI publishes.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The commit CI actually passed on, not whatever main points at by the time this starts.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Storybook renders the workspace packages, so they have to be built first.
+      - run: pnpm build
+
+      - run: pnpm --filter @clara-internal/storybook build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/storybook/storybook-static
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -46,7 +46,7 @@ type Measurement = {
   id: string
   kind: string
   controls: { selector: string; height: number; width: number }[]
-  targets: { label: string; width: number; height: number; hitCovers24: boolean }[]
+  targets: { label: string; width: number; height: number; hitCovers24: boolean; selfActivating: boolean }[]
   texts: { text: string; fontSize: number; caption: boolean }[]
   gaps: number[]
 }
@@ -83,15 +83,27 @@ test.describe('computed geometry (TSD 7)', () => {
         const r = rect(control)
         const cx = r.left + r.width / 2
         const cy = r.top + r.height / 2
-        const half = targetMin / 2 - 0.5 // just inside the square, so an exactly-24px box passes
+        // Just inside the square. This was `- 0.5`, which probes 23x23 and accepts a 23px box
+        // while the comment claimed it tested 24.
+        const half = targetMin / 2 - 0.01
         // A styled checkbox hides its real <input> and paints a sibling <span>, so "is the hit the
         // control or a descendant?" reports a 24x24 box as unreachable when a click on it works
         // perfectly. The activating region is the whole label, wrapping or `for`-linked.
+        // The activating region is the UNION of the control and its label, not one or the other.
+        // Clara renders a choice control as `<input id><label for=id>` - siblings, not nested - so
+        // resolving the region to "the label" made it a region that does not contain the input,
+        // and every checkbox failed while all four corners were landing on the input itself.
         const id = control.getAttribute('id')
-        const region = control.closest('label')
+        const labelled = control.closest('label')
           ?? (id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null)
-          ?? control
-        const activates = (hit: Element | null) => !!hit && (region.contains(hit) || hit.contains(control))
+        const regions = [control, labelled].filter((el): el is Element => !!el)
+        // This predicate used to also accept `hit.contains(control)`, which is true of EVERY
+        // ancestor - the case wrapper, `<body>`, `<html>`. So when a corner probe missed a control
+        // that was too small and landed on the page behind it, the ancestor it hit was accepted as
+        // proof that the hit area covered the square. A 6x6 button passed. The gate could not fail
+        // on size at any rendered size, which also makes the "27px paint" explanation recorded in
+        // BG-01M0WR22 wrong: nothing about the paint was doing the hiding.
+        const activates = (hit: Element | null) => !!hit && regions.some((r) => r.contains(hit))
         return ([[-1, -1], [1, -1], [-1, 1], [1, 1]] as const).every(([dx, dy]) =>
           activates(document.elementFromPoint(cx + dx * half, cy + dy * half)))
       }
@@ -124,6 +136,13 @@ test.describe('computed geometry (TSD 7)', () => {
               targets.push({
                 label: `${el.tagName.toLowerCase()}${el.getAttribute('type') ? `[${el.getAttribute('type')}]` : ''}`,
                 width: r.width, height: r.height, hitCovers24: hitCovers(el),
+                // Whether anything other than the control itself can activate it. A checkbox is
+                // deliberately smaller than its label's hit area (PRD:486); a button is not, so a
+                // button's own box has to clear the floor.
+                selfActivating: !(el.closest('label')
+                  ?? (el.getAttribute('id')
+                    ? document.querySelector(`label[for="${CSS.escape(el.getAttribute('id')!)}"]`)
+                    : null)),
               })
             }
           }
@@ -132,14 +151,38 @@ test.describe('computed geometry (TSD 7)', () => {
           // absolute floor rather than the body floor. Whether a Field DESCRIPTION should be a
           // caption at all is a design question, not a geometry one - it is raised in
           // BG-01M0WQ0X's notes for the Idris seat rather than settled by this gate.
+          // A "caption" is the 12px role the type scale defines, identified by the TOKEN rather
+          // than by a list of class names - a list goes stale the moment a component uses the role
+          // without being added to it, and this gate then reports a design decision as a defect.
+          //
+          // Which text may hold that role is a design question and NOT settled: Field's
+          // description and the PasswordInput/SearchInput affix labels all take it today, and an
+          // interactive control's own label is hard to call "non-essential metadata" (PRD:333).
+          // Raised for the Idris seat in CR-01M0WSFZ rather than decided here. This gate asserts
+          // what IS settled: nothing below 12px anywhere, and body text at 14px or more.
+          const captionSize = parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue('--clara-font-caption'))
           const CAPTION = '.clara-field__description, .clara-choice__description'
-          const texts = textNodes(c).map((el) => ({
+          // Screen-reader-only text is clipped to about a pixel and painted nowhere, so its
+          // font-size is not a legibility claim. An affix button's "Show password" label is the
+          // case here; holding it to the body floor measures a box the eye never sees.
+          const painted = (el: Element) => {
+            const r = el.getBoundingClientRect()
+            return r.width > 2 && r.height > 2
+          }
+          const texts = textNodes(c).filter(painted).map((el) => ({
             text: (el.textContent ?? '').trim().slice(0, 40),
             fontSize: parseFloat(getComputedStyle(el).fontSize),
-            caption: el.matches(CAPTION),
+            caption: el.matches(CAPTION) || parseFloat(getComputedStyle(el).fontSize) === captionSize,
           }))
-          // An input's value is text too, and it is the text a user reads most in an ERP form.
+          // An input's value is text too, and it is the text a user reads most in an ERP form -
+          // but only where the value is actually RENDERED. A checkbox's value is the string "on",
+          // which is never painted, so reading it measured the UA's default control font instead
+          // of any Clara text and reported 13.33px as a body-text violation.
+          const VALUE_SHOWN = ['text', 'search', 'password', 'email', 'number', 'tel', 'url']
           for (const el of c.querySelectorAll('input, textarea')) {
+            const type = el.getAttribute('type') ?? (el.tagName === 'TEXTAREA' ? 'text' : 'text')
+            if (!VALUE_SHOWN.includes(type)) continue
             texts.push({ text: `«${(el as HTMLInputElement).value}»`, fontSize: parseFloat(getComputedStyle(el).fontSize), caption: false })
           }
 
@@ -190,6 +233,9 @@ test.describe('computed geometry (TSD 7)', () => {
         if (!t.hitCovers24) {
           wrong.push(`${m.density}/${m.id} ${t.label}: box ${t.width}x${t.height}, hit area does not cover ${TARGET_MIN}x${TARGET_MIN}`)
         }
+        if (t.selfActivating && (t.width < TARGET_MIN || t.height < TARGET_MIN)) {
+          wrong.push(`${m.density}/${m.id} ${t.label}: box ${t.width}x${t.height}, and nothing else activates it`)
+        }
       }
     }
     expect(wrong, `targets below the WCAG 2.2 floor:\n  ${wrong.join('\n  ')}`).toEqual([])
@@ -201,7 +247,7 @@ test.describe('computed geometry (TSD 7)', () => {
     for (const m of measured) {
       for (const t of m.texts) {
         if (t.fontSize < ABSOLUTE_TEXT_MIN) belowAbsolute.push(`${m.density}/${m.id} "${t.text}": ${t.fontSize}px`)
-        else if (m.kind === 'text' && !t.caption && t.fontSize < BODY_MIN) belowBody.push(`${m.density}/${m.id} "${t.text}": ${t.fontSize}px`)
+        else if (!t.caption && t.fontSize < BODY_MIN) belowBody.push(`${m.density}/${m.id} "${t.text}": ${t.fontSize}px`)
       }
     }
     expect(belowAbsolute, `text below the absolute ${ABSOLUTE_TEXT_MIN}px minimum:\n  ${belowAbsolute.join('\n  ')}`).toEqual([])
