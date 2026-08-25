@@ -81,6 +81,7 @@ export function buildGeometryFixture ({ root = defaultRoot, out } = {}) {
     // hit under time pressure in a filter bar. Its stylesheet claims gate 9 measures it, so it
     // is rendered here rather than left as a comment nothing checks.
     kase('target-tag-remove', 'target', h(C.Tag, { intent: 'warning', onRemove: () => {} }, 'Overdue')),
+    kase('target-alert-dismiss', 'target', h(C.Alert, { intent: 'info', onDismiss: () => {} }, 'Saved.')),
     kase('target-radio', 'target', h(C.RadioGroup, {
       legend: 'Terms', name: 'terms', defaultValue: 'net30',
       options: [{ value: 'net30', label: 'Net 30' }, { value: 'net60', label: 'Net 60' }],

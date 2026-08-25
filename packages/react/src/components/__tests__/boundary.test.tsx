@@ -54,6 +54,12 @@ const REQUIRED_PROPS: Record<string, Record<string, unknown>> = {
   RadioGroup: { name: 'r', legend: 'Question', options: [{ value: 'a', label: 'A' }] },
   CheckboxGroup: { name: 'c', legend: 'Question', options: [{ value: 'a', label: 'A' }] },
   Heading: { level: 2 },
+  // `intent` is required by design - there is no neutral Alert, that is a paragraph - so the
+  // sweep has to supply one. Without it this suite crashed inside Stryker's dry run rather
+  // than in `pnpm test`, because the sweep enumerates whatever the classification calls built.
+  Alert: { intent: 'info', children: 'Message' },
+  Badge: { children: 'Draft' },
+  Tag: { children: 'Draft' },
 }
 
 /** Render with the watched globals replaced by getters that record any read. */

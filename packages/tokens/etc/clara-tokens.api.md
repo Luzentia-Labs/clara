@@ -5,6 +5,48 @@
 ```ts
 
 // @public (undocumented)
+export const AlertBorderWidth = "1px";
+
+// @public (undocumented)
+export const AlertDangerBg = "#fef5f4";
+
+// @public (undocumented)
+export const AlertDangerFg = "#843f3b";
+
+// @public (undocumented)
+export const AlertDismissSize = "24px";
+
+// @public (undocumented)
+export const AlertFocusWidth = "2px";
+
+// @public (undocumented)
+export const AlertGap = "8px";
+
+// @public (undocumented)
+export const AlertInfoBg = "#f1f8fd";
+
+// @public (undocumented)
+export const AlertInfoFg = "#045e84";
+
+// @public (undocumented)
+export const AlertPadding = "12px";
+
+// @public (undocumented)
+export const AlertRadius = "8px";
+
+// @public (undocumented)
+export const AlertSuccessBg = "#f3f9f4";
+
+// @public (undocumented)
+export const AlertSuccessFg = "#296539";
+
+// @public (undocumented)
+export const AlertWarningBg = "#fbf6f0";
+
+// @public (undocumented)
+export const AlertWarningFg = "#754e02";
+
+// @public (undocumented)
 export const BadgeDangerBg = "#fef5f4";
 
 // @public (undocumented)

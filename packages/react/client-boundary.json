@@ -4,7 +4,7 @@
   "trdSection": "7",
   "special": {
     "Table": "Static parts are server-capable; interactive parts (sort, select, resize) are client.",
-    "Alert": "Non-dismissible is server-capable; a dismissible Alert takes onDismiss and is therefore client.",
+    "Alert": "Client-only as built: Alert takes `onDismiss`, a function prop, which TRD Section 7 makes the boundary test. A non-dismissible Alert would be server-capable, and it stays ONE component for the reason Tag does - splitting moves the choice into the consumer's import statement.",
     "ClaraProvider": "Client-only: resolves the system colour-scheme preference in an effect, and holds context state.",
     "ButtonGroup": "Client-only: roving tabindex needs state and a DOM effect (US-01M0GM3S AC1).",
     "Field": "Client-only, reclassified during implementation: Field renders a context Provider, and a Server Component cannot - so it and every control reading that context are client-only. The context object itself lives in lib/, not components/, because it is infrastructure rather than a component and does not belong in this classification.",
@@ -13,6 +13,11 @@
     "Tag": "Client-only, reclassified during implementation: AC2 requires a remove control, so Tag takes `onRemove` - a function prop. Kept as ONE component rather than a server Tag and a client RemovableTag, because splitting it would move the choice into the consumer's import statement."
   },
   "components": [
+    {
+      "name": "Alert",
+      "boundary": "client",
+      "status": "built"
+    },
     {
       "name": "Avatar",
       "boundary": "server",

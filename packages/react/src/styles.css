@@ -199,6 +199,53 @@
   box-shadow: 0 0 0 var(--clara-tag-focus-width) var(--clara-color-border-focus-offset);
 }
 
+/*
+ * Alert - a banner carrying an intent.
+ *
+ * The colour is supplementary: the icon carries the intent on screen and the visually-hidden word
+ * carries it in the accessibility tree. The border exists so the banner has an edge on a surface
+ * that is nearly the same lightness as its own subtle background, which is the dark theme's case.
+ */
+.clara-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--clara-alert-gap);
+  padding: var(--clara-alert-padding);
+  border-radius: var(--clara-alert-radius);
+  border: var(--clara-alert-border-width) solid currentColor;
+}
+.clara-alert--info { background: var(--clara-alert-info-bg); color: var(--clara-alert-info-fg); }
+.clara-alert--success { background: var(--clara-alert-success-bg); color: var(--clara-alert-success-fg); }
+.clara-alert--warning { background: var(--clara-alert-warning-bg); color: var(--clara-alert-warning-fg); }
+.clara-alert--danger { background: var(--clara-alert-danger-bg); color: var(--clara-alert-danger-fg); }
+/* The icon must not shrink when the message wraps to three lines. */
+.clara-alert__icon { flex: 0 0 auto; }
+.clara-alert__body { flex: 1 1 auto; }
+/* A bare number, matching the three existing uses. There is no weight token: font-weight
+   is unitless, so it does not trip the literal rule, and inventing a token for one component
+   while Heading and Field write 600 and 500 directly would be the inconsistent choice. */
+.clara-alert__title { font-weight: 600; margin: var(--clara-box-padding-none); }
+.clara-alert__content { margin: var(--clara-box-padding-none); }
+.clara-alert__dismiss {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--clara-alert-dismiss-size);
+  min-height: var(--clara-alert-dismiss-size);
+  padding: var(--clara-box-padding-none);
+  border: var(--clara-box-padding-none);
+  border-radius: var(--clara-alert-radius);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.clara-alert__dismiss:focus-visible {
+  outline: var(--clara-alert-focus-width) solid var(--clara-color-border-focus);
+  outline-offset: var(--clara-alert-focus-width);
+  box-shadow: 0 0 0 var(--clara-alert-focus-width) var(--clara-color-border-focus-offset);
+}
+
 .clara-button-group--vertical { flex-direction: column; }
 
 .clara-icon-button__icon { display: inline-flex; }

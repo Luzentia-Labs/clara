@@ -1,0 +1,60 @@
+{
+  "alert": {
+    "padding": {
+      "value": "{space.control-padding-x}",
+      "type": "dimension"
+    },
+    "gap": {
+      "value": "{space.control-gap}",
+      "type": "dimension"
+    },
+    "radius": {
+      "value": "{radius.surface}",
+      "type": "dimension"
+    },
+    "border-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    },
+    "focus-width": {
+      "value": "{border-width.focus}",
+      "type": "dimension"
+    },
+    "dismiss-size": {
+      "value": "{size.target-min}",
+      "type": "dimension"
+    },
+    "info-bg": {
+      "value": "{color.bg.info-subtle}",
+      "type": "color"
+    },
+    "info-fg": {
+      "value": "{color.fg.info}",
+      "type": "color"
+    },
+    "success-bg": {
+      "value": "{color.bg.success-subtle}",
+      "type": "color"
+    },
+    "success-fg": {
+      "value": "{color.fg.success}",
+      "type": "color"
+    },
+    "warning-bg": {
+      "value": "{color.bg.warning-subtle}",
+      "type": "color"
+    },
+    "warning-fg": {
+      "value": "{color.fg.warning}",
+      "type": "color"
+    },
+    "danger-bg": {
+      "value": "{color.bg.danger-subtle}",
+      "type": "color"
+    },
+    "danger-fg": {
+      "value": "{color.fg.danger}",
+      "type": "color"
+    }
+  }
+}

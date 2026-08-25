@@ -19,6 +19,18 @@ import { RefObject } from 'react';
 import { TextareaHTMLAttributes } from 'react';
 
 // @public
+export function Alert(input: AlertProps): JSX_2.Element;
+
+// @public
+export type AlertIntent = 'info' | 'success' | 'warning' | 'danger';
+
+// Warning: (ae-forgotten-export) The symbol "AlertStaticProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "AlertDismissibleProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type AlertProps = AlertStaticProps | AlertDismissibleProps;
+
+// @public
 export interface AsProp<C extends ElementType> {
     // (undocumented)
     as?: C;
