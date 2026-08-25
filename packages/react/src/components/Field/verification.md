@@ -34,6 +34,44 @@ What IS verified is above, by tests that run. What a real pass adds is the part 
 whether the focus order feels right, whether the ring is actually visible against each surface, and
 what a screen reader says rather than what the accessibility tree contains.
 
+## VoiceOver: performed (2026-08-25)
+
+**Environment.** Safari with VoiceOver on macOS, run by Richard Dale Umayan against
+`scripts/make-manual-fixture.mjs`, variant A - a Field carrying label, description AND error.
+Browser and OS point versions were not captured; recorded as absent rather than guessed.
+
+**The verbatim string, on focus:**
+
+```
+Supplier reference
+As it appears on the invoice
+This supplier is not on the approved list
+```
+
+| Question | Observed |
+| --- | --- |
+| Is the label announced? | Yes - `Supplier reference` |
+| Is the description announced, and does it come BEFORE the error? | Yes, and yes |
+| Is the error announced? | Yes |
+| Is anything announced twice? | No. The error is reachable by two routes - `aria-describedby` and `aria-errormessage` - and is spoken once |
+
+**It matches the computed accessibility tree exactly.** Chromium's AX engine computed the
+description as `As it appears on the invoice This supplier is not on the approved list`; VoiceOver
+speaks those two parts in that order, after the name, each once. The automated evidence below
+predicted the announcement correctly, which is worth knowing for the next component: the AX tree is
+a good proxy here, though it remains a proxy.
+
+### Still outstanding on this check
+
+- **Whether the error re-announces when it appears AFTER interaction**, rather than on load. Not
+  observed. It is not part of AC6's Then clause - which asks that both are announced, neither
+  dropped nor doubled - so it does not hold the criterion, but it is the live-region behaviour a
+  user actually depends on when a field fails validation under their hands.
+- **NVDA and JAWS remain out of scope** (PRD F17 names NVDA as a stated gap).
+- **This is NOT the manual keyboard pass.** That artefact is separate, is still outstanding, and is
+  recorded as such below. A VoiceOver announcement says nothing about focus order or ring
+  visibility, and conflating the two is how this record once carried a walk nobody made.
+
 ## Browser accessibility-API evidence (2026-08-24, automated)
 
 Not a VoiceOver pass. Recorded because it is real evidence gathered from a real browser rather than

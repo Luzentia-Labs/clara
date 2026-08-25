@@ -1,6 +1,6 @@
 # US-01M0GM3D: Field framework
 
-> **Status:** Review
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -104,10 +104,14 @@ a Server Component cannot.
 - **When** a screen reader reads it
 - **Then** both are announced, neither dropped nor doubled - verified on VoiceOver and the strings
   recorded in `packages/react/src/components/Field/verification.md` before export
-- **And** this has **not** been done. The record says so under its manual keyboard pass, which is
-  outstanding for the same reason: what a screen reader speaks is not observable from this repo.
-  The DOM order and de-duplication that the announcement depends on ARE verified, by AC5
+- **And** it has now been done. Safari + VoiceOver, 2026-08-25, verbatim string recorded in the
+  Field verification record: the label, then the description, then the error - each once, in that
+  order. The error is reachable by two routes (`aria-describedby` and `aria-errormessage`) and is
+  spoken once, which was the specific risk
+- **And** it matched the computed accessibility tree exactly, so the automated evidence gathered
+  beforehand predicted the announcement correctly - useful for the next component, and still a proxy
 - **Verify:** manual VoiceOver: record announced strings for description plus error
+- **Verified:** yes (2026-08-25)
 - **Verification target:** conversational
 
 ### AC7: Uncontrolled and controlled

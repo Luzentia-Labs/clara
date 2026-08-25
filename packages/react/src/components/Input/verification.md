@@ -78,9 +78,24 @@ and has nothing to do with autofill. It is D0097.**
 
 ### Stated gaps on this check
 
-- **The focus ring has not been SEEN on a filled field.** 7.22:1 is computed from tokens. Per D0097
-  this is one of the three cues that block on their own, so if the indicator does not actually
-  appear over the fill, the acceptance above is void and this becomes a blocking finding.
+- **The focus ring on a filled field: OBSERVED and closed** (2026-08-25, Chrome light, Richard Dale
+  Umayan). Tab into an autofilled field and the two-part indicator renders over the fill: a 4px ring
+  at `#4f598d` (token `border-focus` `#48518b`), a 4px white offset, then the 1px border, then the
+  fill at `#fffed1`.
+
+  | Pair | Ratio | |
+  | --- | --- | --- |
+  | ring vs the autofill fill | **6.47:1** | the D0097 blocking cue - passes |
+  | ring vs the page behind the control | 6.68:1 | |
+  | offset vs the autofill fill | **1.03:1** | carries nothing |
+  | border vs the autofill fill, as painted | 2.86:1 | |
+
+  **The offset measuring 1.03:1 is the finding, not a footnote.** It is exactly what the ux seat
+  predicted, and it is the two-part focus indicator (deliverable 7) earning its design on the first
+  background outside the token set Clara has ever met: the white offset disappears into a near-white
+  fill and the ring carries the whole indicator alone. A one-part indicator built from the offset
+  would have vanished here. This is now the recorded evidence for that theorem, and the reason
+  delimitation - which is still one-part - pre-commits to a second part under deliverable 6.
 - **Safari is unmeasured.** Its historical fill puts `border-default` at ~2.965:1, which lands in
   D0097's middle tier: Input still passes, and `border-default`'s revisit under foundations
   deliverable 6 becomes mandatory before first publish rather than merely scheduled.

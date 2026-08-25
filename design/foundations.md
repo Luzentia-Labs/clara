@@ -166,12 +166,13 @@ Each lands as a real token so F01 is unblocked, with the condition that revisits
 Deliverable 7 built the focus indicator in two parts because no single colour survives every surface.
 That turned out to be a theorem rather than a detail about focus.
 
-**Measured 2026-08-25, on the first background outside the token set Clara has ever met.** Chrome's
-autofill paints a near-white tint over an input - a colour Clara does not choose, cannot keep true,
+**Measured 2026-08-25, on the first background outside the token set Clara has ever met, and now
+OBSERVED rather than computed.** Chrome's autofill paints a near-white tint over an input - a colour Clara does not choose, cannot keep true,
 and did not enumerate, so the value is recorded in the Input verification record rather than here.
 This document describes only the palette Clara ships, which is why the literal is absent: a colour
-Clara does not own could become false without anyone changing Clara. The two-part focus indicator survived it at 7.22:1, because when the offset (white on
-a near-white fill) carried nothing, the ring carried everything. **Delimitation, which is one-part,
+Clara does not own could become false without anyone changing Clara. The two-part focus indicator survived it at **6.47:1 measured on a focused, autofilled field**,
+because the offset carried nothing - white on that fill is **1.03:1** - and the ring carried the
+whole indicator alone. A one-part indicator built from the offset would have vanished. **Delimitation, which is one-part,
 came out at 3.007:1 - on the floor.**
 
 So the same test now governs delimitation (D0097). While a control sits on a surface Clara did not

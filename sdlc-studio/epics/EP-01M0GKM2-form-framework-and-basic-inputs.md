@@ -1,6 +1,6 @@
 # EP-01M0GKM2: Form framework and basic inputs
 
-> **Status:** In Progress
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -156,8 +156,8 @@ _DERIVED, not estimated: the sum of this epic's stories' points. `reconcile` rec
 
 ## Story Breakdown
 
-- [ ] [US-01M0GM3D: Field framework](../stories/US-01M0GM3D-field-framework.md)
-- [ ] [US-01M0GMBM: Input](../stories/US-01M0GMBM-input.md)
+- [x] [US-01M0GM3D: Field framework](../stories/US-01M0GM3D-field-framework.md)
+- [x] [US-01M0GMBM: Input](../stories/US-01M0GMBM-input.md)
 - [x] [US-01M0GM2K: Textarea](../stories/US-01M0GM2K-textarea.md)
 - [x] [US-01M0GMF3: NumberInput](../stories/US-01M0GMF3-numberinput.md)
 - [x] [US-01M0GMMM: PasswordInput](../stories/US-01M0GMMM-passwordinput.md)
