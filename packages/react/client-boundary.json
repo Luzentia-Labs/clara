@@ -121,7 +121,7 @@
     {
       "name": "EmptyState",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Field",

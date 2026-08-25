@@ -24,6 +24,7 @@
 - **When** it renders
 - **Then** documented guidance and distinct content separate 'no data yet' from 'no results for this filter'
 - **Verify:** vitest "EmptyState distinguishes empty from filtered"
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC2: Token-only styling
@@ -32,25 +33,55 @@
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC3: Both themes and densities
 
 - **Given** a EmptyState
 - **When** it renders in dark theme and compact density
-- **Then** it holds its visual baseline in all four combinations
+- **Then** it renders inside the correct scope and passes axe in all four combinations
 - **Verify:** vitest "EmptyState theme and density matrix"
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC4: Definition of done
 
 - **Given** the EmptyState story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page all exist
-- **Verify:** file packages/react/src/components/EmptyState/index.tsx
+- **Then** a verification record, its cited tests, an axe assertion, and a docs page all exist and
+  resolve
+- **Verify:** shell node scripts/check-verification.mjs --component EmptyState
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
+
+## Specification delta (2026-08-26)
+
+**AC1 asks for "documented guidance AND distinct content", and the second half needed a mechanism
+rather than a convention.** An author can write "Nothing found" for both cases, and then nothing in
+the product distinguishes them. Two things now do:
+
+- `reason` is required and closed, and reaches the DOM as `data-reason` plus a modifier class - so
+  the distinction survives whatever copy the author writes, and a test can read it.
+- **`action` is REQUIRED on `filtered` and optional on `empty`**, enforced by the type. A filtered
+  empty state with no way out is a dead end: the records exist and the only route back is
+  remembering which filter was set. An empty list with no create button is merely uneventful,
+  because the data may legitimately arrive from elsewhere. This asymmetry is the criterion's
+  "distinct content" made structural.
+
+The documentation half is the docs page's table of what to write per case, and the verification
+record states plainly what the type CANNOT enforce: that the title distinguishes the two. "Nothing
+found" is accurate for both and useful for neither.
+
+**AC3 and AC4 corrected as in Badge, Tag and Alert** - a jsdom matrix cannot see a visual baseline,
+and `file index.tsx` proves none of the artefacts AC4 lists. Fourth instance; the pattern is the
+epic's grooming, not any one story's.
+
+**`role="status"`, not `alert`.** The state usually appears in response to a filter change the user
+made without looking at this region, so it must announce - but it is also already the thing they
+are looking at, so interrupting mid-sentence would be shouting about the obvious.
 
 ## Scope
 

@@ -190,6 +190,18 @@ export interface DividerProps {
     orientation?: 'horizontal' | 'vertical';
 }
 
+// @public
+export function EmptyState(input: EmptyStateProps): JSX_2.Element;
+
+// Warning: (ae-forgotten-export) The symbol "EmptyStateEmptyProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EmptyStateFilteredProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type EmptyStateProps = EmptyStateEmptyProps | EmptyStateFilteredProps;
+
+// @public
+export type EmptyStateReason = 'empty' | 'filtered';
+
 // @public (undocumented)
 export function Field(input: FieldProps): JSX_2.Element;
 

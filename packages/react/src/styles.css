@@ -246,6 +246,29 @@
   box-shadow: 0 0 0 var(--clara-alert-focus-width) var(--clara-color-border-focus-offset);
 }
 
+/*
+ * EmptyState - centred, because it is the only thing on the screen when it appears. Everywhere
+ * else Clara left-aligns; here there is no column for the text to align WITH.
+ */
+.clara-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--clara-empty-state-gap);
+  padding: var(--clara-empty-state-padding);
+}
+.clara-empty-state__title {
+  font-size: var(--clara-empty-state-title-size);
+  font-weight: 600;
+  margin: var(--clara-box-padding-none);
+}
+.clara-empty-state__guidance {
+  color: var(--clara-empty-state-guidance-fg);
+  margin: var(--clara-box-padding-none);
+}
+.clara-empty-state__action { margin-block-start: var(--clara-empty-state-action-gap); }
+
 .clara-button-group--vertical { flex-direction: column; }
 
 .clara-icon-button__icon { display: inline-flex; }

@@ -1,0 +1,24 @@
+{
+  "empty-state": {
+    "padding": {
+      "value": "{space.section}",
+      "type": "dimension"
+    },
+    "gap": {
+      "value": "{space.control-gap}",
+      "type": "dimension"
+    },
+    "title-size": {
+      "value": "{font.body-lg}",
+      "type": "dimension"
+    },
+    "guidance-fg": {
+      "value": "{color.fg.muted}",
+      "type": "color"
+    },
+    "action-gap": {
+      "value": "{space.stack}",
+      "type": "dimension"
+    }
+  }
+}

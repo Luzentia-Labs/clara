@@ -473,6 +473,21 @@ export const DurationFast = "120ms";
 export const DurationInstant = "0ms";
 
 // @public (undocumented)
+export const EmptyStateActionGap = "12px";
+
+// @public (undocumented)
+export const EmptyStateGap = "8px";
+
+// @public (undocumented)
+export const EmptyStateGuidanceFg = "#585654";
+
+// @public (undocumented)
+export const EmptyStatePadding = "24px";
+
+// @public (undocumented)
+export const EmptyStateTitleSize = "16px";
+
+// @public (undocumented)
 export const FontBody = "14px";
 
 // @public (undocumented)
