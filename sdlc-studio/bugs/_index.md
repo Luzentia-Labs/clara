@@ -8,11 +8,11 @@
 | --- | --- |
 | Open | 0 |
 | In Progress | 0 |
-| Fixed | 2 |
+| Fixed | 3 |
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 1 |
+| inbox | 0 |
 | Superseded | 1 |
 | **Total** | **4** |
 
@@ -28,7 +28,7 @@
 | [BG-01M0HTRM](BG-01M0HTRM-published-packages-declare-one-d-ts-for-both.md) | Published packages declare one .d.ts for both import and require (attw FalseCJS) | Medium | Medium | Superseded | -- | -- | 2026-08-21 |
 | [BG-01M0J70K](BG-01M0J70K-the-mutation-gate-cannot-execute-stryker-s-vitest.md) | The mutation gate cannot execute: Stryker's vitest runner finds no tests in its sandbox | High | Medium | Fixed | -- | -- | 2026-08-21 |
 | [BG-01M0MFMZ](BG-01M0MFMZ-the-peer-bundling-guard-has-been-defeated-in.md) | The peer-bundling guard has been defeated in seven consecutive review rounds and needs a structural change, not another oracle | Critical | Medium | Fixed | -- | -- | 2026-08-22 |
-| [BG-01M0W799](BG-01M0W799-dark-theme-does-not-declare-color-scheme-so.md) | Dark theme does not declare color-scheme, so UA-painted controls render in light livery | Medium | Medium | inbox | -- | -- | 2026-08-25 |
+| [BG-01M0W799](BG-01M0W799-dark-theme-does-not-declare-color-scheme-so.md) | Dark theme does not declare color-scheme, so UA-painted controls render in light livery | Medium | Medium | Fixed | -- | -- | 2026-08-25 |
 
 ## Notes
 

@@ -296,6 +296,46 @@ await build()
       return statSync(full).isDirectory() ? walkCss(full) : full.endsWith('.css') ? [full] : []
     })
   const sheets = walkCss('dist')
+
+  /**
+   * A theme is not only a set of custom properties.
+   *
+   * `color-scheme` tells the user agent which livery to paint its OWN controls in, and Clara
+   * declared it nowhere - so with `appearance: auto` on checkbox, radio and switch, every
+   * UA-painted control in a dark Clara application rendered in LIGHT livery: glyphs, scrollbars,
+   * the NumberInput spinners, native pickers, the autofill tint (BG-01M0W799, found by the ux seat
+   * while ruling on D0097).
+   *
+   * BOTH halves are declared. Without `color-scheme: light` on the base, a user agent in dark OS
+   * mode paints DARK controls on Clara's light theme - the same defect with the polarity reversed,
+   * and fixing one half only would be worse than fixing neither.
+   *
+   * It goes on the theme's OWN selector, which is why it is injected per file rather than at
+   * `:root`: PRD F02 activates a theme via `data-clara-theme` on any ancestor, so a dark
+   * `ClaraScope` inside a light page must flip its own subtree's controls too.
+   *
+   * `compact.css` gets nothing - density is not a colour scheme.
+   *
+   * A standard property, not a custom one, so the `--clara-` prefix rules in `check-token-output`
+   * and `check-stylesheets` do not apply: both match `--*` only. Checked before writing this.
+   */
+  const COLOR_SCHEME = { 'dist/tokens.css': 'light', 'dist/themes/dark.css': 'dark' }
+  for (const [file, scheme] of Object.entries(COLOR_SCHEME)) {
+    if (!existsSync(file)) {
+      console.error(`FAIL [color-scheme] ${file} was not emitted, so its colour scheme cannot be set`)
+      process.exit(1)
+    }
+    const before = readFileSync(file, 'utf8')
+    // First declaration inside the first selector block, beside the tokens it accompanies.
+    const after = before.replace(/\{\n/, `{\n  color-scheme: ${scheme};\n`)
+    if (after === before || !new RegExp(`color-scheme:\\s*${scheme}`).test(after)) {
+      console.error(`FAIL [color-scheme] could not place \`color-scheme: ${scheme}\` in ${file}`)
+      process.exit(1)
+    }
+    writeFileSync(file, after)
+  }
+  console.log(`PASS [color-scheme] ${Object.keys(COLOR_SCHEME).length} theme stylesheet(s) declare their scheme`)
+
   for (const file of sheets) {
     writeFileSync(file, applyCascadeLayer(readFileSync(file, 'utf8'), 'clara.tokens'))
   }

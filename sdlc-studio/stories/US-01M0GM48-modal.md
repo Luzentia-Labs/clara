@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Modal/**, packages/react/src/components/Modal/verification.md, packages/react/src/index.ts, packages/react/package.json, packages/react/vite.config.ts, packages/react/client-boundary.json, packages/react/src/styles.css, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/color.json, packages/tokens/src/themes/dark.json, packages/tokens/tokens.public.lock.json, apps/docs/src/content/foundations/tokens.md, design/foundations.md, .size-limit.json, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Modal/Modal.tsx, packages/react/src/components/Modal/index.tsx, packages/react/src/components/Modal/verification.md, packages/react/src/index.ts, packages/react/package.json, packages/react/vite.config.ts, packages/react/client-boundary.json, packages/react/src/styles.css, packages/tokens/src/primitive/base.json, packages/tokens/src/semantic/color.json, packages/tokens/src/themes/dark.json, packages/tokens/tokens.public.lock.json, apps/docs/src/content/foundations/tokens.md, design/foundations.md, .size-limit.json, scripts/check-component-css.mjs
 > **Points:** 8
 
 ## User Story

@@ -99,8 +99,17 @@ and has nothing to do with autofill. It is D0097.**
 - **Safari is unmeasured.** Its historical fill puts `border-default` at ~2.965:1, which lands in
   D0097's middle tier: Input still passes, and `border-default`'s revisit under foundations
   deliverable 6 becomes mandatory before first publish rather than merely scheduled.
-- **Dark theme is unmeasured, and is predicted to pass more comfortably** - Chrome paints the same
-  near-white fill on a dark page, so part 1 of the test carries at 16.16:1.
+- **Dark theme is unmeasured, and what it will paint has CHANGED since D0097 was written.** That
+  ruling reasoned from Clara declaring no `color-scheme`, so Chrome kept a light used-scheme inside
+  the dark theme and painted the same near-white fill - part 1 of the test carrying at 16.16:1.
+  BG-01M0W799 fixed that: `[data-clara-theme="dark"]` now declares `color-scheme: dark`, verified in
+  Chromium as resolving to `dark` on the input while `:root` stays `light` (the scoped case, PRD
+  F02). Chrome picks its autofill tint from the used scheme, so it will now paint the DARK tint that
+  D0097 attributed to "a consumer who sets `color-scheme: dark`" and predicted at 3.915:1.
+
+  That prediction is now Clara's OWN behaviour rather than a consumer's, so it must be measured
+  rather than inherited. The seat's threshold still applies unchanged and no re-consultation is
+  needed - but the figure in this record is a prediction until someone autofills a dark page.
 - **PasswordInput is the most-autofilled control in the set and has no measurement of its own.**
   Chrome fills username and password as a pair and paints both. It inherits this record by reference.
 - **The DECORATED path is untested against autofill.** `.clara-input-group` carries the border while

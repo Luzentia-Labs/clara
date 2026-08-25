@@ -1,12 +1,14 @@
 # BG-01M0W799: Dark theme does not declare color-scheme, so UA-painted controls render in light livery
 
-> **Status:** inbox
+> **Status:** Fixed
+> **Triaged-by:** idris-vale; persona; v1
 > **Created:** 2026-08-25
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Affects:** packages/react/src/styles.css, packages/react/src/theme/resolve.ts, packages/tokens/src/themes/dark.json
 > **Severity:** Medium
 > **Points:** 3
+> **Verification depth:** functional
 
 ## Summary
 
@@ -23,6 +25,67 @@ Render any Clara application with `data-clara-theme="dark"` and a Checkbox, Radi
 ## Proposed Fix
 
 Declare `color-scheme` alongside the theme attribute so the user agent paints its own controls to match - light under the light theme, dark under the dark one. Check the interaction with `useSystemTheme.ts` and confirm what it does to the autofill measurement in D0097 (the seat predicts a consumer-set `color-scheme: dark` moves `border-default` to 3.915:1, which is better, not worse).
+
+## Verification depth: functional, and why not higher
+
+The declaration is asserted in the BUILT stylesheets by
+`packages/tokens/src/__tests__/color-scheme.test.ts` (5 tests), each proved to fail on its own
+mutant: dropping the dark half, dropping the light half, and parking the dark scheme on `:root`
+instead of the theme selector. The build itself refuses to emit a theme stylesheet it could not
+place the declaration in.
+
+Confirmed behaviourally in Chromium as well: on the dark fixture the input's used `color-scheme`
+resolves to `dark` while `:root` stays `light`, which is the scoped case PRD F02 describes and the
+one a `ClaraScope` depends on.
+
+**Not `conversational`:** nothing here can see a user agent PAINT a control. jsdom renders no native
+chrome and computes no layout, so what is asserted is the declaration and its scope, not the glyphs.
+The appearance belongs to gate 7 (US-01M0GMZW), which now carries this alongside its other
+browser-only claims.
+
+## Specification delta
+
+> The engagement floor (AGENTS.md): this touches more than one source file, so every existing
+> requirement it interacts with is named here, with how each interaction is resolved, before code.
+
+| # | Existing requirement | How this touches it | Resolution |
+| --- | --- | --- | --- |
+| 1 | **PRD:244 / D0001** - every custom property is `--clara-` prefixed, "no exceptions" | `color-scheme` is a standard property, not a custom one | Verified: both `check-token-output` and `check-stylesheets` match `--*` only, so neither is affected |
+| 2 | **D0005** - all CSS emits inside `@layer clara.*` | The declaration lands in the theme stylesheets | It goes inside the existing `@layer clara.tokens` block, with the tokens it accompanies |
+| 3 | **PRD F02** - a theme activates via `data-clara-theme` on ANY ancestor, not just `:root` | `color-scheme` must follow the scope, or a dark `ClaraScope` in a light page keeps light controls | Emitted on the same selector as the theme's tokens, so it scopes identically |
+| 4 | **The light theme is the `:root` base** | Without a symmetric declaration, a UA in dark OS mode paints dark controls on Clara's LIGHT theme | Light declares `color-scheme: light` too. The bug is symmetric and fixing one half would be worse than fixing neither |
+| 5 | **`useSystemTheme.ts`** reads `prefers-color-scheme` | Declaring the property does not change the media query - that reflects the OS, not the element | Asserted by test rather than assumed |
+| 6 | **D0097 / Input AC4** - the autofill measurement | Chrome picks its autofill paint from the used colour scheme, so Clara declaring `dark` CHANGES what it paints in the dark theme | Re-measure and re-record. The ux seat predicted `border-default` reaches 3.915:1, i.e. better; that prediction is now Clara's own behaviour rather than a consumer's, so it must be measured rather than inherited |
+| 7 | **`tokens.public.lock.json`** - tier 2 names are permanent public API | `color-scheme` is not a token | No lock change; asserted by the public-token gate staying at its current count |
+| 8 | **jsdom computes no layout and paints no UA controls** | Nothing here can assert appearance | The declaration is the observable, as with SHAPE_CONTRACT. Stated plainly rather than dressed up |
+
+## Acceptance Criteria
+
+### AC1: Both themes declare a colour scheme
+
+- **Given** the built token stylesheets
+- **When** they are inspected
+- **Then** the light base declares `color-scheme: light` and the dark theme declares
+  `color-scheme: dark`, each inside its own theme selector and inside `@layer clara.tokens`
+- **And** the dark declaration sits on `[data-clara-theme="dark"]`, so it follows a `ClaraScope`
+  rather than only the document root (PRD F02)
+- **Verify:** vitest "the theme declares a colour scheme"
+
+### AC2: The media query still reports the OS, not the element
+
+- **Given** `useSystemTheme`
+- **When** Clara declares `color-scheme` on its own elements
+- **Then** `prefers-color-scheme` continues to resolve from the operating system, so an explicit
+  Clara theme does not feed back into system-theme detection
+- **Verify:** vitest "prefers-color-scheme dark"
+
+### AC3: The autofill measurement is re-recorded, not inherited
+
+- **Given** D0097's measurement of Chrome's autofill paint
+- **When** Clara declares `color-scheme: dark`
+- **Then** the dark-theme autofill figures in the Input verification record are updated to say that
+  the fill is now Clara-influenced, and that the previously recorded prediction was a prediction
+- **Verify:** manual confirm the Input verification record states the dark autofill paint is affected by Clara's own colour-scheme declaration
 
 ## Impact
 
