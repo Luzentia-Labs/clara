@@ -19,7 +19,7 @@
     {
       "name": "Badge",
       "boundary": "server",
-      "status": "planned"
+      "status": "built"
     },
     {
       "name": "Box",

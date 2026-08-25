@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { join } from 'node:path'
 
 /**
  * Keyboard, focus-identity and computed-geometry suites run here (TSD): jsdom cannot compute
@@ -20,11 +21,24 @@ export default defineConfig({
   // and dies with "Requiring @playwright/test second time" - a failure with nothing to do
   // with the tests. CI never sees it (no worktrees there), so it only ever breaks locally,
   // while review agents are running, which is the worst time to be reading a confusing error.
-  // Anchored to this directory, not `**/`: the `**/` form matches the ABSOLUTE path, so a
-  // checkout living under `.claude/worktrees/` ignored every one of its own specs and a
-  // review agent running `pnpm check:geometry` got "No tests found". D0070 puts reviewers in
-  // worktrees, so that made the new gates unrunnable by exactly the seat that must run them.
-  testIgnore: ['**/node_modules/**', '**/dist/**', './.claude/**', './.stryker-tmp/**'],
+  // These two are full COPIES of this repo, each with its own `node_modules`. Left unignored, the
+  // suite loads a second @playwright/test from the copy and dies with "Requiring @playwright/test
+  // second time" - a failure with nothing to do with the tests.
+  //
+  // Anchored with an absolute path built from `cwd`, because neither glob form works in both
+  // places. `**/.claude/**` matches the absolute path, so a checkout living UNDER
+  // `.claude/worktrees/` ignored every one of its own specs and a review agent got "No tests
+  // found" - and D0070 puts reviewers in worktrees, so that made these gates unrunnable by exactly
+  // the seat that must run them. `./.claude/**` fixed the worktree and stopped matching from the
+  // main checkout, putting the crash back. An absolute prefix from `cwd` is correct in both: from
+  // the main repo it excludes the worktrees, and from inside one it excludes only that one's own
+  // (non-existent) nested copies.
+  testIgnore: [
+    '**/node_modules/**',
+    '**/dist/**',
+    join(process.cwd(), '.claude/**'),
+    join(process.cwd(), '.stryker-tmp/**'),
+  ],
   fullyParallel: true,
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: `file://${process.cwd()}/e2e/fixtures/` },

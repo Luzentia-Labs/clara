@@ -5,6 +5,48 @@
 ```ts
 
 // @public (undocumented)
+export const BadgeDangerBg = "#fef5f4";
+
+// @public (undocumented)
+export const BadgeDangerFg = "#843f3b";
+
+// @public (undocumented)
+export const BadgeFontSize = "14px";
+
+// @public (undocumented)
+export const BadgeInfoBg = "#f1f8fd";
+
+// @public (undocumented)
+export const BadgeInfoFg = "#045e84";
+
+// @public (undocumented)
+export const BadgeNeutralBg = "#f2f0ed";
+
+// @public (undocumented)
+export const BadgeNeutralFg = "#1f1e1d";
+
+// @public (undocumented)
+export const BadgePaddingX = "8px";
+
+// @public (undocumented)
+export const BadgePaddingY = "0";
+
+// @public (undocumented)
+export const BadgeRadius = "4px";
+
+// @public (undocumented)
+export const BadgeSuccessBg = "#f3f9f4";
+
+// @public (undocumented)
+export const BadgeSuccessFg = "#296539";
+
+// @public (undocumented)
+export const BadgeWarningBg = "#fbf6f0";
+
+// @public (undocumented)
+export const BadgeWarningFg = "#754e02";
+
+// @public (undocumented)
 export const BorderThick = "2px";
 
 // @public (undocumented)

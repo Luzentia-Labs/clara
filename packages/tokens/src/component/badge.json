@@ -1,0 +1,60 @@
+{
+  "badge": {
+    "padding-y": {
+      "value": "{space.none}",
+      "type": "dimension"
+    },
+    "padding-x": {
+      "value": "{space.control-padding-y}",
+      "type": "dimension"
+    },
+    "radius": {
+      "value": "{radius.control}",
+      "type": "dimension"
+    },
+    "font-size": {
+      "value": "{font.body}",
+      "type": "dimension"
+    },
+    "neutral-bg": {
+      "value": "{color.bg.subtle}",
+      "type": "color"
+    },
+    "neutral-fg": {
+      "value": "{color.fg.default}",
+      "type": "color"
+    },
+    "info-bg": {
+      "value": "{color.bg.info-subtle}",
+      "type": "color"
+    },
+    "info-fg": {
+      "value": "{color.fg.info}",
+      "type": "color"
+    },
+    "success-bg": {
+      "value": "{color.bg.success-subtle}",
+      "type": "color"
+    },
+    "success-fg": {
+      "value": "{color.fg.success}",
+      "type": "color"
+    },
+    "warning-bg": {
+      "value": "{color.bg.warning-subtle}",
+      "type": "color"
+    },
+    "warning-fg": {
+      "value": "{color.fg.warning}",
+      "type": "color"
+    },
+    "danger-bg": {
+      "value": "{color.bg.danger-subtle}",
+      "type": "color"
+    },
+    "danger-fg": {
+      "value": "{color.fg.danger}",
+      "type": "color"
+    }
+  }
+}

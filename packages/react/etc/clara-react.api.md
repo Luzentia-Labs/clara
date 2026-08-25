@@ -24,6 +24,18 @@ export interface AsProp<C extends ElementType> {
     as?: C;
 }
 
+// @public
+export function Badge(input: BadgeProps): JSX_2.Element;
+
+// @public
+export type BadgeIntent = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+
+// Warning: (ae-forgotten-export) The symbol "BadgeLabelProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "BadgeCountProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type BadgeProps = BadgeLabelProps | BadgeCountProps;
+
 // @public (undocumented)
 export const Box: <C extends ElementType = "div">(props: PolymorphicPropsWithRef<C, BoxOwnProps>) => ReactElement | null;
 

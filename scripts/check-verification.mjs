@@ -136,6 +136,7 @@ const SCRIPTS = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scr
  * itself inside the Table page it belongs to.
  */
 const DOCS_PAGE_FOR = {
+  Badge: 'badge.md',
   Modal: 'modal.md',
   Field: 'field.md',
   Input: 'input.md',

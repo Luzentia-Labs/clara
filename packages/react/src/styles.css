@@ -133,6 +133,30 @@
 }
 
 .clara-button-group { display: flex; gap: var(--clara-space-adjacent-target); }
+
+/*
+ * Badge - a compact status marker.
+ *
+ * Body size, not caption: a badge usually carries essential status ("Overdue"), and PRD:333
+ * reserves 12px for non-essential metadata. Sized from the type scale rather than given a height,
+ * because a badge wraps its text rather than sitting on the control grid.
+ */
+.clara-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--clara-space-control-gap);
+  padding: var(--clara-badge-padding-y) var(--clara-badge-padding-x);
+  border-radius: var(--clara-badge-radius);
+  font-size: var(--clara-badge-font-size);
+  background: var(--clara-badge-neutral-bg);
+  color: var(--clara-badge-neutral-fg);
+}
+.clara-badge--info { background: var(--clara-badge-info-bg); color: var(--clara-badge-info-fg); }
+.clara-badge--success { background: var(--clara-badge-success-bg); color: var(--clara-badge-success-fg); }
+.clara-badge--warning { background: var(--clara-badge-warning-bg); color: var(--clara-badge-warning-fg); }
+.clara-badge--danger { background: var(--clara-badge-danger-bg); color: var(--clara-badge-danger-fg); }
+.clara-badge__count { font-variant-numeric: tabular-nums; }
+
 .clara-button-group--vertical { flex-direction: column; }
 
 .clara-icon-button__icon { display: inline-flex; }

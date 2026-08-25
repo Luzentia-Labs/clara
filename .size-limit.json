@@ -1,8 +1,8 @@
 [
   {
-    "name": "@luzentialabs/clara-react (ESM entry, 25 components x 300 B, floor 5000 B)",
+    "name": "@luzentialabs/clara-react (ESM entry, 26 components x 300 B, floor 5000 B)",
     "path": "packages/react/dist/index.js",
-    "limit": "7500 B",
+    "limit": "7800 B",
     "gzip": true,
     "ignore": [
       "react",

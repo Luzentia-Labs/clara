@@ -1,6 +1,6 @@
 # Bug Registry
 
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-26
 
 ## Summary
 
@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 0 |
+| inbox | 2 |
 | Superseded | 1 |
-| **Total** | **8** |
+| **Total** | **10** |
 
 ## By Severity
 
@@ -33,6 +33,8 @@
 | [BG-01M0WQY1](BG-01M0WQY1-tier-3-aliases-are-declared-at-root-so.md) | Tier-3 aliases are declared at :root, so scoped theming and density never reach components | critical | Medium | Fixed | -- | -- | 2026-08-25 |
 | [BG-01M0WQ92](BG-01M0WQ92-comfortable-control-height-renders-48px-not-the-40px.md) | Comfortable control height renders 48px, not the 40px the PRD specifies | major | Medium | Fixed | -- | -- | 2026-08-25 |
 | [BG-01M0WR22](BG-01M0WR22-sm-controls-declare-a-target-floor-below-24px.md) | sm controls declare a target floor below 24px, or none at all | major | Medium | Fixed | -- | -- | 2026-08-25 |
+| [BG-01M0WZEM](BG-01M0WZEM-the-button-loading-spinner-never-spins-there-is.md) | The Button loading spinner never spins - there is no animation anywhere in Clara | major | Medium | inbox | -- | -- | 2026-08-26 |
+| [BG-01M0WZGB](BG-01M0WZGB-the-component-css-literal-gate-does-not-treat.md) | The component-CSS literal gate does not treat a percentage as a literal | major | Medium | inbox | -- | -- | 2026-08-26 |
 
 ## Notes
 

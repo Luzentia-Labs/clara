@@ -12,6 +12,7 @@ import { Button } from '../Button/Button'
 import { IconButton } from '../IconButton/IconButton'
 import { ButtonGroup } from '../ButtonGroup/ButtonGroup'
 import { Link } from '../Link/Link'
+import { Badge } from '../Badge/Badge'
 
 /**
  * Every primitive, in all four theme x density combinations.
@@ -26,6 +27,7 @@ const CASES = [
   ['Inline', <Inline gap="sm"><span>a</span></Inline>],
   ['Grid', <Grid columns={3}><span>a</span></Grid>],
   ['Divider', <Divider />],
+  ['Badge', <Badge intent="danger">Overdue</Badge>],
   ['Button', <Button>Save</Button>],
   ['IconButton', <IconButton label="Delete" icon={<svg />} />],
   ['ButtonGroup', <ButtonGroup label="Actions"><Button>A</Button></ButtonGroup>],
