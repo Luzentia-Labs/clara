@@ -157,6 +157,48 @@
 .clara-badge--danger { background: var(--clara-badge-danger-bg); color: var(--clara-badge-danger-fg); }
 .clara-badge__count { font-variant-numeric: tabular-nums; }
 
+/*
+ * Tag - a compact, optionally removable label.
+ *
+ * The remove control takes `target-min` in BOTH dimensions rather than sizing itself from the
+ * glyph. A close button is the smallest thing a user is asked to hit accurately, and it is usually
+ * hit under time pressure in a filter bar; sizing it from a multiplication sign would put it under
+ * the 24x24 floor in compact, which gate 9 measures.
+ */
+.clara-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--clara-tag-gap);
+  padding: var(--clara-tag-padding-y) var(--clara-tag-padding-x);
+  border-radius: var(--clara-tag-radius);
+  font-size: var(--clara-tag-font-size);
+  background: var(--clara-tag-neutral-bg);
+  color: var(--clara-tag-neutral-fg);
+}
+.clara-tag--info { background: var(--clara-tag-info-bg); color: var(--clara-tag-info-fg); }
+.clara-tag--success { background: var(--clara-tag-success-bg); color: var(--clara-tag-success-fg); }
+.clara-tag--warning { background: var(--clara-tag-warning-bg); color: var(--clara-tag-warning-fg); }
+.clara-tag--danger { background: var(--clara-tag-danger-bg); color: var(--clara-tag-danger-fg); }
+.clara-tag__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--clara-tag-remove-size);
+  min-height: var(--clara-tag-remove-size);
+  padding: var(--clara-box-padding-none);
+  border: var(--clara-box-padding-none);
+  border-radius: var(--clara-tag-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.clara-tag__remove:focus-visible {
+  outline: var(--clara-tag-focus-width) solid var(--clara-color-border-focus);
+  outline-offset: var(--clara-tag-focus-width);
+  box-shadow: 0 0 0 var(--clara-tag-focus-width) var(--clara-color-border-focus-offset);
+}
+
 .clara-button-group--vertical { flex-direction: column; }
 
 .clara-icon-button__icon { display: inline-flex; }

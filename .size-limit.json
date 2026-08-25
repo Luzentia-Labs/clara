@@ -1,8 +1,8 @@
 [
   {
-    "name": "@luzentialabs/clara-react (ESM entry, 26 components x 300 B, floor 5000 B)",
+    "name": "@luzentialabs/clara-react (ESM entry, 27 components x 300 B, floor 5000 B)",
     "path": "packages/react/dist/index.js",
-    "limit": "7800 B",
+    "limit": "8100 B",
     "gzip": true,
     "ignore": [
       "react",
@@ -240,6 +240,19 @@
   {
     "name": "Switch (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-Switch.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client",
+      "@radix-ui/react-dialog"
+    ]
+  },
+  {
+    "name": "Tag (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-Tag.js",
     "limit": "5 kB",
     "gzip": true,
     "ignore": [

@@ -104,6 +104,20 @@ test.describe('computed geometry (TSD 7)', () => {
         // on size at any rendered size, which also makes the "27px paint" explanation recorded in
         // BG-01M0WR22 wrong: nothing about the paint was doing the hiding.
         const activates = (hit: Element | null) => !!hit && regions.some((r) => r.contains(hit))
+
+        // Two ways to satisfy the floor, because WCAG 2.5.8 allows both and a corner probe alone
+        // fails one of them wrongly:
+        //
+        //   1. The element's own box is at least 24x24 AND its centre is not overlaid. A ROUNDED
+        //      target satisfies the floor and fails a corner probe, because the literal corner of
+        //      a rounded box is not hit-testable - `elementFromPoint` there returns whatever is
+        //      behind it. Tag's 24x24 remove control failed exactly this way.
+        //   2. Otherwise, all four corners of the square resolve to something that activates the
+        //      control. This is the case that matters for a checkbox, whose visual box is
+        //      deliberately smaller than the label extending its hit area (PRD:486).
+        const centreHits = activates(document.elementFromPoint(cx, cy))
+        if (r.width >= targetMin && r.height >= targetMin && centreHits) return true
+
         return ([[-1, -1], [1, -1], [-1, 1], [1, 1]] as const).every(([dx, dy]) =>
           activates(document.elementFromPoint(cx + dx * half, cy + dy * half)))
       }

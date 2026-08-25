@@ -622,6 +622,57 @@ export const TableRowBgStriped = "#f8f7f4";
 // @public (undocumented)
 export const TableRowBorder = "#95928e";
 
+// @public (undocumented)
+export const TagDangerBg = "#fef5f4";
+
+// @public (undocumented)
+export const TagDangerFg = "#843f3b";
+
+// @public (undocumented)
+export const TagFocusWidth = "2px";
+
+// @public (undocumented)
+export const TagFontSize = "14px";
+
+// @public (undocumented)
+export const TagGap = "8px";
+
+// @public (undocumented)
+export const TagInfoBg = "#f1f8fd";
+
+// @public (undocumented)
+export const TagInfoFg = "#045e84";
+
+// @public (undocumented)
+export const TagNeutralBg = "#f2f0ed";
+
+// @public (undocumented)
+export const TagNeutralFg = "#1f1e1d";
+
+// @public (undocumented)
+export const TagPaddingX = "8px";
+
+// @public (undocumented)
+export const TagPaddingY = "0";
+
+// @public (undocumented)
+export const TagRadius = "4px";
+
+// @public (undocumented)
+export const TagRemoveSize = "24px";
+
+// @public (undocumented)
+export const TagSuccessBg = "#f3f9f4";
+
+// @public (undocumented)
+export const TagSuccessFg = "#296539";
+
+// @public (undocumented)
+export const TagWarningBg = "#fbf6f0";
+
+// @public (undocumented)
+export const TagWarningFg = "#754e02";
+
 // (No @packageDocumentation comment for this package)
 
 ```

@@ -77,6 +77,10 @@ export function buildGeometryFixture ({ root = defaultRoot, out } = {}) {
     kase('target-button-sm', 'target', h(C.Button, { size: 'sm' }, 'Undo')),
     kase('target-input-sm', 'target', h(C.Input, { size: 'sm', defaultValue: 'x', 'aria-label': 'Code' })),
     kase('target-textarea', 'target', h(C.Textarea, { defaultValue: 'note', 'aria-label': 'Notes' })),
+    // A tag's remove control is the smallest thing a user is asked to hit accurately, and it is
+    // hit under time pressure in a filter bar. Its stylesheet claims gate 9 measures it, so it
+    // is rendered here rather than left as a comment nothing checks.
+    kase('target-tag-remove', 'target', h(C.Tag, { intent: 'warning', onRemove: () => {} }, 'Overdue')),
     kase('target-radio', 'target', h(C.RadioGroup, {
       legend: 'Terms', name: 'terms', defaultValue: 'net30',
       options: [{ value: 'net30', label: 'Net 30' }, { value: 'net60', label: 'Net 60' }],

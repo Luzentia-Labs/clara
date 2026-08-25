@@ -408,6 +408,18 @@ export interface SwitchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
     label?: string;
 }
 
+// @public
+export function Tag(input: TagProps): JSX_2.Element;
+
+// @public
+export type TagIntent = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+
+// Warning: (ae-forgotten-export) The symbol "TagStaticProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "TagRemovableProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type TagProps = TagStaticProps | TagRemovableProps;
+
 // @public (undocumented)
 function Text_2(input: TextProps): JSX_2.Element;
 export { Text_2 as Text }
