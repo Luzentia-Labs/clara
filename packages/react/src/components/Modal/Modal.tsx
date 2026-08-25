@@ -176,9 +176,27 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
     const target = returnFocus?.current ?? openerRef.current
     openerRef.current = null
     wasOpen.current = false
+
+    // Somebody already placed focus - leave it. In phase 1 that can only be the APPLICATION or
+    // another Modal's NAMED restore, because every fallback now runs in phase 2. That is what makes
+    // this check safe here when it was not safe before the split: it used to also mean "another
+    // Modal's anonymous fallback", which is how a named target got locked out.
+    //
+    // It has to be here and not only in phase 2: passive effects flush before this microtask, so an
+    // app that focuses a record heading on navigation has already chosen by now, and without this
+    // the named restore overrides it.
+    const already = document.activeElement
+    if (already && already !== document.body && already.isConnected) return true
+
     if (!target?.isConnected) return false
     target.focus({ preventScroll: true })
-    return true
+    // Whether focus ACTUALLY took, not whether it was attempted. `isConnected` is not focusable:
+    // a `disabled` opener - the ordinary pending-state idiom - a `display: none` target, an
+    // `[inert]` subtree, a collapsed `<details>`, and a closed native `<dialog>` all make `.focus()`
+    // a silent no-op. Returning `true` regardless meant phase 2 never ran and focus stayed on
+    // `document.body`, which is the strand this whole path exists to prevent. The fallback loop
+    // three lines down already checks exactly this; the named path was not applying its own lesson.
+    return document.activeElement === target
   }
 
   restoreFallback.current = () => {

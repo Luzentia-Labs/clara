@@ -388,6 +388,70 @@ describe('Modal focus restoration under StrictMode and a vanished opener', () =>
     expect(screen.getByTestId('start')).toHaveFocus()
   })
 
+  it.each([
+    ['a disabled opener', (el: HTMLButtonElement) => { el.disabled = true }],
+    ['an opener hidden with the hidden attribute', (el: HTMLButtonElement) => { el.hidden = true }],
+  ])('falls through to the fallback when the named target cannot take focus: %s', async (_label, disable) => {
+    // `isConnected` is not focusable. A disabled opener is the ordinary pending-state idiom - the
+    // button that opened the dialog is disabled while the save is in flight - and `.focus()` on it
+    // is a silent no-op. Reporting the named restore as done regardless meant the fallback never
+    // ran and focus stayed on `document.body`, which is the strand this path exists to prevent.
+    function PendingOpener () {
+      const [open, setOpen] = useState(false)
+      const opener = useRef<HTMLButtonElement>(null)
+      return (
+        <ClaraProvider>
+          <button data-testid="elsewhere">Elsewhere</button>
+          <button ref={opener} data-testid="opener" onClick={() => setOpen(true)}>Open</button>
+          <Modal
+            open={open}
+            title="t"
+            onClose={() => { if (opener.current) disable(opener.current); setOpen(false) }}
+          >
+            <button data-testid="in">x</button>
+          </Modal>
+        </ClaraProvider>
+      )
+    }
+    render(<PendingOpener />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await new Promise((r) => { setTimeout(r, 0) })
+    expect(document.activeElement).not.toBe(document.body)
+  })
+
+  it('lets the application win even when the opener is still alive', async () => {
+    // The cell round 7's K scenario did not cover: unmount route AND a live opener. Passive effects
+    // flush before the restore microtask, so the app has already chosen by then - and the named
+    // restore was overriding it.
+    function CommitAndStay () {
+      const [open, setOpen] = useState(false)
+      const [done, setDone] = useState(false)
+      const heading = useRef<HTMLHeadingElement>(null)
+      useEffect(() => { if (done) heading.current?.focus() }, [done])
+      return (
+        <ClaraProvider>
+          <h1 tabIndex={-1} ref={heading} data-testid="heading">Record 42</h1>
+          <button data-testid="opener" onClick={() => setOpen(true)}>Open</button>
+          {open && (
+            <Modal open title="t" onClose={() => { setOpen(false); setDone(true) }}>
+              <button data-testid="in">x</button>
+            </Modal>
+          )}
+        </ClaraProvider>
+      )
+    }
+    render(<CommitAndStay />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await new Promise((r) => { setTimeout(r, 0) })
+    expect(screen.getByTestId('heading')).toHaveFocus()
+  })
+
   it('accepts an aria-hidden candidate rather than stranding focus on the body', async () => {
     // The SECOND pass of the fallback, which the first pass makes unreachable in the ordinary case.
     // Here the only other focusable element is inside an aria-hidden container, so preferring a

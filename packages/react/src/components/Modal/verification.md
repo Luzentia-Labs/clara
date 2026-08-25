@@ -70,7 +70,7 @@ ambiguous signal in the system.
 
 ## What is verified automatically
 
-- The behaviour above, in `__tests__/behaviour.test.tsx` - 59 tests, including all four dismissal
+- The behaviour above, in `__tests__/behaviour.test.tsx` - 62 tests, including all four dismissal
   routes asserted separately, each asserting that focus LEFT the opener before it came back (two of
   them previously passed against an implementation that did nothing, because `userEvent.click`
   leaves focus on the button it clicked)
