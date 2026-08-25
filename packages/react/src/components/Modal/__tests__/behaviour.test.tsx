@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { StrictMode, useRef, useState } from 'react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -213,11 +213,91 @@ describe('Modal focus restoration when the dialog is unmounted while open', () =
     render(<Conditional />)
     await userEvent.click(screen.getByTestId('opener'))
     await screen.findByRole('dialog')
+    expect(screen.getByTestId('opener')).not.toHaveFocus()
     const scrim = document.querySelector('.clara-modal__scrim')!
     fireEvent.pointerDown(scrim)
     fireEvent.pointerUp(scrim)
     fireEvent.click(scrim)
     await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
+  })
+})
+
+describe('Modal focus restoration under StrictMode and a vanished opener', () => {
+  // Both of these were CRITICALs in the restoration path, found in a real browser and reproduced
+  // here. Nothing else in this workspace renders under StrictMode, which is the Next.js dev default
+  // and the Vite/CRA template default - so a consumer meets this on day one.
+  it('does not steal focus when a conditionally rendered Modal mounts under StrictMode', async () => {
+    function App () {
+      const [open, setOpen] = useState(false)
+      return (
+        <ClaraProvider>
+          <a href="#main" data-testid="skip">Skip</a>
+          <button data-testid="opener" onClick={() => setOpen(true)}>Open</button>
+          {open && (
+            <Modal open onClose={() => setOpen(false)} title="t">
+              <button data-testid="in">x</button>
+            </Modal>
+          )}
+        </ClaraProvider>
+      )
+    }
+    render(<StrictMode><App /></StrictMode>)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    // The opener, NOT the page's first focusable. StrictMode's double-invoke used to fire the
+    // fallback in the window before the portal content existed, steal focus to the skip link, and
+    // then record the stolen element as the opener.
+    await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
+  })
+
+  it('accepts an aria-hidden candidate rather than stranding focus on the body', async () => {
+    // The SECOND pass of the fallback, which the first pass makes unreachable in the ordinary case.
+    // Here the only other focusable element is inside an aria-hidden container, so preferring a
+    // non-aria-hidden candidate finds nothing - and without the second pass focus lands on the
+    // body, which is the strand. Written because the pass was otherwise dead code, and dead
+    // defensive code is the same thing as a guard nobody has watched fail.
+    function OnlyHidden () {
+      const [open, setOpen] = useState(false)
+      const [gone, setGone] = useState(false)
+      return (
+        <ClaraProvider>
+          {!gone && <button data-testid="opener" onClick={() => { setOpen(true); setGone(true) }}>Open</button>}
+          <div aria-hidden="true"><button data-testid="only-candidate">Behind</button></div>
+          {open && <Modal open onClose={() => setOpen(false)} title="t"><button data-testid="in">x</button></Modal>}
+        </ClaraProvider>
+      )
+    }
+    render(<OnlyHidden />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(screen.getByTestId('only-candidate')).toHaveFocus())
+  })
+
+  it('finds a candidate even while the background is still aria-hidden', async () => {
+    // On the UNMOUNT route React runs Modal's cleanup BEFORE Radix's, so every background subtree
+    // is still marked aria-hidden. A fallback that skips aria-hidden skips ALL of them and lands on
+    // document.body - the exact strand this component exists to prevent.
+    function Vanishing () {
+      const [open, setOpen] = useState(false)
+      const [gone, setGone] = useState(false)
+      return (
+        <ClaraProvider>
+          {!gone && <button data-testid="opener" onClick={() => { setOpen(true); setGone(true) }}>Open</button>}
+          <button data-testid="elsewhere">Elsewhere</button>
+          {open && <Modal open onClose={() => setOpen(false)} title="t"><button data-testid="in">x</button></Modal>}
+        </ClaraProvider>
+      )
+    }
+    render(<Vanishing />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(document.activeElement).not.toBe(document.body)
+    expect(screen.getByTestId('elsewhere')).toHaveFocus()
   })
 })
 
@@ -499,13 +579,24 @@ describe('Modal keeps the scrim empty', () => {
     // outer host, whose single child is the theme scope, which always contains the dialog - so the
     // filter emptied the list every time and the assertion could not fail in any direction. The
     // focusable row became a full guard and this one became no guard, in the same commit.
-    const text = [...hostOf(scrim).querySelectorAll('*')]
+    // D0092 is about what is DRAWN. A visually-hidden live region paints nothing, so it is not a
+    // violation - the first version flagged one, which would have taught the next author to weaken
+    // this assertion rather than refine it. Graphics are: an <svg> on the scrim is neither
+    // focusable nor text and slipped through both rows entirely.
+    const painted = [...hostOf(scrim).querySelectorAll('*')]
       .filter((el) => !dialog.contains(el) && el !== dialog)
+      // NOT `[aria-hidden]`. Radix marks the overlay itself aria-hidden, so excluding it hid
+      // everything drawn ON the scrim - which is the entire subject. `aria-hidden` means hidden
+      // from assistive technology; the pixels are still there, and D0092 is about what is DRAWN.
+      .filter((el) => !el.closest('[hidden], .clara-visually-hidden'))
+    const text = painted
       .flatMap((el) => [...el.childNodes])
       .filter((n) => n.nodeType === Node.TEXT_NODE)
       .map((n) => n.textContent?.trim() ?? '')
       .filter(Boolean)
-    expect(text).toEqual([])
+    const graphics = painted.filter((el) => /^(svg|img|canvas|video|picture)$/i.test(el.tagName))
+    expect({ text, graphics: graphics.map((el) => el.tagName.toLowerCase()) })
+      .toEqual({ text: [], graphics: [] })
   })
 })
 
@@ -648,36 +739,72 @@ describe('Modal theme and density matrix', () => {
 })
 
 describe('Modal focus never scrolls the page', () => {
-  it('passes preventScroll on every focus call it makes', async () => {
-    // A SPY on the real method, not a read of the source file. The first version read `Modal.tsx`
-    // and matched `.focus(`, which broke under Stryker: mutation testing rewrites the file it is
-    // measuring, so the test read instrumented code and failed the dry run. Reading your own source
-    // is not a behavioural assertion anyway - this one observes the calls.
-    //
-    // jsdom ignores `preventScroll`, so this asserts the ARGUMENT, not the outcome. The outcome
-    // (Chromium measured a close scrolling the page from y=4000 to 0 without it) is gate 7's, and
-    // the verification record says so.
-    render(<Harness withInitialFocus />)
-    await open()
-    await waitFor(() => expect(screen.getByTestId('reason')).toHaveFocus())
-
-    // The spy is installed for the CLOSE only. Radix and testing-library both call `focus()`
-    // without options during setup, so a spy over the whole test asserts their behaviour rather
-    // than Clara's - it failed on correct code, which is its own kind of useless test.
+  /**
+   * Scoped by CALLER, not by time.
+   *
+   * The first version spied for the duration of the close, which covered ONE of Modal's three focus
+   * calls - and not the one round 3 measured in Chromium scrolling the page from y=4000 to 0.
+   * Removing `preventScroll` from the fallback loop left the whole file green under a test named
+   * "every focus call it makes". Time-scoping was honestly explained and still under-claimed.
+   *
+   * jsdom ignores the option, so this asserts the ARGUMENT. The outcome is gate 7's, and the
+   * verification record says so.
+   */
+  const recordFocusCalls = async (run: () => Promise<void>) => {
     const calls: Array<FocusOptions | undefined> = []
     const real = HTMLElement.prototype.focus
     HTMLElement.prototype.focus = function focus (options?: FocusOptions) {
       calls.push(options)
       return real.call(this, options)
     }
-    try {
+    try { await run() } finally { HTMLElement.prototype.focus = real }
+    return calls
+  }
+
+  it('passes preventScroll when restoring to the opener', async () => {
+    render(<Harness withInitialFocus />)
+    await open()
+    await waitFor(() => expect(screen.getByTestId('reason')).toHaveFocus())
+    const calls = await recordFocusCalls(async () => {
       await userEvent.keyboard('{Escape}')
       await waitFor(() => expect(screen.getByTestId('opener')).toHaveFocus())
-    } finally {
-      HTMLElement.prototype.focus = real
-    }
+    })
     expect(calls.length).toBeGreaterThan(0)
     expect(calls.filter((o) => o?.preventScroll !== true)).toEqual([])
+  })
+
+  it('passes preventScroll in the FALLBACK loop, which is where the scroll jump was measured', async () => {
+    function Vanishes () {
+      const [open, setOpen] = useState(false)
+      const [gone, setGone] = useState(false)
+      return (
+        <ClaraProvider>
+          {!gone && <button data-testid="opener" onClick={() => { setOpen(true); setGone(true) }}>Open</button>}
+          <button data-testid="elsewhere">Elsewhere</button>
+          <Modal open={open} onClose={() => setOpen(false)} title="t"><button data-testid="in">x</button></Modal>
+        </ClaraProvider>
+      )
+    }
+    render(<Vanishes />)
+    await userEvent.click(screen.getByTestId('opener'))
+    await screen.findByRole('dialog')
+    const calls = await recordFocusCalls(async () => {
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() => expect(screen.getByTestId('elsewhere')).toHaveFocus())
+    })
+    expect(calls.length).toBeGreaterThan(0)
+    expect(calls.filter((o) => o?.preventScroll !== true)).toEqual([])
+  })
+
+  it('passes preventScroll when moving focus to the named initial target', async () => {
+    const calls = await recordFocusCalls(async () => {
+      render(<Harness withInitialFocus />)
+      await open()
+      await waitFor(() => expect(screen.getByTestId('reason')).toHaveFocus())
+    })
+    // Radix and testing-library also focus during setup, so only Clara's own call is asserted:
+    // the one that landed on the named initial target.
+    expect(calls.some((o) => o?.preventScroll === true)).toBe(true)
   })
 })
 

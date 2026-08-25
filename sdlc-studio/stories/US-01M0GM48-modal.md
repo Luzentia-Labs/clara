@@ -37,11 +37,16 @@
 - **Given** an open Modal
 - **When** it closes by Escape, outside click, close button, or successful commit
 - **Then** focus returns to the named restoration target on every route, asserted by element identity
+- **And** the UNMOUNT routes count too: `{open && <Modal open .../>}` is the ordinary React idiom
+  and a router does it on a redirect, so there is no open-to-closed transition to restore on. All
+  four dismissal routes are asserted again through a conditionally rendered Modal, and the
+  verifier's pattern is broad enough to select them - it previously named only the dismissal
+  describe, so deleting the unmount cleanup left the AC gate at 11/11
 - **And** all four routes are asserted separately. A single "it restores focus" test passes on an
   implementation that handles one route and drops the other three, which is the defect this
   criterion exists to prevent
-- **Verify:** vitest "Modal focus restoration per dismissal route"
-- **Verified:** yes (2026-08-24)
+- **Verify:** vitest "Modal focus restoration"
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC3: Background is unreachable
@@ -119,7 +124,7 @@
   `asChild`, `onOpenChange` or `data-state` (ADR-004, D0003), and Modal is classified `client`
 - **And** this is the most permanent thing in the story: a leaked prop name cannot be withdrawn
   after publish
-- **Verify:** shell node scripts/api-report.mjs && node scripts/check-client-boundary.mjs
+- **Verify:** shell pnpm --filter @luzentialabs/clara-react build && node scripts/api-report.mjs && node scripts/check-client-boundary.mjs
 - **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 

@@ -118,10 +118,33 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
   // A ref-reading cleanup rather than a second effect, because it must see the LATEST opener and
   // `returnFocus` without re-subscribing on every render.
   const restore = useRef<() => void>(() => {})
-  useEffect(() => () => { if (wasOpen.current) restore.current() }, [])
+  useEffect(() => () => {
+    if (!wasOpen.current) return
+    // DEFERRED, unlike the close path, and the ordering is the whole reason.
+    //
+    // React runs this component's cleanup BEFORE Radix's Content cleanup. Restoring synchronously
+    // here focuses the right element and Radix then immediately moves focus again - its FocusScope
+    // restores to the element it stored, which on this route is the removed opener, so focus lands
+    // on `document.body`. Measured: the loop reported 3 candidates and 3 focusable, focused one,
+    // and the page still ended on BODY.
+    //
+    // A microtask runs after every synchronous cleanup in the same task, so Clara's restoration is
+    // last and wins. The close path stays synchronous because there Radix's restore is suppressed
+    // by `onCloseAutoFocus` and the extra tick would be an observable delay for no benefit.
+    const run = restore.current
+    queueMicrotask(() => run())
+  }, [])
 
   useEffect(() => {
-    if (open) { wasOpen.current = true; return }
+    // `wasOpen` is NOT set here. This effect runs before the portal content exists - the host is
+    // created in ClaraPortal's own effect and the content lands on its second commit (D0090) - so
+    // a window exists where the Modal is "open" with nothing mounted and no opener captured. An
+    // unmount in that window ran the cleanup, found no opener, fired the fallback and STOLE focus,
+    // and `onOpenAutoFocus` then recorded the stolen element as the opener. StrictMode reproduces
+    // it every time (Next.js dev default), and so does Fast Refresh or a route guard redirecting
+    // on the mounting flush. `wasOpen` is set in `onOpenAutoFocus`, which is the moment the content
+    // exists AND the opener is still current - the same moment the opener itself is captured.
+    if (open) return
     if (!wasOpen.current) return
     wasOpen.current = false
     restore.current()
@@ -145,15 +168,28 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
     // on it is a silent no-op, and focus lands on `document.body` - the exact strand this fallback
     // exists to remove. jsdom cannot see it, because it computes no layout and honours no `hidden`.
     // So candidates are TRIED, in order, until one actually takes focus.
-    const candidates = document.querySelectorAll<HTMLElement>(
+    // TWO passes, and the order between them is the whole point.
+    //
+    // PREFER a candidate that is not `aria-hidden` - a background element hidden from assistive
+    // technology is a poor place to land while the page is otherwise intact. But ACCEPT one rather
+    // than leave focus on the body: `aria-hidden` means hidden from assistive technology, it does
+    // not make an element unfocusable, and on the unmount route every background subtree is still
+    // marked while Radix unwinds. A single pass that skipped them skipped ALL candidates and
+    // stranded focus - measured in Chromium as candidates=4, blocked=4. `[hidden]` and `[inert]`
+    // are different: those genuinely cannot take focus, so they are skipped in both passes.
+    const candidates = [...document.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    )
-    for (const candidate of candidates) {
-      if (candidate.closest('[hidden], [inert], [aria-hidden="true"]')) continue
-      // `preventScroll`, because focusing scrolls the element into view by default and a dialog
-      // closing must not move the page the user was reading.
-      candidate.focus({ preventScroll: true })
-      if (document.activeElement === candidate) return
+    )].filter((el) => !el.closest('[hidden], [inert]'))
+    for (const pass of [
+      candidates.filter((el) => !el.closest('[aria-hidden="true"]')),
+      candidates,
+    ]) {
+      for (const candidate of pass) {
+        // `preventScroll`, because focusing scrolls the element into view by default and a dialog
+        // closing must not move the page the user was reading.
+        candidate.focus({ preventScroll: true })
+        if (document.activeElement === candidate) return
+      }
     }
   }
 
@@ -187,6 +223,10 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal ({
             // and reads as `activeElement === document.body`, which is the strand itself.
             const active = document.activeElement
             openerRef.current = active && active !== document.body ? (active as HTMLElement) : null
+            // Set HERE, not in the effect above: this is the first moment the portalled content
+            // exists, so "the dialog was really open" and "an opener was captured" become true
+            // together. See the note on the restore effect.
+            wasOpen.current = true
             if (!initialFocus?.current) return
             // Radix would otherwise focus the first tabbable element, which is the close button.
             event.preventDefault()

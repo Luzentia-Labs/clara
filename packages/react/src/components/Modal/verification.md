@@ -70,7 +70,7 @@ ambiguous signal in the system.
 
 ## What is verified automatically
 
-- The behaviour above, in `__tests__/behaviour.test.tsx` - 50 tests, including all four dismissal
+- The behaviour above, in `__tests__/behaviour.test.tsx` - 55 tests, including all four dismissal
   routes asserted separately, each asserting that focus LEFT the opener before it came back (two of
   them previously passed against an implementation that did nothing, because `userEvent.click`
   leaves focus on the button it clicked)
@@ -95,7 +95,7 @@ ambiguous signal in the system.
   light scrim composite, so a control there would fail WCAG today
 - No Radix type, prop name or `data-*` attribute on the public surface - `check:api`
 - Radix stays external and is not inlined into any chunk - `check:bundled-peers`
-- Modal's own chunk is 2.07 kB gzipped against a 5 kB budget; the shared Radix runtime is 14.91 kB
+- Modal's own chunk is ~2.1 kB gzipped against a 5 kB budget; the shared Radix runtime is ~14.9 kB
   against an 18 kB ceiling, measured once rather than charged to each overlay - `pnpm size`. A
   declared runtime dependency that no built chunk imports is a build failure, not a silent skip
 - `ref` reaches the panel and `className` merges rather than replaces - both are published API and
@@ -121,11 +121,16 @@ ambiguous signal in the system.
   revisit rather than a build failure. This paragraph previously said the band was NOT rejected,
   which was true when written and false one commit later - it is the CR-01M0SKZ6 class appearing in
   a stated gap rather than in a keyboard row.
-- **`preventScroll` is asserted as a CALL, not as an outcome.** jsdom ignores the option entirely,
-  so the test reads the source and requires every `.focus(` in `Modal.tsx` to pass it. The outcome -
-  Chromium measured a close scrolling the page from y=4000 to 0 without it - belongs to gate 7.
-  Without even the source assertion, deleting two characters re-introduces the jump with a fully
-  green gate, which is why a source read is worth having and why it is described as what it is.
+- **`preventScroll` is asserted as an ARGUMENT, not as an outcome.** jsdom ignores the option, so
+  three tests spy on `HTMLElement.prototype.focus` and assert what Clara passes - one per call site
+  (restore, fallback loop, initial target), each proved to redden on its own. The outcome - Chromium
+  measured a close scrolling the page from y=4000 to 0 without it - belongs to gate 7.
+
+  This paragraph has been wrong twice and both are worth recording, because the pattern is the
+  point. It first described a source-reading test that had been deliberately replaced by a spy in
+  the same commit. Before that the spy was scoped by TIME rather than by caller, so it covered one
+  of three call sites under a name claiming all of them - and not the one the scroll jump was
+  measured on. A record that overstates a guard is the CR-01M0SKZ6 class pointed at itself.
 - **Nesting is asserted one level deep.** Modal-over-menu and menu-over-Modal are decided by DOM
   order (D0088) and the host ordering is asserted, but the composition with a real Select or
   DropdownMenu cannot be tested until those components exist (EP-01M0GK91).
