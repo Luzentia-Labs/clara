@@ -213,15 +213,15 @@ belongs when the thing that is wrong is that nothing was chosen.
 
 ## Test Plan
 
-| Criterion | Mutant - the production change this test must fail on | Title |
-| --- | --- | --- |
-| AC1 | Add `tabIndex={0}` to every radio, or give each a distinct `name`. Note the LIMIT: `userEvent.tab()` implements radio grouping itself, so the outcome is not observable in jsdom - what is asserted is the shared name and the absent tabIndex, and the outcome belongs in Playwright. | Roving focus |
-| AC2 | Export a bare `Radio`. The verifier also asserts the API report exists and is non-empty, so deleting it fails rather than passing. | Radio only exists in a group |
-| AC3 | Move `aria-invalid`/`aria-errormessage` from the fieldset onto an individual radio. | Group error |
-| AC4 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
-| AC5 | Rename the theme or density attribute. | Both themes and densities |
-| AC6 | Delete `aria-labelledby` from the fieldset, or stop hiding the legend in group mode. Both are asserted on BOTH groups. | The Field label names the group |
-| AC7 | Delete the RadioGroup verification record or its docs page. | Definition of done |
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/RadioGroup/RadioGroup.tsx | Add `tabIndex={0}` to every radio, or give each a distinct `name`. Note the LIMIT: `userEvent.tab()` implements radio grouping itself, so the outcome is not observable in jsdom - what is asserted is the shared name and the absent tabIndex, and the outcome belongs in Playwright. | Roving focus |
+| AC2 | packages/react/src/components/RadioGroup/RadioGroup.tsx | Export a bare `Radio`. The verifier also asserts the API report exists and is non-empty, so deleting it fails rather than passing. | Radio only exists in a group |
+| AC3 | packages/react/src/components/RadioGroup/RadioGroup.tsx | Move `aria-invalid`/`aria-errormessage` from the fieldset onto an individual radio. | Group error |
+| AC4 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC5 | packages/react/src/components/RadioGroup/RadioGroup.tsx | Rename the theme or density attribute. | Both themes and densities |
+| AC6 | packages/react/src/components/RadioGroup/RadioGroup.tsx | Delete `aria-labelledby` from the fieldset, or stop hiding the legend in group mode. Both are asserted on BOTH groups. | The Field label names the group |
+| AC7 | packages/react/src/components/RadioGroup/verification.md | Delete the RadioGroup verification record or its docs page. | Definition of done |
 
 ## Revision History
 

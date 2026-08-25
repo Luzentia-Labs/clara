@@ -24,7 +24,44 @@ This is the D0078 shape-versus-content lesson at its third recurrence, in the on
 
 Each was found by a review seat probing by hand, never by a gate. Every one was fixed at the instance; the guard that should catch the class is unchanged.
 
-Proposed rule: a criterion's Test Plan row already names the production mutant. Require that the file(s) that mutant names are imported by at least one test file containing a test the verifier selects - the same citation-content check `check-verification.mjs` already applies to verification records (D0078). A criterion whose mutant names `ClaraPortal.tsx` and whose verifier selects only tests in `packages/tokens` is then a build failure rather than a review finding.
+## The originally proposed rule does not work - measured
+
+The first proposal was: "the Test Plan row already names the production mutant, so require the
+file(s) it names to be imported by a test the verifier selects." A measurement over the whole
+corpus (87 Test Plan rows, 56 criteria stamped `Verified: yes` with a vitest verifier) says that
+rule is inapplicable:
+
+- **55 of 56** rows name **no file at all**. They name a symbol, an attribute, or a behaviour.
+- Mining identifiers out of the prose instead was tried, tuned over five passes, and abandoned. It
+  is wrong in both directions and the errors are not rare: `setTimeout` in "wrap `onChange` in a
+  `setTimeout`" names the mutation to ADD, not code that exists; `aria-checked="mixed"` is written
+  `aria-checked={indeterminate ? 'mixed' : undefined}` in the source; and common words like `open`
+  and `children` match every file, so the rule passes vacuously on exactly the criterion it was
+  built to catch. Each fix for one class opened another.
+
+A guard that fires on noise is worse than no guard - this repo has already recorded that lesson
+twice. So the answer is not a better heuristic.
+
+## The rule that does work: stop inferring, and make the row say it
+
+Add a machine-readable **`Touches`** column to the Test Plan: the source file(s) the mutant changes.
+Then the check is exact rather than inferred:
+
+1. Every `Verified: yes` criterion's Test Plan row names at least one file in `Touches`.
+2. The tests the verifier selects must transitively import at least one of those files - or, when
+   `Touches` names an asset no test imports (a stylesheet, a token JSON), the verifier must also run
+   a guard that reads it. That second clause is exactly what Modal AC5 needed: its mutant changed
+   `styles.css`, its verifier ran vitest only, and jsdom computes no layout, so the criterion was
+   green against a modal whose body did not scroll.
+
+This costs one column across 87 rows, and it forces the author to state what they are mutating -
+which is the discipline the CR is about, not a side effect of it.
+
+**Validated against the three historical cases before proposing:** the rule catches US-01M0GM61 AC3
+(verifier selected token tests, mutant changed `ClaraPortal.tsx`) and US-01M0GM48 AC5 (vitest-only
+verifier, mutant changed `styles.css`). It does NOT catch US-01M0GMF3 AC3, where the verifier
+selected the right FILE but the wrong tests within it. That third case needs per-test analysis and
+is out of scope here - recorded so the CR is not read as claiming more than it delivers.
 
 ## Impact
 
@@ -36,26 +73,49 @@ Proposed rule: a criterion's Test Plan row already names the production mutant. 
 
 ## Acceptance Criteria
 
-### AC1: A verifier that cannot reach its mutant's file fails the build
+### AC1: Every verified criterion says what its mutant touches
 
-- **Given** a story criterion whose Test Plan row names a production file
-- **When** the criterion's `Verify:` selector matches no test in any test file that imports that file
-- **Then** `check-story-verifiers.mjs` fails, naming the criterion, the mutant's file and the test files the selector did reach
+- **Given** a story criterion stamped `Verified: yes`
+- **When** its Test Plan row has no `Touches` entry, or names a path that does not exist
+- **Then** `check-story-verifiers.mjs` fails, naming the story and the criterion
 - **Verify:** shell node scripts/check-story-verifiers.mjs
 
-### AC2: The rule is proved able to fail
+### AC2: A verifier that cannot reach what it certifies fails the build
+
+- **Given** a criterion whose `Touches` names a source file
+- **When** no test selected by its `Verify:` pattern transitively imports that file
+- **Then** the build fails, naming the criterion, the file, and the test files the selector did reach
+- **And** when `Touches` names an asset no test can import - a stylesheet, a token source - the
+  criterion's verifier must also run a guard that reads it, because a vitest-only verifier over a
+  CSS change is green by construction in jsdom
+- **Verify:** shell node scripts/check-story-verifiers.mjs
+
+### AC3: The rule is proved able to fail, on the cases it was written for
 
 - **Given** the mutation prover
-- **When** a real criterion's verifier is repointed at a test in another package
+- **When** a criterion's verifier is repointed away from the file its mutant touches
 - **Then** `check:prove-guards` turns red
+- **And** the two historical cases are reproduced as mutations rather than described: US-01M0GM61
+  AC3 (verifier selected token tests while the mutant changed `ClaraPortal.tsx`) and US-01M0GM48
+  AC5 (vitest-only verifier over a `styles.css` mutant)
 - **Verify:** shell node scripts/prove-guards-fail.mjs
 
-### AC3: The three known instances are covered retroactively
+### AC4: The corpus is migrated, not exempted
 
-- **Given** US-01M0GMF3 AC3, US-01M0GM61 AC3 and US-01M0GM61 AC4 restored to the selectors they carried when each was found
+- **Given** all 87 Test Plan rows across the story corpus
 - **When** the guard runs
-- **Then** all three fail, which is the evidence that the rule catches the class rather than the last instance
-- **Verify:** manual restore each of the three selectors in turn and confirm the guard rejects it
+- **Then** every row carries a real `Touches` entry and the whole suite passes, with no allowlist,
+  no grandfathering and no "existing rows are exempt" clause - the migration is the work, and a rule
+  that applies only to new stories would leave every current criterion uncovered
+- **Verify:** shell node scripts/check-story-verifiers.mjs && node scripts/check-tracked.mjs
+
+### AC5: What it does NOT catch is written down
+
+- **Given** the guard's docblock and this CR
+- **When** a reader asks what it covers
+- **Then** both state that a verifier selecting the right FILE but the wrong tests within it is out
+  of scope (US-01M0GMF3 AC3), so the guard is not read as proving more than it does
+- **Verify:** manual read the docblock and confirm the limitation is stated
 
 ## Revision History
 

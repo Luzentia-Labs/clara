@@ -200,14 +200,14 @@ browser's, and Clara does not debounce (D0062).
 
 ## Test Plan
 
-| Criterion | Mutant - the production change this test must fail on | Title |
-| --- | --- | --- |
-| AC1 | Remove `el.focus()` from `clear`, stranding the keyboard user on a button that is about to disappear. | Clear is keyboard reachable |
-| AC2 | Invert the docs page to claim Clara debounces, or delete the two-case list. Both are `forbid`/`require` entries with mutations in `prove-guards-fail.mjs`. | Debounce is guidance not policy |
-| AC3 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
-| AC4 | Rename the theme or density attribute. | Both themes and densities |
-| AC5 | Render the clear button unconditionally, or wrap `onChange` in a `setTimeout`. Verified: the debounce mutant dies. | Clear exists only when there is something to clear |
-| AC6 | Delete the SearchInput verification record or its docs page. | Definition of done |
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/SearchInput/SearchInput.tsx | Remove `el.focus()` from `clear`, stranding the keyboard user on a button that is about to disappear. | Clear is keyboard reachable |
+| AC2 | apps/docs/src/content/components/search-input.md | Invert the docs page to claim Clara debounces, or delete the two-case list. Both are `forbid`/`require` entries with mutations in `prove-guards-fail.mjs`. | Debounce is guidance not policy |
+| AC3 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC4 | packages/react/src/components/SearchInput/SearchInput.tsx | Rename the theme or density attribute. | Both themes and densities |
+| AC5 | packages/react/src/components/SearchInput/SearchInput.tsx | Render the clear button unconditionally, or wrap `onChange` in a `setTimeout`. Verified: the debounce mutant dies. | Clear exists only when there is something to clear |
+| AC6 | packages/react/src/components/SearchInput/verification.md | Delete the SearchInput verification record or its docs page. | Definition of done |
 
 ## Revision History
 

@@ -59,6 +59,15 @@ count tables are author-maintained; do not give them a `Total` row (reconcile wo
 global summary). For a human-checked AC, write `Verify: manual <what to check>` so it is counted
 *manual*, never shelled out - and never hand-stamp `Verified:` for an AC a machine did not check.
 
+**Test Plan rows carry a `Touches` column.** `| Criterion | Touches | Mutant | Title |`, where
+`Touches` names the source file(s) the mutant changes. `check-story-verifiers.mjs` then proves the
+criterion's `Verify:` selector reaches that file - a `vitest -t` pattern selects by NAME across the
+whole workspace, so without this a criterion can be stamped `Verified: yes` by a green run of tests
+that cannot see the code its own Test Plan says they must fail on. That happened three times before
+the rule existed. When `Touches` names an asset no test imports (a stylesheet, a token source), the
+verifier must also run a guard that reads it: jsdom computes no layout, so a vitest-only verifier
+over a CSS change is green by construction.
+
 Every substantive change flows through the skill:
 **CR / RFC -> Epic -> Story -> code plan -> code implement -> code verify ->
 reconcile -> review.** No ad-hoc coding. Default to TDD: author the `Verify:`

@@ -192,13 +192,13 @@ cannot see the action they are about to take.
 
 ## Test Plan
 
-| Criterion | Mutant - the production change this test must fail on | Title |
-| --- | --- | --- |
-| AC1 | Replace `Math.min(el.scrollHeight, max)` with `el.scrollHeight`, removing the cap. Verified: the cap test dies, the growth test does not - they are separate. | Auto-resize with a cap |
-| AC2 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
-| AC3 | Rename the theme or density attribute. | Both themes and densities |
-| AC4 | Swallow Enter (submit instead of newline), or bind Tab to insert a tab character. | Enter and Tab behave |
-| AC5 | Delete the Textarea verification record or its docs page. | Definition of done |
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/Textarea/Textarea.tsx | Replace `Math.min(el.scrollHeight, max)` with `el.scrollHeight`, removing the cap. Verified: the cap test dies, the growth test does not - they are separate. | Auto-resize with a cap |
+| AC2 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC3 | packages/react/src/components/Textarea/Textarea.tsx | Rename the theme or density attribute. | Both themes and densities |
+| AC4 | packages/react/src/components/Textarea/Textarea.tsx | Swallow Enter (submit instead of newline), or bind Tab to insert a tab character. | Enter and Tab behave |
+| AC5 | packages/react/src/components/Textarea/verification.md | Delete the Textarea verification record or its docs page. | Definition of done |
 
 ## Revision History
 

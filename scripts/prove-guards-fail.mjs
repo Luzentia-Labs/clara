@@ -1269,6 +1269,48 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // CR-01M0SKZ6, case A: the verifier selects tests that cannot see the code its own mutant
+    // changes. US-01M0GM61 AC3 shipped exactly like this - the DOM-order tests were renamed out
+    // from under the selector and the criterion stayed green on three token comparisons.
+    name: 'a verified criterion whose verifier cannot reach the file its mutant changes',
+    guard: 'check-story-verifiers.mjs',
+    withStories: true,
+    expect: /none of which import/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/theme/__tests__/theming.test.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(
+        "describe('the overlay stacking order in the DOM'", "describe('portals stack by open order'"))
+    },
+  },
+  {
+    // Case B: a vitest-only verifier over a stylesheet mutant. jsdom computes no layout, so the
+    // criterion is green by construction - which is how Modal AC5 certified a modal whose body
+    // did not scroll.
+    name: 'a vitest-only verifier over a mutant in an asset no test can load',
+    guard: 'check-story-verifiers.mjs',
+    withStories: true,
+    expect: /which no test imports, but the verifier is vitest only/,
+    stage: (stage) => {
+      const f = join(stage, 'sdlc-studio/stories/US-01M0GM48-modal.md')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(
+        '- **Verify:** shell npx vitest run -t "Modal body scrolls internally" && node scripts/check-component-css.mjs --component Modal',
+        '- **Verify:** vitest "Modal body scrolls internally"'))
+    },
+  },
+  {
+    // A Touches entry that names nothing real is a row that looks checked and is not.
+    name: 'a Test Plan row naming a file that does not exist',
+    guard: 'check-story-verifiers.mjs',
+    withStories: true,
+    expect: /which does not exist/,
+    stage: (stage) => {
+      const f = join(stage, 'sdlc-studio/stories/US-01M0GM48-modal.md')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(
+        '| AC1 | packages/react/src/components/Modal/Modal.tsx |',
+        '| AC1 | packages/react/src/components/Modal/Gone.tsx |'))
+    },
+  },
+  {
     // Two criteria were added and their rows were not, so the last row carried the NEXT criterion's
     // mutant and every row after the gap named the wrong one.
     name: 'a criterion added without its Test Plan row',

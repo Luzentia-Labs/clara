@@ -210,15 +210,15 @@ by accident and a user fails in practice.
 
 ## Test Plan
 
-| Criterion | Mutant - the production change this test must fail on | Title |
-| --- | --- | --- |
-| AC1 | Drop `aria-checked="mixed"`, or key the indeterminate effect on `[indeterminate]` so a click leaves it stale. | Indeterminate is correct |
-| AC2 | Set `appearance: none` on `.clara-checkbox`, which erases the drawn tick and leaves colour as the only signal. | Not colour alone |
-| AC3 | Render the label as a `<span>` instead of `<label htmlFor>`. | Label is a target |
-| AC4 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
-| AC5 | Rename the theme or density attribute. | Both themes and densities |
-| AC6 | Clear the DOM property on click without re-applying it - covered on both the click path and a render the prop did not cause. | Indeterminate survives interaction |
-| AC7 | Delete the Checkbox verification record or its docs page. | Definition of done |
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/Checkbox/Checkbox.tsx | Drop `aria-checked="mixed"`, or key the indeterminate effect on `[indeterminate]` so a click leaves it stale. | Indeterminate is correct |
+| AC2 | packages/react/src/styles.css | Set `appearance: none` on `.clara-checkbox`, which erases the drawn tick and leaves colour as the only signal. | Not colour alone |
+| AC3 | packages/react/src/components/Checkbox/Checkbox.tsx | Render the label as a `<span>` instead of `<label htmlFor>`. | Label is a target |
+| AC4 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC5 | packages/react/src/components/Checkbox/Checkbox.tsx | Rename the theme or density attribute. | Both themes and densities |
+| AC6 | packages/react/src/components/Checkbox/Checkbox.tsx | Clear the DOM property on click without re-applying it - covered on both the click path and a render the prop did not cause. | Indeterminate survives interaction |
+| AC7 | packages/react/src/components/Checkbox/verification.md | Delete the Checkbox verification record or its docs page. | Definition of done |
 
 ## Revision History
 

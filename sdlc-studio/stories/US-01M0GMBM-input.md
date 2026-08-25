@@ -226,16 +226,16 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
 
 ## Test Plan
 
-| Criterion | Mutant - the production change this test must fail on | Title |
-| --- | --- | --- |
-| AC1 | Delete the `clearable` branch, the `maxCount` branch, or `aria-hidden` on an affix - each kills a different assertion. | Affordances |
-| AC2 | Emit the native `disabled` attribute; the disabled control leaves the tab order. | Readonly versus disabled |
-| AC3 | Report a bare value to `onChange` instead of the native event. | Native convention |
-| AC4 | MANUAL. jsdom does not implement `:-webkit-autofill` and it is not drivable headless. | Autofill survives |
-| AC5 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
-| AC6 | Rename the theme or density attribute so it no longer matches the emitted stylesheet. | Both themes and densities |
-| AC7 | Stop forwarding the ref on the DECORATED path, so it lands on the wrapper span - the case that can actually break, since the plain path forwards trivially. | The ref reaches the real control |
-| AC8 | Delete the Input verification record or its docs page. | Definition of done |
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/Input/Input.tsx | Delete the `clearable` branch, the `maxCount` branch, or `aria-hidden` on an affix - each kills a different assertion. | Affordances |
+| AC2 | packages/react/src/components/Input/Input.tsx | Emit the native `disabled` attribute; the disabled control leaves the tab order. | Readonly versus disabled |
+| AC3 | packages/react/src/components/Input/Input.tsx | Report a bare value to `onChange` instead of the native event. | Native convention |
+| AC4 | packages/react/src/components/Input/Input.tsx | MANUAL. jsdom does not implement `:-webkit-autofill` and it is not drivable headless. | Autofill survives |
+| AC5 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC6 | packages/react/src/theme/resolve.ts | Rename the theme or density attribute so it no longer matches the emitted stylesheet. | Both themes and densities |
+| AC7 | packages/react/src/components/Input/Input.tsx | Stop forwarding the ref on the DECORATED path, so it lands on the wrapper span - the case that can actually break, since the plain path forwards trivially. | The ref reaches the real control |
+| AC8 | packages/react/src/components/Input/verification.md | Delete the Input verification record or its docs page. | Definition of done |
 
 ## Revision History
 

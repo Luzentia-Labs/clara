@@ -290,22 +290,22 @@ a Server Component cannot.
 
 ## Test Plan
 
-| Criterion | Mutant - the production change this test must fail on | Title |
-| --- | --- | --- |
-| AC1 | Stop rendering the description element, so `aria-describedby` resolves to nothing. (Dropping `htmlFor` kills eight tests, but seven are under AC3 - a row must name the mutant that kills THIS criterion, not one that kills somewhere in the suite.) | Compound composition |
-| AC2 | Replace `useId()` with `String(Math.random())`; hydration reports a mismatch and the test asserts on that report, because React keeps the server DOM and comparing markup cannot see it. | ARIA is automatic and SSR-safe |
-| AC3 | Render the label as a `<span>` with no association. | Real label, never a placeholder |
-| AC4 | Render the error region unconditionally instead of only when there is an error, so `role="alert"` fires on mount. | Error announces once |
-| AC5 | Reverse the `aria-describedby` order so the error precedes the description. | Description and error coexist, in a documented order |
-| AC6 | MANUAL. No mutant: what VoiceOver speaks is not observable from a test. | Both are actually announced |
-| AC7 | Ignore the consumer `value`/`defaultValue` so the control stops tracking it. | Uncontrolled and controlled |
-| AC8 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
-| AC9 | Rename `data-clara-theme` in `resolve.ts` so the attribute no longer matches what the emitted theme stylesheet selects on. | Both themes and densities |
-| AC10 | Emit the native `disabled` attribute instead of `aria-disabled` + `readOnly`; the control leaves the tab order and the focus assertion dies. | Disabled stays reachable |
-| AC11 | Pass the wiring by cloning children instead of by context - a wrapped control stops being wired. | A wrapped control is still wired |
-| AC12 | Delete the guard from `onClick` (consumer handler runs) or from `onChange` (the toggle happens). Both are covered separately. | Disabled suppresses the interaction |
-| AC13 | Drop the `requiredMarkerId` marker (kills the CheckboxGroup route), or `aria-required` from RadioGroup (kills the property route). Each half is asserted separately, because the deciding property is the role. | Required is announced, by whichever route the control has |
-| AC14 | Delete a verification record, empty its Stated gaps, remove its keyboard table, or delete a docs page. | Definition of done |
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/Field/Field.tsx | Stop rendering the description element, so `aria-describedby` resolves to nothing. (Dropping `htmlFor` kills eight tests, but seven are under AC3 - a row must name the mutant that kills THIS criterion, not one that kills somewhere in the suite.) | Compound composition |
+| AC2 | packages/react/src/components/Field/Field.tsx | Replace `useId()` with `String(Math.random())`; hydration reports a mismatch and the test asserts on that report, because React keeps the server DOM and comparing markup cannot see it. | ARIA is automatic and SSR-safe |
+| AC3 | packages/react/src/components/Field/Field.tsx | Render the label as a `<span>` with no association. | Real label, never a placeholder |
+| AC4 | packages/react/src/components/Field/Field.tsx | Render the error region unconditionally instead of only when there is an error, so `role="alert"` fires on mount. | Error announces once |
+| AC5 | packages/react/src/components/Field/Field.tsx | Reverse the `aria-describedby` order so the error precedes the description. | Description and error coexist, in a documented order |
+| AC6 | packages/react/src/components/Field/Field.tsx | MANUAL. No mutant: what VoiceOver speaks is not observable from a test. | Both are actually announced |
+| AC7 | packages/react/src/components/Field/Field.tsx | Ignore the consumer `value`/`defaultValue` so the control stops tracking it. | Uncontrolled and controlled |
+| AC8 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC9 | packages/react/src/theme/resolve.ts | Rename `data-clara-theme` in `resolve.ts` so the attribute no longer matches what the emitted theme stylesheet selects on. | Both themes and densities |
+| AC10 | packages/react/src/components/Field/Field.tsx | Emit the native `disabled` attribute instead of `aria-disabled` + `readOnly`; the control leaves the tab order and the focus assertion dies. | Disabled stays reachable |
+| AC11 | packages/react/src/components/Field/Field.tsx | Pass the wiring by cloning children instead of by context - a wrapped control stops being wired. | A wrapped control is still wired |
+| AC12 | packages/react/src/components/Field/Field.tsx | Delete the guard from `onClick` (consumer handler runs) or from `onChange` (the toggle happens). Both are covered separately. | Disabled suppresses the interaction |
+| AC13 | packages/react/src/components/Field/Field.tsx | Drop the `requiredMarkerId` marker (kills the CheckboxGroup route), or `aria-required` from RadioGroup (kills the property route). Each half is asserted separately, because the deciding property is the role. | Required is announced, by whichever route the control has |
+| AC14 | packages/react/src/components/Field/verification.md | Delete a verification record, empty its Stated gaps, remove its keyboard table, or delete a docs page. | Definition of done |
 
 ## Revision History
 

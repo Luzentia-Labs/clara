@@ -224,15 +224,15 @@ story is mostly about not inheriting either.
 
 ## Test Plan
 
-| Criterion | Mutant - the production change this test must fail on | Title |
-| --- | --- | --- |
-| AC1 | Change `type="text"` to `type="number"`, which is what makes the wheel harmless. Deleting the old `onWheel` blur handler proves nothing, which is why that handler was removed. | No wheel mutation |
-| AC2 | Re-introduce `aria-invalid` for an out-of-range typed value (it fires while a correct value is part-typed), or delete `font-variant-numeric` from `.clara-input--numeric`, or let a leading zero be stripped. | Constraints and formatting |
-| AC3 | Make Arrow Up a no-op, or disable `clamp()`. Both die under this criterion; the Home/End and precision mutants belong to the bounds criterion below. | Keyboard stepping |
-| AC4 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
-| AC5 | Rename the theme or density attribute. | Both themes and densities |
-| AC6 | Delete `Home`/`End`, or the `+ mantissa` term in `atStepPrecision`. These do NOT die under the arrow-stepping criterion above - the rows were the wrong way round. | Reaching the bounds |
-| AC7 | Delete the NumberInput verification record or its docs page. | Definition of done |
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/NumberInput/NumberInput.tsx | Change `type="text"` to `type="number"`, which is what makes the wheel harmless. Deleting the old `onWheel` blur handler proves nothing, which is why that handler was removed. | No wheel mutation |
+| AC2 | packages/react/src/components/NumberInput/NumberInput.tsx | Re-introduce `aria-invalid` for an out-of-range typed value (it fires while a correct value is part-typed), or delete `font-variant-numeric` from `.clara-input--numeric`, or let a leading zero be stripped. | Constraints and formatting |
+| AC3 | packages/react/src/components/NumberInput/NumberInput.tsx | Make Arrow Up a no-op, or disable `clamp()`. Both die under this criterion; the Home/End and precision mutants belong to the bounds criterion below. | Keyboard stepping |
+| AC4 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC5 | packages/react/src/components/NumberInput/NumberInput.tsx | Rename the theme or density attribute. | Both themes and densities |
+| AC6 | packages/react/src/components/NumberInput/NumberInput.tsx | Delete `Home`/`End`, or the `+ mantissa` term in `atStepPrecision`. These do NOT die under the arrow-stepping criterion above - the rows were the wrong way round. | Reaching the bounds |
+| AC7 | packages/react/src/components/NumberInput/verification.md | Delete the NumberInput verification record or its docs page. | Definition of done |
 
 ## Revision History
 

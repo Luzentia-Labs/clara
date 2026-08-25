@@ -193,13 +193,13 @@ what the toggle is called.
 
 ## Test Plan
 
-| Criterion | Mutant - the production change this test must fail on | Title |
-| --- | --- | --- |
-| AC1 | Name the toggle after its state rather than its action, so it reads "Hide password" while the value is hidden. | Toggle is operable and labelled |
-| AC2 | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
-| AC3 | Rename the theme or density attribute. | Both themes and densities |
-| AC4 | Delete `if (fieldDisabled(wiring)) return` from the toggle. It now dies HERE - the test sat under a Field describe, so this criterion could not fail on a disabled field revealing its value. | Reveal keeps the user in the field |
-| AC5 | Delete the PasswordInput verification record or its docs page. | Definition of done |
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/PasswordInput/PasswordInput.tsx | Name the toggle after its state rather than its action, so it reads "Hide password" while the value is hidden. | Toggle is operable and labelled |
+| AC2 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the stylesheet. | Token-only styling |
+| AC3 | packages/react/src/components/PasswordInput/PasswordInput.tsx | Rename the theme or density attribute. | Both themes and densities |
+| AC4 | packages/react/src/components/PasswordInput/PasswordInput.tsx | Delete `if (fieldDisabled(wiring)) return` from the toggle. It now dies HERE - the test sat under a Field describe, so this criterion could not fail on a disabled field revealing its value. | Reveal keeps the user in the field |
+| AC5 | packages/react/src/components/PasswordInput/verification.md | Delete the PasswordInput verification record or its docs page. | Definition of done |
 
 ## Revision History
 

@@ -89,7 +89,11 @@
 - **Given** a Modal
 - **When** it renders in dark theme and compact density
 - **Then** it holds its visual baseline in all four combinations
-- **Verify:** vitest "Modal theme and density matrix"
+- **And** the verifier runs the CSS guard as well as the test. The matrix test reads
+  `data-clara-theme` and `data-clara-density` off the portal wrapper, which is true of ANY component
+  inside a `ClaraPortal` - it never touches the panel. What actually pins the panel to a
+  theme-resolving background is `VALUE_CONTRACT`, and a vitest-only verifier does not run it
+- **Verify:** shell npx vitest run -t "Modal theme and density matrix" && node scripts/check-component-css.mjs --component Modal
 - **Verified:** yes (2026-08-24)
 - **Verification target:** functional
 
@@ -189,19 +193,19 @@
 
 ## Test Plan
 
-| Criterion | Mutant - the production change this test must fail on | Title |
-| --- | --- | --- |
-| AC1 | Focus the panel itself instead of a named element, or move the focus effect out of the portalled content into Modal's own body - the second is silent, because it fails only by finding a null ref (D0090). | Named focus targets |
-| AC2 | Restore focus on Escape only, leaving scrim-click, close-button and commit to the browser. Three of the four routes then land focus on `document.body`, which is the strand this story exists to prevent. | Restoration per route |
-| AC3 | Drop the background hiding (`modal={false}`). Radix still traps Tab, so a test that only presses Tab stays green - the mutant is caught by asserting the background is not reachable, not that Tab cycles. | Background is unreachable |
-| AC4 | Lock scroll with `overflow: hidden` and no scrollbar-width compensation, so the page jumps sideways by the scrollbar width the moment the modal opens. | No scrollbar shift |
-| AC5 | Let the whole panel scroll instead of the body, so a long modal scrolls its header and footer off screen. | Content scrolls internally |
-| AC6 | Hand-type a z-index, drop the companion `position` from the base class, or reference a tier 1 primitive - each is a separate entry in `prove-guards-fail.mjs`. | Token-only styling |
-| AC7 | Give the panel one background that does not resolve per theme, so the dark modal renders on a light surface. | Both themes and densities |
-| AC9 | Put the panel in its own portal host, or give the scrim and panel different z-index values - either re-introduces a per-role constant and breaks nesting in one direction. | Nesting resolves by open order, not by a constant |
-| AC10 | Spread the Radix props through to Clara's surface, so `asChild` and `onOpenChange` become permanent public API. | The Radix boundary holds |
-| AC11 | Remove `@radix-ui/*` from the build's external list, which inlines 15.19 kB gzipped into Modal's chunk against a 5 kB budget. | Radix stays external, so the budget stays honest |
-| AC8 | Export Modal with no verification record or no docs page. NOTE: a keyboard table that CONTRADICTS the code is not caught - `check-verification.mjs` checks the table exists, not that it is true, and rewriting the Escape row to "Does nothing" leaves the gate green. That is the same class as CR-01M0SKZ6 and is recorded there rather than left implied here. | Definition of done |
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/Modal/Modal.tsx | Focus the panel itself instead of a named element, or move the focus effect out of the portalled content into Modal's own body - the second is silent, because it fails only by finding a null ref (D0090). | Named focus targets |
+| AC2 | packages/react/src/components/Modal/Modal.tsx | Restore focus on Escape only, leaving scrim-click, close-button and commit to the browser. Three of the four routes then land focus on `document.body`, which is the strand this story exists to prevent. | Restoration per route |
+| AC3 | packages/react/src/components/Modal/Modal.tsx | Drop the background hiding (`modal={false}`). Radix still traps Tab, so a test that only presses Tab stays green - the mutant is caught by asserting the background is not reachable, not that Tab cycles. | Background is unreachable |
+| AC4 | packages/react/src/components/Modal/Modal.tsx | Lock scroll with `overflow: hidden` and no scrollbar-width compensation, so the page jumps sideways by the scrollbar width the moment the modal opens. | No scrollbar shift |
+| AC5 | packages/react/src/styles.css | Let the whole panel scroll instead of the body, so a long modal scrolls its header and footer off screen. | Content scrolls internally |
+| AC6 | packages/react/src/styles.css, scripts/check-component-css.mjs | Hand-type a z-index, drop the companion `position` from the base class, or reference a tier 1 primitive - each is a separate entry in `prove-guards-fail.mjs`. | Token-only styling |
+| AC7 | packages/react/src/styles.css | Give the panel one background that does not resolve per theme, so the dark modal renders on a light surface. | Both themes and densities |
+| AC9 | packages/react/src/components/Modal/Modal.tsx, packages/react/src/styles.css | Put the panel in its own portal host, or give the scrim and panel different z-index values - either re-introduces a per-role constant and breaks nesting in one direction. | Nesting resolves by open order, not by a constant |
+| AC10 | packages/react/src/components/Modal/Modal.tsx | Spread the Radix props through to Clara's surface, so `asChild` and `onOpenChange` become permanent public API. | The Radix boundary holds |
+| AC11 | packages/react/vite.config.ts, scripts/sync-size-budgets.mjs | Remove `@radix-ui/*` from the build's external list, which inlines 15.19 kB gzipped into Modal's chunk against a 5 kB budget. | Radix stays external, so the budget stays honest |
+| AC8 | packages/react/src/components/Modal/verification.md | Export Modal with no verification record or no docs page. NOTE: a keyboard table that CONTRADICTS the code is not caught - `check-verification.mjs` checks the table exists, not that it is true, and rewriting the Escape row to "Does nothing" leaves the gate green. That is the same class as CR-01M0SKZ6 and is recorded there rather than left implied here. | Definition of done |
 
 ## Revision History
 
