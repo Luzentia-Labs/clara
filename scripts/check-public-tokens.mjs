@@ -41,14 +41,28 @@ if (publicVars.size !== Object.keys(manifest).length) {
   ])
 }
 
-const SCANNED = ['apps/docs', 'design', 'README.md', 'CONTRIBUTING.md']
+// `scripts/make-manual-fixture.mjs` is scanned by NAME, not the whole `scripts` directory.
+//
+// A script that EMITS CSS can reference a token that does not exist and nothing renders an error -
+// it silently resolves to nothing. That is worst in the manual-check fixture, whose entire purpose
+// is to put a page in front of a human who then records a judgement from it: it named
+// `--clara-color-bg-canvas` as `--clara-color-bg-default` and served a page with no background, in
+// a fixture built to check appearance.
+//
+// The rest of `scripts` is deliberately OUT. Guard scripts name tokens as TEST DATA - the mutation
+// prover appends `--clara-color-neutral-600` precisely because it is tier 1 and must fail, and
+// `check-component-css` carries `--clara-layer-` as a regex fragment. Scanning them reports the
+// machinery that proves the rule as a violation of it.
+const SCANNED = ['apps/docs', 'design', 'scripts/make-manual-fixture.mjs', 'README.md', 'CONTRIBUTING.md']
 const walk = (p) => {
   if (!existsSync(p)) return []
   if (statSync(p).isFile()) return [p]
   return readdirSync(p).flatMap((e) => (e === 'node_modules' || e.startsWith('.') ? [] : walk(join(p, e))))
 }
 const files = SCANNED.flatMap((s) => walk(join(root, s)))
-  .filter((f) => /\.(md|mdx|tsx?|jsx?|css|html)$/.test(f))
+  // `mjs`/`cjs` included: `jsx?` does not match `.mjs`, so adding `scripts` to the scan above
+  // without this changed nothing at all - the guard kept passing on the very file that motivated it.
+  .filter((f) => /\.(md|mdx|tsx?|[cm]?jsx?|css|html)$/.test(f))
 
 const problems = []
 let referenced = 0

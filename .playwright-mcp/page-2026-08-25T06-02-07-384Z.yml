@@ -1,4 +1,0 @@
-- generic [ref=f8e3]:
-  - link "Skip to content" [ref=f8e4] [cursor=pointer]:
-    - /url: "#main"
-  - button "New record" [ref=f8e5]

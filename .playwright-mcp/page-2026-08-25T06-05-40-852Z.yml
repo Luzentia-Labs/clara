@@ -1,5 +1,0 @@
-- generic [ref=f17e3]:
-  - link "Skip to content" [ref=f17e4] [cursor=pointer]:
-    - /url: "#main"
-  - button "Open" [ref=f17e5]
-  - button "Transient" [ref=f17e6]

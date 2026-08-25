@@ -30,8 +30,13 @@ const css = (f) => readFileSync(join(root, f), 'utf8')
 const page = (title, theme, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <title>${title}</title>
 <style>${css('packages/tokens/dist/tokens.css')}</style>
+<!-- The theme and density OVERRIDES are separate stylesheets. Inlining only tokens.css meant
+     data-clara-theme="dark" had nothing to apply, so the "dark" fixture rendered the light theme
+     under a dark name - a page that invites exactly the wrong conclusion. -->
+<style>${css('packages/tokens/dist/themes/dark.css')}</style>
+<style>${css('packages/tokens/dist/themes/compact.css')}</style>
 <style>${css('packages/react/dist/styles.css')}</style>
-<style>body{margin:0;padding:32px;font-family:system-ui;background:var(--clara-color-bg-default)}
+<style>body{margin:0;padding:32px;font-family:system-ui;background:var(--clara-color-bg-canvas);color:var(--clara-color-fg-default)}
 main{max-width:28rem;display:grid;gap:24px}h2{font:600 13px system-ui;margin:0;opacity:.7}</style>
 </head><body data-clara-theme="${theme}" data-clara-density="comfortable"><main>${body}</main></body></html>`
 

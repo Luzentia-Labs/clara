@@ -1,6 +1,0 @@
-- generic [ref=f19e3]:
-  - link "Skip to content" [ref=f19e4] [cursor=pointer]:
-    - /url: "#main"
-  - button "Open" [ref=f19e5]
-  - iframe [ref=f19e6]:
-    - button "inner" [ref=f20e2]

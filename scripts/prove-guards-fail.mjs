@@ -690,6 +690,19 @@ const OUTPUT_CASES = [
     }),
   },
   {
+    // A script that EMITS CSS can name a token the build does not produce, and nothing renders an
+    // error - it resolves to nothing. The manual-check fixture did exactly that and served a page
+    // with no background, in a fixture whose only purpose is to have a human judge appearance.
+    name: 'a CSS-emitting script referencing a token the build does not produce',
+    guard: 'check-public-tokens.mjs',
+    withGit: true,
+    expect: /not a token this build emits/,
+    stage: (stage) => {
+      const f = join(stage, 'scripts/make-manual-fixture.mjs')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('--clara-color-bg-canvas', '--clara-color-bg-default'))
+    },
+  },
+  {
     // TRD gate 2: a component reaching past the semantic layer into a primitive is how theming
     // quietly stops working for that one component - the output looks identical.
     name: 'component CSS reading a tier 1 primitive',

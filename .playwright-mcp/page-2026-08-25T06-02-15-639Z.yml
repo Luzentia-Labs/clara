@@ -1,4 +1,0 @@
-- generic [ref=f8e3]:
-  - link "Skip to content" [ref=f8e4] [cursor=pointer]:
-    - /url: "#main"
-  - heading "Record 42" [active] [level=1] [ref=f8e20]

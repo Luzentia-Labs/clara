@@ -1,4 +1,0 @@
-- generic [ref=f6e3]:
-  - link "Skip to content" [ref=f6e4] [cursor=pointer]:
-    - /url: "#main"
-  - button "Edit" [ref=f6e5]

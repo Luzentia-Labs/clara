@@ -1,6 +1,0 @@
-- generic [ref=f13e3]:
-  - link "Skip to content" [ref=f13e4] [cursor=pointer]:
-    - /url: "#main"
-  - button "Open A" [ref=f13e5]
-  - button "Open B" [ref=f13e6]
-  - button "Close both" [ref=f13e7]

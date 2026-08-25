@@ -1,9 +1,0 @@
-- generic [active] [ref=e1]:
-  - link "Skip" [ref=e2] [cursor=pointer]:
-    - /url: "#main"
-  - dialog [ref=e4]:
-    - generic [ref=e5]:
-      - heading "Title" [level=2] [ref=e6]
-      - button "x" [ref=e7]
-    - paragraph [ref=e9]: tall
-    - button "Commit" [ref=e11]
