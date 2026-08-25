@@ -59,7 +59,7 @@
     },
     {
       "n": 9,
-      "gate": "Computed geometry: heights, target size, type floors",
+      "gate": "Computed geometry: heights, target size, type floors (rendered)",
       "status": "wired",
       "trd": null,
       "run": "pnpm check:geometry"
@@ -133,6 +133,20 @@
       "gate": "pnpm audit: no high or critical CVE in a runtime dependency",
       "status": "wired",
       "run": "pnpm audit --audit-level=high --prod"
+    },
+    {
+      "n": 20,
+      "gate": "Scoped theming and density reach tier 3",
+      "status": "wired",
+      "trd": null,
+      "run": "pnpm check:scoping"
+    },
+    {
+      "n": 21,
+      "gate": "Density token contract: padding, target, adjacent-target",
+      "status": "wired",
+      "trd": null,
+      "run": "pnpm check:density-tokens"
     }
   ],
   "plus": [

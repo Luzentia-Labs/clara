@@ -8,13 +8,13 @@
 | --- | --- |
 | Open | 0 |
 | In Progress | 0 |
-| Fixed | 3 |
+| Fixed | 7 |
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
 | inbox | 0 |
 | Superseded | 1 |
-| **Total** | **4** |
+| **Total** | **8** |
 
 ## By Severity
 
@@ -29,6 +29,10 @@
 | [BG-01M0J70K](BG-01M0J70K-the-mutation-gate-cannot-execute-stryker-s-vitest.md) | The mutation gate cannot execute: Stryker's vitest runner finds no tests in its sandbox | High | Medium | Fixed | -- | -- | 2026-08-21 |
 | [BG-01M0MFMZ](BG-01M0MFMZ-the-peer-bundling-guard-has-been-defeated-in.md) | The peer-bundling guard has been defeated in seven consecutive review rounds and needs a structural change, not another oracle | Critical | Medium | Fixed | -- | -- | 2026-08-22 |
 | [BG-01M0W799](BG-01M0W799-dark-theme-does-not-declare-color-scheme-so.md) | Dark theme does not declare color-scheme, so UA-painted controls render in light livery | Medium | Medium | Fixed | -- | -- | 2026-08-25 |
+| [BG-01M0WQ0X](BG-01M0WQ0X-gate-9-is-marked-wired-but-measures-token.md) | Gate 9 is marked wired but measures token arithmetic, not computed geometry | major | Medium | Fixed | -- | -- | 2026-08-25 |
+| [BG-01M0WQY1](BG-01M0WQY1-tier-3-aliases-are-declared-at-root-so.md) | Tier-3 aliases are declared at :root, so scoped theming and density never reach components | critical | Medium | Fixed | -- | -- | 2026-08-25 |
+| [BG-01M0WQ92](BG-01M0WQ92-comfortable-control-height-renders-48px-not-the-40px.md) | Comfortable control height renders 48px, not the 40px the PRD specifies | major | Medium | Fixed | -- | -- | 2026-08-25 |
+| [BG-01M0WR22](BG-01M0WR22-sm-controls-declare-a-target-floor-below-24px.md) | sm controls declare a target floor below 24px, or none at all | major | Medium | Fixed | -- | -- | 2026-08-25 |
 
 ## Notes
 

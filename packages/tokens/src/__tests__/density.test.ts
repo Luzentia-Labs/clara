@@ -68,10 +68,27 @@ describe('density geometry', () => {
   })
 
   // AC1: a control must hold its text at either density, and never fall under the target floor.
-  it.each(['comfortable', 'compact'] as const)('control heights per density: %s', (density) => {
+  //
+  // This used to read `expect(height).toBe(density === 'compact' ? 32 : 48)`. It was written to
+  // agree with the token rather than with PRD:308, which says 40px - so it did not miss the
+  // defect, it PROTECTED it, and anyone correcting the token got a red test telling them they
+  // were wrong (BG-01M0WQ92). A constant pinned to the implementation is not a verification.
+  //
+  // So assert the identity the number is derived from instead (D0098): a control's height is the
+  // reserved line box plus its padding, top and bottom. It fails on the old 48, passes on 40, and
+  // keeps failing if anyone later moves the padding without moving the height.
+  const LINE_BOX = 24 // reserved for 14px body text; D0037's input, not a measured line box
+
+  it.each(['comfortable', 'compact'] as const)('control height is line box + 2x padding: %s', (density) => {
     const height = geom('size', 'control-height', density)
-    expect(height).toBe(density === 'compact' ? 32 : 48)
+    expect(height).toBe(LINE_BOX + 2 * geom('space', 'control-padding-y', density))
     expect(height).toBeGreaterThanOrEqual(geom('size', 'target-min', density))
+  })
+
+  // The identity alone would be satisfied by scaling every term, so the PRD's own two figures are
+  // pinned beside it. Together they say the height is both correct AND correctly derived.
+  it.each([['comfortable', 40], ['compact', 32]] as const)('PRD:308 - %s control height is %ipx', (density, expected) => {
+    expect(geom('size', 'control-height', density)).toBe(expected)
   })
 
   // AC2: PRD:164 - interactive targets at or above 24x24 REGARDLESS of density. Compact is where

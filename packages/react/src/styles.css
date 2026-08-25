@@ -154,12 +154,19 @@
   border-top-color: transparent;
   border-radius: var(--clara-radius-surface);
 }
-.clara-button--sm { padding: var(--clara-space-control-padding-y) var(--clara-space-control-padding-x); }
+.clara-button--sm {
+  min-height: var(--clara-size-target-min);
+  padding: var(--clara-space-control-padding-y) var(--clara-space-control-padding-x);
+}
 .clara-button--md { min-height: var(--clara-size-control-height); }
 
 /* The target floor holds at every density (PRD:164, WCAG 2.5.8). */
 .clara-icon-button__icon { display: inline-flex; }
 .clara-button--icon-only { min-width: var(--clara-size-target-min); min-height: var(--clara-size-target-min); }
+.clara-button--md.clara-button--icon-only {
+  min-width: var(--clara-size-control-height);
+  min-height: var(--clara-size-control-height);
+}
 
 /* Colour alone cannot distinguish a link (WCAG 1.4.1) - the underline is the affordance. */
 .clara-link { color: var(--clara-color-fg-link); text-decoration: underline; }
@@ -186,9 +193,9 @@
   border: var(--clara-border-width-default) solid var(--clara-color-border-default);
   border-radius: var(--clara-radius-control);
 }
-.clara-input--sm { min-height: var(--clara-space-section); }
+.clara-input--sm { min-height: var(--clara-size-target-min); }
 .clara-input--numeric { font-variant-numeric: tabular-nums; text-align: right; }
-.clara-textarea { min-height: var(--clara-space-section); resize: vertical; }
+.clara-textarea { min-height: var(--clara-size-target-min); resize: vertical; }
 
 /* The two-part focus indicator (D0054), on EVERY focusable thing this stylesheet renders.
  *

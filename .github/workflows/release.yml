@@ -57,7 +57,7 @@ jobs:
       - run: pnpm check:contrast
       - run: pnpm check:public-tokens
       - run: pnpm check:component-css
-      - run: pnpm check:geometry
+      - run: pnpm check:density-tokens
       - run: pnpm check:axe
       - run: pnpm check:keyboard
       - run: pnpm check:client-boundary
@@ -68,7 +68,10 @@ jobs:
       - run: pnpm size
       - run: pnpm test:mutation
       - run: pnpm audit --audit-level=high --prod
-      - run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm check:geometry
+      - run: pnpm check:scoping
+      - run: pnpm test:e2e
 
       # Trunk-based: no Version PR, no bot branch, no repo permission for Actions to open PRs.
       #

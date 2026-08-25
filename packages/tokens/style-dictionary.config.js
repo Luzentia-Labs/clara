@@ -336,6 +336,45 @@ await build()
   }
   console.log(`PASS [color-scheme] ${Object.keys(COLOR_SCHEME).length} theme stylesheet(s) declare their scheme`)
 
+  /**
+   * Re-resolve tier 3 inside every scope (BG-01M0WQY1).
+   *
+   * A custom property whose value is a `var()` reference is substituted at computed-value time ON
+   * THE ELEMENT WHERE IT IS DECLARED, and the resulting literal is what inherits. Declared once at
+   * `:root`, `--clara-button-secondary-bg: var(--clara-color-bg-surface)` resolves against the
+   * root's LIGHT tier 2, becomes `#ffffff`, and stays `#ffffff` all the way down. A descendant
+   * `<ClaraScope theme="dark">` redefines `--clara-color-bg-surface` on itself, which is far too
+   * late - the alias was resolved at the root and never looks again.
+   *
+   * The scope was never the broken part: tier 2 flips correctly in both directions inside it.
+   * Everything reaching tier 3 simply did not follow, so a secondary Button in a dark scope
+   * rendered white on a dark surface - PRD F02 and TRD ADR-006's headline capability, silently
+   * inert. jsdom does not resolve `var()` at all, which is why a full theming suite passed over it.
+   *
+   * So the referencing aliases are re-declared on the scope roots themselves, where they resolve
+   * against that subtree's tier 2. `:root` is deliberately NOT in the selector list - it already
+   * carries these declarations from the main block, and repeating them there would be noise.
+   *
+   * Only the `var()`-referencing aliases move. A tier 3 token holding a literal cannot go stale,
+   * and re-declaring it would suggest otherwise.
+   */
+  const tier3 = JSON.parse(readFileSync('build/tier-manifest.json', 'utf8')).tier3
+  const tier3Names = new Set(tier3.map((t) => `--clara-${t.name}`))
+  const tokensCss = readFileSync('dist/tokens.css', 'utf8')
+  const rescoped = tokensCss.split('\n').filter((line) => {
+    const declared = line.match(/^\s*(--clara-[a-z0-9-]+)\s*:/)
+    return declared && tier3Names.has(declared[1]) && line.includes('var(--clara-')
+  })
+  if (!rescoped.length) {
+    // The alternative is emitting an empty rule and reporting success, which would restore the
+    // exact bug this step exists to prevent while looking like it had been fixed.
+    console.error('FAIL [tier3-scope] no referencing tier 3 alias was found in dist/tokens.css - ' +
+      'the scope block would be empty and every component would silently freeze at the root again')
+    process.exit(1)
+  }
+  writeFileSync('dist/tokens.css', `${tokensCss}\n[data-clara-theme],\n[data-clara-density] {\n${rescoped.join('\n')}\n}\n`)
+  console.log(`PASS [tier3-scope] ${rescoped.length} referencing tier 3 alias(es) re-resolve inside a scope`)
+
   for (const file of sheets) {
     writeFileSync(file, applyCascadeLayer(readFileSync(file, 'utf8'), 'clara.tokens'))
   }

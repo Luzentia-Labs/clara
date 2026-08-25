@@ -66,8 +66,8 @@ jobs:
 
       - name: Gate 2 - component CSS tier and literal rules
         run: pnpm check:component-css
-      - name: Gate 9 - computed geometry and density floors
-        run: pnpm check:geometry
+      - name: Gate 21 - density token contract
+        run: pnpm check:density-tokens
       - name: Gate 5 - axe, zero serious or critical violations
         run: pnpm check:axe
       - name: Gate 6 - keyboard interaction suite
@@ -98,5 +98,13 @@ jobs:
       - name: Changeset present on any packages/ change
         run: pnpm changeset status --since=origin/main
 
+      # Installed once, then every browser gate runs against it. Gate 9 and gate 20 get their own
+      # steps rather than riding inside the suite so a failure names the gate that failed.
+      - name: Install Chromium for the browser gates
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Gate 9 - computed geometry, rendered (TSD 7)
+        run: pnpm check:geometry
+      - name: Gate 20 - scoped theming and density reach tier 3
+        run: pnpm check:scoping
       - name: Browser suite
-        run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
+        run: pnpm test:e2e

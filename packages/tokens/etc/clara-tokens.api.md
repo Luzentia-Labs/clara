@@ -44,7 +44,7 @@ export const ButtonFocusWidth = "2px";
 export const ButtonGap = "8px";
 
 // @public (undocumented)
-export const ButtonHeight = "48px";
+export const ButtonHeight = "40px";
 
 // @public (undocumented)
 export const ButtonPaddingX = "12px";
@@ -503,7 +503,13 @@ export const RadiusSm = "2px";
 export const RadiusSurface = "8px";
 
 // @public (undocumented)
-export const SizeControlHeight = "48px";
+export const SizeControlComfortable = "40px";
+
+// @public (undocumented)
+export const SizeControlCompact = "32px";
+
+// @public (undocumented)
+export const SizeControlHeight = "40px";
 
 // @public (undocumented)
 export const SizeTargetMin = "24px";

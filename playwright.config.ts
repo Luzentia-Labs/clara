@@ -15,7 +15,12 @@ export default defineConfig({
   // first story with a keyboard interaction table, so this fired on day one.
   testDir: '.',
   testMatch: ['e2e/**/*.spec.ts', 'packages/*/src/**/*.spec.ts'],
-  testIgnore: ['**/node_modules/**', '**/dist/**'],
+  // A worktree and a Stryker sandbox are full copies of this repo, each with its own
+  // `node_modules`. Left unignored, the suite loads a SECOND @playwright/test from the copy
+  // and dies with "Requiring @playwright/test second time" - a failure with nothing to do
+  // with the tests. CI never sees it (no worktrees there), so it only ever breaks locally,
+  // while review agents are running, which is the worst time to be reading a confusing error.
+  testIgnore: ['**/node_modules/**', '**/dist/**', '**/.claude/**', '**/.stryker-tmp/**'],
   fullyParallel: true,
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: `file://${process.cwd()}/e2e/fixtures/` },

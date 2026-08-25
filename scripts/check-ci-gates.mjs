@@ -101,7 +101,10 @@ const PREFLIGHT_EXEMPT = new Map([
   ['pnpm check:publint && pnpm check:attw', 'downloads two CLIs on every run'],
   ['pnpm audit --audit-level=high --prod', 'network-bound, and advisory data changes independently of this repo, so it can go red with no local change'],
   ['pnpm changeset status --since=origin/main', 'compares against the remote; meaningless before a push'],
-  ['pnpm exec playwright install --with-deps chromium && pnpm test:e2e', 'downloads a browser; run deliberately'],
+  ['pnpm exec playwright install --with-deps chromium', 'downloads a browser; run deliberately'],
+  ['pnpm check:geometry', 'gate 9 renders in a real browser (TSD 7); the fast token-level half, `check:density-tokens`, does run in preflight'],
+  ['pnpm check:scoping', 'needs a real browser - jsdom does not resolve `var()`, which is the whole subject of the gate'],
+  ['pnpm test:e2e', 'needs a browser; run deliberately'],
 ])
 const preflight = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')).scripts?.preflight
 if (!preflight) {

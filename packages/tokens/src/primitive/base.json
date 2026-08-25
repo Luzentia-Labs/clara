@@ -410,5 +410,17 @@
       "value": "1500",
       "type": "number"
     }
+  },
+  "size": {
+    "control": {
+      "comfortable": {
+        "value": "40px",
+        "type": "dimension"
+      },
+      "compact": {
+        "value": "32px",
+        "type": "dimension"
+      }
+    }
   }
 }

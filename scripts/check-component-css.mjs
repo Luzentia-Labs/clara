@@ -730,5 +730,42 @@ for (const file of sourceFiles) {
   problems.push(...inlineZIndexProblems(file, relative(root, file)))
 }
 
+/**
+ * A spacing token may not set a size (BG-01M0WR22).
+ *
+ * `.clara-input--sm` floored its height on `var(--clara-space-section)` - "the gap between
+ * sections". Density re-tunes that gap, correctly, as a gap: compact overrides it to 16px. So a
+ * small Input in a compact scope declared a 16px floor under the 24x24 target minimum PRD:311
+ * requires in every density, and nothing said so.
+ *
+ * The rendered gate cannot catch this. It was measured: with the 16px floor restored, the control
+ * still rendered 27px because its text and padding happened to add up, and gate 9 stayed green.
+ * The floor was wrong and the paint was accidentally right - which is precisely the case a
+ * deterministic guard exists for, and precisely why D0096 calls text guards a FLOOR rather than a
+ * lesser version of the rendered one. Here the text guard is the only one that can see it.
+ *
+ * `space.none` is exempt: it is this repo's idiom for a literal zero, not a spacing value.
+ *
+ * When Spacer arrives (PRD F06) it will legitimately set its own size from a spacing token, since
+ * being a gap is the whole component. Add its selector to `SPACE_AS_SIZE_ALLOWED` rather than
+ * weakening the rule.
+ */
+const SPACE_AS_SIZE_ALLOWED = []
+const SIZE_PROPS = /^(min-|max-)?(height|width|block-size|inline-size)$/
+for (const file of files) {
+  postcss.parse(readFileSync(file, 'utf8'), { from: file }).walkDecls((decl) => {
+    const sel = decl.parent?.selector ?? ''
+    if (!SIZE_PROPS.test(decl.prop)) return
+    if (SPACE_AS_SIZE_ALLOWED.includes(sel.trim())) return
+    const used = [...decl.value.matchAll(/var\(\s*(--clara-space-[a-z0-9-]+)/g)].map((m) => m[1])
+      .filter((n) => n !== '--clara-space-none')
+    for (const name of used) {
+      problems.push(`${relative(root, file)}: ${sel.trim()} sets \`${decl.prop}\` from \`${name}\` - ` +
+        'a spacing token is re-tuned by density AS A GAP, so using it as a size silently re-tunes ' +
+        'a height or a target floor. Use `--clara-size-*` (target-min, control-height)')
+    }
+  })
+}
+
 if (problems.length) fail(RULE, problems)
 pass(RULE, `${scope ? `${scope}: ` : ''}${files.length} component stylesheet(s), ${declarations} token reference(s), all tier 2 or 3, no literals`)

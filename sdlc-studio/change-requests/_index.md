@@ -1,6 +1,6 @@
 # Change Request Registry
 
-**Last Updated:** 2026-08-24
+**Last Updated:** 2026-08-25
 **PRD Reference:** [Product Requirements Document](../prd.md)
 
 ## Summary
@@ -13,9 +13,9 @@
 | Complete | 5 |
 | Rejected | 0 |
 | Deferred | 0 |
-| inbox | 0 |
+| inbox | 1 |
 | Superseded | 1 |
-| **Total** | **8** |
+| **Total** | **9** |
 
 ## By Priority
 
@@ -34,6 +34,7 @@
 | [CR-01M0MK20](CR-01M0MK20-build-output-cannot-express-the-server-client-classification.md) | Build output cannot express the server/client classification | High | Complete | Architecture | -- | 2026-08-22 |
 | [CR-01M0MND5](CR-01M0MND5-internal-dependency-range-is-exact-pinned-by-default.md) | Internal dependency range is exact-pinned by default, not by decision | Medium | Complete | Architecture | -- | 2026-08-22 |
 | [CR-01M0SKZ6](CR-01M0SKZ6-verify-selectors-must-select-the-tests-that-prove.md) | Verify selectors must select the tests that prove their criterion, not any test | Medium | Complete | Feature | -- | 2026-08-24 |
+| [CR-01M0WSFZ](CR-01M0WSFZ-low-severity-bugs-consolidated.md) | Low-severity bugs (consolidated) | Low | inbox | Improvement | -- | 2026-08-25 |
 
 ## Dependencies
 
