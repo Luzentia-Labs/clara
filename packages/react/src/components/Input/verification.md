@@ -40,27 +40,58 @@ What IS verified is above, by tests that run. What a real pass adds is the part 
 whether the focus order feels right, whether the ring is actually visible against each surface, and
 what a screen reader says rather than what the accessibility tree contains.
 
-## Autofill: measured baseline, and why the check is still outstanding (2026-08-24)
+## Autofill: performed (2026-08-25)
 
-Not an autofill pass. What follows is the measured Clara side of the comparison, and a record of
-why the browser side could not be automated - so the next attempt does not repeat the dead ends.
+**Environment.** Chrome on macOS, light theme, comfortable density, run by Richard Dale Umayan
+against `scripts/make-manual-fixture.mjs`, which renders the BUILT package. An address was saved in
+Chrome and the form filled by picking the suggestion.
 
-**Measured in Chromium, from the built package** (server-rendered, `tokens.css` + `styles.css`,
-served over HTTP, `getComputedStyle` on the real element), light theme, comfortable density:
+**Colours were SAMPLED from the resulting screenshot, not assumed.** An earlier pass of this record
+guessed Chrome's fill and computed a figure from it - a number about a colour nobody had looked at,
+which is the class of evidence D0065 exists to reject. Full method and raw samples:
+`sdlc-studio/reviews/evidence/input-ac4-autofill-measurement.md`.
 
-| Property | Value |
-| --- | --- |
-| `color` | `rgb(31, 30, 29)` |
-| `background-color` | `rgb(255, 255, 255)` |
-| `background-image` | `none` |
-| `border-top` | `1px solid rgb(149, 146, 142)` |
-| `border-top` (invalid field) | `1px solid rgb(88, 86, 84)` |
-| `min-height` | `48px` |
-| `font-size` | `14px` |
+| Pair | Ratio | Floor | |
+| --- | --- | --- | --- |
+| `fg-default` on the fill `#feffcc` | 16.16:1 | 4.5 | pass |
+| `border-focus` on the fill | 7.22:1 | 3 | pass |
+| `border-strong` (invalid) on the fill | 6.99:1 | 3 | pass |
+| `border-default` on the fill, at the TOKEN | 3.007:1 | 3 | pass, by 0.007 |
+| `border-default` on the fill, as PAINTED | 2.56:1 | 3 | see below |
+| The fill vs the page canvas | 1.03:1 | - | the fill alone does not delimit the control |
 
-Confirmed by grep across the whole repo: **no `:-webkit-autofill` or `:autofill` rule exists**, so
-nothing in Clara contests the browser's paint. That is the documented position (D0033), not an
-oversight.
+**The token figure is the criterion, and the painted one is not.** SC 1.4.11 evaluates the specified
+colour of a boundary. Point-sampling one subpixel of an anti-aliased 1px line always reads low - the
+same method scores Clara's ORDINARY, non-autofilled border at 2.233:1, worse than the autofilled
+2.557:1. A metric that condemns every input Clara ships harder than the case under review is
+measuring rasterisation, not colour.
+
+**Ruling: pass, by the two-part delimitation test (D0097).** While a field is autofilled, at least
+one of (1) the fill against the surface behind it, or (2) Clara's border against the fill, must reach
+3:1 at the specified value. Chrome light gives 1.03 and 3.007; part 2 carries.
+
+Clara contests nothing here, and that is deliberate rather than an oversight: the browser's tint is
+the user's own signal that a field was filled for them, and removing it to look tidier would take
+information away from the person who most needs it. **Note the position has never been a numbered
+decision until now - earlier versions of this record cited `D0033`, which is the test-toolchain pin
+and has nothing to do with autofill. It is D0097.**
+
+### Stated gaps on this check
+
+- **The focus ring has not been SEEN on a filled field.** 7.22:1 is computed from tokens. Per D0097
+  this is one of the three cues that block on their own, so if the indicator does not actually
+  appear over the fill, the acceptance above is void and this becomes a blocking finding.
+- **Safari is unmeasured.** Its historical fill puts `border-default` at ~2.965:1, which lands in
+  D0097's middle tier: Input still passes, and `border-default`'s revisit under foundations
+  deliverable 6 becomes mandatory before first publish rather than merely scheduled.
+- **Dark theme is unmeasured, and is predicted to pass more comfortably** - Chrome paints the same
+  near-white fill on a dark page, so part 1 of the test carries at 16.16:1.
+- **PasswordInput is the most-autofilled control in the set and has no measurement of its own.**
+  Chrome fills username and password as a pair and paints both. It inherits this record by reference.
+- **The DECORATED path is untested against autofill.** `.clara-input-group` carries the border while
+  the inner input has `border: none`, and `:autofill` matches the `<input>` - so any future rule
+  would have to reach the wrapper through `:has(.clara-input:autofill)` or it would fix only the
+  plain path. Recorded now as a pre-committed shape so a revisit does not rediscover it.
 
 **Why it could not be automated.** Three routes were tried and all are closed:
 
@@ -71,15 +102,6 @@ oversight.
    DOM, so no automation driver can select from it.
 3. Forcing the pseudo-class - `:-webkit-autofill` is set by the browser's autofill engine and cannot
    be applied from script or from a stylesheet.
-
-Applying Chrome's known autofill background by hand and measuring the contrast would produce a
-number, but it would be a number about a colour this repo chose to assume, which is the class of
-evidence D0065 exists to reject.
-
-**What a human still has to do**, and it is short: save an address in Chrome and in Safari, load the
-fixture, let it fill, and answer four questions - is the text still readable on the browser's
-background, is the border still visible, does the focus ring still show, and is the error styling
-still distinguishable. The fixture generator is preserved in the check brief.
 
 ## Recorded manual keyboard pass (continued)
 

@@ -45,5 +45,11 @@ the floor.
 
 ## Standing position
 
-D0033: Clara does NOT style autofill. No `:-webkit-autofill` rule exists anywhere in the repo, and
-the criterion's own text says "the browser colour wins".
+**D0097** (recorded after this measurement): Clara does not contest the user agent's autofill paint,
+and delimitation while autofilled is judged by a two-part test.
+
+**Correction.** An earlier version of this file cited `D0033` for that position, and so did the Input
+verification record, the docs page, the story and the epic. D0033 is the test-toolchain pin - jsdom,
+Stryker, size-limit against the Node 20.19 floor - and the string `autofill` did not appear in
+`decisions.md` at all until D0097. The position was real and long-standing; the citation was
+invented, which is worse than an absent one because it reads as checkable.

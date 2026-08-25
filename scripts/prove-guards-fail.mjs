@@ -51,6 +51,17 @@ function stageWorkspace ({ withOutput = false, withGit = false, withStories = fa
     mkdirSync(dirname(join(stage, rel)), { recursive: true })
     copyFileSync(join(root, rel), join(stage, rel))
   }
+  // `sdlc-studio/reviews` and `scripts` are staged for EVERY mutation, not just the story ones.
+  // `check-verification` resolves every path a record CITES, and a record may reasonably cite a
+  // measurement under reviews/ or the script that reproduces it. Staging them only under
+  // `withStories` left the check-verification entries failing on an UNMUTATED stage, which reads as
+  // a broken prover rather than as a missing fixture - and the message said so, which is why this
+  // took two wrong guesses before printing the guard's own stderr.
+  for (const dir of ['sdlc-studio/reviews', 'scripts']) {
+    if (!existsSync(join(root, dir))) continue
+    cpSync(join(root, dir), join(stage, dir), { recursive: true })
+  }
+
   for (const { dir } of readWorkspace(root)) {
     mkdirSync(join(stage, dir), { recursive: true })
     copyFileSync(join(root, dir, 'package.json'), join(stage, dir, 'package.json'))
@@ -1555,12 +1566,18 @@ const OUTPUT_CASES = [
   },
   {
     // A scan that matches nothing has verified nothing.
-    name: 'the docs stripped of every token reference',
+    // Every SCANNED source, not just the docs page. The vacuity check asks whether the scan found
+    // any reference at all, so stripping one source while another still supplies them does not
+    // reach it - which is exactly what happened when the fixture generator joined the scan.
+    name: 'every scanned source stripped of its token references',
     guard: 'check-public-tokens.mjs',
     expect: /this gate checked nothing/,
     stage: (stage) => {
-      const f = join(stage, 'apps/docs/src/content/foundations/tokens.md')
-      writeFileSync(f, '# Design tokens\n\nNothing here.\n')
+      writeFileSync(join(stage, 'apps/docs/src/content/foundations/tokens.md'), '# Design tokens\n\nNothing here.\n')
+      const fixture = join(stage, 'scripts/make-manual-fixture.mjs')
+      if (existsSync(fixture)) {
+        writeFileSync(fixture, readFileSync(fixture, 'utf8').replace(/--clara-[\w-]+/g, 'REMOVED'))
+      }
     },
   },
   {

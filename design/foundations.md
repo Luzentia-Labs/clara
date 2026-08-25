@@ -155,18 +155,48 @@ Each lands as a real token so F01 is unblocked, with the condition that revisits
 | Deliverable | Provisional value | Revisit when |
 | --- | --- | --- |
 | **5. Border weight** | `thin 1px` (default), `thick 2px` | The first Table and Input ship together and rule weight can be judged at real density |
-| **6. Elevation** | Not expressed as shadow tokens. Separation is carried by the SCRIM in light (panel vs scrim 3.95:1, border only 1.28:1) and by the 1px `border-default` in dark (6.18:1 against the scrim, panel only 1.15:1). The mechanism is theme-asymmetric by measurement, not by preference, and each theme has exactly one cue clearing the 3:1 non-text floor - the same two-part structure as deliverable 7. **An earlier version of this row said "surfaces are distinguished by `bg` steps only", which was false as shipped: `bg.canvas` and `bg.surface` are identical in BOTH themes, so `bg.surface` carries no design decision today** | **Popover ships, and before the first publish.** Not Modal: Modal always has a scrim, so it structurally cannot produce the case that decides this. Popover has none, and an unscrimmed white popover on a white canvas is 1.00:1 of surface separation with `border-default` at 3.10:1 as the only cue - the first and only place where a shadow is the sole remaining mechanism, and a LIGHT-theme case. The original condition had the hard theme backwards (D0093) |
+| **6. Elevation and separation** | **Three sightings of the same one-part cue at the floor: the unscrimmed popover at 3.10, `border-default` against canvas at 3.097, and the autofilled input at 3.007 (D0097).** Not expressed as shadow tokens. Separation is carried by the SCRIM in light (panel vs scrim 3.95:1, border only 1.28:1) and by the 1px `border-default` in dark (6.18:1 against the scrim, panel only 1.15:1). The mechanism is theme-asymmetric by measurement, not by preference, and each theme has exactly one cue clearing the 3:1 non-text floor - the same two-part structure as deliverable 7. **An earlier version of this row said "surfaces are distinguished by `bg` steps only", which was false as shipped: `bg.canvas` and `bg.surface` are identical in BOTH themes, so `bg.surface` carries no design decision today** | **Popover ships, and before the first publish.** Not Modal: Modal always has a scrim, so it structurally cannot produce the case that decides this. Popover has none, and an unscrimmed white popover on a white canvas is 1.00:1 of surface separation with `border-default` at 3.10:1 as the only cue - the first and only place where a shadow is the sole remaining mechanism, and a LIGHT-theme case. The original condition had the hard theme backwards (D0093) |
 | **8. Type scale** | `xs 12 · sm 14 · md 16 · lg 20 · xl 24 · 2xl 32`, **body = `sm` 14px** | The reference application shows real density. Idris's floor holds regardless: body never below 14px, 12px only for genuinely non-essential metadata |
 | **10. Motion** | `instant 0 · fast 120ms · base 200ms`. Motion may communicate **state change and spatial origin only** - never decoration | The first Drawer and Toast ship |
 
 ---
+
+### The two-part rule, and its second application
+
+Deliverable 7 built the focus indicator in two parts because no single colour survives every surface.
+That turned out to be a theorem rather than a detail about focus.
+
+**Measured 2026-08-25, on the first background outside the token set Clara has ever met.** Chrome's
+autofill paints a near-white tint over an input - a colour Clara does not choose, cannot keep true,
+and did not enumerate, so the value is recorded in the Input verification record rather than here.
+This document describes only the palette Clara ships, which is why the literal is absent: a colour
+Clara does not own could become false without anyone changing Clara. The two-part focus indicator survived it at 7.22:1, because when the offset (white on
+a near-white fill) carried nothing, the ring carried everything. **Delimitation, which is one-part,
+came out at 3.007:1 - on the floor.**
+
+So the same test now governs delimitation (D0097). While a control sits on a surface Clara did not
+choose, at least one of these must reach 3:1 at the SPECIFIED value:
+
+1. the surface against what is behind it, or
+2. the border against the surface.
+
+**Separation is the only foundational cue in Clara still carried by a single mechanism, and it has
+now been measured at the floor three times**: the unscrimmed popover at 3.10 (deliverable 6), the
+autofilled input at 3.007, and `border-default` against Clara's own canvas at 3.097. Those are not
+three problems. They are one cue meeting three near-white surfaces.
 
 ### Pre-committed shapes, so the revisit does not restart the argument
 
 Recorded when each deliverable was deferred, by the seat that deferred it. A later story implements
 these; it does not reopen them without a new decision.
 
-**Elevation (deliverable 6, D0093).** One level, never a scale. A light-theme shadow token and a
+**Elevation and separation (deliverable 6, D0093 + D0097).** The answer is a second part with the
+opposite polarity, the same shape as focus - NOT a darker first part. Darkening `border-default`
+moves one cue from 3.10 to 4.65 while leaving it single-part and still hostage to whatever surface it
+lands on next, and it is also the Divider's fill and every table rule, so it makes a two-hundred-row
+grid visibly heavier to buy 0.3:1 in one state. Rejected on that trade, with the measurement.
+
+One level, never a scale. A light-theme shadow token and a
 dark-theme surface step, because neither mechanism works in the other theme - a shadow against the
 composited dark scrim is 1.06:1, and a scrim cannot express elevation in dark at any alpha (black at
 alpha 1.0 buys 1.15:1 to 1.26:1). No elevation token whose only justification is that a surface

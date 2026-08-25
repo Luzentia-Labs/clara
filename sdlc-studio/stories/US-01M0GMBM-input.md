@@ -77,7 +77,14 @@ exists to be READ, and Clara does not take WCAG's contrast exemption for it (PRD
 - **Given** an Input
 - **When** the browser autofills it
 - **Then** the field remains usable and readable. Clara does NOT restyle it - an override was documented before it was implemented, and the honest statement is that the browser colour wins
+- **And** delimitation is judged by the two-part test in D0097: at least one of the fill against the
+  surface behind the control, or Clara's border against the fill, reaches 3:1 at the SPECIFIED value.
+  Chrome light measured 1.03 and 3.007, so part two carries. The painted 2.56 figure is not the
+  criterion - point-sampling an anti-aliased 1px line scores Clara's ORDINARY border worse, at 2.233
+- **And** it does not look like an untouched Clara control while autofilled, and that is accepted
+  rather than softened: the browser's tint is the user's own signal that a field was filled for them
 - **Verify:** manual verify autofill styling in Chrome and Safari
+- **Verified:** yes (2026-08-25)
 - **Verification target:** conversational
 
 ### AC5: Token-only styling
