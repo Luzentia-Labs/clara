@@ -1,6 +1,7 @@
 # CR-01M0SKZ6: Verify selectors must select the tests that prove their criterion, not any test
 
-> **Status:** inbox
+> **Status:** Complete
+> **Triaged-by:** anton-reis; persona; v1
 > **Created:** 2026-08-24
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1

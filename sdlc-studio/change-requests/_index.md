@@ -10,10 +10,10 @@
 | Proposed | 0 |
 | Approved | 2 |
 | In Progress | 0 |
-| Complete | 4 |
+| Complete | 5 |
 | Rejected | 0 |
 | Deferred | 0 |
-| inbox | 1 |
+| inbox | 0 |
 | Superseded | 1 |
 | **Total** | **8** |
 
@@ -33,7 +33,7 @@
 | [CR-01M0MBGN](CR-01M0MBGN-the-guard-layer-has-no-tests-no-coverage.md) | The guard layer has no tests, no coverage, and no mutation testing | High | Complete | Improvement | -- | 2026-08-22 |
 | [CR-01M0MK20](CR-01M0MK20-build-output-cannot-express-the-server-client-classification.md) | Build output cannot express the server/client classification | High | Complete | Architecture | -- | 2026-08-22 |
 | [CR-01M0MND5](CR-01M0MND5-internal-dependency-range-is-exact-pinned-by-default.md) | Internal dependency range is exact-pinned by default, not by decision | Medium | Complete | Architecture | -- | 2026-08-22 |
-| [CR-01M0SKZ6](CR-01M0SKZ6-verify-selectors-must-select-the-tests-that-prove.md) | Verify selectors must select the tests that prove their criterion, not any test | Medium | inbox | Feature | -- | 2026-08-24 |
+| [CR-01M0SKZ6](CR-01M0SKZ6-verify-selectors-must-select-the-tests-that-prove.md) | Verify selectors must select the tests that prove their criterion, not any test | Medium | Complete | Feature | -- | 2026-08-24 |
 
 ## Dependencies
 
