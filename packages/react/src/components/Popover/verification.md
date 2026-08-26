@@ -75,11 +75,11 @@ renders identically to `static` with no offsets - makes the declaration true on 
 
 ## Stated gaps
 
-- **AC2's positioning is NOT verified, and cannot be here.** "Flips and shifts to stay visible, and
-  stays anchored on scroll" is entirely layout, and jsdom computes none. The tests assert that the
-  collision behaviour is CONFIGURED, which is a different and much weaker claim. The rendered
-  behaviour needs a browser, and gate 9's fixture is a server render that no portalled surface
-  appears in at all - filed as BG-01M0XVXS, which is the same gap Drawer's slide has, because it
-  belongs to the gate rather than to either component.
+- ~~**AC2's positioning is NOT verified.**~~ **Now verified in a browser (BG-01M0XVXS closed).**
+  `e2e/stacking.spec.ts` opens the against-the-edge story and asserts the panel stays inside the
+  viewport on all four edges AND reports a different `data-side`, so it demonstrably moved rather
+  than being clamped over its trigger. The jsdom tests still assert only that the behaviour is
+  CONFIGURED, which remains the weaker claim - both now exist, and they are different claims.
+  Scroll-anchoring specifically is still unasserted.
 - **Screen reader testing is not automated.** PRD F17 names NVDA as a stated gap; it stays one.
 - **Visual regression is not yet wired** (gate 7, US-01M0WSME).

@@ -399,3 +399,88 @@ test('three toasts stack instead of covering each other, and each close button i
   })
   expect(reachable, 'a covered toast\'s close button is not hittable').toEqual([true, true, true])
 })
+
+/*
+ * ============================================================================
+ * BG-01M0XVXS - the rendered assertions gate 9's fixture structurally cannot hold.
+ *
+ * `build-geometry-fixture.mjs` renders with `renderToStaticMarkup`, and `ClaraPortal` returns null
+ * on the server BY DESIGN (US-01M0GM61 AC4). So no portalled surface appears in gate 9's fixture at
+ * all, and gate 9 is where every rendered-behaviour assertion in this project lives. That is not a
+ * gap in any one component; it is a gap in the GATE's reach, and it was costing Drawer and Popover
+ * their most important claims.
+ *
+ * The fix is not to make the static fixture hold portals - it cannot, and forcing it would mean
+ * server-rendering something the architecture deliberately refuses to. It is to assert portalled
+ * behaviour where a portal actually exists: a live Storybook build, which is what this file already
+ * drives for the tooltip bridge, the D0102 layering and the toast stack.
+ * ============================================================================
+ */
+
+test('a drawer slides in from the edge it is anchored to', async ({ page }) => {
+  // Drawer's headline behaviour, and nothing observed it. jsdom returns no animation, and the
+  // static fixture cannot contain the panel.
+  for (const [story, axis] of [['left', 'X'], ['right', 'X'], ['bottom', 'Y']] as const) {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.goto(`${origin}/iframe.html?id=overlays-drawer--${story}&viewMode=story`)
+    await page.getByRole('button', { name: `Open ${story} drawer` }).click()
+    const panel = page.locator('.clara-drawer')
+    await panel.waitFor({ state: 'visible' })
+
+    const seen = await panel.evaluate((el) => {
+      const s = getComputedStyle(el)
+      return { name: s.animationName, duration: s.animationDuration }
+    })
+    expect(seen.name, `the ${story} drawer has no entrance animation`).not.toBe('none')
+    // The animation NAMES its axis, so a drawer anchored left cannot silently reuse the right-hand
+    // keyframe - which would slide it in from the wrong side of the screen.
+    expect(seen.name, `the ${story} drawer animates on the wrong axis`)
+      .toMatch(axis === 'Y' ? /bottom/i : new RegExp(story === 'left' ? 'start' : 'end', 'i'))
+    expect(seen.duration, `the ${story} drawer's animation has no duration`).not.toBe('0s')
+  }
+})
+
+test('a drawer removes its slide entirely under reduced motion', async ({ page }) => {
+  // Class A, unlike Toast: the slide is spatial-origin decoration here, and the panel's presence is
+  // already the information. D0100 says remove it rather than substitute something.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto(`${origin}/iframe.html?id=overlays-drawer--right&viewMode=story`)
+  await page.getByRole('button', { name: 'Open right drawer' }).click()
+  const panel = page.locator('.clara-drawer')
+  await panel.waitFor({ state: 'visible' })
+
+  const name = await panel.evaluate((el) => getComputedStyle(el).animationName)
+  expect(name, 'the drawer still animates under reduced motion').toBe('none')
+})
+
+test('a popover pinned against an edge stays on screen', async ({ page }) => {
+  // US-01M0GMQJ AC2's RENDERED half. The unit tests assert the collision behaviour is CONFIGURED,
+  // which is a much weaker claim than that it happens; this is the claim itself.
+  //
+  // On probing it: DELETING `avoidCollisions` does not turn this red, and that is correct rather
+  // than a hole - Radix defaults it to `true`, so the deletion changes nothing about the rendered
+  // result. The mutation that matters is `avoidCollisions={false}`, and it fails here with "the
+  // popover is clipped off the left edge". Worth stating, because the deletion probe looks like the
+  // obvious one and would wrongly suggest this assertion is insensitive.
+  await page.goto(`${origin}/iframe.html?id=overlays-popover--against-the-edge&viewMode=story`)
+  await page.getByRole('button', { name: 'Options' }).click()
+
+  const panel = page.locator('.clara-popover')
+  await panel.waitFor({ state: 'visible' })
+  const box = (await panel.boundingBox())!
+  const viewport = page.viewportSize()!
+
+  // The story asks for `placement="left"` against the left edge, so honouring the request literally
+  // would put the panel off screen. Collision handling is exactly the thing that must not.
+  expect(box.x, 'the popover is clipped off the left edge').toBeGreaterThanOrEqual(0)
+  expect(box.y, 'the popover is clipped off the top edge').toBeGreaterThanOrEqual(0)
+  expect(box.x + box.width, 'the popover overflows the right edge')
+    .toBeLessThanOrEqual(viewport.width + 1)
+  expect(box.y + box.height, 'the popover overflows the bottom edge')
+    .toBeLessThanOrEqual(viewport.height + 1)
+
+  // And it actually MOVED off the requested side rather than being clamped on top of its trigger:
+  // `data-side` is Radix's own report of where it ended up.
+  const side = await panel.getAttribute('data-side')
+  expect(side, 'the popover stayed on its requested side, so nothing flipped').not.toBe('left')
+})

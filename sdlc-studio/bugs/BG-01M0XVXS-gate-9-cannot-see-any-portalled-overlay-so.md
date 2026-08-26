@@ -1,6 +1,7 @@
 # BG-01M0XVXS: Gate 9 cannot see any portalled overlay, so five components' rendered behaviour is unasserted
 
-> **Status:** inbox
+> **Status:** Fixed
+> **Triaged-by:** claude-implementer; agent; opus-5
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -48,3 +49,71 @@ It also means the honest thing in each verification record is a stated gap, and 
 | Date | Author | Change |
 | --- | --- | --- |
 | 2026-08-26 | sdlc-studio | Created via `new` (deterministic) |
+
+## Acceptance Criteria
+
+### AC1: Portalled overlays have a gate that can see them
+
+- **Given** a component whose surface is portalled
+- **When** its rendered behaviour needs asserting
+- **Then** there is a suite that can observe it - a live Storybook build, where the portal actually
+  exists
+- **Verify:** shell pnpm test:e2e -g "a drawer slides in from the edge it is anchored to"
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+### AC2: Drawer's slide and its reduced-motion branch are asserted
+
+- **Given** the three placements
+- **When** each opens
+- **Then** each animates on its OWN axis - so a left drawer cannot silently reuse the right-hand
+  keyframe and slide in from the wrong side - and under reduced motion the animation is `none`
+- **Verify:** shell pnpm test:e2e -g "a drawer (slides in from the edge|removes its slide)"
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+### AC3: Popover's collision handling is asserted as a RENDERED fact
+
+- **Given** a popover asking for a placement with no room
+- **When** it opens
+- **Then** it stays inside the viewport on all four edges and reports a different `data-side`, so it
+  demonstrably moved rather than being clamped on top of its trigger
+- **Verify:** shell pnpm test:e2e -g "a popover pinned against an edge stays on screen"
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+> **Verification depth:** functional
+
+## Fixed (2026-08-26)
+
+The static fixture was NOT made to hold portals. It cannot: `ClaraPortal` returns null on the server
+by design (US-01M0GM61 AC4), and forcing it would mean server-rendering something the architecture
+deliberately refuses to.
+
+Instead the portalled assertions live where a portal actually exists - a live Storybook build, in
+`e2e/stacking.spec.ts`. That harness was built for the tooltip hover bridge and the D0102 layering,
+and it now carries every rendered claim the static fixture structurally could not:
+
+| Claim | Was |
+| --- | --- |
+| Drawer slides in from its own edge, per placement | unasserted |
+| Drawer removes the slide under reduced motion (Class A) | unasserted |
+| Popover stays on screen when pinned against an edge | unasserted |
+| Tooltip's WCAG 1.4.13 hover bridge | unasserted |
+| Tooltip renders at Clara's font size, not the page's | unasserted |
+| All three directions of the tooltip/toast shared layer | unasserted |
+| Toast REPLACES its slide under reduced motion (Class B) | unasserted |
+| Three toasts stack, and every close button is hittable | unasserted |
+
+Nine assertions, 29 e2e tests total.
+
+Proved by mutation, each in its own direction:
+
+- Pointing the left drawer at the right-hand keyframe reddens the axis assertion.
+- Deleting the reduced-motion rule reddens the Class A assertion.
+- `avoidCollisions={false}` reddens the popover with "clipped off the left edge".
+
+**One probe worth recording because it is misleading.** DELETING `avoidCollisions` does not redden
+the popover test - Radix defaults it to `true`, so the deletion changes nothing rendered. The
+sensitive mutation is `={false}`. The obvious probe would have suggested the assertion was
+insensitive when it is not, and the test now says so at the point of use.
