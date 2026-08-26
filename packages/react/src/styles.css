@@ -449,6 +449,37 @@
 }
 
 /*
+ * Tooltip.
+ *
+ * The layer token sits HERE, on the content element, for the reason `.clara-popover` records at
+ * length: Radix's popper reads the computed z-index off the content and copies it onto the
+ * wrapper it positions. `position: relative` earns the declaration on its own terms rather than
+ * silencing a guard - it renders identically to `static` with no offsets, so the token is
+ * non-inert whether or not a third party keeps doing that.
+ *
+ * `--clara-layer-tooltip` and `--clara-layer-toast` resolve to the SAME layer, deliberately
+ * (D0102). Which of the two paints on top is decided by open order, which the browser already
+ * answers from DOM order, because the relationship is bidirectional: a tooltip on a toast's action
+ * must win, and a toast arriving over an open tooltip must win. No constant satisfies both.
+ *
+ * NO MOTION. D0100 permits motion only where its absence removes information, and a tooltip's
+ * appearance carries none that its presence does not: it is already anchored to the control it
+ * describes, so there is no spatial origin to explain and no state change to narrate. A fade would
+ * be decoration, and decoration under a 700 ms open delay reads as lag.
+ */
+.clara-tooltip {
+  position: relative;
+  z-index: var(--clara-layer-tooltip);
+  box-sizing: border-box;
+  max-inline-size: var(--clara-tooltip-max-inline-size);
+  padding: var(--clara-tooltip-padding-block) var(--clara-tooltip-padding-inline);
+  border: var(--clara-tooltip-border-width) solid var(--clara-tooltip-border);
+  border-radius: var(--clara-tooltip-radius);
+  background: var(--clara-tooltip-bg);
+  color: var(--clara-tooltip-fg);
+}
+
+/*
  * ProgressBar (D0100).
  *
  * DETERMINATE DOES NOT ANIMATE, and no `transition` may be added here. The fill's width is DATA: a

@@ -553,6 +553,22 @@ export interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaE
 // @public (undocumented)
 export type TextProps = TextBaseProps | TruncatedTextProps;
 
+// @public
+export function Tooltip(input: TooltipProps): JSX_2.Element;
+
+// @public
+export type TooltipPlacement = 'top' | 'right' | 'bottom' | 'left';
+
+// @public (undocumented)
+export interface TooltipProps {
+    children: ReactNode;
+    // (undocumented)
+    className?: string;
+    content: string;
+    // (undocumented)
+    placement?: TooltipPlacement;
+}
+
 // Warning: (ae-forgotten-export) The symbol "ClaraSettings" needs to be exported by the entry point index.d.ts
 //
 // @public

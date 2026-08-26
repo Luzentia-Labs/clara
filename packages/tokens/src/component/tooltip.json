@@ -1,0 +1,39 @@
+{
+  "tooltip": {
+    "bg": {
+      "value": "{color.bg.surface}",
+      "type": "color",
+      "comment": "Surface + border, the same separation Popover uses, rather than the inverted chip many systems reach for. An inverted tooltip would need `color.bg.inverse` and `color.fg.inverse` in TIER 2 - public API, permanent at publish - and neither exists. Adding a public pair to style one component is the wrong order of decision: if Clara wants an inverse surface it should arrive as its own decision, serving more than a tooltip."
+    },
+    "fg": {
+      "value": "{color.fg.default}",
+      "type": "color"
+    },
+    "border": {
+      "value": "{color.border.default}",
+      "type": "color"
+    },
+    "border-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    },
+    "radius": {
+      "value": "{radius.surface}",
+      "type": "dimension"
+    },
+    "padding-block": {
+      "value": "{space.control-padding-y}",
+      "type": "dimension"
+    },
+    "padding-inline": {
+      "value": "{space.control-padding-x}",
+      "type": "dimension",
+      "comment": "The control padding pair rather than space.stack: a tooltip is a chip the size of a control, not a stacked panel, and these are the only tier 2 spaces that scale with density."
+    },
+    "max-inline-size": {
+      "value": "18rem",
+      "type": "dimension",
+      "comment": "A raw dimension, following popover.max-inline-size and modal.width-*. A tooltip width has no semantic ancestor in tier 2 size, and inventing one would put a tooltip-shaped value in the public layer. Narrower than a popover's 20rem: a tooltip carries a sentence, not a panel."
+    }
+  }
+}

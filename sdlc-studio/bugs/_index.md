@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 5 |
+| inbox | 6 |
 | Superseded | 1 |
-| **Total** | **15** |
+| **Total** | **16** |
 
 ## By Severity
 
@@ -40,6 +40,7 @@
 | [BG-01M0XVXS](BG-01M0XVXS-gate-9-cannot-see-any-portalled-overlay-so.md) | Gate 9 cannot see any portalled overlay, so five components' rendered behaviour is unasserted | major | Medium | inbox | -- | -- | 2026-08-26 |
 | [BG-01M0XXSA](BG-01M0XXSA-third-party-size-budgets-double-count-the-shared.md) | Third-party size budgets double-count the shared @floating-ui chain | Medium | Medium | inbox | -- | -- | 2026-08-26 |
 | [BG-01M0XX4V](BG-01M0XX4V-ac5-s-verifier-runs-at-96-of-the.md) | AC5's verifier runs at 96% of the verify timeout and has stamped a false Verified: no | Medium | Medium | inbox | -- | -- | 2026-08-26 |
+| [BG-01M0XZMJ](BG-01M0XZMJ-tier-3-tokens-are-private-by-policy-but.md) | Tier 3 tokens are private by policy but exported as public API by clara-tokens | Medium | Medium | inbox | -- | -- | 2026-08-26 |
 
 ## Notes
 

@@ -1,8 +1,8 @@
 [
   {
-    "name": "@luzentialabs/clara-react (ESM entry, 35 components x 300 B, floor 5000 B)",
+    "name": "@luzentialabs/clara-react (ESM entry, 36 components x 300 B, floor 5000 B)",
     "path": "packages/react/dist/index.js",
-    "limit": "10500 B",
+    "limit": "10800 B",
     "gzip": true,
     "ignore": [
       "react",
@@ -10,7 +10,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -41,7 +42,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -54,7 +56,22 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-tooltip"
+    ]
+  },
+  {
+    "name": "third-party runtime: @radix-ui/react-tooltip (shared by every overlay that uses it)",
+    "path": "packages/react/dist/clara-client-Tooltip.js",
+    "limit": "22 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -68,7 +85,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -82,7 +100,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -96,7 +115,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -110,7 +130,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -124,7 +145,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -138,7 +160,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -152,7 +175,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -166,7 +190,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -180,7 +205,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -194,7 +220,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -208,7 +235,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -222,7 +250,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -236,7 +265,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -250,7 +280,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -264,7 +295,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -278,7 +310,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -292,7 +325,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -306,7 +340,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -320,7 +355,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -334,7 +370,8 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   },
   {
@@ -348,7 +385,23 @@
       "react/jsx-runtime",
       "react-dom/client",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-popover"
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
+    ]
+  },
+  {
+    "name": "Tooltip (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-Tooltip.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip"
     ]
   }
 ]

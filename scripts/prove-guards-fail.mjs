@@ -57,7 +57,11 @@ function stageWorkspace ({ withOutput = false, withGit = false, withStories = fa
   // `withStories` left the check-verification entries failing on an UNMUTATED stage, which reads as
   // a broken prover rather than as a missing fixture - and the message said so, which is why this
   // took two wrong guesses before printing the guard's own stderr.
-  for (const dir of ['sdlc-studio/reviews', 'scripts']) {
+  // `e2e` joins them for the same reason, and it arrived the same way: Tooltip's record is the
+  // first to cite an e2e spec (`e2e/stacking.spec.ts`, where WCAG 1.4.13's hover bridge is
+  // asserted, because jsdom has no pointer and no layout to assert it with), and every
+  // check-verification entry immediately began failing on an unmutated stage.
+  for (const dir of ['sdlc-studio/reviews', 'scripts', 'e2e']) {
     if (!existsSync(join(root, dir))) continue
     cpSync(join(root, dir), join(stage, dir), { recursive: true })
   }

@@ -137,6 +137,12 @@ const THIRD_PARTY_LIMITS = {
   // per-dependency entries each measure their own chunk in isolation, so their numbers are each
   // true and DO NOT SUM; see BG-01M0XXSA.
   '@radix-ui/react-popover': '27 kB',
+  // Measured 19.26 kB - 4.8 kB UNDER popover, not level with it. Both carry the same popper +
+  // @floating-ui positioning chain, but a popover is dismissable-layer and focus-scope machinery on
+  // top of that and a tooltip is not: it traps no focus, owns no dismissal stack, and restores no
+  // focus. So the two entries do not add up in either direction - a consumer using both pays the
+  // shared chain once (BG-01M0XXSA), and the difference between them is real code, not noise.
+  '@radix-ui/react-tooltip': '22 kB',
 }
 
 const fixed = [

@@ -847,6 +847,30 @@ export const TagWarningBg = "#fbf6f0";
 // @public (undocumented)
 export const TagWarningFg = "#754e02";
 
+// @public (undocumented)
+export const TooltipBg = "#ffffff";
+
+// @public (undocumented)
+export const TooltipBorder = "#95928e";
+
+// @public (undocumented)
+export const TooltipBorderWidth = "1px";
+
+// @public (undocumented)
+export const TooltipFg = "#1f1e1d";
+
+// @public (undocumented)
+export const TooltipMaxInlineSize = "18rem";
+
+// @public (undocumented)
+export const TooltipPaddingBlock = "8px";
+
+// @public (undocumented)
+export const TooltipPaddingInline = "12px";
+
+// @public (undocumented)
+export const TooltipRadius = "8px";
+
 // (No @packageDocumentation comment for this package)
 
 ```

@@ -292,7 +292,7 @@
     {
       "name": "Tooltip",
       "boundary": "client",
-      "status": "planned",
+      "status": "built",
       "overlay": true
     }
   ]
