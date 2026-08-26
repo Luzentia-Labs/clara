@@ -370,6 +370,15 @@
   gap: var(--clara-drawer-gap);
   padding: var(--clara-drawer-padding);
   background: var(--clara-drawer-bg);
+  /*
+   * DECLARED, not inherited. This panel portals to `document.body`, and `[data-clara-theme]`
+   * redefines custom properties without declaring `color` - so an undeclared panel took its text
+   * colour from the PAGE while taking its background from the portal's scope. Measured in
+   * Chromium: 1.26:1 in dark theme, against 16.64:1 for the overlays that declare it. Four gates
+   * were blind to it - axe disables color-contrast, jsdom resolves no var(), check-contrast
+   * measures only DECLARED pairings, and the shape contract did not enrol this class.
+   */
+  color: var(--clara-drawer-fg);
   box-sizing: border-box;
   max-block-size: 100%;
 }
@@ -442,6 +451,15 @@
   border: var(--clara-popover-border-width) solid var(--clara-popover-border);
   border-radius: var(--clara-popover-radius);
   background: var(--clara-popover-bg);
+  /*
+   * DECLARED, not inherited. This panel portals to `document.body`, and `[data-clara-theme]`
+   * redefines custom properties without declaring `color` - so an undeclared panel took its text
+   * colour from the PAGE while taking its background from the portal's scope. Measured in
+   * Chromium: 1.26:1 in dark theme, against 16.64:1 for the overlays that declare it. Four gates
+   * were blind to it - axe disables color-contrast, jsdom resolves no var(), check-contrast
+   * measures only DECLARED pairings, and the shape contract did not enrol this class.
+   */
+  color: var(--clara-popover-fg);
 }
 
 @media (prefers-reduced-motion: reduce) {

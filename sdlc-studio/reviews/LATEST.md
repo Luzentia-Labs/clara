@@ -25,12 +25,12 @@ A third round is the operator's call.
 handover restarts every survivor's dismiss countdown, and the mechanism it would change is the one
 the regression above came from.
 
-The tree is on `main` with 1173 tests and every gate green. Nothing is on npm.
+The tree is on `main` with 1177 tests and every gate green. Nothing is on npm.
 
 ## Numbers
 
 - `pnpm check` runs **29 guards**; `prove-guards-fail` kills **144 mutations** on a staged copy.
-- **1173 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- **1177 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
 - **104 decisions**. Stories: **43 Done of 89**. `main` is the only branch - this project is
   trunk-based.

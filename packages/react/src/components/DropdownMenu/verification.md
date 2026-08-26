@@ -96,8 +96,8 @@ directions, so open order decides and a per-role constant cannot (D0088, D0102).
   construction and deleting it left all sixteen tests green - `__tests__/dropdown-menu.test.tsx`
 - ArrowRight moves FOCUS into the submenu, not merely revealing it. The earlier assertion observed
   presence, which is one word from the property (D0065) - `__tests__/dropdown-menu.test.tsx`
-- The positioning props reach Radix, so `placement` is not an inert prop -
-  `__tests__/positioning.test.tsx`
+- The positioning props reach Radix - the root menu's four and the SUBMENU's two - so `placement`
+  is not an inert prop - `__tests__/positioning.test.tsx`
 - Focus returns to the trigger BY IDENTITY on Escape, and after selecting an entry - the second
   route is the common one, and restoring only on Escape would strand the user after every action
   they actually take - `__tests__/dropdown-menu.test.tsx`
@@ -112,7 +112,10 @@ directions, so open order decides and a per-role constant cannot (D0088, D0102).
   positioning props - `side`, `avoidCollisions`, `collisionPadding`, `sideOffset`, and the submenu's
   offsets - and measured the whole repository still green, so `placement` was an inert public prop
   and this bullet claimed a coverage that did not exist. `__tests__/positioning.test.tsx` now records
-  the props reaching Radix, and stripping them reddens three tests. What the browser then DOES with
+  the props reaching Radix - the root's four AND the submenu's two. An earlier version of this line
+  claimed all five were covered while the submenu's arm was unreachable: its fixture had no submenu,
+  so `SubContent` never rendered and `subContentProps` was pushed to by nothing and asserted by
+  nothing. Stripping the submenu's offsets reddened zero tests. It now reddens one. What the browser then DOES with
   them - where a submenu opens, whether it flips - is still unasserted for this component. Same gap as Popover's and Tooltip's, and it belongs to
   the gate: BG-01M0XVXS.
 - **Only ONE level of submenu is exercised.** `items` nests arbitrarily deep and the renderer is

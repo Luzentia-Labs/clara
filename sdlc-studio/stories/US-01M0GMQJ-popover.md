@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Popover/**, packages/react/src/components/Popover/verification.md, packages/react/src/theme/ClaraPortal.tsx, packages/react/src/styles.css, packages/tokens/src/component/popover.json, packages/react/src/index.ts, packages/react/client-boundary.json, packages/react/package.json, packages/react/etc/clara-react.api.md, packages/tokens/etc/clara-tokens.api.md, packages/react/src/components/__tests__/boundary.test.tsx, apps/docs/src/content/components/popover.md, scripts/check-verification.mjs, scripts/sync-size-budgets.mjs, scripts/prove-guards-fail.mjs, .size-limit.json
+> **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Popover/**, packages/react/src/components/Popover/verification.md, packages/react/src/theme/ClaraPortal.tsx, packages/react/src/styles.css, packages/tokens/src/component/popover.json, packages/react/src/index.ts, packages/react/client-boundary.json, packages/react/package.json, packages/react/etc/clara-react.api.md, packages/tokens/etc/clara-tokens.api.md, packages/react/src/components/__tests__/boundary.test.tsx, apps/docs/src/content/components/popover.md, scripts/check-verification.mjs, scripts/sync-size-budgets.mjs, scripts/prove-guards-fail.mjs, .size-limit.json
 > **Points:** 5
 
 ## User Story

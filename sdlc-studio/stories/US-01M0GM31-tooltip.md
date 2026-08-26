@@ -84,7 +84,11 @@
   that test GREEN under the literal `open` this criterion exists to refuse: both of the original
   directions mount the tooltip's host first anyway, so they agree with mount order. A verifier
   that cannot observe its own mechanism is the defect class itself
-- **Verify:** shell pnpm test:e2e -g "a tooltip opened over a live toast paints above it"
+- **And** the verifier selects BOTH: the criterion's own scenario (a tooltip on a toast ACTION,
+  which is what the Given describes) and the direction that distinguishes open order from mount
+  order. Pointing at only the distinguisher left the Given exercised by nothing the criterion
+  runs - the story it drives has no `action` on its toast at all
+- **Verify:** shell pnpm test:e2e -g "a tooltip (on a toast action|opened over a live toast) paints above it"
 - **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 

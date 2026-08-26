@@ -1,10 +1,31 @@
 'use client'
 
-import { useLayoutEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import * as RadixToast from '@radix-ui/react-toast'
 import { cx } from '../../lib/cx'
 import { ClaraPortal } from '../../theme/ClaraPortal'
 import { claimToastId, publishToast, retractToast, useIsToastHost, useToastEntries } from './toast-store'
+
+/*
+ * A PASSIVE effect, deliberately - not `useLayoutEffect`.
+ *
+ * The orphaned-entry defect that round 2 fixed is about effect phase versus RENDER phase: an effect
+ * of either kind is skipped for a render React discards, and that is the whole property. Layout
+ * timing was never what fixed it, and an earlier comment here said it was. A review settled it by
+ * measuring both effects passive with all three discarded-render regression tests still green.
+ *
+ * Asking for layout timing anyway cost something real: `useLayoutEffect` warns on every server
+ * render ("useLayoutEffect does nothing on the server"), measured at 208 warnings across 203 server
+ * renders of a Toast where the previous passive version produced none. PRD F23 has this library
+ * rendering on the server, and a component that fills the log on every request teaches its
+ * consumers to ignore the log.
+ *
+ * `ClaraPortal` guards the same hazard with `typeof document === 'undefined' ? useEffect :
+ * useLayoutEffect`, which is right THERE because it genuinely needs the host to exist before paint.
+ * That guard cannot help here anyway: `renderToStaticMarkup` runs under jsdom in this repo's own
+ * tests, where `document` is defined, so the module-level check picks layout during a server render.
+ * The store has no paint to beat, so the simpler answer is the correct one.
+ */
 
 /** The intents Clara's semantic colour families cover. */
 export type ToastIntent = 'info' | 'success' | 'warning' | 'danger'
@@ -155,7 +176,9 @@ export function Toast ({
    * it and nothing could remove it, so every subsequent toast on that page rendered nothing.
    * Measured under StrictMode and, separately, with a suspended sibling and no StrictMode.
    *
-   * A layout effect never runs for a discarded render, so no orphan is created. It also fixes the
+   * An EFFECT of either kind never runs for a discarded render, so no orphan is created. That is
+   * the property that matters here - not layout timing, which a review confirmed by measuring both
+   * effects passive with all three regression tests still green. It also fixes the
    * second symptom of the same cause: `emit()` during render synchronously notified
    * `useSyncExternalStore` subscribers mid-render, producing React's "Cannot update a component
    * while rendering a different component" warning on every prop change - silent, because nothing
@@ -164,9 +187,9 @@ export function Toast ({
    * No dependency array: this must re-publish on EVERY commit, so the node the host renders closes
    * over current props. Publishing once would freeze a toast's title at its first value.
    */
-  useLayoutEffect(() => { publishToast(id, root, open) })
+  useEffect(() => { publishToast(id, root, open) })
 
-  useLayoutEffect(() => () => { retractToast(id) }, [id])
+  useEffect(() => () => { retractToast(id) }, [id])
 
   // Exactly one toast renders the shared provider and viewport; the rest render nothing of their
   // own, because their content is rendered by the host. That is the whole fix: one viewport, one

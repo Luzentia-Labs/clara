@@ -490,3 +490,67 @@ test('a popover pinned against an edge stays on screen', async ({ page }) => {
   const side = await panel.getAttribute('data-side')
   expect(side, 'the popover stayed on its requested side, so nothing flipped').not.toBe('left')
 })
+
+/**
+ * Every portalled panel is READABLE in dark theme.
+ *
+ * `.clara-popover` and `.clara-drawer` declared a background and no `color`. A portalled panel does
+ * not inherit text colour from where it was written, and `[data-clara-theme]` redefines custom
+ * properties without declaring `color` - so the text colour came from the PAGE while the background
+ * came from the portal's scope. Measured in Chromium at 1.26:1 in dark theme, against 16.64:1 for
+ * the panels that declare it. Three review rounds walked past it.
+ *
+ * Four gates were blind BY CONSTRUCTION, which is why: `test/axe.ts` disables `color-contrast`,
+ * jsdom resolves no `var()`, `check-contrast` measures only DECLARED pairings (and with no fg token
+ * there was no pairing to declare), and the shape contract enrolled Modal alone. The first three
+ * cannot be fixed by enrolment; only a browser can answer this.
+ */
+const CONTRAST_MIN = 4.5
+
+const relativeLuminance = ([r, g, b]: number[]) => {
+  const f = (v: number) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4)
+  return 0.2126 * f(r!) + 0.7152 * f(g!) + 0.0722 * f(b!)
+}
+const contrast = (fg: number[], bg: number[]) => {
+  const [a, b] = [relativeLuminance(fg), relativeLuminance(bg)].sort((x, y) => y - x)
+  return (a! + 0.05) / (b! + 0.05)
+}
+const parseRgb = (value: string) => (value.match(/\d+(\.\d+)?/g) ?? []).slice(0, 3).map(Number)
+
+test('every portalled panel is readable in dark theme', async ({ page }) => {
+  /*
+   * Driven from a STATIC fixture built out of the shipped stylesheets, not from Storybook.
+   *
+   * The first version of this test drove `?globals=theme:dark` and passed with Popover's `color`
+   * DELETED - vacuous. Storybook's theme toolbar cannot reach a portalled surface at all: its
+   * `preview.tsx` imports ClaraProvider from the BUILT package while stories import components from
+   * source, so there are two `ClaraSettingsContext` module instances and the portal root renders
+   * `light` while the page reads `dark`. A test that cannot make the panel dark cannot find a
+   * dark-theme contrast defect.
+   *
+   * What is under test is a CSS contract - "this class declares a colour that resolves against the
+   * same scope as its background" - so the honest fixture is the shipped CSS plus the exact DOM
+   * `ClaraPortal` emits. No React, nothing to go wrong between the assertion and the thing asserted.
+   */
+  const css = ['packages/tokens/dist/tokens.css', 'packages/tokens/dist/themes/dark.css',
+    'packages/react/dist/styles.css']
+    .map((f) => readFileSync(join(process.cwd(), f), 'utf8')).join('\n')
+
+  const panels = ['clara-popover', 'clara-drawer', 'clara-tooltip', 'clara-toast',
+    'clara-dropdown-menu', 'clara-modal']
+
+  await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head>
+<body data-clara-theme="light">
+  ${panels.map((c) => `<div data-clara-theme="dark"><div class="${c}" id="p-${c}">Sample</div></div>`).join('\n')}
+</body></html>`)
+
+  for (const cls of panels) {
+    const seen = await page.locator(`#p-${cls}`).evaluate((el) => {
+      const s = getComputedStyle(el)
+      return { color: s.color, background: s.backgroundColor }
+    })
+    const ratio = contrast(parseRgb(seen.color), parseRgb(seen.background))
+    expect(ratio, `.${cls} renders ${seen.color} on ${seen.background} - ${ratio.toFixed(2)}:1 in dark theme`)
+      .toBeGreaterThanOrEqual(CONTRAST_MIN)
+  }
+})

@@ -22,6 +22,9 @@ reads.
 `IconButton`, a link — something a keyboard user can reach. A tooltip on a `<span>` describes
 something nobody can focus, so the explanation never arrives.
 
+Clara warns about this in development, naming the element it found. If you genuinely need a
+non-interactive trigger, `tabIndex={0}` makes it focusable and the warning stops.
+
 ## A tooltip is never the only route to essential information
 
 If losing the tooltip would lose the meaning, the tooltip is the wrong control. It is transient by

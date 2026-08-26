@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import * as RadixTooltip from '@radix-ui/react-tooltip'
 import { cx } from '../../lib/cx'
 import { ClaraPortal } from '../../theme/ClaraPortal'
+import { devWarning } from '../../lib/dev-warning'
 
 /** Which side of the trigger it prefers. It flips when there is no room. */
 export type TooltipPlacement = 'top' | 'right' | 'bottom' | 'left'
@@ -33,14 +34,15 @@ export interface TooltipProps {
    * something a keyboard user can never reach - which is precisely the failure AC1 exists to
    * prevent.
    *
-   * The TYPE system cannot check it: whether a node renders something focusable is not knowable
-   * until runtime. A development-time check on the trigger node CAN, and is the open option rather
-   * than an impossibility - it is deferred because Clara has no `console.warn` convention anywhere
-   * in `packages/react/src` yet, so the first one is a house-wide decision binding every component,
-   * and a naive check has real false positives (a focusable node rendered deeper, `tabIndex` set
-   * asynchronously). Until then the behaviour is PINNED by a test rather than merely documented,
-   * because the docs page rejects a documentation-only answer for `content` and it would be
-   * inconsistent to accept one here.
+   * The TYPE system cannot check it - whether a node renders something focusable is not knowable
+   * until runtime - so Clara warns in development instead, through `devWarning`.
+   *
+   * Two earlier versions of this paragraph deferred that warning, the second on the stated ground
+   * that "Clara has no `console.warn` convention anywhere in `packages/react/src` yet". That was
+   * FALSE when it was written: `lib/dev-warning.ts` had shipped two days earlier, QA-signed, with
+   * dev-only gating and once-per-message dedupe, and NumberInput already called it. The whole
+   * argument for deferring rested on a fact nobody checked, which is why it is recorded here rather
+   * than quietly deleted.
    */
   children: ReactNode
   placement?: TooltipPlacement
@@ -119,10 +121,41 @@ export function Tooltip ({ content, children, placement = 'top', className }: To
    */
   const [open, setOpen] = useState(false)
 
+  /*
+   * The trigger must be focusable, or the explanation never reaches a keyboard user - which is the
+   * failure AC1 exists to prevent, reached by a route the type system cannot close.
+   *
+   * Checked on the node Radix's `asChild` forwards its ref to, which is the SAME node
+   * `aria-describedby` lands on, so there is no gap between what is inspected and what is
+   * described. Deliberately not a deep search: a focusable descendant would not receive the
+   * description either.
+   *
+   * `setTimeout(0)` rather than an immediate read, because `tabIndex` set in an effect by whatever
+   * rendered the child has not run yet at ref time. That closes the one false positive worth
+   * closing; a `tabIndex` set later still warns, and the message says what to do about it.
+   */
+  const checkTrigger = useCallback((node: HTMLElement | null) => {
+    if (!node) return
+    setTimeout(() => {
+      if (!node.isConnected) return
+      const focusable = node.matches(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), ' +
+        'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )
+      devWarning(
+        !focusable,
+        `A Tooltip's trigger is a <${node.tagName.toLowerCase()}>, which cannot receive keyboard ` +
+        'focus, so the tooltip opens on hover only and its content never reaches a keyboard or ' +
+        'screen-reader user - `aria-describedby` points at a description nobody can reach. Put the ' +
+        'tooltip on a button, a link, or any element with `tabIndex={0}`.',
+      )
+    }, 0)
+  }, [])
+
   return (
     <RadixTooltip.Provider>
       <RadixTooltip.Root open={open} onOpenChange={setOpen}>
-        <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
+        <RadixTooltip.Trigger asChild ref={checkTrigger}>{children}</RadixTooltip.Trigger>
         <ClaraPortal open={open}>
           <RadixTooltip.Content
             className={cx('clara-tooltip', className)}

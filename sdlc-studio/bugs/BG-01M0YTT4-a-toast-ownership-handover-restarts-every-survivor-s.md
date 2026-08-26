@@ -39,3 +39,14 @@ Filed rather than fixed inside the round-2 repair, because the repair being revi
 | Date | Author | Change |
 | --- | --- | --- |
 | 2026-08-26 | sdlc-studio | Created via `new` (deterministic) |
+
+## Also measured, worth recording (round 3)
+
+The handover does not only reset the timer - it **re-announces every survivor to the live region**.
+Measured: after the owning toast unmounts, `"Notification Success: Survivor"` reappears in the
+announcer, so a screen-reader user hears the entire remaining stack read out again because somebody
+dismissed an unrelated toast.
+
+That makes the defect worse than "a wrong duration": it is an unprompted repeat announcement, which
+is exactly the noise a live region is supposed to avoid. Same cause - the host is re-created in a
+new tree position, so every Radix Root inside it remounts - and the same fix closes both.

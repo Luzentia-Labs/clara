@@ -41,6 +41,11 @@
     "enter-easing": {
       "value": "{easing.enter}",
       "type": "cubicBezier"
+    },
+    "fg": {
+      "value": "{color.fg.default}",
+      "type": "color",
+      "comment": "The panel PORTALS to document.body, so it does not inherit text colour from where it was written - and `[data-clara-theme]` redefines custom properties only, it declares no `color`. With no declaration the text colour came from the PAGE while the background came from the portal scope, so a dark-theme panel rendered near-black text on a dark surface: measured 1.26:1 in Chromium, against 16.64:1 for the overlays that declare it. Modal, Tooltip, Toast and DropdownMenu all declare colour; these two did not."
     }
   }
 }

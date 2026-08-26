@@ -1,8 +1,9 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { runAxe } from '../../../../../../test/axe'
 import { ClaraProvider } from '../../../theme/ClaraProvider'
+import { resetDevWarnings } from '../../../lib/dev-warning'
 import { Tooltip } from '../Tooltip'
 import type { TooltipPlacement } from '../Tooltip'
 
@@ -61,22 +62,57 @@ describe('Tooltip appears on keyboard focus', () => {
 })
 
 describe('Tooltip on a non-focusable child', () => {
-  it('is UNREACHABLE by keyboard, which is the documented consequence of a non-focusable trigger', async () => {
-    // Pinned, not fixed. A review measured this failing silently - Tab leaves `activeElement` on
-    // `<body>`, no tooltip appears, no warning is emitted - and observed that it is precisely the
-    // failure AC1 exists to prevent, reached by a route the type system does not close.
+  it('WARNS in development, and is still unreachable by keyboard', async () => {
+    // Two rounds of review deferred this warning, the second on the stated ground that Clara had no
+    // `console.warn` convention. That was false - `lib/dev-warning.ts` had shipped two days before,
+    // QA-signed, and NumberInput already used it - so the reason for deferring did not exist.
     //
-    // Clara cannot enforce focusability in the type system: `children` is a node, and whether it
-    // renders something focusable is not knowable until runtime. What this test does is make the
-    // behaviour a RECORDED fact rather than a surprise, so a future change that appears to fix it
-    // has something to move. The docs page and the `children` doc comment both say the child must
-    // be focusable; this is what happens when it is not.
-    render(<Tooltip content="Never reachable"><span>Not focusable</span></Tooltip>)
-    await userEvent.tab()
-    expect(document.activeElement, 'a non-focusable trigger unexpectedly took focus')
-      .toBe(document.body)
-    expect(screen.queryByText('Never reachable'), 'the tooltip appeared without a focusable trigger')
-      .not.toBeInTheDocument()
+    // Both halves are asserted. The warning, because a silent failure is what made this reachable
+    // at all; and the UNREACHABILITY, because the warning does not fix it and a test asserting only
+    // the console message would let the actual defect drift.
+    resetDevWarnings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      render(<Tooltip content="Never reachable"><span>Not focusable</span></Tooltip>)
+      await waitFor(() => expect(warn).toHaveBeenCalled())
+      expect(warn.mock.calls.flat().join(' ')).toMatch(/cannot receive keyboard focus/)
+
+      await userEvent.tab()
+      expect(document.activeElement, 'a non-focusable trigger unexpectedly took focus')
+        .toBe(document.body)
+      expect(screen.queryByText('Never reachable'), 'the tooltip appeared without a focusable trigger')
+        .not.toBeInTheDocument()
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('stays SILENT for a focusable trigger, so the warning is not noise', async () => {
+    // A warning that fires on correct usage is one a developer learns to filter, which is the
+    // failure `dev-warning.ts` names in its own docblock. This is the half that keeps it useful.
+    resetDevWarnings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      render(<Tooltip content="Reachable"><button>Focusable</button></Tooltip>)
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      expect(warn, 'a correct trigger produced a warning').not.toHaveBeenCalled()
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('stays silent for a span carrying tabIndex, which IS focusable', async () => {
+    // The false positive worth closing: `tabIndex={0}` makes any element focusable, and a warning
+    // that could not see that would push authors toward markup they do not need.
+    resetDevWarnings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      render(<Tooltip content="Reachable"><span tabIndex={0}>Focusable span</span></Tooltip>)
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      expect(warn).not.toHaveBeenCalled()
+    } finally {
+      warn.mockRestore()
+    }
   })
 })
 

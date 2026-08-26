@@ -46,7 +46,12 @@
   deleted the D0020 sentence - and the old `grep "actions"` still exited 0, because the word
   survived in one parenthetical. A criterion whose verifier survives its own Test Plan mutant
   is the defect class this epic exists to remove
-- **Verify:** shell grep -q "Actions only" apps/docs/src/content/components/dropdown-menu.md && grep -q "v1\.1" apps/docs/src/content/components/dropdown-menu.md && grep -q "D0020" apps/docs/src/content/components/dropdown-menu.md
+- **And** the verifier greps the LOAD-BEARING SENTENCE, not three landmarks. Three separate token
+  greps are structural markers a rewording naturally preserves: a review kept the heading, `v1.1`
+  and `D0020` while rewriting the body to say entries "may be commands OR destinations" and that
+  the restriction "is lifted" - and the chain still exited 0. That is the SECOND of the two
+  mutants the Test Plan itself names, and the criterion's own And-clause exists to forbid it
+- **Verify:** shell grep -q "is a separate pattern and is planned for" apps/docs/src/content/components/dropdown-menu.md && grep -q "For links today, use ordinary anchors" apps/docs/src/content/components/dropdown-menu.md && grep -q "D0020" apps/docs/src/content/components/dropdown-menu.md
 - **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 

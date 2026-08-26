@@ -370,7 +370,29 @@ const SHAPE_CONTRACT = [
   // Chromium at 562x645 forced to content-box against 512x595 correct - and deleting it left every
   // gate green, because jsdom computes no layout.
   ['.clara-modal', ['box-sizing', 'position', 'display', 'max-height', 'background', 'color', 'border', 'border-radius']],
+  /*
+   * EVERY portalled panel, not just Modal (round 3, Popover).
+   *
+   * Modal was enrolled here and the other five were not, and the gap was not academic:
+   * `.clara-popover` and `.clara-drawer` declared a background and NO `color`, so a dark-theme panel
+   * took its text colour from the page while taking its background from the portal's scope -
+   * measured in Chromium at 1.26:1, against 16.64:1 for the panels that declare it.
+   *
+   * Four gates were blind by construction, which is why three review rounds walked past it: axe
+   * disables `color-contrast`, jsdom resolves no `var()`, `check-contrast` measures only DECLARED
+   * pairings (and with no fg token there was no pairing to declare), and this contract - the one
+   * whose own message says "a control with no color is invisible to every test that runs in jsdom" -
+   * did not list the class.
+   *
+   * A portalled surface is exactly where this bites, because it is the one place a panel cannot
+   * inherit from where it was written.
+   */
   ['.clara-modal__scrim', ['position', 'inset', 'background']],
+  ['.clara-popover', ['box-sizing', 'background', 'color', 'border', 'border-radius']],
+  ['.clara-drawer', ['box-sizing', 'position', 'background', 'color']],
+  ['.clara-tooltip', ['box-sizing', 'background', 'color', 'border-radius']],
+  ['.clara-toast', ['box-sizing', 'background', 'color', 'border-radius']],
+  ['.clara-dropdown-menu', ['box-sizing', 'background', 'color', 'border-radius']],
   ['.clara-modal__body', ['overflow-y']],
   // A flex column shrinks its children by default, so a fixed-height child is squashed rather than
   // scrolled. The rule that stops it is on the CHILDREN, and nothing else can see its absence.

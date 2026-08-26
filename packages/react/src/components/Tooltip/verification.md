@@ -73,6 +73,10 @@ Open order decides which paints on top, because the relationship is bidirectiona
 ## What is verified automatically
 
 - It opens on keyboard focus, not only on hover - `__tests__/tooltip.test.tsx`
+- A NON-FOCUSABLE trigger warns in development, and a focusable one (including a `span` carrying
+  `tabIndex`) stays silent - both halves, because a warning that fires on correct usage is one a
+  developer learns to filter, which is the failure `dev-warning.ts` names in its own docblock -
+  `__tests__/tooltip.test.tsx`
 - It closes again when focus leaves, so it is not a permanent overlay - `__tests__/tooltip.test.tsx`
 - The trigger's `aria-describedby` resolves to an element whose text IS the content -
   `__tests__/tooltip.test.tsx`
