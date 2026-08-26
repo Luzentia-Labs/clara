@@ -626,6 +626,24 @@ export const ModalWidthMd = "32rem";
 export const ModalWidthSm = "24rem";
 
 // @public (undocumented)
+export const PopoverBg = "#ffffff";
+
+// @public (undocumented)
+export const PopoverBorder = "#95928e";
+
+// @public (undocumented)
+export const PopoverBorderWidth = "1px";
+
+// @public (undocumented)
+export const PopoverMaxInlineSize = "20rem";
+
+// @public (undocumented)
+export const PopoverPadding = "12px";
+
+// @public (undocumented)
+export const PopoverRadius = "8px";
+
+// @public (undocumented)
 export const ProgressCycle = "calc(200ms * 5)";
 
 // @public (undocumented)

@@ -391,6 +391,27 @@ export type PolymorphicPropsWithRef<C extends ElementType, Props = Record<never,
 export type PolymorphicRef<C extends ElementType> = ComponentPropsWithRef<C>['ref'];
 
 // @public
+export function Popover(input: PopoverProps): JSX_2.Element;
+
+// @public
+export type PopoverPlacement = 'top' | 'right' | 'bottom' | 'left';
+
+// @public (undocumented)
+export interface PopoverProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    className?: string;
+    label: string;
+    onClose: () => void;
+    onOpen: () => void;
+    open: boolean;
+    // (undocumented)
+    placement?: PopoverPlacement;
+    trigger: ReactNode;
+}
+
+// @public
 export function ProgressBar(input: ProgressBarProps): JSX_2.Element;
 
 // Warning: (ae-forgotten-export) The symbol "ProgressBarDeterminateProps" needs to be exported by the entry point index.d.ts

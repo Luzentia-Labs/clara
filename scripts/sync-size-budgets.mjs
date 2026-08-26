@@ -56,6 +56,7 @@ const PEERS = ['react', 'react-dom', 'react/jsx-runtime', 'react-dom/client']
  * library - which is the failure this file's peer comment already names.
  */
 const unmeasured = []
+const unbudgeted = []
 const runtimeDeps = Object.keys(
   JSON.parse(readFileSync('packages/react/package.json', 'utf8')).dependencies ?? {},
 ).filter((name) => !name.startsWith('@luzentialabs/'))
@@ -105,6 +106,39 @@ const ENTRY_BYTES_PER_COMPONENT = 300
 const ENTRY_FLOOR_BYTES = 5000
 const entryLimit = `${Math.max(ENTRY_FLOOR_BYTES, builtCount * ENTRY_BYTES_PER_COMPONENT)} B`
 
+/**
+ * The third-party budget is AUTHORED PER DEPENDENCY, not a shared constant.
+ *
+ * It was a flat `'18 kB'` for every runtime dependency - a figure derived from
+ * `@radix-ui/react-dialog` measuring 15.19 kB, and then applied to whatever shipped next. That is
+ * the exact defect the entry budget above spends three paragraphs escaping, one level over: a
+ * number with no relationship to the thing it measures, whose only available response to going red
+ * is to raise it. `@radix-ui/react-popover` shipped at 24.09 kB and blew it by 6.08 kB, and
+ * nothing about that was a regression - Popover is a POSITIONED overlay, so it carries
+ * `@radix-ui/react-popper` and the `@floating-ui` engine that a modal has no need for. The budget
+ * was measuring Clara's choice of overlay against Dialog's feature set.
+ *
+ * So each dependency states its own ceiling and why. Adding a runtime dependency now means
+ * deciding what it is allowed to weigh, which is a decision worth making once, out loud, at the
+ * moment the dependency is adopted - a one-way door under this project's publishing rules.
+ *
+ * An unlisted dependency is REPORTED, not defaulted. That is the same rule the `unmeasured` check
+ * below already applies, and for the same reason: a budget that covers a dependency by inheriting
+ * someone else's number measures nothing, and the name is what a reader trusts.
+ */
+const THIRD_PARTY_LIMITS = {
+  // Measured 15.08 kB. Modal + Drawer machinery: focus scope, dismissable layer, portal, presence.
+  // No positioning engine - a modal is centred by CSS, so it never loads @floating-ui.
+  '@radix-ui/react-dialog': '18 kB',
+  // Measured 24.09 kB, and the ~9 kB over Dialog is positioning, not bloat: @radix-ui/react-popper
+  // pulls @floating-ui/react-dom -> /dom -> /core to place a panel against a trigger through
+  // scroll, flip and collision. Every positioned overlay that follows - Tooltip, DropdownMenu,
+  // Select - carries that same chain, and a consumer using several pays for it ONCE. These
+  // per-dependency entries each measure their own chunk in isolation, so their numbers are each
+  // true and DO NOT SUM; see BG-01M0XXSA.
+  '@radix-ui/react-popover': '27 kB',
+}
+
 const fixed = [
   { name: `@luzentialabs/clara-react (ESM entry, ${builtCount} components x ${ENTRY_BYTES_PER_COMPONENT} B, floor ${ENTRY_FLOOR_BYTES} B)`, path: 'packages/react/dist/index.js', limit: entryLimit, gzip: true, ignore: IGNORED },
   { name: '@luzentialabs/clara-icons (ESM entry)', path: 'packages/icons/dist/index.js', limit: '5 kB', gzip: true },
@@ -145,7 +179,7 @@ const fixed = [
   }).filter(Boolean).map(({ dep, importer }) => ({
     name: `third-party runtime: ${dep} (shared by every overlay that uses it)`,
     path: importer,
-    limit: '18 kB',
+    limit: THIRD_PARTY_LIMITS[dep] ?? (unbudgeted.push(dep), '0 B'),
     gzip: true,
     ignore: [...PEERS, ...runtimeDeps.filter((d) => d !== dep)],
   })),
@@ -159,6 +193,14 @@ const perComponent = builtClients.map((name) => ({
 }))
 const wanted = [...fixed, ...perComponent]
 const current = existsSync(BUDGET_FILE) ? JSON.parse(readFileSync(BUDGET_FILE, 'utf8')) : []
+
+if (unbudgeted.length) {
+  fail(RULE, unbudgeted.map((d) => (
+    `${d} is a runtime dependency with no authored entry in THIRD_PARTY_LIMITS, so nothing has ` +
+    'decided what it is allowed to weigh. Measure it (`pnpm size`), then add an entry stating the ' +
+    'ceiling and what the number is made of. Do not copy another dependency\'s figure.'
+  )))
+}
 
 if (unmeasured.length) {
   fail(RULE, unmeasured.map((d) => (

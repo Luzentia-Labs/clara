@@ -1,0 +1,29 @@
+{
+  "popover": {
+    "bg": {
+      "value": "{color.bg.surface}",
+      "type": "color"
+    },
+    "border": {
+      "value": "{color.border.default}",
+      "type": "color"
+    },
+    "border-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    },
+    "radius": {
+      "value": "{radius.surface}",
+      "type": "dimension"
+    },
+    "padding": {
+      "value": "{space.stack}",
+      "type": "dimension"
+    },
+    "max-inline-size": {
+      "value": "20rem",
+      "type": "dimension",
+      "comment": "A raw dimension on purpose, following modal.width-*. A popover width has no semantic ancestor in tier 2 size, and inventing one would put a popover-shaped value in the public layer."
+    }
+  }
+}

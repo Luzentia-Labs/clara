@@ -1,6 +1,6 @@
 # US-01M0GM61: Portal, layer scale, and scoping infrastructure
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -55,7 +55,7 @@ does, and adds the layer scale beside it.
 - **When** it mounts
 - **Then** the portal root carries the resolved data-clara-theme and data-clara-density
 - **Verify:** vitest "portal inherits scoped theme"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC2: Layer scale is tokenised
@@ -68,7 +68,7 @@ does, and adds the layer scale beside it.
        Then-clause says the scale is documented, and the narrower pattern could not see
        that: retargeting layer.3 from 1400 to 1200 left ac=5 pass=5 fail=0 while
        tokens.md still published 1400. Found independently by both round-4 seats. -->
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC3: Nested overlays stack correctly
@@ -91,7 +91,7 @@ does, and adds the layer scale beside it.
   fixes is what makes it work. Asserting a composition of two unbuilt components would be a test of
   nothing
 - **Verify:** vitest "the overlay stacking order"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC4: SSR-safe
@@ -100,7 +100,7 @@ does, and adds the layer scale beside it.
 - **When** a portal component is included
 - **Then** it renders nothing on the server and does not read document
 - **Verify:** vitest "portal renders nothing on the server"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC5: The scale is enforced, not advisory
@@ -122,7 +122,7 @@ does, and adds the layer scale beside it.
 - **And** the criterion claims coverage of these shapes and no more. It is a denylist of the escapes
   three review rounds actually found, which is not the same as proving the scale cannot be escaped
 - **Verify:** shell node scripts/check-component-css.mjs && node scripts/prove-guards-fail.mjs
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
@@ -262,7 +262,7 @@ breaking change. They were added to `tokens.public.lock.json` deliberately for t
 - **Then** the portal's content is not yet in the DOM, and an effect INSIDE the portal is the only
   place that sees it (D0090)
 - **Verify:** vitest "commits its content in time for an effect INSIDE the portal"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 > This is the epic's headline criterion for twelve overlays, and it was gated only incidentally -

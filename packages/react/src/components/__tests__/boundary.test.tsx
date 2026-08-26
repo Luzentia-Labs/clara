@@ -61,6 +61,7 @@ const REQUIRED_PROPS: Record<string, Record<string, unknown>> = {
   Badge: { children: 'Draft' },
   Tag: { children: 'Draft' },
   Spinner: { label: 'Loading invoices' },
+  Popover: { open: false, onOpen: () => {}, onClose: () => {}, label: 'Options', trigger: null, children: null },
   ProgressBar: { label: 'Posting invoices', value: 62 },
   SkeletonGroup: { label: 'Loading invoices', children: null },
 }
@@ -73,7 +74,22 @@ function renderRecordingGlobalReads (component: Renderable, props: Record<string
     const original = (globalThis as unknown as Record<string, unknown>)[key]
     Object.defineProperty(globalThis, key, {
       configurable: true,
-      get () { touched.push(key); return original },
+      get () {
+        // Attributed to the frame that READ it, because the requirement is about CLARA reading a
+        // browser API - and this getter cannot tell a guarded probe from an unguarded one. jsdom
+        // always has `window`, so `typeof window !== 'undefined'` invokes this getter and looks
+        // identical to a bare `window.innerWidth`, while the first is the correct SSR idiom and
+        // cannot throw.
+        //
+        // A dependency doing that guarded check is not Clara reading a browser API. Radix's
+        // `react-primitive` does exactly it - `if (typeof window !== 'undefined') window[Symbol
+        // .for('radix-ui')] = true` - and it is reached by any component that renders a primitive
+        // while CLOSED, which Popover does and Modal does not. Attributing by frame keeps the
+        // test's teeth on Clara's own code, which is what it was written to guard.
+        const caller = (new Error().stack ?? '').split('\n')[2] ?? ''
+        if (!caller.includes('node_modules')) touched.push(key)
+        return original
+      },
     })
     return { key, descriptor }
   })

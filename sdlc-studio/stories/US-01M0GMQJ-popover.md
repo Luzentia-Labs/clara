@@ -24,14 +24,21 @@
 - **When** I dismiss it
 - **Then** focus returns to the trigger without ever having been trapped
 - **Verify:** vitest "Popover returns focus without trapping"
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC2: Positioning
 
 - **Given** a Popover near a viewport edge
 - **When** it opens
-- **Then** it flips and shifts to stay visible, and stays anchored on scroll within a scrollable container
-- **Verify:** vitest "Popover flips shifts and stays anchored"
+- **Then** the collision behaviour is configured and the requested placement reaches the panel
+- **And** the RENDERED half of this criterion - that it actually flips, shifts and stays anchored -
+  is not verified here and cannot be: it is entirely layout, jsdom computes none, and gate 9's
+  fixture is a server render that no portalled surface appears in at all. Deferred to BG-01M0XVXS
+  rather than claimed, because a criterion asserting a rendered behaviour its verifier cannot see is
+  the defect this epic has spent nine review rounds removing
+- **Verify:** vitest "Popover collision handling is configured"
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC3: Token-only styling
@@ -40,14 +47,16 @@
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC4: Both themes and densities
 
 - **Given** a Popover
 - **When** it renders in dark theme and compact density
-- **Then** it holds its visual baseline in all four combinations
+- **Then** it renders inside the correct scope and passes axe in all four combinations
 - **Verify:** vitest "Popover theme and density matrix"
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC5: Definition of done
@@ -56,9 +65,43 @@
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
 - **Verify:** shell node scripts/check-verification.mjs --component Popover
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
+
+## Specification delta (2026-08-26)
+
+**AC2 cannot be verified where its verifier points, and that is stated rather than papered over.**
+"Flips and shifts to stay visible, and stays anchored on scroll" is entirely layout, and the
+verifier is a Vitest test. jsdom computes no layout at all, so the strongest honest claim in that
+runner is that the collision behaviour is CONFIGURED - a much weaker statement than the criterion
+makes. The rendered behaviour needs a browser, and gate 9's fixture is a `renderToStaticMarkup`
+render that no portalled surface appears in at all. Filed as **BG-01M0XVXS**, which is the same gap
+Drawer's slide has: it belongs to the GATE's reach rather than to either component, and three more
+overlays are about to inherit it.
+
+**This component deliberately does NOT use the shared focus machinery, and the reason is the
+opposite of an inconsistency.** Modal and Drawer share `useOverlayFocusRestore` because Clara
+exposes no trigger for them, so Clara must capture and restore focus itself. A Popover's trigger is
+INSIDE the component - it has to be for the panel to stay anchored - so Radix holds a real ref and
+its own restore is correct by construction. Adding Clara's machinery would be two mechanisms racing
+for one outcome, which is precisely the defect Modal's `onCloseAutoFocus` preventDefault exists to
+prevent.
+
+**AC1 says "without ever having been trapped", and trapping had to be asserted the way a trap
+manifests.** A first attempt used `userEvent.tab()` and read a non-trap as a trap: the panel is
+portalled to the end of `document.body`, so tabbing out of it has no following tabbable and jsdom
+does not wrap the way a browser does. A second attempt asserted the panel was still open after
+focus moved out, and failed because moving focus out DISMISSES a non-modal popover - correct
+behaviour, and a dismissal rather than a trap. What is asserted now is that focus stays where the
+user put it and is not stolen back on the way out, which is how a focus scope actually manifests.
+
+**Two callbacks, `onOpen` and `onClose`,** rather than one taking a boolean. `onOpenChange` is
+Radix's name and no Radix surface reaches Clara's (TRD Section 402), but the better reason is that
+two Clara-shaped events read more clearly at a call site than one that must be destructured.
+
+**AC4 corrected as in every other story in this epic.**
 
 ## Scope
 

@@ -409,6 +409,41 @@
 .clara-drawer__body > * { flex-shrink: 0; }
 .clara-drawer__footer { flex: 0 0 auto; }
 
+/*
+ * Popover - a non-modal overlay anchored to its trigger.
+ *
+ * No scrim, and no scroll lock: the page behind stays live and scrollable, which is what non-modal
+ * means. It takes the shared overlay layer like every other portalled surface, so which of two
+ * overlays paints on top is decided by open order (D0088).
+ *
+ * No motion. A popover is anchored TO something, so it has no origin of its own to travel from -
+ * the same argument D0094 made for a centred dialog, and D0100 permits motion only where its
+ * absence would remove information. Where it came from is where it already is.
+ */
+.clara-popover {
+  /*
+   * `position: relative` earns the z-index below rather than silencing a guard.
+   *
+   * Radix positions the panel with a WRAPPER it renders itself, and that wrapper is what forms the
+   * stacking context - so a naive reading says a z-index here is inert. It is not: the popper reads
+   * the computed z-index off THIS element and copies it onto the wrapper
+   * (`setContentZIndex(window.getComputedStyle(content).zIndex)`), which is why the layer token
+   * belongs here and not somewhere Clara cannot reach.
+   *
+   * But that is a third party's runtime behaviour, invisible to any stylesheet. `relative` renders
+   * identically to `static` with no offsets and makes the declaration true on its own terms, so the
+   * layer token is non-inert whether or not Radix keeps doing that.
+   */
+  position: relative;
+  z-index: var(--clara-layer-overlay);
+  box-sizing: border-box;
+  max-inline-size: var(--clara-popover-max-inline-size);
+  padding: var(--clara-popover-padding);
+  border: var(--clara-popover-border-width) solid var(--clara-popover-border);
+  border-radius: var(--clara-popover-radius);
+  background: var(--clara-popover-bg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .clara-drawer--left, .clara-drawer--right, .clara-drawer--bottom { animation: none; }
 }

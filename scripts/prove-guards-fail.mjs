@@ -422,9 +422,11 @@ const OUTPUT_CASES = [
     guard: 'check-overlay-contract.mjs',
     expect: /classified as a built overlay but has no source directory/,
     stage: patch('packages/react/client-boundary.json', (m) => {
-      // Popover is flagged and planned, and has no directory yet - marking it built is exactly the
-      // mistake a sprint makes when it updates the classification before writing the component.
-      for (const c of m.components) if (c.name === 'Popover') c.status = 'built'
+      // The mutation CREATES its subject rather than flipping a real component's status. The first
+      // version marked Popover built, and went stale the day Popover was built - the prover caught
+      // that itself ("the mutation changed NOTHING in the staged copy - its target has moved"), and
+      // a mutation whose target can be built out from under it is one that silently stops testing.
+      m.components.push({ name: 'NeverBuilt', boundary: 'client', status: 'built', overlay: true })
     }),
   },
   {

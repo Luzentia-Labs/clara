@@ -1,15 +1,16 @@
 [
   {
-    "name": "@luzentialabs/clara-react (ESM entry, 34 components x 300 B, floor 5000 B)",
+    "name": "@luzentialabs/clara-react (ESM entry, 35 components x 300 B, floor 5000 B)",
     "path": "packages/react/dist/index.js",
-    "limit": "10200 B",
+    "limit": "10500 B",
     "gzip": true,
     "ignore": [
       "react",
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -39,7 +40,21 @@
       "react",
       "react-dom",
       "react/jsx-runtime",
-      "react-dom/client"
+      "react-dom/client",
+      "@radix-ui/react-popover"
+    ]
+  },
+  {
+    "name": "third-party runtime: @radix-ui/react-popover (shared by every overlay that uses it)",
+    "path": "packages/react/dist/clara-client-Popover.js",
+    "limit": "27 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client",
+      "@radix-ui/react-dialog"
     ]
   },
   {
@@ -52,7 +67,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -65,7 +81,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -78,7 +95,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -91,7 +109,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -104,7 +123,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -117,7 +137,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -130,7 +151,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -143,7 +165,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -156,7 +179,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -169,7 +193,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -182,7 +207,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -195,7 +221,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -208,7 +235,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -221,7 +249,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -234,7 +263,22 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
+    ]
+  },
+  {
+    "name": "Popover (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-Popover.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -247,7 +291,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -260,7 +305,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -273,7 +319,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -286,7 +333,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   },
   {
@@ -299,7 +347,8 @@
       "react-dom",
       "react/jsx-runtime",
       "react-dom/client",
-      "@radix-ui/react-dialog"
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover"
     ]
   }
 ]
