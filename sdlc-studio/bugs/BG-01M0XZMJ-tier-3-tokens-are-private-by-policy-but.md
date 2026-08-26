@@ -1,6 +1,7 @@
 # BG-01M0XZMJ: Tier 3 tokens are private by policy but exported as public API by clara-tokens
 
-> **Status:** inbox
+> **Status:** Fixed
+> **Triaged-by:** claude-implementer; agent; opus-5
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -39,3 +40,66 @@ Candidate fixes: (a) stop exporting tier 3 from the tokens entry, which is the c
 | Date | Author | Change |
 | --- | --- | --- |
 | 2026-08-26 | sdlc-studio | Created via `new` (deterministic) |
+
+## Acceptance Criteria
+
+### AC1: The JS entry exports tier 2 and nothing else
+
+- **Given** the built tokens package
+- **When** the output guard runs
+- **Then** the package entry exports exactly the tier 2 set and no tier 1 or tier 3 token
+- **Verify:** shell node scripts/check-token-output.mjs
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+### AC2: The rule is executable in BOTH directions
+
+- **Given** the guard
+- **When** a tier 3 token leaks back in, or a tier 2 token goes missing
+- **Then** it fails either way - a filter that quietly drops tier 2 as well would satisfy "no tier 3
+  leaked" while shrinking the surface the policy promises, which is the same defect with the
+  opposite sign
+- **Verify:** shell node scripts/prove-guards-fail.mjs --only "tier 3 token exported|tier 2 token missing"
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+### AC3: The two guards now agree
+
+- **Given** the public lock and the API report
+- **When** both are read
+- **Then** they describe the same 65 names, so a tier 3 rename can no longer pass one and fail the
+  other
+- **Verify:** shell node scripts/api-report.mjs && node scripts/check-public-tokens.mjs
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+> **Verification depth:** functional
+
+## Fixed (2026-08-26)
+
+The bug understated the scope. It reported "31+ tier-3 constants"; the entry was in fact emitting
+**all 322 tokens** - every tier 1 primitive and every tier 3 component value alongside the 65
+semantics - so **257 names were public API** in flat contradiction of PRD F01, AGENTS.md and the
+lock.
+
+The fix is one line: the `ts` platform now uses the same `clara/tier2` filter `tokens.public.json`
+already used. 322 exports -> **65**, exactly matching the lock's 65 entries, with zero tier 1 or
+tier 3 names surviving in the API report.
+
+**Fixed now rather than later because nothing is published.** `NPM_TOKEN` is unset, so removing 257
+names costs nobody anything today and would be a breaking change the moment it is not - which is the
+whole force of "publishing is a one-way door".
+
+Option (b) from the original analysis - marking them `@internal` so api-extractor stops reporting
+them - was rejected. It silences the report while leaving the names importable at runtime, so the
+shipped surface would still contradict the policy; it only stops anyone noticing.
+
+The rule is now executable, which it was not before (`grep -rn 'tier 3' scripts/check-token*.mjs`
+returned nothing). Checked against the BUILD's own tier manifest rather than by re-deriving tier
+from a name or a path, because a guard that re-implements the rule it checks cannot catch the two
+definitions diverging.
+
+Proved both directions, and both are pinned as prover mutations (138 now):
+
+- appending `TooltipBg` to the entry -> `1 tier 1 or tier 3 token(s) are exported...`
+- deleting `ColorBgSurface` from it -> `1 tier 2 token(s) are NOT exported...`

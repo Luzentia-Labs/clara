@@ -268,4 +268,56 @@ for (const f of sourceFiles) {
 }
 
 if (problems.length) fail('token-output', problems)
-pass('token-output', 'pairings unpublished, prefix intact, dark scoped to tier 2, public manifest tier-2 only')
+/*
+ * The JS export surface is TIER 2 AND NOTHING ELSE (BG-01M0XZMJ).
+ *
+ * `src/generated/index.ts` IS the package entry - there is no hand-written wrapper - so whatever it
+ * exports is what a consumer can import and what api-extractor reports as public. It used to emit
+ * all 322 tokens: tier 1 primitives and tier 3 component values alongside the 65 semantics, every
+ * one of them `@public`, while PRD F01, AGENTS.md and `tokens.public.lock.json` all say only tier 2
+ * is public.
+ *
+ * That made two guards disagree. Renaming a tier 3 token passed the public-token lock, because it
+ * is not in the lock, and FAILED api-report, because a public signature moved. Whoever hit that had
+ * to pick which gate was lying, and the cheap way out - regenerating the API report - is precisely
+ * the motion that would break a real consumer if the policy were ever enforced.
+ *
+ * Checked against the BUILD's own tier manifest rather than by re-deriving tier from a name or a
+ * directory, for the reason the comment above already gives: a guard that re-implements the rule it
+ * is checking cannot catch the two definitions diverging.
+ */
+const generatedEntry = join(tokens, 'src/generated/index.ts')
+if (!existsSync(generatedEntry)) {
+  fail('token-output', ['src/generated/index.ts missing - run the tokens build first'])
+}
+const exported = new Set(
+  [...readFileSync(generatedEntry, 'utf8').matchAll(/^export const (\w+)/gm)].map((m) => m[1]),
+)
+/** `color.bg.surface` -> `ColorBgSurface`, which is Style Dictionary's own es6 naming. */
+const constantName = (path) => path
+  .split('.')
+  .flatMap((part) => part.split('-'))
+  .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+  .join('')
+
+const tierManifest = JSON.parse(readFileSync(tierManifestPath, 'utf8'))
+const shouldExport = new Set((tierManifest.tier2 ?? []).map((t) => constantName(t.path)))
+const privateTiers = [...(tierManifest.tier1 ?? []), ...(tierManifest.tier3 ?? [])]
+
+const leaked = privateTiers.filter((t) => exported.has(constantName(t.path)))
+if (leaked.length) {
+  fail('token-output', [
+    `${leaked.length} tier 1 or tier 3 token(s) are exported from the package entry, which makes ` +
+    'them public API - PRD F01 says only tier 2 is public, and the public lock agrees. ' +
+    `First few: ${leaked.slice(0, 5).map((t) => constantName(t.path)).join(', ')}`,
+  ])
+}
+const absent = [...shouldExport].filter((name) => !exported.has(name))
+if (absent.length) {
+  fail('token-output', [
+    `${absent.length} tier 2 token(s) are NOT exported from the package entry, so the public ` +
+    `surface is smaller than the policy promises. First few: ${absent.slice(0, 5).join(', ')}`,
+  ])
+}
+
+pass('token-output', `pairings unpublished, prefix intact, dark scoped to tier 2, public manifest tier-2 only, JS entry exports exactly ${exported.size} tier 2 token(s) and no tier 1 or 3`)

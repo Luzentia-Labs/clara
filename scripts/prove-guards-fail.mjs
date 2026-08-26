@@ -635,6 +635,33 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // BG-01M0XZMJ. The package entry emitted all 322 tokens - tier 1 primitives and tier 3
+    // component values alongside the 65 semantics - so 257 names were public API in flat
+    // contradiction of PRD F01 and of `tokens.public.lock.json`, which lists 65 and no others.
+    name: 'a tier 3 token exported from the package entry, making it public API',
+    guard: 'check-token-output.mjs',
+    expect: /tier 1 or tier 3 token\(s\) are exported from the package entry/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/tokens/src/generated/index.ts')
+      writeFileSync(f, readFileSync(f, 'utf8') + 'export const TooltipBg = "#ffffff";\n')
+    },
+    withOutput: true,
+  },
+  {
+    // The other direction. A filter that quietly drops tier 2 as well would satisfy "no tier 3
+    // leaked" while shrinking the public surface the policy promises, which is the same defect
+    // wearing the opposite sign.
+    name: 'a tier 2 token missing from the package entry, shrinking the public surface',
+    guard: 'check-token-output.mjs',
+    expect: /tier 2 token\(s\) are NOT exported from the package entry/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/tokens/src/generated/index.ts')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        .replace(/^export const ColorBgSurface[^\n]*\n/m, ''))
+    },
+    withOutput: true,
+  },
+  {
     // The stacking half. Declaring NO z-index passes the z-index rule, because that rule is a
     // denylist against hand-typed numbers rather than a requirement to use the scale.
     name: 'an overlay that declares no layer token at all, so it stacks on auto',

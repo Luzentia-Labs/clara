@@ -179,7 +179,26 @@ function validateTierReferences (dictionary) {
         transformGroup: transformGroups.js,
         buildPath: 'src/generated/',
         files: [
-          { destination: 'index.ts', format: formats.javascriptEs6 },
+          /*
+           * TIER 2 ONLY - the same filter `tokens.public.json` uses, and for the same reason
+           * (BG-01M0XZMJ).
+           *
+           * This emitted all 322 tokens: tier 1 primitives, tier 2 semantics and tier 3 component
+           * values alike, every one of them `@public` in the API report. PRD F01 and AGENTS.md both
+           * say only tier 2 is public, and `tokens.public.lock.json` agrees - 65 entries, zero of
+           * them tier 1 or 3. So the package's shipped JS surface contradicted its own policy by
+           * 257 names.
+           *
+           * Two guards disagreed as a result: renaming a tier 3 token passed the public-token lock
+           * (not in it) and FAILED api-report (a public signature moved). Whoever hit that had to
+           * decide which gate was lying, and the cheap way out - regenerate the API report - is
+           * exactly the motion that would break a real consumer if the policy were ever enforced.
+           *
+           * Fixed now rather than later because nothing is published yet. `NPM_TOKEN` is unset, so
+           * removing 257 names from the surface costs nobody anything today and would be a breaking
+           * change the moment it is not.
+           */
+          { destination: 'index.ts', format: formats.javascriptEs6, filter: 'clara/tier2' },
         ],
       },
       json: {
