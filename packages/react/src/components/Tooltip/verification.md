@@ -116,7 +116,9 @@ Open order decides which paints on top, because the relationship is bidirectiona
 - **Unreachable by TOUCH GESTURE, but reachable by assistive technology on the same device.**
   Measured: tap does not open it, a long press does not open it, but FOCUS does - including a
   programmatic `.focus()`, because Radix opens on focus whenever no pointer is down. VoiceOver's
-  rotor and TalkBack's swipe move DOM focus, so the mobile screen-reader path reaches the content.
+  rotor and TalkBack's swipe move DOM focus, so the mobile screen-reader path reaches the content -
+  the DOM-focus route is measured and pinned; that those two tools take it is inference, not a
+  device measurement.
   A sighted touch user has no route, which is why AC3 forbids a tooltip being the sole source of
   anything. An earlier version of this bullet claimed programmatic focus left it closed and that
   there was "no route at all" on a phone - false, and understating a path worth protecting.
@@ -138,3 +140,32 @@ Open order decides which paints on top, because the relationship is bidirectiona
   as Popover's, and it belongs to the gate: BG-01M0XVXS.
 - **Screen reader testing is not automated.** PRD F17 names NVDA as a stated gap; it stays one.
 - **Visual regression is not yet wired** (gate 7, US-01M0WSME).
+
+## Recorded sole-source audit (AC3)
+
+**Performed 2026-08-27, by enumeration rather than by sampling.** AC3's verification target is
+`conversational`: no assertion can decide whether a sentence is the only route to a fact, so the
+audit is a reading of every Tooltip Clara itself ships. It is recorded here because a judgement
+nobody wrote down is a judgement nobody can check.
+
+Enumerated with `grep -rn '<Tooltip'` across the workspace. Five call sites exist, all in Storybook;
+the library ships no Tooltip of its own into consumer output.
+
+| Call site | Content | Where the same information lives |
+| --- | --- | --- |
+| `Tooltip.stories.tsx` Default | "Recalculates every open line on this order" | The trigger is labelled **Recalculate**, so the action is on the button. The SCOPE - "every open line on this order" - is in the tooltip alone. See the judgement below. |
+| `Tooltip.stories.tsx` HoverBridge | "The pointer can reach this without it vanishing" | Describes the demo, not the product. Nothing to lose. |
+| `Tooltip.stories.tsx` AgainstTheEdge | "There is no room on the left..." | Same - demo prose. |
+| `Toast.stories.tsx` action | "Posts the journal again once the period is reopened" | The toast's own `description` already says the period is closed. The tooltip restates a fact the toast states. |
+| `Toast.stories.tsx` stacking demo | "This tooltip is directly under where the toast will arrive" | Demo prose. |
+
+**The one judgement this audit had to make.** The Default story's scope qualifier is reachable by
+pointer and by keyboard focus, but not by touch gesture - so on a phone it is unavailable to a
+sighted user who is not running a screen reader. It was ruled acceptable because the button remains
+operable and its outcome visible without it: the qualifier informs, it does not gate. A tooltip
+carrying a precondition, a unit, or a destructive-action warning would fail this audit, and the
+component documentation says so where a consumer will read it.
+
+**What this audit does NOT establish.** Consumer content is outside Clara's reach. AC3 binds what
+Clara ships and shapes what Clara encourages (`content` is typed `string`, so nothing operable can
+hide in one); it cannot bind an application that puts a required field's format in a tooltip.

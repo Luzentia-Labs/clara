@@ -1,13 +1,13 @@
 # US-01M0GMQJ: Popover
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Popover/**, packages/react/src/components/Popover/verification.md, packages/react/src/theme/ClaraPortal.tsx, packages/react/src/styles.css, packages/tokens/src/component/popover.json, packages/react/src/index.ts, packages/react/client-boundary.json, packages/react/package.json, packages/react/etc/clara-react.api.md, packages/tokens/etc/clara-tokens.api.md, packages/react/src/components/__tests__/boundary.test.tsx, apps/docs/src/content/components/popover.md, scripts/check-verification.mjs, scripts/sync-size-budgets.mjs, scripts/prove-guards-fail.mjs, .size-limit.json
+> **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Popover/Popover.tsx, packages/react/src/components/Popover/index.tsx, packages/react/src/components/Popover/Popover.stories.tsx, packages/react/src/components/Popover/__tests__/popover.test.tsx, packages/react/src/components/Popover/verification.md, packages/react/src/theme/ClaraPortal.tsx, packages/react/src/styles.css, packages/tokens/src/component/popover.json, packages/react/src/index.ts, packages/react/client-boundary.json, packages/react/package.json, packages/react/etc/clara-react.api.md, packages/tokens/etc/clara-tokens.api.md, packages/react/src/components/__tests__/boundary.test.tsx, apps/docs/src/content/components/popover.md, scripts/check-verification.mjs, scripts/sync-size-budgets.mjs, scripts/prove-guards-fail.mjs, .size-limit.json
 > **Points:** 5
 
 ## User Story
@@ -54,7 +54,8 @@ nothing. That is why AC1 asserts focus by identity and asserts where focus is NO
 - **When** I dismiss it
 - **Then** focus is never trapped, and on ESCAPE it returns to the trigger
 - **And** on the other two dismissal routes it deliberately does NOT return: an outside click leaves
-  focus where the click landed, and moving focus out leaves it where the user put it. Yanking focus
+  focus where the click landed - on the clicked element if it is focusable, otherwise on
+  `document.body` - and moving focus out leaves it where the user put it. Yanking focus
   back to a trigger somebody just navigated away from is the trap this component exists not to be,
   and Radix suppresses the restore after an outside interaction for that reason. An earlier version
   of this Then-clause said "focus returns to the trigger" for every route, which is true of one
@@ -202,9 +203,11 @@ If `affects_production_runtime: false`, replace with: *Not applicable – story 
 
 ## Open Questions
 
-- [ ] Should `aria-haspopup="dialog"` on the trigger be reconciled with `role="group"` on the panel?
-      Radix hardcodes the former; Clara chooses the latter deliberately. A screen reader announces
-      "has dialog popup" and what opens is a group. axe does not flag it - Owner: Idris (ux)
+- [x] Should `aria-haspopup="dialog"` be reconciled with `role="group"`? **Filed as BG-01M105C0.**
+      Radix hardcodes the attribute; Clara chooses the role deliberately,
+      because a popover traps nothing and calling it a dialog would promise modal semantics it does
+      not deliver. The mismatch is imprecise rather than wrong, axe does not flag it, and overriding
+      Radix's attribute means reaching into a node Clara does not render.
 
 ## Resolved Questions
 

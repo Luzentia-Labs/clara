@@ -5,7 +5,7 @@
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Affects:** packages/tokens/etc/clara-tokens.api.md, packages/tokens/src/index.ts, packages/tokens/tokens.public.lock.json
+> **Affects:** packages/tokens/etc/clara-tokens.api.md, packages/tokens/src/generated/index.ts, packages/tokens/tokens.public.lock.json
 > **Severity:** Medium
 > **Points:** 3
 
@@ -29,11 +29,50 @@ Candidate fixes: (a) stop exporting tier 3 from the tokens entry, which is the c
 
 ## Steps to Reproduce
 
-{{steps}}
+1. `grep -c '@public' packages/tokens/etc/clara-tokens.api.md` and compare against the 65 entries
+   in `packages/tokens/tokens.public.lock.json`, which holds ZERO tier-3 tokens.
+2. Before the fix the api report carried 31+ tier-3 component constants marked `@public` -
+   `PopoverBg`, `PopoverBorder`, `PopoverMaxInlineSize`, and the Modal, Drawer and ProgressBar
+   families - and the Tooltip story added eight more (`TooltipBg`, `TooltipBorder`,
+   `TooltipBorderWidth`, `TooltipFg`, `TooltipMaxInlineSize`, `TooltipPaddingBlock`,
+   `TooltipPaddingInline`, `TooltipRadius`).
+3. So `import { PopoverBg } from '@luzentialabs/clara-tokens'` resolved against a published
+   package, while PRD F01 and AGENTS.md both say tier 3 is private and may be re-tuned at will.
+
+**The two guards gave opposite answers.** Rename a tier-3 token: `tokens.public.lock.json` passes
+(it is not in the lock) and `api-report` FAILS (a public signature moved). Whoever hit that had to
+choose which gate was lying, and the cheap way out - regenerate the api report - is exactly the
+motion that would break a real consumer if the tier policy were ever enforced.
+
+**And there was no guard for the rule itself:** `grep -rn 'tier 3' scripts/check-token*.mjs`
+returned nothing. The rule lived in three prose documents and in no executable form, which is the
+condition every other defect in this repo has been found in.
 
 ## Proposed Fix
 
-{{fix}}
+**Shipped: option (a), stop exporting tier 3 from the tokens entry - not (b), the `@internal`
+marking.** `@internal` would have silenced api-extractor while leaving the values importable at
+runtime, so the shipped surface and the stated policy would still have disagreed; it fixed the
+guard contradiction by hiding one side of it.
+
+What landed:
+
+1. The tokens entry emits tier 2 only. `packages/tokens/etc/clara-tokens.api.md` now carries **65**
+   `@public` symbols, matching the lock exactly, and `PopoverBg` / `TooltipBg` and the rest of the
+   tier-3 families are gone. `LayerTooltip` remains, correctly - the layer scale is tier 2.
+2. **The rule is executable, in both directions.** `scripts/check-token-output.mjs` reads
+   `packages/tokens/build/tier-manifest.json` (`:97-103`) and fails if a tier-1 or tier-3 name
+   reaches the entry OR if a tier-2 name goes missing. The second half matters as much as the
+   first: a filter that quietly dropped tier 2 as well would satisfy "no tier 3 leaked" while
+   shrinking the surface the policy promises - the same defect with the opposite sign. That is
+   AC2, and it is why the fix is a guard rather than an edit.
+3. The manifest is derived from the build rather than from a name prefix, because a reviewer had
+   already put a `semantic` group inside `src/primitive/`: it was tier 2 to the build and tier 1 to
+   any prefix rule (`check-token-output.mjs:93`).
+
+**Breaking-change note.** This removes exported names from a published package, so it is a MAJOR
+for anyone who had imported one. Taken now, before wider adoption, on the standing rule that
+publishing is a one-way door - the surface only gets more expensive to correct.
 
 ## Revision History
 

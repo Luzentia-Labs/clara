@@ -1,13 +1,14 @@
 # US-01M0GM31: Tooltip
 
-> **Status:** Draft
+> **Status:** Done
+> **Verification depth:** conversational (AC3's sole-source audit was performed by enumeration and recorded in `packages/react/src/components/Tooltip/verification.md`; every other AC is functional)
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Tooltip/**, packages/react/src/components/Tooltip/verification.md, scripts/check-component-css.mjs
+> **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Tooltip/Tooltip.tsx, packages/react/src/components/Tooltip/Tooltip.stories.tsx, packages/react/src/components/Tooltip/__tests__/tooltip.test.tsx, packages/react/src/components/Tooltip/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story
@@ -75,6 +76,7 @@ is why AC3 forbids a tooltip being the sole source of anything.
 - **When** it carries content
 - **Then** the same information is available elsewhere; a tooltip is never the only route to essential information
 - **Verify:** manual audit tooltip content for sole-source information
+- **Verified:** yes (2026-08-27, enumerated audit of all 5 Tooltip call sites in the workspace, recorded with its one judgement in `packages/react/src/components/Tooltip/verification.md`)
 - **Verification target:** conversational
 
 ### AC4: Token-only styling
@@ -239,10 +241,13 @@ If `affects_production_runtime: false`, replace with: *Not applicable – story 
 
 ## Open Questions
 
-- [ ] Should the 700ms open delay be reduced, or delay grouping added? Radix's 700 is calibrated
-      against a 300ms skip window that the per-Tooltip provider shape deletes, so a toolbar waits it
-      out on every button. Ruled MINOR three rounds running because the keyboard path is unaffected -
-      Owner: Idris (ux)
+- [x] Should the 700ms open delay be reduced, or delay grouping added? **Filed as BG-01M105X5.**
+      Radix's 700 assumes a 300ms skip window that the per-Tooltip provider shape deletes, so a
+      toolbar pays it on every button. Ruled MINOR three rounds running because FOCUS opens
+      immediately, so the keyboard and assistive-technology paths are unaffected - it is a comfort
+      regression for pointer users, not a barrier. The stated RATIONALE was wrong, though: "public
+      API is a one-way door" covers a public provider and does not cover `delayDuration` on an
+      internal one, which is freely changeable.
 
 ## Resolved Questions
 

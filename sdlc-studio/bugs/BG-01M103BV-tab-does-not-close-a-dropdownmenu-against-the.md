@@ -20,11 +20,41 @@ This is filed as the destination for the question rather than as a defect ruling
 
 ## Steps to Reproduce
 
-{{steps}}
+1. `pnpm build && pnpm storybook`, open **DropdownMenu / Default**.
+2. Open the menu with the keyboard and press **Tab**.
+3. **Result:** the menu stays open and focus stays on the menu content. Neither half of the
+   APG behaviour happens - no dismissal, no move to the next element in the page tab sequence.
+
+Measured in rounds 2, 4 and 5 against the same build.
+
+**Where the deviation is from.** The WAI-ARIA APG menu-button pattern specifies Tab closes the
+menu and moves focus onward. `packages/react/src/components/DropdownMenu/DropdownMenu.tsx` AC1
+claims the menu pattern, so a criterion in this repo names the spec being deviated from - even
+though the deviation falls outside AC1's own enumerated list (arrows, typeahead, submenus,
+disabled-skipping).
+
+It is Radix's behaviour and is not configurable from the Content surface: no prop on
+`DropdownMenu.Content` changes it.
 
 ## Proposed Fix
 
-{{fix}}
+**No code change until the operator rules**, because the two outcomes have very different costs
+and only one of them is a bug fix.
+
+**If the ruling is accept and document** (the cheaper option): add the row to the DropdownMenu
+keyboard table in `apps/docs/src/content/components/dropdown-menu.md` and to the component's
+`verification.md`, alongside the already-recorded Escape-inside-a-submenu deviation, which is the
+same family. Narrow AC1's wording so it claims the behaviours it enumerates rather than the whole
+pattern - the criterion overclaiming is the part that is actually wrong today. No runtime change.
+
+**If the ruling is conform:** Clara has to intercept `keydown` on the Content and, on Tab, close
+the menu and move focus to the next tabbable element after the trigger. That means Clara owning
+focus order - the machinery ADR-004 adopted Radix specifically to avoid owning - and it needs its
+own story with an e2e assertion, since jsdom does not model the page tab sequence.
+
+**Recommendation: accept and document, and fix AC1's overclaim regardless of the ruling.** The
+overclaim is a defect either way: a criterion that names a spec it does not fully implement will
+mislead the next reader whichever direction the behaviour goes.
 
 ## Revision History
 

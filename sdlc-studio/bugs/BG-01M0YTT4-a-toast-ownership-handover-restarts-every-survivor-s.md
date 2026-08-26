@@ -28,11 +28,45 @@ Filed rather than fixed inside the round-2 repair, because the repair being revi
 
 ## Steps to Reproduce
 
-{{steps}}
+Reproduced with fake timers, in the shape the review used:
+
+1. Render two `<Toast open>` elements. The first to publish owns the shared host -
+   `packages/react/src/components/Toast/toast-store.ts:60` sets `owner = entries[0].id`, and
+   `packages/react/src/components/Toast/Toast.tsx:197` renders `isHost ? <ToastHost /> : null`.
+2. Advance the clock to t=4.0 s and unmount the OWNER. Ownership passes to the survivor, so
+   `<ToastHost />` is now rendered from a different position in the React tree.
+3. Watch the survivor's `onClose`. It fires at **t=9.0 s** - a fresh five seconds - where a solo
+   toast with the same duration fires at t=5.0 s.
+
+**Second effect, same cause.** After step 2 the announcer contains
+`"Notification Success: Survivor"` again: every `RadixToast.Root` inside the re-created host
+remounts, so the whole remaining stack is re-announced because somebody dismissed an unrelated
+toast.
+
+**Why the existing suite is green.** `toast.test.tsx`'s handover case asserts the survivor is
+still present and that exactly one viewport exists. Both remain true while the timer is wrong and
+the live region is repeating itself.
 
 ## Proposed Fix
 
-{{fix}}
+**Remove the handover rather than repair it.** Ownership exists only because the host has to be
+rendered by something, and every `<Toast>` is a candidate - so the position of `<ToastHost />` in
+the React tree is a function of which toast happens to be first. A mount point that does not move
+makes the whole class of defect unreachable, and it closes the timer reset and the re-announcement
+together, because both are the same remount.
+
+Two shapes, in preference order:
+
+1. **Portal the host from the store.** `toast-store.ts` already owns the shared stack and its
+   subscription; giving it the host too removes `owner`, `useIsToastHost`, and the branch at
+   `Toast.tsx:197` outright. Fewest moving parts, and it deletes the concept rather than guarding it.
+2. **Keep ownership, stabilise the target.** Render the host through a `createPortal` into a
+   container created once at module scope, so a change of owner does not change the subtree's
+   position. Smaller diff, but `owner` survives and so does the reason to think about it again.
+
+**Verification, either way:** assert the survivor's `onClose` fires at its ORIGINAL deadline after
+a handover, and assert the announcer's content does NOT gain a repeat entry. The current handover
+test proves neither, which is how this shipped.
 
 ## Revision History
 

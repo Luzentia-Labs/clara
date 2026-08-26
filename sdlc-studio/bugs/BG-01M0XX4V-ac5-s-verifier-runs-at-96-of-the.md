@@ -5,7 +5,7 @@
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Affects:** scripts/prove-guards-fail.mjs, sdlc-studio/stories/US-01M0GM61-portal-and-layer-scale.md
+> **Affects:** scripts/prove-guards-fail.mjs, sdlc-studio/stories/US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md
 > **Severity:** Medium
 > **Points:** 3
 
@@ -25,11 +25,58 @@ Deliberately not fixed inside the GM61 close: the prover is the project's centra
 
 ## Steps to Reproduce
 
-{{steps}}
+Reproduced at `14eaed4` and again on this sprint's tree.
+
+**Defect 1 - the timeout margin.**
+1. `time node scripts/prove-guards-fail.mjs` -> **97.8 s real** for 135 mutations, each staging a
+   copy of the tree. `user 125 s` against `real 98 s` shows it is barely parallel.
+2. Chained behind `check-component-css.mjs`, as AC5's expression had it, the pair measures ~115 s.
+3. `verify_ac.py --timeout` defaults to 120 s, and this project's `sdlc-studio/.config.yaml`
+   exposes no timeout key, so 120 s is what `reconcile --verify` uses. The margin is ~5 s.
+4. On one of three runs at an UNMUTATED tree, AC5 timed out and the harness rewrote the story to
+   `**Verified:** no (2026-08-26)`. A clock stamped a false claim into a spec file.
+
+The margin closes on its own: the prover's runtime grows with guard count (131 -> 135 this sprint
+alone), so raising the timeout defers the cliff rather than removing it.
+
+**Defect 2 - the verifier is self-referential.** `verify_ac.py run` rewrites the story file as it
+walks the criteria. `prove-guards-fail.mjs` stages a copy of the tree INCLUDING
+`sdlc-studio/stories/` and mutates a story criterion to build its "verifier cannot reach the file
+its mutant changes" case. So when AC5 runs, the file the prover reads has already been edited by
+the run invoking it. On the failing pass, five earlier ACs had just been stamped `no` by an
+unrelated `vitest`-not-on-`PATH` fault, which changed the set of `Verified: yes` criteria
+available to mutate, and the mutation SURVIVED:
+
+```
+FAIL AC5: shell node scripts/check-component-css.mjs && node scripts/prove-guards-fail.mjs
+  | a verified criterion whose verifier cannot reach the file its mutant changes:
+  |   SURVIVED - check-story-verifiers.mjs exited 0 with the mutation applied
+```
+
+Standalone against the same tree one minute later, the prover is green.
 
 ## Proposed Fix
 
-{{fix}}
+**Shipped: candidate 3, the `--only` filter.** `scripts/prove-guards-fail.mjs:284-306` now accepts
+`--only <regex>` and runs just the mutations whose name matches, and US-01M0GM61 AC5's expression
+is now `node scripts/check-component-css.mjs && node scripts/prove-guards-fail.mjs --only
+"z-index|layer|overlay"` (`sdlc-studio/stories/US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md:130`).
+
+This closes both defects at once, which is why it was preferred over raising the timeout:
+
+- **The margin.** AC5 runs three mutations instead of 135, so it finishes far inside the 120 s
+  default and does not grow as guards are added.
+- **The self-reference.** The selected mutations do not stage `sdlc-studio/stories/`, so the file
+  `verify_ac.py` is rewriting is no longer input to the thing it is invoking.
+- **Precision, as a bonus.** "The whole suite passed" was always a weaker claim than AC5 needed;
+  `--only` pins exactly the mutations the criterion asserts, so a green result now means what the
+  criterion says.
+
+**Deliberately NOT done, and still open as separate work:** parallelising the two sequential loops
+over `CASES` (`prove-guards-fail.mjs:231`) and `OUTPUT_CASES` (`:392`), and staging the tree copy
+once rather than per mutation. Both are real - the `user`/`real` ratio shows the headroom - but the
+prover is this project's central proof mechanism at 1821 lines, and rewriting its execution model
+needs its own review round rather than riding along inside a story close.
 
 ## Revision History
 

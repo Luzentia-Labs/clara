@@ -5,7 +5,7 @@
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Affects:** scripts/sync-size-budgets.mjs, .size-limit.json
+> **Affects:** scripts/sync-size-budgets.mjs, ./.size-limit.json
 > **Severity:** Medium
 > **Points:** 2
 
@@ -121,3 +121,17 @@ Proved both directions:
 Limit set at **50 kB**, leaving headroom for the six overlays still planned. They are all
 popper-based, so each should add its own code and almost none of the shared chain - if one moves
 this number by more than a couple of kB, that is precisely the signal this entry exists to give.
+
+## A note on this file's `Affects` spelling
+
+`.size-limit.json` is written `./.size-limit.json` deliberately. **Do not tidy the `./` away.**
+
+`sdlc_md.affects_files` counts a token as a path only when it contains a `/` or ends in
+`.py`/`.md`/`.yaml`/`.yml`/`.sh`, so a root-level `.json` was dropped from the DECLARED set while
+`verify_files` still found it in this unit's own `Verify:` line - and `validate` reported
+`affects-undeclared` against a declaration that was already correct. The `./` prefix makes the same
+path parseable without changing what it points at.
+
+The limit is in the shared skill parser, not in this project, and it would hit `package.json`,
+`tsconfig.json`, or any other root-level config the same way. Recorded here rather than patched
+there, because the skill is not this repo's to change.

@@ -1,16 +1,21 @@
 # Where Clara stands
 
-> **Updated:** 2026-08-26 (overlay run: all five built, reviewed once, every finding fixed)
+> **Updated:** 2026-08-27 (overlay run closed: four stories Done after five review rounds)
 > The figures below are generated - `pnpm latest:sync`, checked by `pnpm check:latest`. They were
 > typed by hand twice and were wrong both times.
 > Read this first after any compaction or reset, then run `/sdlc-studio status`.
 
 ## One paragraph
 
-**All five overlays are built and have been through TWO independent adversarial review rounds.**
-Round 1: four REJECTs, thirteen blocking findings. Round 2: four REJECTs again - and three of the
-four were the round-1 defect surviving INSIDE its own repair, which is the pattern US-01M0GM61 hit
-in rounds 8 and 9. Everything found is fixed and proved by re-running the reviewer's own mutation.
+**Four of the five overlay stories are Done** - Toast, DropdownMenu, Popover, Tooltip - after
+**five independent adversarial review rounds** that produced 32+ blocking findings. Every finding
+is fixed and proved by re-running the reviewer's own mutation. Round 5 was the first round in which
+nothing was structurally wrong.
+
+**The fifth overlay, Drawer, ships in the built package and its story has NEVER been reviewed.**
+US-01M0GMWW is still `planning` tier at Draft with six green ACs and zero review rows. This is not
+a sixth round on reviewed work; it is the first round on work that was skipped. It is the single
+largest open item in this epic and it is named here rather than implied.
 
 **The worst defect of the run was introduced BY a repair.** The shared toast stack published to its
 store during render, so any discarded render - StrictMode, or any Suspense boundary in production -
@@ -18,21 +23,28 @@ orphaned an entry that then owned the shared host forever, and `<Toast>` rendere
 permanently. Every gate was green throughout. That is the case for confirming rounds in one
 sentence.
 
-**Nothing is Done.** Two REJECTs are not a sign-off, and the author never records their own verdict.
-A third round is the operator's call.
+**What broke the review loop was not another round.** Rounds 1-4 were reactive: fix what the seat
+found, hand it back, get a new class of finding. Round 5 was preceded by a systematic self-sweep -
+enumerate the classes a seat could examine, check each BEFORE handing over - which is the same
+technique that ended US-01M0GM61's six-round loop. It found two real gaps and produced the first
+clean round. **Sweep ahead of the reviewer; do not react to them.**
 
-**Eight bugs filed across the run, seven fixed.** BG-01M0YTT4 is open by choice: a toast ownership
-handover restarts every survivor's dismiss countdown, and the mechanism it would change is the one
-the regression above came from.
+**Ten bugs filed across the run.** Eight fixed. Two are open BY CHOICE as recorded decisions, not
+oversights: BG-01M105X5 (the 700 ms tooltip delay assumes a skip window the per-Tooltip provider
+deletes - a comfort regression for pointer users; focus is unaffected) and BG-01M105C0 (Popover's
+trigger announces `aria-haspopup="dialog"` while its panel is a `group` - the UX seat's call).
+BG-01M0YTT4 also stays open: a toast ownership handover restarts every survivor's dismiss countdown
+AND re-announces the whole stack, and the mechanism it would change is the one the regression above
+came from.
 
-The tree is on `main` with 1184 tests and every gate green. Nothing is on npm.
+The tree is on `main` with 1191 tests and every gate green. Nothing is on npm.
 
 ## Numbers
 
 - `pnpm check` runs **30 guards**; `prove-guards-fail` kills **146 mutations** on a staged copy.
-- **1184 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- **1191 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **104 decisions**. Stories: **43 Done of 89**. `main` is the only branch - this project is
+- **104 decisions**. Stories: **47 Done of 89**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line
@@ -151,7 +163,8 @@ skill rather than here.
 | **A VoiceOver session** | Field reaching Done | Field AC6 asks for the announced strings for a description plus an error, recorded before export. Nobody has run it. The DOM order and de-duplication it depends on ARE verified (AC5); what a screen reader SAYS is not. |
 | **An autofill check in Chrome and Safari** | Input reaching Done | Input AC4. Note the feature it would check does not exist: no `:-webkit-autofill` rule is in the repo, and the criterion now says so. What needs confirming is that an autofilled field stays usable and readable with the browser's own colour. |
 | **A manual keyboard pass** | Nothing, today | Outstanding on all 23 records and each says so. It is not a Done gate; it is the thing no automated check reaches. |
-| **Independent review** | US-01M0GM31, US-01M0GMK1, US-01M0GM9W, US-01M0GMQJ reaching Done | All four overlay stories verify green and none has been reviewed. `transition.py` enforces this - it refuses Done without a plan-review APPROVE from a reviewer who is not the author. |
+| **Independent review** | US-01M0GMWW (Drawer) reaching Done | Drawer ships in the built package and its story has zero review rows - it was never picked up. The other four overlay stories are Done, each carrying an APPROVE from a seat that did not write the code. `transition.py` enforces this: it refuses Done without a plan-review APPROVE from a reviewer who is not the author. |
+| **Promotion to full tier** | US-01M0GMWW (Drawer) reaching Done | Still `planning` tier: no Test Plan, no Context, no Edge Cases, no Rollback Envelope. Its six ACs verify green, which is necessary and not sufficient. |
 | **The GM61 review rounds** | (closed, ten of them) | Six consecutive rounds found the same class: a claim asserting proof where no mutation demonstrates it, twice inside the previous round's own fix. Broken by enumerating every branch of the guard and deleting each in isolation. |
 | **US-01M0WSME** | Gate 7, and the two definition-of-done artefacts named above | Storybook workspace + visual regression. |
 | **`NPM_TOKEN`** | Any publish | Unset on the repo, deliberately, until a release is actually wanted. |

@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** apps/docs/src/content/components/dropdown-menu.md, packages/react/src/components/DropdownMenu/**, packages/react/src/components/DropdownMenu/verification.md, scripts/check-component-css.mjs
+> **Affects:** apps/docs/src/content/components/dropdown-menu.md, packages/react/src/components/DropdownMenu/DropdownMenu.tsx, packages/react/src/components/DropdownMenu/DropdownMenu.stories.tsx, packages/react/src/components/DropdownMenu/__tests__/dropdown-menu.test.tsx, packages/react/src/components/DropdownMenu/verification.md, scripts/check-component-css.mjs
 > **Points:** 8
 
 ## User Story

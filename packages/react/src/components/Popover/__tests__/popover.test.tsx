@@ -101,7 +101,10 @@ describe('Popover returns focus without trapping', () => {
 
   it('keeps the consumer className alongside its own', async () => {
     // Unpinned until now, against an in-repo precedent: Modal already asserts its equivalent.
-    // `cx('clara-popover', className)` collapsing to `cx('clara-popover')` survived all 818 tests.
+    // `cx('clara-popover', className)` collapsing to `cx('clara-popover')` used to survive the whole
+    // suite. No count is quoted here on purpose: a figure from the tree it was measured on cannot be
+    // checked later, and an unverifiable number in a comment is the same defect as an unverifiable
+    // claim anywhere else. The mutation is what matters, and it now reddens this test.
     render(
       <Popover open onOpen={() => {}} onClose={() => {}} label="Options" className="tenant-popover"
         trigger={<Button>Options</Button>}>

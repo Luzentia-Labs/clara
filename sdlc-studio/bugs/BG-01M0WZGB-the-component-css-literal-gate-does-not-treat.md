@@ -5,7 +5,7 @@
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Affects:** scripts/check-component-css.mjs, scripts/prove-guards-fail.mjs
+> **Affects:** packages/react/src/styles.css, scripts/check-component-css.mjs, scripts/prove-guards-fail.mjs
 > **Severity:** major
 > **Points:** 3
 

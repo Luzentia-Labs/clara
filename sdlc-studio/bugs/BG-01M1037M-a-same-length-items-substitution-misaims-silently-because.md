@@ -22,11 +22,50 @@ Candidate fixes: compare a cheap structural signature (the joined labels) rather
 
 ## Steps to Reproduce
 
-{{steps}}
+1. Render a `<DropdownMenu>` whose `items` includes an entry labelled "Save draft".
+2. Open it and move keyboard focus onto that entry.
+3. Swap the entry IN PLACE for one labelled "Delete everything" - same array length, different
+   meaning at the same index.
+4. Press Enter.
+
+**Result:** the destructive handler runs once, the safe one zero times, and nothing is written to
+the console. Roving focus tracks a collection INDEX, so any substitution that preserves length
+while moving meaning between positions misaims exactly as a length change does.
+
+**The gate.** `packages/react/src/components/DropdownMenu/DropdownMenu.tsx:200` reads
+`open && itemsRef.current !== items && itemsRef.current.length !== items.length`. The final
+conjunct is what makes step 3 silent.
+
+The consumer documentation is not falsified - its heading is broad and the warned case is the one
+described - but the check is narrower than the hazard it names.
 
 ## Proposed Fix
 
-{{fix}}
+**Compare a structural signature, not length and not identity.** Replace the `length` conjunct at
+`DropdownMenu.tsx:200` with a comparison of the joined labels, kept in `itemsRef` alongside the
+array:
+
+```
+const sig = items.map((i) => i.label).join('\u0000')
+devWarning(open && sigRef.current !== undefined && sigRef.current !== sig, ...)
+```
+
+The separator must be a character a label cannot contain, or two entries can trade a boundary and
+produce the same string.
+
+**Why not the obvious widening.** `itemsRef.current !== items` is true on EVERY render for the
+common React shape of rebuilding the array inline, so it would warn constantly on correct code -
+the failure `lib/dev-warning.ts` names in its own docblock as the one that makes a warning
+worthless. The signature is stable across a rebuilt array with the same contents, which is the
+property that makes it usable.
+
+**Narrower alternative, if the signature proves too noisy:** warn only when the label at the
+CURRENTLY FOCUSED index changes. That is the precise hazard and costs one comparison, at the price
+of staying silent about a misaim the user has not focused yet.
+
+**Guard:** the new call site must pass `scripts/check-dev-warnings.mjs`, which bundles each
+`devWarning` caller with `NODE_ENV=production` and requires the message to be absent - so the
+condition has to stay at the call site, not move inside the helper.
 
 ## Revision History
 

@@ -7,7 +7,7 @@
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Toast/**, packages/react/src/components/Toast/verification.md, scripts/check-component-css.mjs
+> **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Toast/Toast.tsx, packages/react/src/components/Toast/toast-store.ts, packages/react/src/components/Toast/Toast.stories.tsx, packages/react/src/components/Toast/__tests__/toast.test.tsx, packages/react/src/components/Toast/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story
