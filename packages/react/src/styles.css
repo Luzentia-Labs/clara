@@ -330,6 +330,77 @@
 .clara-skeleton-group { display: grid; gap: var(--clara-skeleton-gap); }
 
 /*
+ * Drawer - a panel attached to an edge.
+ *
+ * The scrim and the panel are SIBLINGS in one ClaraPortal host, panel after scrim, and neither
+ * carries a z-index beyond the shared `--clara-layer-overlay`: equal z-index paints in tree order,
+ * so the panel is over the scrim for free and the whole host stacks by open order (D0088).
+ *
+ * MOTION, where Modal has none. D0094's argument against animating a Modal was specific - a centred
+ * dialog has no spatial origin. A drawer has one, and D0100 permits that meaning, so the panel
+ * slides in from its OWN edge. It exits instantly (D0094's pre-commitment), and under
+ * `prefers-reduced-motion` the slide is REMOVED rather than replaced: this is Class A, where the
+ * motion is not the information. The state change is already carried louder than any slide could
+ * carry it, because the viewport dims, focus relocates and the background goes inert.
+ */
+.clara-drawer__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--clara-layer-overlay);
+  background: var(--clara-drawer-scrim);
+}
+.clara-drawer {
+  position: fixed;
+  z-index: var(--clara-layer-overlay);
+  display: flex;
+  flex-direction: column;
+  gap: var(--clara-drawer-gap);
+  padding: var(--clara-drawer-padding);
+  background: var(--clara-drawer-bg);
+  box-sizing: border-box;
+  max-block-size: 100%;
+}
+.clara-drawer--left, .clara-drawer--right {
+  inset-block: 0;
+  inline-size: var(--clara-drawer-inline-size);
+  max-inline-size: 100%;
+}
+.clara-drawer--left {
+  inset-inline-start: 0;
+  border-inline-end: var(--clara-drawer-border-width) solid var(--clara-drawer-border);
+  animation: clara-drawer-in-start var(--clara-drawer-enter-duration) var(--clara-drawer-enter-easing);
+}
+.clara-drawer--right {
+  inset-inline-end: 0;
+  border-inline-start: var(--clara-drawer-border-width) solid var(--clara-drawer-border);
+  animation: clara-drawer-in-end var(--clara-drawer-enter-duration) var(--clara-drawer-enter-easing);
+}
+.clara-drawer--bottom {
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: var(--clara-drawer-block-size);
+  border-block-start: var(--clara-drawer-border-width) solid var(--clara-drawer-border);
+  animation: clara-drawer-in-bottom var(--clara-drawer-enter-duration) var(--clara-drawer-enter-easing);
+}
+@keyframes clara-drawer-in-start { from { transform: translateX(-100%); } }
+@keyframes clara-drawer-in-end { from { transform: translateX(100%); } }
+@keyframes clara-drawer-in-bottom { from { transform: translateY(100%); } }
+
+.clara-drawer__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--clara-drawer-gap); }
+.clara-drawer__title { margin: var(--clara-box-padding-none); font-size: var(--clara-font-heading-sm); }
+.clara-drawer__description { margin: var(--clara-box-padding-none); color: var(--clara-color-fg-muted); }
+/* The BODY scrolls, not the panel - a panel that scrolls takes its header and footer with it. */
+.clara-drawer__body { flex: 1 1 auto; overflow-y: auto; min-block-size: var(--clara-box-padding-none); }
+/* Children must not shrink instead of scrolling: a flex column squashes a fixed-height chart to
+   nothing rather than letting the body scroll it, which a review measured on Modal at 18px. */
+.clara-drawer__body > * { flex-shrink: 0; }
+.clara-drawer__footer { flex: 0 0 auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .clara-drawer--left, .clara-drawer--right, .clara-drawer--bottom { animation: none; }
+}
+
+/*
  * ProgressBar (D0100).
  *
  * DETERMINATE DOES NOT ANIMATE, and no `transition` may be added here. The fill's width is DATA: a

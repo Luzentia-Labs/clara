@@ -191,6 +191,29 @@ export interface DividerProps {
 }
 
 // @public
+export const Drawer: ForwardRefExoticComponent<DrawerProps & RefAttributes<HTMLDivElement>>;
+
+// @public
+export type DrawerPlacement = 'left' | 'right' | 'bottom';
+
+// @public (undocumented)
+export interface DrawerProps {
+    children?: ReactNode;
+    // (undocumented)
+    className?: string;
+    description?: string;
+    dismissible?: boolean;
+    footer?: ReactNode;
+    initialFocus?: RefObject<HTMLElement | null>;
+    onClose: () => void;
+    open: boolean;
+    // (undocumented)
+    placement?: DrawerPlacement;
+    returnFocus?: RefObject<HTMLElement | null>;
+    title: string;
+}
+
+// @public
 export function EmptyState(input: EmptyStateProps): JSX_2.Element;
 
 // Warning: (ae-forgotten-export) The symbol "EmptyStateEmptyProps" needs to be exported by the entry point index.d.ts

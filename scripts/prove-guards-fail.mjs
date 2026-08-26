@@ -395,6 +395,44 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // The conditional-at-rule branch, which round 8 ADDED and round 9 deleted without a single gate
+    // noticing: replacing the `unconditional` filter with `const unconditional = rules` left this
+    // prover at PASS, 129 killed, zero survivors. The entry below it ("declares no layer token at
+    // all") REPLACES the token rather than RELOCATING it, so it fails through the same branch with
+    // or without the filter and pins nothing. Verbatim round 5's finding against AC5's fallback
+    // clause, one round later, in the fix for the defect.
+    name: 'an overlay whose only layer token hides inside a conditional at-rule',
+    guard: 'check-overlay-contract.mjs',
+    expect: /takes `z-index` from a layer token/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      let css = readFileSync(f, 'utf8')
+      // EVERY rule of this component that declares the token, not just the first. Modal declares it
+      // on `.clara-modal` AND `.clara-modal__scrim`, so relocating one left the other unconditional
+      // and the guard passed - correctly, since the component still declared it somewhere reachable.
+      // An incomplete mutation is indistinguishable from a guard that cannot fail.
+      const rules = [...css.matchAll(/\.clara-modal[\w-]*\s*\{[^}]*\}/g)]
+        .map((m) => m[0]).filter((r) => /z-index:\s*var\(--clara-layer-/.test(r))
+      if (!rules.length) throw new Error('prove entry found no .clara-modal rule carrying a layer token')
+      // RELOCATED, not removed: the token still exists, it is simply unreachable on screen.
+      for (const rule of rules) css = css.replace(rule, `@media print { ${rule} }`)
+      writeFileSync(f, css)
+    },
+  },
+  {
+    // The namespace arm. Both Radix entries use NAMED imports, so nothing reached the
+    // `PropertyAccessExpression` branch and deleting it left the prover at exit 0 - while AC8
+    // lists `<Dialog.Portal>` as an observed-failing shape (round 9).
+    name: 'an overlay reaching for a Radix portal through a namespace import',
+    guard: 'check-overlay-contract.mjs',
+    expect: /renders <Dialog\.Portal>, a Radix portal/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        + `\nexport function ModalNamespaceProbe () { return <Dialog.Portal /> }\n`)
+    },
+  },
+  {
     // The SECOND name Radix exports for the same primitive. `DialogPortal` is a first-class export
     // of @radix-ui/react-dialog and the one an editor's auto-import offers, and the match was
     // `=== 'Portal'`, so it caught half the idiom (round 8). Two entries on this branch rather than
@@ -1290,7 +1328,15 @@ const OUTPUT_CASES = [
     expect: /does not satisfy .clara-modal__body's `overflow` contract/,
     stage: (stage) => {
       const f = join(stage, 'packages/react/src/styles.css')
-      writeFileSync(f, readFileSync(f, 'utf8').replace('overflow-y: auto;', 'overflow-y: visible;'))
+      // Scoped to the rule this entry NAMES. A bare `.replace('overflow-y: auto;', ...)` takes the
+      // first occurrence in the file, so the moment Drawer's body rule landed earlier the mutation
+      // silently moved to a component this entry says nothing about - and the Modal contract stayed
+      // satisfied, so it SURVIVED. A position-dependent mutation is a mutation that stops testing
+      // what it claims to.
+      const css = readFileSync(f, 'utf8')
+      const rule = css.match(/\.clara-modal__body\s*\{[^}]*\}/)
+      if (!rule) throw new Error('prove entry could not find .clara-modal__body to mutate')
+      writeFileSync(f, css.replace(rule[0], rule[0].replace('overflow-y: auto', 'overflow-y: visible')))
     },
   },
   {

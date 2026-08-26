@@ -1,0 +1,46 @@
+{
+  "drawer": {
+    "bg": {
+      "value": "{color.bg.surface}",
+      "type": "color"
+    },
+    "scrim": {
+      "value": "{color.bg.scrim}",
+      "type": "color"
+    },
+    "padding": {
+      "value": "{space.section}",
+      "type": "dimension"
+    },
+    "gap": {
+      "value": "{space.stack}",
+      "type": "dimension"
+    },
+    "border": {
+      "value": "{color.border.default}",
+      "type": "color"
+    },
+    "border-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    },
+    "inline-size": {
+      "value": "28rem",
+      "type": "dimension",
+      "comment": "A raw dimension on purpose, following `modal.width-*`. Tier 2 `size` carries control-height, target-min and bar-thickness - a drawer's extent has no semantic ancestor there, and inventing one would put a drawer-shaped value in the public layer where every component could reach it. Tier 3 is private and per-component, which is exactly what this is."
+    },
+    "block-size": {
+      "value": "20rem",
+      "type": "dimension",
+      "comment": "A raw dimension on purpose, following `modal.width-*`. Tier 2 `size` carries control-height, target-min and bar-thickness - a drawer's extent has no semantic ancestor there, and inventing one would put a drawer-shaped value in the public layer where every component could reach it. Tier 3 is private and per-component, which is exactly what this is."
+    },
+    "enter-duration": {
+      "value": "{duration.state-change}",
+      "type": "duration"
+    },
+    "enter-easing": {
+      "value": "{easing.enter}",
+      "type": "cubicBezier"
+    }
+  }
+}

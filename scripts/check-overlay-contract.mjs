@@ -177,8 +177,20 @@ for (const { name } of built) {
   // overlay whose only layer token sat inside `@media print` satisfied this while stacking on
   // `auto` on screen - the identical media-query evasion `check-component-css` already carries a
   // dedicated prove entry for at a neighbouring joint, walked into again (round 8).
-  const unconditional = rules.filter((rule) => rule.parent?.type !== 'atrule'
-    || /^(layer|supports)$/i.test(rule.parent.name))
+  // The FULL ancestor chain, not the immediate parent. Reading one level meant
+  // `@media print { @layer clara.components { .clara-modal { z-index: ... } } }` was classified
+  // unconditional and passed, which is literally the shape AC8 enumerates - the fix for the
+  // one-level evasion had the same hole one level deeper (round 9).
+  //
+  // `@layer` and `@supports` are not conditional in the sense that matters: a layer always applies,
+  // and refusing `@supports` would break the cascade-layer contract D0005 requires.
+  const conditional = (node) => {
+    for (let at = node.parent; at; at = at.parent) {
+      if (at.type === 'atrule' && !/^(layer|supports)$/i.test(at.name)) return true
+    }
+    return false
+  }
+  const unconditional = rules.filter((rule) => !conditional(rule))
   if (!rules.length) {
     problems.push(`${where}: ${name} is an overlay with no stylesheet rule of its own, so it can carry no layer token`)
   } else if (!unconditional.some((rule) => rule.some?.((decl) =>

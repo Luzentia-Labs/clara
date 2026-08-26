@@ -464,6 +464,36 @@ export const ColorWarning800 = "#4e3304";
 export const ColorWarning900 = "#2a1b03";
 
 // @public (undocumented)
+export const DrawerBg = "#ffffff";
+
+// @public (undocumented)
+export const DrawerBlockSize = "20rem";
+
+// @public (undocumented)
+export const DrawerBorder = "#95928e";
+
+// @public (undocumented)
+export const DrawerBorderWidth = "1px";
+
+// @public (undocumented)
+export const DrawerEnterDuration = "120ms";
+
+// @public (undocumented)
+export const DrawerEnterEasing = "cubic-bezier(0, 0, 0.58, 1)";
+
+// @public (undocumented)
+export const DrawerGap = "12px";
+
+// @public (undocumented)
+export const DrawerInlineSize = "28rem";
+
+// @public (undocumented)
+export const DrawerPadding = "24px";
+
+// @public (undocumented)
+export const DrawerScrim = "#00000080";
+
+// @public (undocumented)
 export const DurationBase = "200ms";
 
 // @public (undocumented)

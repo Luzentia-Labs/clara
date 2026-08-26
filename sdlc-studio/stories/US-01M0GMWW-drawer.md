@@ -24,6 +24,7 @@
 - **When** I set placement
 - **Then** left, right and bottom all render correctly
 - **Verify:** vitest "Drawer placements"
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC2: Focus parity with Modal
@@ -32,6 +33,7 @@
 - **When** it opens and closes by any route
 - **Then** initial focus and restoration behave identically to Modal, asserted by identity
 - **Verify:** vitest "Drawer focus parity with Modal"
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC3: Token-only styling
@@ -40,14 +42,16 @@
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC4: Both themes and densities
 
 - **Given** a Drawer
 - **When** it renders in dark theme and compact density
-- **Then** it holds its visual baseline in all four combinations
+- **Then** it renders inside the correct scope and passes axe in all four combinations
 - **Verify:** vitest "Drawer theme and density matrix"
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC5: Definition of done
@@ -56,6 +60,7 @@
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
 - **Verify:** shell node scripts/check-verification.mjs --component Drawer
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 ### AC6: Scroll lock without layout shift
@@ -67,9 +72,36 @@
   reason a Modal does, and an epic acceptance criterion owned by one of the two components is the
   "solved once or nine times" failure appearing at epic level (found by the foundation's spec review)
 - **Verify:** vitest "Drawer locks scroll"
+- **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
+
+## Specification delta (2026-08-26)
+
+**AC2 says "identically to Modal, asserted by identity", and that was read as a requirement on the
+IMPLEMENTATION, not only on the assertions.** Modal's focus machinery - about a hundred lines whose
+every comment records a defect measured across nine adversarial review rounds - was EXTRACTED to
+`packages/react/src/lib/overlay-focus.ts` and is now called by both. A copy would have inherited the
+code and not the reasons, and the first person to simplify one of them would reintroduce a strand in
+one overlay and not the other. Modal's 62 tests and 11 criteria were re-run unchanged to prove the
+extraction preserved behaviour; Modal went from 296 lines to 150.
+
+The parity tests then run the SAME scenarios against BOTH components rather than asserting that
+Drawer imports something. They are hard to fail today, which is the point: they fail the moment
+somebody gives Drawer its own copy.
+
+**Motion, which no criterion mentioned.** D0094 ruled Modal does not animate on an argument specific
+to centred dialogs - no spatial origin. A drawer has one, D0100 permits that meaning, so the panel
+slides from its own edge, exits instantly, and has the slide REMOVED under reduced motion (Class A:
+the state change is already carried by the dimmed viewport, the focus move and the inert background).
+
+**One test scenario had to be rewritten because the component was working.** The unmount route was
+first written as a click on a background button, which fails with `pointer-events: none` - Radix
+makes the background genuinely inert. A user cannot do that, so the scenario was not reachable. It
+now unmounts from a control INSIDE the drawer ("Save and close"), which is the real route.
+
+**AC4 corrected as in every other story in this epic** - a jsdom matrix cannot see a visual baseline.
 
 ## Scope
 
