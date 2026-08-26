@@ -1,30 +1,34 @@
 # Where Clara stands
 
-> **Updated:** 2026-08-26 (close of the EP-01M0GK4P overlay run - all five overlays built)
+> **Updated:** 2026-08-26 (overlay run: all five built, reviewed once, every finding fixed)
 > The figures below are generated - `pnpm latest:sync`, checked by `pnpm check:latest`. They were
 > typed by hand twice and were wrong both times.
 > Read this first after any compaction or reset, then run `/sdlc-studio status`.
 
 ## One paragraph
 
-**All five overlays are built** - Popover, Tooltip, Toast and DropdownMenu joined Modal and Drawer
-this run - and **US-01M0GM61 (portal + layer scale) is Done after TEN review rounds**, six of which
-found the same class of defect: a claim asserting proof where no mutation demonstrates it. Rounds 8
-and 9 each found it inside the previous round's fix. A systematic pass - every branch of
-`check-overlay-contract.mjs` deleted in isolation - ended it, and round 10 re-derived that
-independently and approved.
+**All five overlays are built and every one has been through an independent adversarial review.**
+All four reviews REJECTED, with thirteen blocking findings between them. Every one is fixed and
+proved by re-running the reviewer's own mutation, and a confirming round is what the stories are
+waiting on - none is Done, because a REJECT is not a sign-off and the author never records their own
+verdict.
 
-**The four new overlay stories are NOT transitioned to Done.** Each needs its independent
-adversarial review first; the author never records their own verdict. Their acceptance criteria all
-verify green (`ac=7 pass=7` Toast, `ac=7 pass=6 manual=1` Tooltip, `ac=6 pass=6` DropdownMenu),
-which is a different and weaker statement than "reviewed".
+**One was a real functional defect, not a paperwork one.** Tooltip passed a literal `open` to
+`ClaraPortal`, so its host was appended at MOUNT rather than at OPEN - which defeats the open-order
+stacking D0102 rests on, and a tooltip opened over a live toast painted underneath it. It shipped
+because both AC7 assertions happened to be consistent with mount order too.
 
-The tree is on `main` with 1155 tests and every gate green. Nothing is on npm.
+**Seven bugs filed during the run, seven fixed.** The tokens package stopped exporting 257 private
+tokens as public API; the toast stack stopped rendering one fixed viewport per toast; the literal
+gate learned to see percentages; the overlay guard learned to follow re-exports and aliases; and
+portalled overlays finally have a gate that can see them.
+
+The tree is on `main` with 1165 tests and every gate green. Nothing is on npm.
 
 ## Numbers
 
-- `pnpm check` runs **29 guards**; `prove-guards-fail` kills **135 mutations** on a staged copy.
-- **1155 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- `pnpm check` runs **29 guards**; `prove-guards-fail` kills **143 mutations** on a staged copy.
+- **1165 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
 - **104 decisions**. Stories: **43 Done of 89**. `main` is the only branch - this project is
   trunk-based.
@@ -66,6 +70,22 @@ for its validity; `textContent` standing in for the accessible name; an id *coun
 was differing id *values*; an axe fixture rendered without the prop that triggers the failure.
 
 ## Sharp edges an agent will hit
+
+- **A verifier can certify the BUILD instead of the source.** `pnpm test:e2e` rebuilt Storybook but
+  never `packages/react/dist`, so an AC's own `Verify:` string exited 0 on a tree whose mechanism was
+  broken. It now runs `pnpm build` first. Ask of any shell verifier: what artifact is it reading, and
+  who last wrote it?
+- **Prose passed through an unquoted shell heredoc gets EXECUTED.** A backticked span in a bug
+  write-up ran as a command and pasted 174 lines of gate output into the file. AGENTS.md says it -
+  pass prose as a document. The same class bit Style Dictionary, which resolves `{...}` as a token
+  reference *inside comments*, so a CSS snippet in a comment broke the token build with an error
+  naming neither the file nor the text.
+- **A fix that cannot fail is the defect it was fixing.** Appending `%` to the literal gate's unit
+  list matched nothing, because `\b` after `%` demands a word character and declarations end `25%;`.
+  The bug's own probe still reported PASS.
+- **Deleting a prop is not always the sensitive mutation.** Removing `avoidCollisions` changes
+  nothing - Radix defaults it to `true`. The mutation that bites is `={false}`. The obvious probe
+  suggests an assertion is insensitive when it is not.
 
 - **jsdom decides nothing about geometry, motion or pointers, and will say yes anyway.** It resolves
   no `var()`, computes no layout, has no pointer and returns no animation. Three assertions this run
