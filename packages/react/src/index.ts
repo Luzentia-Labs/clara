@@ -18,6 +18,11 @@ export { Tooltip } from './components/Tooltip/Tooltip'
 export type { TooltipProps, TooltipPlacement } from './components/Tooltip/Tooltip'
 export { Toast } from './components/Toast/Toast'
 export type { ToastProps, ToastIntent } from './components/Toast/Toast'
+export { DropdownMenu } from './components/DropdownMenu/DropdownMenu'
+export type {
+  DropdownMenuProps, DropdownMenuPlacement, DropdownMenuEntry,
+  DropdownMenuAction, DropdownMenuSubmenu, DropdownMenuSeparator,
+} from './components/DropdownMenu/DropdownMenu'
 export { Drawer } from './components/Drawer/Drawer'
 export type { DrawerProps, DrawerPlacement } from './components/Drawer/Drawer'
 export { EmptyState } from './components/EmptyState/EmptyState'

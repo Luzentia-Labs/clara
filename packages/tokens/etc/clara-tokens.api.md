@@ -494,6 +494,51 @@ export const DrawerPadding = "24px";
 export const DrawerScrim = "#00000080";
 
 // @public (undocumented)
+export const DropdownMenuBg = "#ffffff";
+
+// @public (undocumented)
+export const DropdownMenuBorder = "#95928e";
+
+// @public (undocumented)
+export const DropdownMenuBorderWidth = "1px";
+
+// @public (undocumented)
+export const DropdownMenuFg = "#1f1e1d";
+
+// @public (undocumented)
+export const DropdownMenuItemBgHover = "#f2f0ed";
+
+// @public (undocumented)
+export const DropdownMenuItemFgDisabled = "#777471";
+
+// @public (undocumented)
+export const DropdownMenuItemPaddingBlock = "8px";
+
+// @public (undocumented)
+export const DropdownMenuItemPaddingInline = "12px";
+
+// @public (undocumented)
+export const DropdownMenuItemRadius = "4px";
+
+// @public (undocumented)
+export const DropdownMenuMinInlineSize = "12rem";
+
+// @public (undocumented)
+export const DropdownMenuPaddingBlock = "8px";
+
+// @public (undocumented)
+export const DropdownMenuRadius = "8px";
+
+// @public (undocumented)
+export const DropdownMenuSeparatorColor = "#95928e";
+
+// @public (undocumented)
+export const DropdownMenuSeparatorMargin = "8px";
+
+// @public (undocumented)
+export const DropdownMenuSeparatorWidth = "1px";
+
+// @public (undocumented)
 export const DurationBase = "200ms";
 
 // @public (undocumented)

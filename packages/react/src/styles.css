@@ -547,6 +547,74 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+/*
+ * DropdownMenu.
+ *
+ * The layer token goes on `.clara-dropdown-menu`, the content element, for the reason `.clara-popover`
+ * records: Radix's popper reads the computed z-index off the content and copies it onto the wrapper
+ * it positions. `position: relative` earns the declaration on its own terms - it renders identically
+ * to `static` with no offsets - so the token is non-inert whether or not a third party keeps doing
+ * that.
+ *
+ * `--clara-layer-overlay`, the same layer as Modal, Drawer and Popover, and NOT a layer of its own.
+ * A menu must sit under a modal opened over it, and over a modal opened from inside it; those are
+ * opposite directions, so open order decides and a per-role constant cannot (D0088, D0102).
+ *
+ * NO MOTION. D0100 permits motion only where its absence removes information. A menu is anchored to
+ * the control that opened it and appears in response to a deliberate action, so there is no spatial
+ * origin to explain and no arrival to announce - and a menu is a target the user is already moving
+ * toward, so animating it moves the target.
+ */
+.clara-dropdown-menu {
+  position: relative;
+  z-index: var(--clara-layer-overlay);
+  box-sizing: border-box;
+  min-inline-size: var(--clara-dropdown-menu-min-inline-size);
+  padding-block: var(--clara-dropdown-menu-padding-block);
+  border: var(--clara-dropdown-menu-border-width) solid var(--clara-dropdown-menu-border);
+  border-radius: var(--clara-dropdown-menu-radius);
+  background: var(--clara-dropdown-menu-bg);
+  color: var(--clara-dropdown-menu-fg);
+}
+
+.clara-dropdown-menu__item {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--clara-dropdown-menu-item-padding-block) var(--clara-dropdown-menu-item-padding-inline);
+  border-radius: var(--clara-dropdown-menu-item-radius);
+  cursor: default;
+  user-select: none;
+}
+
+/*
+ * `[data-highlighted]` is Radix's, and it is the ONLY correct hook here.
+ *
+ * A menu has one roving highlight driven by the keyboard AND the pointer together: arrowing down
+ * moves it, and hovering moves it to the same place. `:hover` alone would paint two highlighted
+ * rows whenever the pointer rests on one row while the keyboard is on another, and `:focus` alone
+ * would paint none, because roving focus keeps DOM focus on the menu container rather than the item.
+ *
+ * This is an internal selector, not public API - it appears in Clara's own stylesheet and in no
+ * prop, type or documented attribute, which is the line Section 4 rule 7 draws.
+ */
+.clara-dropdown-menu__item[data-highlighted] {
+  background: var(--clara-dropdown-menu-item-bg-hover);
+  outline: none;
+}
+
+.clara-dropdown-menu__item[data-disabled] {
+  color: var(--clara-dropdown-menu-item-fg-disabled);
+  pointer-events: none;
+}
+
+.clara-dropdown-menu__separator {
+  block-size: var(--clara-dropdown-menu-separator-width);
+  margin-block: var(--clara-dropdown-menu-separator-margin);
+  background: var(--clara-dropdown-menu-separator-color);
+}
+
 @keyframes clara-toast-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }

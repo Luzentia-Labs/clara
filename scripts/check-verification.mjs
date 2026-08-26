@@ -140,6 +140,7 @@ const DOCS_PAGE_FOR = {
   Popover: 'popover.md',
   Tooltip: 'tooltip.md',
   Toast: 'toast.md',
+  DropdownMenu: 'dropdown-menu.md',
   Drawer: 'drawer.md',
   ProgressBar: 'progress-bar.md',
   Skeleton: 'skeleton.md',

@@ -214,6 +214,69 @@ export interface DrawerProps {
 }
 
 // @public
+export function DropdownMenu(input: DropdownMenuProps): JSX_2.Element;
+
+// @public
+export interface DropdownMenuAction {
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    items?: never;
+    label: string;
+    // (undocumented)
+    onSelect: () => void;
+    // (undocumented)
+    separator?: never;
+}
+
+// @public (undocumented)
+export type DropdownMenuEntry = DropdownMenuAction | DropdownMenuSubmenu | DropdownMenuSeparator;
+
+// @public
+export type DropdownMenuPlacement = 'top' | 'right' | 'bottom' | 'left';
+
+// @public (undocumented)
+export interface DropdownMenuProps {
+    // (undocumented)
+    className?: string;
+    items: DropdownMenuEntry[];
+    onClose: () => void;
+    onOpen: () => void;
+    open: boolean;
+    // (undocumented)
+    placement?: DropdownMenuPlacement;
+    trigger: ReactNode;
+}
+
+// @public
+export interface DropdownMenuSeparator {
+    // (undocumented)
+    disabled?: never;
+    // (undocumented)
+    items?: never;
+    // (undocumented)
+    label?: never;
+    // (undocumented)
+    onSelect?: never;
+    // (undocumented)
+    separator: true;
+}
+
+// @public
+export interface DropdownMenuSubmenu {
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    items: DropdownMenuEntry[];
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    onSelect?: never;
+    // (undocumented)
+    separator?: never;
+}
+
+// @public
 export function EmptyState(input: EmptyStateProps): JSX_2.Element;
 
 // Warning: (ae-forgotten-export) The symbol "EmptyStateEmptyProps" needs to be exported by the entry point index.d.ts

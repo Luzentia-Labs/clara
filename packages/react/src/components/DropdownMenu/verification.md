@@ -1,0 +1,106 @@
+# DropdownMenu - verification record
+
+PRD F17 requires a per-component record rather than a blanket claim. This one is written from the
+tests that actually run, so it can be checked rather than believed.
+
+An ACTIONS menu implementing the WAI-ARIA menu pattern.
+
+**Boundary:** client-only (see `../../../client-boundary.json`). `onOpen`, `onClose` and every
+entry's `onSelect` are function props, which TRD Section 7 makes the boundary test.
+
+## Keyboard
+
+| Key | Result |
+| --- | --- |
+| Enter / Space on the trigger | Opens the menu and moves the highlight to the first entry. |
+| ArrowDown | Moves to the next entry, SKIPPING disabled ones, and wraps at the end. |
+| ArrowUp | Moves to the previous entry. On a freshly opened menu it lands on the LAST entry. |
+| ArrowRight | Opens a submenu and moves into it. |
+| ArrowLeft | Closes the submenu and returns to its trigger entry. |
+| A printable character | Typeahead: jumps to the next entry whose label starts with it. |
+| Enter / Space on an entry | Runs that entry's `onSelect` and closes the menu. |
+| Escape | Closes the menu. Focus returns to the trigger. |
+
+## Recorded manual keyboard pass
+
+**Not performed. This is outstanding, and it is the one artefact here that automation cannot
+supply.**
+
+What a real pass adds that the tests cannot: whether a submenu opens on the side with room rather
+than off the viewport, whether the highlight is visible against the surface in both themes, and
+whether typeahead feels responsive with a realistic thirty-entry menu rather than the five here.
+
+## Accessibility
+
+**It is named by its TRIGGER, and there is deliberately no `label` prop.** Radix wires
+`aria-labelledby` on the menu to the trigger's id, and `aria-labelledby` beats `aria-label` in every
+accessible-name computation - so a `label` prop would be a prop that silently does nothing.
+Measured: with both present, the menu's name was the trigger's text and not the value passed in.
+Naming a menu by the button that opened it is also the WAI-ARIA pattern's own answer, and it cannot
+be forgotten, because the trigger already needs a name to be usable at all.
+
+**Disabled entries are announced but never focused.** Arrowing past them means the keyboard never
+strands a user on something that cannot be activated, and `onSelect` is unreachable on them.
+
+## Actions, not navigation (D0020)
+
+Every entry DOES something. `role="menu"` tells a screen-reader user to expect commands, so a set of
+destinations announced as commands misdescribes what pressing Enter will do. Navigation menus are
+v1.1, and the docs page says so.
+
+## Why the menu is data rather than composed children
+
+Clara exports no `DropdownMenuItem` or `DropdownMenuSeparator`. A composed API would be Radix
+primitives wearing Clara names, and every illegal arrangement - an Item outside a Sub, a Separator
+inside a Trigger - would surface as a runtime error naming a Radix component in a consumer's
+console, which Section 4 rule 7 forbids. The entry union also makes "an action that also has a
+submenu" and "a separator with a label" type errors rather than support questions.
+
+## The submenu is NOT separately portalled
+
+A submenu renders inside the parent menu's own portal subtree. Radix's roving focus and typeahead
+walk the DOM from the root menu, so a separately portalled submenu is invisible to both and Escape
+closes the wrong level.
+
+## The z-index is earned, not silenced
+
+`.clara-menu` declares `position: relative` alongside its layer token, for the reason
+`.clara-popover` records: the popper reads the computed z-index off the content and copies it onto
+the wrapper it positions.
+
+It takes `--clara-layer-overlay`, the SAME layer as Modal, Drawer and Popover, and not one of its
+own. A menu must sit under a modal opened over it and over a modal opened from inside it - opposite
+directions, so open order decides and a per-role constant cannot (D0088, D0102).
+
+## What is verified automatically
+
+- ArrowDown moves the highlight and SKIPS the disabled entry - `__tests__/dropdown-menu.test.tsx`
+- ArrowUp on a freshly opened menu lands on the last entry - `__tests__/dropdown-menu.test.tsx`
+- Typeahead jumps to an entry by its label - `__tests__/dropdown-menu.test.tsx`
+- ArrowRight opens a submenu and reveals its items - `__tests__/dropdown-menu.test.tsx`
+- Selecting a NON-FIRST entry runs that entry's own handler and no other's. The non-first part is
+  load-bearing: an earlier version clicked the first entry, and a mutation wiring every item to
+  `items[0].onSelect` passed all thirteen tests - `__tests__/dropdown-menu.test.tsx`
+- A disabled entry's `onSelect` never runs - `__tests__/dropdown-menu.test.tsx`
+- The menu takes its accessible name from the trigger - `__tests__/dropdown-menu.test.tsx`
+- Focus returns to the trigger BY IDENTITY on Escape, and after selecting an entry - the second
+  route is the common one, and restoring only on Escape would strand the user after every action
+  they actually take - `__tests__/dropdown-menu.test.tsx`
+- It renders through `ClaraPortal` and takes its stacking from a layer token -
+  `check:overlay-contract`
+- Token-only styling, and a layer token that is not inert - `check:component-css`
+- axe while open, in all four theme x density combinations - `check:axe`
+
+## Stated gaps
+
+- **Positioning is NOT verified.** Flip, shift, collision padding, and which side a submenu opens on
+  are entirely layout, and jsdom computes none. The tests assert the behaviour is CONFIGURED, which
+  is a much weaker claim than that it happens. Same gap as Popover's and Tooltip's, and it belongs to
+  the gate: BG-01M0XVXS.
+- **Only ONE level of submenu is exercised.** `items` nests arbitrarily deep and the renderer is
+  recursive, but no test opens a submenu of a submenu, so nothing here proves the third level
+  behaves.
+- **Typeahead is asserted with a single character.** Multi-character typeahead, its reset timeout,
+  and collisions between entries sharing a first letter are unasserted.
+- **Screen reader testing is not automated.** PRD F17 names NVDA as a stated gap; it stays one.
+- **Visual regression is not yet wired** (gate 7, US-01M0WSME).

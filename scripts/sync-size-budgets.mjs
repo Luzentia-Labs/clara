@@ -147,6 +147,11 @@ const THIRD_PARTY_LIMITS = {
   // one overlay that is not positioned against a trigger, so it carries no @radix-ui/react-popper
   // and none of the @floating-ui chain. It is a fixed corner region plus a live-region announcer.
   '@radix-ui/react-toast': '15 kB',
+  // Measured 31.11 kB - the LARGEST of the five, by 7 kB over popover. A menu is the popper +
+  // @floating-ui chain (positioning), plus a dismissable layer and focus scope (like popover), plus
+  // roving focus, typeahead and the whole nested-submenu machinery that neither of the others has.
+  // The number is the WAI-ARIA menu pattern, not bloat.
+  '@radix-ui/react-dropdown-menu': '34 kB',
 }
 
 const fixed = [

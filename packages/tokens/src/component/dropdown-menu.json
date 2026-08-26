@@ -1,0 +1,65 @@
+{
+  "dropdown-menu": {
+    "bg": {
+      "value": "{color.bg.surface}",
+      "type": "color"
+    },
+    "fg": {
+      "value": "{color.fg.default}",
+      "type": "color"
+    },
+    "border": {
+      "value": "{color.border.default}",
+      "type": "color"
+    },
+    "border-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    },
+    "radius": {
+      "value": "{radius.surface}",
+      "type": "dimension"
+    },
+    "padding-block": {
+      "value": "{space.control-padding-y}",
+      "type": "dimension"
+    },
+    "item-padding-block": {
+      "value": "{space.control-padding-y}",
+      "type": "dimension"
+    },
+    "item-padding-inline": {
+      "value": "{space.control-padding-x}",
+      "type": "dimension"
+    },
+    "item-radius": {
+      "value": "{radius.control}",
+      "type": "dimension"
+    },
+    "item-bg-hover": {
+      "value": "{color.bg.row-hover}",
+      "type": "color"
+    },
+    "item-fg-disabled": {
+      "value": "{color.fg.disabled}",
+      "type": "color"
+    },
+    "separator-color": {
+      "value": "{color.border.default}",
+      "type": "color"
+    },
+    "separator-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    },
+    "separator-margin": {
+      "value": "{space.control-padding-y}",
+      "type": "dimension"
+    },
+    "min-inline-size": {
+      "value": "12rem",
+      "type": "dimension",
+      "comment": "A raw dimension, following popover.max-inline-size. A menu MINIMUM width has no semantic ancestor in tier 2 size; without one a menu of short labels renders as a sliver that is hard to aim at."
+    }
+  }
+}
