@@ -243,6 +243,19 @@ describe('DropdownMenu warns when items change while open', () => {
   })
 })
 
+  it('renders a separator as a real separator, skipped by the keyboard', async () => {
+    // Found by a self-sweep: replacing the separator with a plain <span> left all 25 tests green.
+    // A separator is not decoration - it is the only thing telling a screen-reader user that the
+    // group above and the group below are different kinds of action, and arrowing must step over it.
+    render(<Harness />)
+    await openMenu()
+    expect(screen.getByRole('separator'), 'the separator is not exposed as one').toBeInTheDocument()
+    // And it is skipped: ArrowDown from the entry above the separator lands on the entry BELOW it,
+    // never on the separator itself.
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Export' })).toHaveFocus())
+  })
+
 describe('DropdownMenu focus restoration', () => {
   it('returns focus to the trigger on Escape, by identity', async () => {
     // By identity, not by selector: "a button is focused" passes on the wrong button.

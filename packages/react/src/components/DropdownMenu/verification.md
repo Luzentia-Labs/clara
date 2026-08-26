@@ -101,6 +101,9 @@ directions, so open order decides and a per-role constant cannot (D0088, D0102).
   construction and deleting it left all sixteen tests green - `__tests__/dropdown-menu.test.tsx`
 - ArrowRight moves FOCUS into the submenu, not merely revealing it. The earlier assertion observed
   presence, which is one word from the property (D0065) - `__tests__/dropdown-menu.test.tsx`
+- A separator is exposed as `role="separator"` and is SKIPPED by arrow navigation. Replacing it
+  with a plain `<span>` left all 25 tests green - a separator is the only thing telling a
+  screen-reader user that two groups of actions are different - `__tests__/dropdown-menu.test.tsx`
 - A SUBMENU entry runs its OWN handler and closes the whole menu. `onCsv` was declared, wired and
   asserted by nothing for three rounds: neutering every submenu `onSelect` left the entire
   repository green, so a menu that opened submenus and moved focus into them could run none of

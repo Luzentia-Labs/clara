@@ -94,6 +94,11 @@ Open order decides which paints on top, because the relationship is bidirectiona
 - Escape dismisses it, and the content is genuinely absent beforehand so the disappearance is a
   dismissal rather than a no-op - `__tests__/tooltip.test.tsx`
 - It renders in all four placements and defaults to `top` - `__tests__/tooltip.test.tsx`
+- The positioning props actually REACH the content - `placement`, collision avoidance, a non-zero
+  collision padding and a side offset. Found by a self-sweep rather than a review: Popover and
+  DropdownMenu each gained this test after a seat measured their positioning being deletable with
+  every gate green, and Tooltip had the identical hole with nobody looking -
+  `__tests__/positioning.test.tsx`
 - It works with no `ClaraProvider` above it, rather than throwing a Radix error -
   `__tests__/tooltip.test.tsx`
 - A tooltip on a toast's action paints ABOVE the toast, a toast arriving over an open tooltip

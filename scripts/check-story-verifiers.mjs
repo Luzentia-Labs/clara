@@ -180,10 +180,30 @@ for (const file of readdirSync(storiesDir).filter((f) => f.startsWith('US') && f
       problems.push(`${file} ${ac}: \`Touches\` names ${missing.join(', ')}, which does not exist`)
       continue
     }
-    touchesChecked++
-
+    /*
+     * A SHELL verifier's `Touches` is checked for EXISTENCE only, and that is a stated limit rather
+     * than an oversight.
+     *
+     * A review found the consequence: setting a shell criterion's `Touches` to `package.json` leaves
+     * this guard PASS at the identical "N reach the file" count, so a repair that repointed such a
+     * cell was unobserved.
+     *
+     * An attempt to close it - requiring the command to name the file or a directory containing it -
+     * was written, measured, and REVERTED: it flagged five correct criteria across two stories,
+     * because a guard script reaches files it never names on its command line
+     * (`check-component-css.mjs` reads `styles.css`; `check-verification.mjs --component Popover`
+     * reads that component's record). A rule that fails correct work is worse than no rule.
+     *
+     * The honest form of this check is to mutate the named file and run the verifier - which is
+     * precisely what `prove-guards-fail.mjs` does, one criterion at a time, at ~1s each. Doing it
+     * for every shell criterion belongs in that prover rather than here.
+     *
+     * So: `touchesChecked` counts only criteria whose alignment was actually checked, and the
+     * reported number therefore means what it says.
+     */
     const pattern = /vitest "([^"]+)"/.exec(verify)?.[1]
-    if (!pattern) continue // a shell verifier runs whatever it runs; nothing to align
+    if (!pattern) continue
+    touchesChecked++
     if (pattern.includes('%s')) continue
     let re
     try { re = new RegExp(pattern) } catch { continue }
