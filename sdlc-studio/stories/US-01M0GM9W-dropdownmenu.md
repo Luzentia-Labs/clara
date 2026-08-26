@@ -107,7 +107,7 @@
 | AC1 | packages/react/src/components/DropdownMenu/DropdownMenu.tsx | Drop the `disabled` pass-through (measured: 3 tests fail), or render a submenu as a flat item so ArrowRight opens nothing (measured: 1 fails), or wire every item to `items[0].onSelect` (measured: 1 fails - see the spec delta, this one initially SURVIVED). | Menu pattern |
 | AC2 | packages/react/src/components/DropdownMenu/DropdownMenu.tsx | Suppress Radix's focus restoration, or restore only on Escape and not after a selection. | Focus restoration |
 | AC3 | apps/docs/src/content/components/dropdown-menu.md | Delete the actions-only section, or reword the page to present it as a navigation menu. | Distinct from navigation |
-| AC4 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the `.clara-menu` rules. | Token-only styling |
+| AC4 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the `.clara-dropdown-menu` rules. | Token-only styling |
 | AC5 | packages/react/src/components/DropdownMenu/DropdownMenu.tsx | Rename the theme or density attribute. | Both themes and densities |
 | AC6 | packages/react/src/components/DropdownMenu/verification.md | Delete the DropdownMenu verification record, its docs page, or its keyboard table. | Definition of done |
 

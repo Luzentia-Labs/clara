@@ -104,6 +104,15 @@ function portalUsage (files) {
   const radixNamespace = new Set()
   /** Names this component's own files re-export from Radix, so a relative import of them binds. */
   const reExported = new Set()
+  /**
+   * Identifiers bound to a boolean LITERAL, so `open={ALWAYS}` is recognised as the constant it is.
+   *
+   * The constant-`open` rule first tested only for an absent initializer, `true` or `false` - and a
+   * review defeated it in one line with `const ALWAYS = true`. The machinery to follow that binding
+   * was already ten lines away, tracing `const P = Portal` for the Radix half; it simply had not
+   * been applied here.
+   */
+  const constantBool = new Set()
 
   const sources = files.map((file) => ({
     file,
@@ -177,6 +186,11 @@ function portalUsage (files) {
       // `const P = Portal`, and `const P = Dialog.Portal`.
       if (ts.isVariableDeclaration(node) && node.initializer && ts.isIdentifier(node.name)) {
         const init = node.initializer
+        // `const ALWAYS = true`, and a chain of them, which the fixpoint below follows.
+        if (init.kind === ts.SyntaxKind.TrueKeyword || init.kind === ts.SyntaxKind.FalseKeyword) {
+          constantBool.add(node.name.text)
+        }
+        if (ts.isIdentifier(init) && constantBool.has(init.text)) constantBool.add(node.name.text)
         if (ts.isIdentifier(init) && radixLocal.has(init.text)) radixLocal.add(node.name.text)
         if (ts.isPropertyAccessExpression(init) && ts.isIdentifier(init.expression)
           && radixNamespace.has(init.expression.text) && /Portal$/.test(init.name.text)) {
@@ -197,8 +211,8 @@ function portalUsage (files) {
    * same reason, and are no harder to write than a single one.
    */
   let before = -1
-  while (before !== radixLocal.size + radixNamespace.size + reExported.size) {
-    before = radixLocal.size + radixNamespace.size + reExported.size
+  while (before !== radixLocal.size + radixNamespace.size + reExported.size + constantBool.size) {
+    before = radixLocal.size + radixNamespace.size + reExported.size + constantBool.size
     for (const { source: each } of sources) bindings(each)
   }
 
@@ -231,12 +245,16 @@ function portalUsage (files) {
             const attrs = node.attributes.properties
             const openAttr = attrs.find((a) => ts.isJsxAttribute(a) && a.name.getText() === 'open')
             const initializer = openAttr && ts.isJsxAttribute(openAttr) ? openAttr.initializer : undefined
+            const expr = initializer && ts.isJsxExpression(initializer) ? initializer.expression : undefined
             const isConstant =
               !openAttr ||
               initializer === undefined ||
-              (initializer && ts.isJsxExpression(initializer) && initializer.expression &&
-                (initializer.expression.kind === ts.SyntaxKind.TrueKeyword ||
-                 initializer.expression.kind === ts.SyntaxKind.FalseKeyword))
+              (expr !== undefined && (
+                expr.kind === ts.SyntaxKind.TrueKeyword ||
+                expr.kind === ts.SyntaxKind.FalseKeyword ||
+                // `open={ALWAYS}` where `ALWAYS` is bound to a literal - runtime-identical to
+                // `open`, and it defeated the first version of this rule in one line.
+                (ts.isIdentifier(expr) && constantBool.has(expr.text))))
             if (isConstant) usage.constantOpen.push(relative(root, file))
           }
           if (radixLocal.has(tag.text)) usage.radixPortals.add(tag.text)

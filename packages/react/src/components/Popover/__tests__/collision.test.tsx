@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { Popover } from '../Popover'
+import { Button } from '../../Button/Button'
 
 /**
  * AC2's narrowed half - "the collision behaviour is CONFIGURED" - observed directly.
@@ -43,8 +44,6 @@ vi.mock('@radix-ui/react-popover', async () => {
   }
 })
 
-const { Popover } = await import('../Popover')
-const { Button } = await import('../../Button/Button')
 
 describe('Popover collision handling is configured', () => {
   it('passes avoidCollisions and a non-zero collisionPadding to the panel', async () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { StrictMode, Suspense, useState } from 'react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -61,6 +61,11 @@ describe('Toast live region politeness by intent', () => {
     render(<Toast open onClose={() => {}} intent={intent} title="Journal 4471" />)
     const title = await screen.findByText(/Journal 4471/)
     // The intent word must be VISIBLE to assistive technology, which `display: none` is not.
+    //
+    // Scope, stated: this catches an INLINE `display: none` and nothing in a stylesheet. jsdom
+    // loads no CSS here (`document.styleSheets.length === 0`), so hiding `.clara-visually-hidden`
+    // from the stylesheet leaves this green - AGENTS.md names that trap by name. The stylesheet
+    // route is covered by `check:component-css`'s visually-hidden entries, not by this file.
     const hidden = title.querySelector('.clara-visually-hidden')
     expect(hidden, 'the intent word element is gone').not.toBeNull()
     expect(hidden).toBeVisible()
@@ -257,5 +262,66 @@ describe('Toast stacks in one shared viewport', () => {
     // The survivor is still on screen, in a viewport that still exists.
     expect(screen.getByText(/Second/)).toBeInTheDocument()
     expect(document.querySelectorAll('.clara-toast__viewport')).toHaveLength(1)
+  })
+})
+
+/**
+ * A DISCARDED render must not poison the shared stack.
+ *
+ * React re-invokes a component body with fresh hook state on a render it then throws away.
+ * StrictMode does that deliberately; in production any suspended sibling does it too. The first
+ * version of the shared stack claimed its id and published DURING RENDER, so a discarded pass
+ * claimed a second id and published under it while the cleanup closed over only the survivor. The
+ * orphan was never retracted - and because ownership is `entries[0]`, a dead orphan owned the
+ * shared host forever, so no toast rendered again on that page, ever.
+ *
+ * Measured before the repair: under StrictMode, `entries=[{id:1}] owner=1 nextId=3` and
+ * `document.body` was an empty div. The poisoning was global and permanent - the NEXT ordinary
+ * toast rendered nothing either, which is why the second test here matters as much as the first.
+ */
+describe('Toast survives a discarded render', () => {
+  it('renders under StrictMode, where every render happens twice', async () => {
+    render(
+      <StrictMode>
+        <Toast open onClose={() => {}} intent="success" title="Journal posted" />
+      </StrictMode>,
+    )
+    expect(await screen.findByText(/Journal posted/)).toBeInTheDocument()
+    expect(document.querySelectorAll('.clara-toast__viewport')).toHaveLength(1)
+  })
+
+  it('renders after a suspended sibling resolves - the production form of the same thing', async () => {
+    // No StrictMode here on purpose. A review reproduced the defect with an ordinary Suspense
+    // boundary, which is React.lazy, or App Router streaming, or any data-fetching boundary.
+    let resolve: (() => void) | undefined
+    const pending = new Promise<void>((r) => { resolve = () => r() })
+    let done = false
+    function Suspending () {
+      if (!done) throw pending.then(() => { done = true })
+      return <span>ready</span>
+    }
+    render(
+      <Suspense fallback={<span>loading</span>}>
+        <Suspending />
+        <Toast open onClose={() => {}} intent="success" title="Journal posted" />
+      </Suspense>,
+    )
+    await act(async () => { resolve!(); await pending })
+    expect(await screen.findByText('ready')).toBeInTheDocument()
+    expect(screen.getByText(/Journal posted/), 'the toast never rendered after the boundary resolved')
+      .toBeInTheDocument()
+  })
+
+  it('a LATER ordinary toast still renders, so no orphan owns the host', async () => {
+    // The poisoning was permanent and cross-render. This is the assertion that catches it: an
+    // ordinary toast mounted after a StrictMode one must still appear.
+    const { unmount } = render(
+      <StrictMode><Toast open onClose={() => {}} title="First" /></StrictMode>,
+    )
+    await screen.findByText(/First/)
+    unmount()
+    render(<Toast open onClose={() => {}} title="Second" />)
+    expect(await screen.findByText(/Second/), 'a dead entry still owns the shared host')
+      .toBeInTheDocument()
   })
 })

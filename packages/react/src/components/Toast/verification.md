@@ -98,6 +98,12 @@ arrive later into the same host. The trade-off is unchanged, and so is the reaso
 
 ## Stated gaps
 
+- **An ownership handover restarts every survivor's dismiss countdown - BG-01M0YTT4.** The shared
+  host is rendered BY the owning toast, so when that toast unmounts the host is re-created in a
+  different tree position and every Radix Root inside it remounts with a fresh timer. Measured:
+  a survivor fires at t=9.0s instead of its original t=5.0s. Dismissing one toast silently
+  extends every other one. The handover test here asserts presence and viewport count, both of
+  which are true while the timer is wrong.
 - **Swipe-to-dismiss is not verified.** Radix's swipe handling needs real pointer geometry; jsdom has
   none. It is not asserted anywhere, and it is not claimed anywhere either.
 - **Multiple toasts share ONE viewport** - this was broken and is fixed (BG-01M0Y2H2). Each
@@ -106,8 +112,6 @@ arrive later into the same host. The trade-off is unchanged, and so is the reaso
   button returning the SECOND toast's, so covered controls were unreachable rather than merely
   hidden, and a covered `danger` toast persisted forever because its timer is `Infinity`. Every
   toast now registers into one module-level stack. `ToastProps` did not change.
-- **Swipe-to-dismiss is not verified.** Radix's swipe handling needs real pointer geometry; jsdom has
-  none. It is not asserted anywhere, and it is not claimed anywhere either.
 - **The F8 hotkey is Radix's and is not asserted.** It is documented in the keyboard table because it
   is how a keyboard user reaches a toast at all, but no test presses it.
 - **Screen reader testing is not automated.** PRD F17 names NVDA as a stated gap; it stays one.

@@ -91,6 +91,13 @@ directions, so open order decides and a per-role constant cannot (D0088, D0102).
   `items[0].onSelect` passed all thirteen tests - `__tests__/dropdown-menu.test.tsx`
 - A disabled entry's `onSelect` never runs - `__tests__/dropdown-menu.test.tsx`
 - The menu takes its accessible name from the trigger - `__tests__/dropdown-menu.test.tsx`
+- A SUBMENU wraps too, not just the root menu. The fixture submenu carries three entries for this
+  reason: with one entry no arrow key can reach an end, so the submenu's `loop` was unobservable by
+  construction and deleting it left all sixteen tests green - `__tests__/dropdown-menu.test.tsx`
+- ArrowRight moves FOCUS into the submenu, not merely revealing it. The earlier assertion observed
+  presence, which is one word from the property (D0065) - `__tests__/dropdown-menu.test.tsx`
+- The positioning props reach Radix, so `placement` is not an inert prop -
+  `__tests__/positioning.test.tsx`
 - Focus returns to the trigger BY IDENTITY on Escape, and after selecting an entry - the second
   route is the common one, and restoring only on Escape would strand the user after every action
   they actually take - `__tests__/dropdown-menu.test.tsx`
@@ -101,9 +108,12 @@ directions, so open order decides and a per-role constant cannot (D0088, D0102).
 
 ## Stated gaps
 
-- **Positioning is NOT verified.** Flip, shift, collision padding, and which side a submenu opens on
-  are entirely layout, and jsdom computes none. The tests assert the behaviour is CONFIGURED, which
-  is a much weaker claim than that it happens. Same gap as Popover's and Tooltip's, and it belongs to
+- **Positioning is CONFIGURED and asserted; the RENDERED result is not.** A review stripped all five
+  positioning props - `side`, `avoidCollisions`, `collisionPadding`, `sideOffset`, and the submenu's
+  offsets - and measured the whole repository still green, so `placement` was an inert public prop
+  and this bullet claimed a coverage that did not exist. `__tests__/positioning.test.tsx` now records
+  the props reaching Radix, and stripping them reddens three tests. What the browser then DOES with
+  them - where a submenu opens, whether it flips - is still unasserted for this component. Same gap as Popover's and Tooltip's, and it belongs to
   the gate: BG-01M0XVXS.
 - **Only ONE level of submenu is exercised.** `items` nests arbitrarily deep and the renderer is
   recursive, but no test opens a submenu of a submenu, so nothing here proves the third level

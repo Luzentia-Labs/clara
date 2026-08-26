@@ -635,6 +635,20 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // The constant-`open` rule, defeated in one line by binding the constant to a name. A review
+    // found this INSIDE the repair that added the rule - and the machinery to follow the binding
+    // was already ten lines away in the same file, tracing `const P = Portal`.
+    name: 'a ClaraPortal open prop that is constant through an alias, defeating the literal check',
+    guard: 'check-overlay-contract.mjs',
+    expect: /renders ClaraPortal with a CONSTANT `open`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        .replace('  return (', '  const ALWAYS = true\n  return (')
+        .replace('<ClaraPortal open={open}', '<ClaraPortal open={ALWAYS}'))
+    },
+  },
+  {
     // BG-01M0XJBW bypass 1: rendered ABOVE its own import. Imports are hoisted, so this is legal
     // source that runs fine - and the single-pass visitor populated its binding set as it REACHED
     // each import, so anything rendered earlier was checked against an empty set. PASS rc=0 with

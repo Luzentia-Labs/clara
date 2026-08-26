@@ -123,7 +123,13 @@ describe('Popover theme and density matrix', () => {
     const scope = (await screen.findByRole('button', { name: 'Inside' })).closest('[data-clara-theme]')
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
-    await expect(runAxe(container)).resolves.toHaveNoBlockingViolations()
+    // `document.body`, not `container` - and this line is the reason a second review round
+    // rejected this story. Round 1 caught the container-scoped axe, and the repair fixed the
+    // call above AND Drawer's identical copy while missing THIS one, which is AC4's own
+    // verifier: the criterion says "passes axe in all four combinations", and all four were
+    // inspecting a subtree the panel is not in. Measured: an `aria-allowed-attr` violation
+    // injected into the panel left this matrix 4/4 green.
+    await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
   })
 })
 

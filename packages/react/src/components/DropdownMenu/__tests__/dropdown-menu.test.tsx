@@ -16,7 +16,18 @@ const ENTRIES = (): DropdownMenuEntry[] => [
   { label: 'Post', onSelect: onPost },
   { label: 'Void', onSelect: onVoid, disabled: true },
   { separator: true },
-  { label: 'Export', items: [{ label: 'CSV', onSelect: onCsv }] },
+  // THREE entries, not one. With a single-item submenu no arrow key can ever reach an end, so the
+  // submenu's `loop` was unobservable by construction: deleting it left all sixteen tests green
+  // while the root menu's `loop` was properly pinned. A review found that inside the repair for the
+  // root menu - the same defect, one level down.
+  {
+    label: 'Export',
+    items: [
+      { label: 'CSV', onSelect: onCsv },
+      { label: 'PDF', onSelect: () => {} },
+      { label: 'XML', onSelect: () => {} },
+    ],
+  },
   { label: 'Zoom to fit', onSelect: onZoom },
 ]
 
@@ -99,6 +110,34 @@ describe('DropdownMenu keyboard pattern', () => {
     await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Export' })).toHaveFocus())
     await userEvent.keyboard('{ArrowRight}')
     await waitFor(() => expect(screen.getByRole('menuitem', { name: 'CSV' })).toBeInTheDocument())
+  })
+
+  it('wraps inside a SUBMENU too, not just the root menu', async () => {
+    // A submenu that behaves differently from its parent is a worse surprise than one that does not
+    // wrap at all - which is why `loop` is passed on `SubContent` as well. Nothing observed it until
+    // the fixture submenu grew past one entry.
+    render(<Harness />)
+    await openMenu()
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Export' })).toHaveFocus())
+    await userEvent.keyboard('{ArrowRight}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'CSV' })).toHaveFocus())
+    // Off the end of the submenu: CSV -> PDF -> XML -> back to CSV.
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'XML' })).toHaveFocus())
+    await userEvent.keyboard('{ArrowDown}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'CSV' })).toHaveFocus())
+  })
+
+  it('moves focus INTO the submenu on ArrowRight, not merely revealing it', async () => {
+    // The docs say "opens a submenu and moves into it". The existing assertion observed only that
+    // the item was in the document, which is presence rather than focus - one word from the
+    // property (D0065).
+    render(<Harness />)
+    await openMenu()
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    await userEvent.keyboard('{ArrowRight}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'CSV' })).toHaveFocus())
   })
 
   it('runs the entry\'s own onSelect, and not another entry\'s', async () => {

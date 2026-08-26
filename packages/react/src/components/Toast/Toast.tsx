@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import * as RadixToast from '@radix-ui/react-toast'
 import { cx } from '../../lib/cx'
 import { ClaraPortal } from '../../theme/ClaraPortal'
@@ -141,11 +141,32 @@ export function Toast ({
     </RadixToast.Root>
   )
 
-  // Published on EVERY render, so the node the host renders closes over current props. Publishing
-  // only on mount would freeze a toast's title at its first value.
-  publishToast(id, root, open)
+  /*
+   * Published in a LAYOUT EFFECT, never during render.
+   *
+   * Publishing during render looked harmless - it is just a `Map` write - and it made `<Toast>`
+   * render nothing at all, permanently, on any page with a Suspense boundary.
+   *
+   * React re-invokes a component body with fresh hook state on a render it then DISCARDS, which
+   * StrictMode does deliberately and any suspended sibling does in production. `idRef` was claimed
+   * during render, so the discarded pass claimed a SECOND id and published under it, while the
+   * cleanup closed over only the surviving one. The first entry was orphaned - and because
+   * ownership is `entries[0].id`, the dead orphan owned the shared host forever. Nothing rendered
+   * it and nothing could remove it, so every subsequent toast on that page rendered nothing.
+   * Measured under StrictMode and, separately, with a suspended sibling and no StrictMode.
+   *
+   * A layout effect never runs for a discarded render, so no orphan is created. It also fixes the
+   * second symptom of the same cause: `emit()` during render synchronously notified
+   * `useSyncExternalStore` subscribers mid-render, producing React's "Cannot update a component
+   * while rendering a different component" warning on every prop change - silent, because nothing
+   * fails a test on `console.error`.
+   *
+   * No dependency array: this must re-publish on EVERY commit, so the node the host renders closes
+   * over current props. Publishing once would freeze a toast's title at its first value.
+   */
+  useLayoutEffect(() => { publishToast(id, root, open) })
 
-  useEffect(() => () => { retractToast(id) }, [id])
+  useLayoutEffect(() => () => { retractToast(id) }, [id])
 
   // Exactly one toast renders the shared provider and viewport; the rest render nothing of their
   // own, because their content is rendered by the host. That is the whole fix: one viewport, one

@@ -79,7 +79,12 @@
 - **Given** a Toast carrying an action
 - **When** a Tooltip on that action opens
 - **Then** the tooltip paints above the toast
-- **Verify:** shell pnpm test:e2e -g "a tooltip on a toast action paints above it"
+- **And** the verifier names the direction that DISTINGUISHES open order from mount order. The
+  criterion first pointed at "a tooltip on a toast action paints above it", and a review measured
+  that test GREEN under the literal `open` this criterion exists to refuse: both of the original
+  directions mount the tooltip's host first anyway, so they agree with mount order. A verifier
+  that cannot observe its own mechanism is the defect class itself
+- **Verify:** shell pnpm test:e2e -g "a tooltip opened over a live toast paints above it"
 - **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
@@ -118,26 +123,27 @@
 
 | Criterion | Touches | Mutant - the production change this test must fail on | Title |
 | --- | --- | --- | --- |
-| AC1 | packages/react/src/components/Tooltip/Tooltip.tsx | Stop the content reaching the panel. Measured: 13 of 15 tests in the suite fail. | Keyboard reachable |
+| AC1 | packages/react/src/components/Tooltip/Tooltip.tsx | Stop the content reaching the panel. Measured: 13 tests fail (of 16 in the suite). | Keyboard reachable |
 | AC2 | packages/react/src/components/Tooltip/Tooltip.tsx | Pass `disableHoverableContent` to the provider. Measured: `e2e/stacking.spec.ts` goes red at a named step of the pointer walk and the jsdom suite stays green, which is why the criterion is split across the two. | Escape dismissible and hover-safe |
 | AC3 | apps/docs/src/content/components/tooltip.md | Delete the "never the only route" section, or widen `content` from `string` to `ReactNode` so a control can be hidden inside a tooltip that nothing can focus. | Never the sole source |
 | AC4 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to `.clara-tooltip`. | Token-only styling |
 | AC5 | packages/react/src/components/Tooltip/Tooltip.tsx | Rename the theme or density attribute. | Both themes and densities |
 | AC6 | packages/react/src/components/Tooltip/verification.md | Delete the Tooltip verification record, its docs page, or its keyboard table. | Definition of done |
-| AC7 | packages/react/src/styles.css | Give `.clara-tooltip` a layer other than `--clara-layer-tooltip`, breaking the shared-layer tie that open order resolves. **Not yet assertable - see below.** | Above a toast, because it describes what is on top |
+| AC7 | packages/react/src/components/Tooltip/Tooltip.tsx | Pass a literal `open` to `ClaraPortal`, freezing the host at MOUNT order. Measured: reddens `a tooltip opened over a live toast paints above it` while the other two stay green, and `check-overlay-contract` fails. `Touches` names Tooltip.tsx, not styles.css - the defect lives in the component. | Above a toast, because it describes what is on top |
 
 ## Spec delta
 
 Derived before implementation, per the engagement floor.
 
-**AC7 cannot be satisfied by this story alone, and is left open deliberately.** Tooltip's AC7 and
-Toast's AC7 are the two directions of ONE mechanism: the two tokens resolve to the same layer
-(D0102), so which paints on top is decided by open order, and a constant cannot satisfy both
-directions. Asserting either direction needs both components on screen at once. Toast is not built,
-so this criterion stays unverified until it is, and both directions are then asserted together in
-`e2e/stacking.spec.ts`. The alternative - stamping AC7 verified against a Tooltip with nothing under
-it - is the "claim asserting proof where no mutation demonstrates it" class that cost US-01M0GM61
-ten review rounds.
+**AC7 needed Toast, which now exists - and needed a THIRD direction, which did not.** Tooltip's AC7
+and Toast's AC7 are two directions of one mechanism: both tokens resolve to the same layer (D0102),
+so open order decides. Both were asserted once Toast shipped.
+
+Neither, it turned out, could tell open order from MOUNT order: in both, the tooltip's host is
+created first anyway, so the two orderings agree. A defect that froze the stacking at mount order -
+a literal `open` on `ClaraPortal` - passed them both, and shipped. `e2e/stacking.spec.ts` now carries
+the direction that separates them (toast first, tooltip second), and AC7's `Verify:` points at THAT
+one, because a criterion whose verifier is green under its own defect is asserting nothing.
 
 **Interactions resolved during implementation:**
 

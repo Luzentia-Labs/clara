@@ -179,13 +179,20 @@ design, so a comparison would report "equal" in both directions and prove nothin
    "1131 passed" while a whole file never ran. Caught by `check:coverage-gate`, which refuses to draw
    a conclusion from a run with a failing suite.
 
-## Known defect shipped, filed rather than hidden
+## A defect found here, shipped briefly, then fixed
 
-**BG-01M0Y2H2: two simultaneous toasts render two overlapping viewports.** Measured
-`viewports: 2, toasts: 2` - the second notification paints exactly on top of the first. Every
-criterion here concerns ONE toast, which is why they all pass and the case is still broken. It is
-recorded in the verification record as a DEFECT rather than as an untested area, and the repair does
-not require changing `<Toast>`'s public surface, so shipping this does not close it off.
+**BG-01M0Y2H2 - two simultaneous toasts rendered two overlapping viewports. FIXED in 461b73f.**
+
+Measured `viewports: 2, toasts: 2`, and a review then measured it worse than recorded: in Chromium
+both occupied the identical rect and `elementFromPoint` on the first toast's close button returned
+the SECOND toast's, so a covered toast's controls were unreachable rather than merely hidden - and
+with `duration: Infinity` on `danger`, a covered error toast persisted forever.
+
+Every criterion here concerns ONE toast, which is why they all passed while the case was broken.
+Every `<Toast>` now registers into one module-level shared stack; `ToastProps` is unchanged.
+
+This section previously said the defect was shipped and stated, which was true when written and
+false one commit later. `verification.md` was updated and this file was not.
 
 ## Revision History
 

@@ -55,6 +55,12 @@ test.beforeAll(async () => {
 })
 
 test.afterAll(async () => {
+  // Guarded, because `beforeAll` can throw BEFORE `server` is assigned - and it does so
+  // deliberately, with a loud "no Storybook build" message. Dereferencing `server` unconditionally
+  // replaced that message with `TypeError: Cannot read properties of undefined (reading 'close')`,
+  // so the one error written to be unmissable was the one thing the operator never saw. Measured: it
+  // appeared zero times in the run output.
+  if (!server) return
   await new Promise<void>((resolve) => server.close(() => resolve()))
 })
 

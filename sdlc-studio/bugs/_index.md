@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 0 |
+| inbox | 1 |
 | Superseded | 1 |
-| **Total** | **17** |
+| **Total** | **18** |
 
 ## By Severity
 
@@ -42,6 +42,7 @@
 | [BG-01M0XX4V](BG-01M0XX4V-ac5-s-verifier-runs-at-96-of-the.md) | AC5's verifier runs at 96% of the verify timeout and has stamped a false Verified: no | Medium | Medium | Fixed | -- | -- | 2026-08-26 |
 | [BG-01M0XZMJ](BG-01M0XZMJ-tier-3-tokens-are-private-by-policy-but.md) | Tier 3 tokens are private by policy but exported as public API by clara-tokens | Medium | Medium | Fixed | -- | -- | 2026-08-26 |
 | [BG-01M0Y2H2](BG-01M0Y2H2-two-simultaneous-toasts-render-two-overlapping-viewports.md) | Two simultaneous toasts render two overlapping viewports | Medium | Medium | Fixed | -- | -- | 2026-08-26 |
+| [BG-01M0YTT4](BG-01M0YTT4-a-toast-ownership-handover-restarts-every-survivor-s.md) | A toast ownership handover restarts every survivor's dismiss countdown | Medium | Medium | inbox | -- | -- | 2026-08-26 |
 
 ## Notes
 

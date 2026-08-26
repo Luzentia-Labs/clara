@@ -31,8 +31,16 @@ export interface TooltipProps {
    *
    * `aria-describedby` is wired onto whatever this renders, so a tooltip on a `<span>` describes
    * something a keyboard user can never reach - which is precisely the failure AC1 exists to
-   * prevent. Clara cannot check that in the type system; the docs page says it and the keyboard
-   * table shows it.
+   * prevent.
+   *
+   * The TYPE system cannot check it: whether a node renders something focusable is not knowable
+   * until runtime. A development-time check on the trigger node CAN, and is the open option rather
+   * than an impossibility - it is deferred because Clara has no `console.warn` convention anywhere
+   * in `packages/react/src` yet, so the first one is a house-wide decision binding every component,
+   * and a naive check has real false positives (a focusable node rendered deeper, `tabIndex` set
+   * asynchronously). Until then the behaviour is PINNED by a test rather than merely documented,
+   * because the docs page rejects a documentation-only answer for `content` and it would be
+   * inconsistent to accept one here.
    */
   children: ReactNode
   placement?: TooltipPlacement

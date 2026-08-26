@@ -67,11 +67,17 @@ renders identically to `static` with no offsets - makes the declaration true on 
 - Focus may rest outside the panel and is not yanked back, and the resulting dismissal does not
   steal focus to the trigger on the way out - `__tests__/popover.test.tsx`
 - An outside click dismisses it - `__tests__/popover.test.tsx`
+- The collision props actually REACH the panel, so AC2's narrowed claim has a witness. Deleting
+  `avoidCollisions` and `collisionPadding` used to leave the entire repository green -
+  `__tests__/collision.test.tsx`
 - The panel carries an accessible name - `__tests__/popover.test.tsx`
 - It renders through `ClaraPortal` and takes its stacking from a layer token -
   `check:overlay-contract`
 - Token-only styling, and a layer token that is not inert - `check:component-css`
-- axe while open, in all four theme x density combinations - `check:axe`
+- axe while open, in all four theme x density combinations, scoped to `document.body` so the
+  PORTALLED panel is actually inspected - `check:axe`. This line claimed the coverage while the
+  matrix ran `runAxe(container)`, which holds only the trigger; a second review round rejected
+  the story for exactly that gap between record and test
 
 ## Stated gaps
 
