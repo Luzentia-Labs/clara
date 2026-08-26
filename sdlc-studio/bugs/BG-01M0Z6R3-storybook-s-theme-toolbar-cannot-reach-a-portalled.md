@@ -24,11 +24,15 @@ Suggested verification: a Playwright assertion that with `globals=theme:dark`, t
 
 ## Steps to Reproduce
 
-{{steps}}
+1. `pnpm check:storybook`, then open any portalled overlay story with `?globals=theme:dark`.
+2. Read `data-clara-theme` on the `ClaraScope` div: `dark`.
+3. Read it on the `ClaraPortal` root: `light`.
 
 ## Proposed Fix
 
-{{fix}}
+Alias `@luzentialabs/clara-react` to `packages/react/src` in the Storybook vite config, so there is
+one module instance whichever way a file imports it. Preferred over changing `preview.tsx`'s imports,
+because it fixes every such import rather than the two that are known.
 
 ## Revision History
 

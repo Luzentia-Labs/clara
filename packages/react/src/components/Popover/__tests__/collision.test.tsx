@@ -27,7 +27,11 @@ import { Button } from '../../Button/Button'
  *
  * The criterion's subject is what Clara PASSES, not what the browser then does. Recording the props
  * that reach `RadixPopover.Content` observes exactly that, in the same terms the criterion is
- * written in. The rendered consequence stays deferred to BG-01M0XVXS and is claimed nowhere.
+ * written in. The rendered consequence is asserted separately, in `e2e/stacking.spec.ts` - the
+ * panel really does stay on screen when pinned against an edge, measured in a browser. This file
+ * makes the narrower claim, that Clara PASSES the configuration. Both exist and they are
+ * different claims; an earlier version of this line said the rendered half was claimed nowhere,
+ * which stopped being true when BG-01M0XVXS closed.
  */
 const contentProps: Array<Record<string, unknown>> = []
 

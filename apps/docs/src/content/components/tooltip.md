@@ -2,7 +2,7 @@
 
 ```tsx
 <Tooltip content="Recalculates every open line on this order">
-  <IconButton icon="refresh" label="Recalculate" />
+  <IconButton icon={<RefreshIcon />} label="Recalculate" />
 </Tooltip>
 ```
 

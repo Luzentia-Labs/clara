@@ -1,10 +1,10 @@
 # US-01M0GMK1: Toast
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Toast/**, packages/react/src/components/Toast/verification.md, scripts/check-component-css.mjs
@@ -15,6 +15,35 @@
 **As a** Grace Adeyemi
 **I want** transient notifications that are announced and never disappear before I read them
 **So that** I learn whether my action succeeded without hunting for the answer
+
+## Context
+
+### Persona Reference
+
+**Grace Adeyemi** - drives an ERP day from the keyboard, and needs to know whether an action
+succeeded without hunting for the answer.
+[Full persona details](../personas.md#grace-adeyemi)
+
+### Background
+
+An ERP action - posting a journal, running a batch - completes somewhere other than where the user
+is looking. Without a transient notification the only feedback is the screen silently changing, which
+a keyboard or screen-reader user may not notice at all.
+
+The design turns on one decision: `intent` governs BOTH how the toast is announced and whether it
+auto-dismisses, because both follow from the same fact. An error is the one kind whose content the
+user must act on, so it is announced assertively AND persists; everything else is polite and expires.
+Splitting them into two props would let a consumer build the incoherent halves.
+
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| Epic | Portal + scope | Renders through `ClaraPortal` with a non-constant `open`, and takes its stacking from a layer token | AC6 via `check:overlay-contract` |
+| PRD | Bundle | 12.8 kB against an authored 15 kB ceiling - the smallest of the five overlays, because a toast is not positioned against a trigger | AC6 via `pnpm size` |
+| PRD | Public surface | No Radix vocabulary reaches Clara's API; `foreground`/`background` are mapped to `intent` internally | AC6 via `check:api` |
 
 ## Acceptance Criteria
 
@@ -124,6 +153,95 @@ cannot enforce is a wish rather than a design decision. The layering is correct 
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Edge Cases & Error Handling
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| Two or more toasts at once | They share ONE viewport and stack in arrival order. Each used to bring its own fixed viewport at the identical rect, so a covered toast's controls were unreachable (BG-01M0Y2H2) |
+| The toast owning the shared host unmounts | Ownership passes to a survivor. The survivor's dismiss timer RESTARTS and it is re-announced - known, filed as BG-01M0YTT4 |
+| A render React discards (StrictMode, any Suspense boundary) | No orphaned entry. Publishing happens in an effect, never during render - during render it orphaned an entry that then owned the host forever and nothing rendered again |
+| An error toast is covered or ignored | It never auto-dismisses, so the information is not destroyed on a timer the reader did not set |
+| The pointer or focus rests on the stack | The dismiss countdown pauses, and resumes when it leaves. A toast that expired while the user tabbed toward its Undo would take the action away as it was reached |
+| Reduced motion | The entrance slide is REPLACED by a fade, not removed - Class B under D0100, because the travel is what says "this just arrived" |
+| A server render | Renders nothing and warns nothing; a portalled surface has no server output, and a passive effect avoids React's useLayoutEffect warning |
+| A page that renders only a CLOSED toast | No fixed region is left behind - the host opens only when some toast is open |
+
+
+## Test Scenarios
+
+- [x] An error announces ASSERTIVELY and info/success/warning announce POLITELY - both directions
+- [x] The intent word reaches the accessible name, visible to assistive technology, in all four intents
+- [x] An error survives 60s of fake time AND a success toast dismisses - both directions
+- [x] The timer pauses on pointer and on focus, and RESUMES when the pointer leaves
+- [x] Three toasts share one viewport, in arrival order, and survive their owner unmounting
+- [x] A toast in a SECOND React root joins the first root's stack
+- [x] StrictMode, a suspended sibling, and a later ordinary toast all render
+- [x] A server render is silent - no markup, no React warning
+- [x] In a browser: three toasts occupy distinct rows and every close button is hittable
+- [x] In a browser: reduced motion replaces the slide with a fade rather than removing it
+- [x] Both directions of the D0102 shared-layer mechanism against Tooltip
+- [ ] Swipe-to-dismiss - needs real pointer geometry, which jsdom does not have (recorded gap)
+- [ ] The F8 hotkey, which is how a keyboard user reaches the stack at all (recorded gap)
+
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| [US-01M0GM61](US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md) | hard | `ClaraPortal` and the layer scale | Done |
+| [US-01M0GM31](US-01M0GM31-tooltip.md) | hard | AC7 is one direction of a mechanism the other story completes | Draft |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| `@radix-ui/react-toast` | runtime | Installed, 12.8 kB against an authored 15 kB ceiling |
+
+## Estimation
+
+**Points:** 5
+**Complexity:** Medium as specified, HIGH as delivered. The criteria are all single-toast, and the
+component's hardest problem turned out to be the one no criterion named: a shared stack across
+independent React roots, whose first implementation broke `<Toast>` entirely under any Suspense
+boundary while every gate stayed green.
+
+> **Points** are a RELATIVE size on the modified Fibonacci scale (1, 2, 3, 5, 8, 13, 20) - not
+> "how long will this take" but "is this bigger than that one", sized against stories already
+> delivered. The gaps widen deliberately, because uncertainty grows with size: it is much harder
+> to argue a story is a 7 rather than an 8 than to choose between a 5 and an 8. A value off the
+> scale is REFUSED, never rounded - the scale IS the estimate. Above 8, SPLIT the story;
+> estimator consistency collapses beyond it, so a bigger number is a triage failure rather than
+> a harder estimate. This is the one size vocabulary: the planner, the forecast and the measured
+> velocity all read this field.
+
+## Rollback Envelope
+
+> Required when `affects_production_runtime: true`; optional otherwise. See `reference-story.md#rollback-envelope`.
+
+**Affects production runtime:** Yes - a published component, a new runtime dependency, and module-level state shared across React roots.
+
+| Component | Reversal | Expected time |
+| --- | --- | --- |
+| `@luzentialabs/clara-react` | Unpublished (`NPM_TOKEN` unset), so reversal is `git revert`. Once published, immutable: a forward patch removing the export, which is a major. | Pre-publish: minutes. Post-publish: a major release |
+
+If `affects_production_runtime: false`, replace with: *Not applicable – story does not change runtime behaviour.*
+
+## Open Questions
+
+- [x] Should the ownership handover preserve survivors' timers? **Filed as BG-01M0YTT4.** It also
+      re-announces every survivor to the live region, so a screen reader re-reads the whole stack.
+
+## Resolved Questions
+
+- **Should politeness and persistence be separate props?** NO. They are one decision with one cause -
+  an error is the only toast whose content must be acted on - and separating them lets a consumer
+  build an assertive toast that vanishes, or a permanent one nobody is told about.
+- **Should the shared stack be a public `<ToastProvider>`?** NO. That is public API, a one-way door
+  under this project's publishing rules, and it moves work onto every consumer for a problem they did
+  not create. A module-level stack keeps `ToastProps` byte-identical.
 
 ## Test Plan
 

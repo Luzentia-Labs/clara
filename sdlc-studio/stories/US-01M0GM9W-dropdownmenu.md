@@ -1,10 +1,10 @@
 # US-01M0GM9W: DropdownMenu
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** apps/docs/src/content/components/dropdown-menu.md, packages/react/src/components/DropdownMenu/**, packages/react/src/components/DropdownMenu/verification.md, scripts/check-component-css.mjs
@@ -15,6 +15,39 @@
 **As a** Grace Adeyemi
 **I want** an actions menu implementing the WAI-ARIA menu pattern
 **So that** keyboard users can drive every action without a pointer
+
+## Context
+
+### Persona Reference
+
+**Grace Adeyemi** - drives an ERP day almost entirely from the keyboard, and reaches for a mouse
+only when a control leaves her no choice.
+[Full persona details](../personas.md#grace-adeyemi)
+
+### Background
+
+A row of ERP records needs a per-row actions affordance: post, void, export, duplicate. Without a
+menu each row grows a line of buttons, which is unusable at thirty rows and unreadable at three
+hundred.
+
+The pattern is WAI-ARIA's menu, and the reason to adopt Radix rather than write it is that the
+pattern is mostly keyboard behaviour - roving focus, typeahead, submenu traversal, disabled skipping
+- and every one of those is a place to get accessibility subtly wrong. ADR-004 took that trade
+deliberately.
+
+What Clara owns on top is the part Radix cannot: the API shape (`items` as data, so illegal
+arrangements cannot be written), the token-only styling, and the portal scope that keeps a menu
+opened from a dark sidebar dark.
+
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| Epic | Portal + scope | Every overlay renders through `ClaraPortal` and takes its stacking from a layer token (US-01M0GM61) | AC6 via `check:overlay-contract` |
+| PRD | Bundle | Per-component JS budget, and an authored ceiling for each third-party runtime | AC6 via `pnpm size` (31.11 kB of 34 kB) |
+| PRD | Public surface | No Radix type, prop name or `data-*` reaches Clara's API (Section 4 rule 7) | AC6 via `check:api` |
 
 ## Acceptance Criteria
 
@@ -56,6 +89,7 @@
   `check-verification.mjs` carries `require` AND `forbid` pairs, and `prove-guards` already proves an
   inverted SearchInput page dies. `dropdown-menu.md` simply was not enrolled
 - **Verify:** shell node scripts/check-verification.mjs --component DropdownMenu --docs
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC4: Token-only styling
@@ -108,59 +142,97 @@
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
 
-## Test Plan
+## Edge Cases & Error Handling
 
-| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| Scenario | Expected Behaviour |
+| --- | --- |
+| A submenu entry is selected | Runs that entry's own handler, closes the WHOLE menu, and returns focus to the trigger |
+| An entry is disabled | Announced, never focused by arrows, and its `onSelect` is unreachable |
+| `items` changes LENGTH while the menu is open | Roving focus tracks a position, so the highlight can land on a different entry - warned in development, documented, and disclosed in the record |
+| `items` changes without changing length | The same hazard, NOT warned - a known limit of the check, recorded |
+| Arrowing off either end, at root or in a submenu | Wraps to the other end; `loop` is passed explicitly because Radix defaults it to false |
+| Escape inside a submenu | Closes the whole menu, not just the submenu - an APG deviation, recorded rather than claimed away |
+| Tab while open | Neither dismisses nor moves focus. Outside AC1's enumeration; recorded |
+| A trigger with no accessible name | The menu inherits it, so the menu is unnamed too - the trigger must be named (an `IconButton` carries `label`) |
+| A menu longer than the viewport | Caps to the height the popper measured and scrolls; without it the overflow is unreachable under a fixed wrapper |
+
+
+## Test Scenarios
+
+- [x] Arrow navigation moves the highlight and SKIPS the disabled entry
+- [x] Arrowing off either end wraps, at root and inside a submenu
+- [x] ArrowRight moves FOCUS into a submenu, not merely revealing it
+- [x] Typeahead jumps to an entry by its label
+- [x] A non-first entry runs its OWN handler and no other's
+- [x] A submenu entry runs its own handler and closes the whole menu
+- [x] A disabled entry's handler is unreachable
+- [x] A separator is exposed as one and skipped by arrows
+- [x] Focus returns to the trigger by identity on Escape, on selection, and on an outside click
+- [x] The positioning props reach Radix - the root's four and the submenu's two
+- [x] Changing the list length while open warns; a stable list does not
+- [x] axe in all four theme x density combinations, scoped so the portalled menu is inspected
+- [ ] Rendered geometry in a browser - no e2e case covers this component (recorded gap)
+- [ ] Multi-character typeahead, its reset window, and first-letter collisions
+
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
 | --- | --- | --- | --- |
-| AC1 | packages/react/src/components/DropdownMenu/DropdownMenu.tsx | Drop the `disabled` pass-through (measured: 3 tests fail), or render a submenu as a flat item so ArrowRight opens nothing (measured: 1 fails), or wire every item to `items[0].onSelect` (measured: 1 fails - see the spec delta, this one initially SURVIVED). | Menu pattern |
-| AC2 | packages/react/src/components/DropdownMenu/DropdownMenu.tsx | Suppress Radix's focus restoration, or restore only on Escape and not after a selection. | Focus restoration |
-| AC3 | apps/docs/src/content/components/dropdown-menu.md | Delete the actions-only section, or reword the page to present it as a navigation menu. | Distinct from navigation |
-| AC4 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the `.clara-dropdown-menu` rules. | Token-only styling |
-| AC5 | packages/react/src/components/DropdownMenu/DropdownMenu.tsx | Rename the theme or density attribute. | Both themes and densities |
-| AC6 | packages/react/src/components/DropdownMenu/verification.md | Delete the DropdownMenu verification record, its docs page, or its keyboard table. | Definition of done |
+| [US-01M0GM61](US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md) | hard | `ClaraPortal` and the layer scale | Done |
 
-## Spec delta
+### External Dependencies
 
-Derived before implementation, per the engagement floor.
-
-**Interactions resolved during implementation:**
-
-1. **The menu is DATA, not composed children.** Clara exports no `DropdownMenuItem` or
-   `DropdownMenuSeparator`. A composed API is Radix primitives wearing Clara names, and every illegal
-   arrangement - an Item outside a Sub, a Separator inside a Trigger - surfaces as a runtime error
-   naming a Radix component in a consumer's console, which Section 4 rule 7 forbids. The entry union
-   additionally makes "an action that also has a submenu" and "a separator with a label" type errors.
-2. **There is deliberately no `label` prop, and removing it was a FIX, not a simplification.** It was
-   written with one, matching Popover. Radix wires `aria-labelledby` on the menu to the trigger's id,
-   and `aria-labelledby` beats `aria-label` in the accessible-name computation - so the prop silently
-   did nothing. Measured: the menu's name was the trigger's text, not the value passed in, and seven
-   tests querying `role="menu"` by the passed name could not find it. A prop that has no effect is
-   worse than no prop. Naming a menu by its button is the WAI-ARIA pattern's own answer and cannot be
-   forgotten, since the trigger needs a name to be usable at all.
-3. **A submenu is NOT separately portalled.** It renders inside the parent menu's own portal subtree,
-   because Radix's roving focus and typeahead walk the DOM from the root menu - a separately
-   portalled submenu is invisible to both, and Escape then closes the wrong level.
-4. **It takes `--clara-layer-overlay`, the same layer as Modal, Drawer and Popover.** Not a layer of
-   its own: a menu must sit under a modal opened over it and over a modal opened from inside it, and
-   those are opposite directions, so open order decides (D0088, D0102).
-5. **`[data-highlighted]` is used as an internal styling hook.** A menu has one roving highlight
-   driven by keyboard and pointer together: `:hover` alone paints two highlighted rows when the
-   pointer rests on one while the keyboard is on another, and `:focus` alone paints none, because
-   roving focus keeps DOM focus on the container. It appears in Clara's stylesheet and in no prop,
-   type or documented attribute, which is where Section 4 rule 7 draws the line.
-6. **`@radix-ui/react-dropdown-menu` measured 31.11 kB, budget 34 kB** - the largest of the five
-   overlays, 7 kB over Popover. It is the popper and `@floating-ui` chain, plus a dismissable layer
-   and focus scope, plus roving focus, typeahead and nested-submenu machinery. That is the WAI-ARIA
-   menu pattern, not bloat.
-
-**A test that passed vacuously, found by mutation and fixed.** "Runs the entry's own onSelect, and
-not another entry's" clicked 'Post' - the FIRST entry. A mutation wiring every item to
-`items[0].onSelect` passed all thirteen tests, because the single entry it checked is the one that
-mutation happens to get right. It now selects a non-first entry, and the mutation dies. This is the
-same shape as the defects that cost US-01M0GM61 ten rounds, caught here by probing rather than by a
-reviewer.
-
-## Revision History
-
-| Date | Author | Change |
+| Dependency | Type | Status |
 | --- | --- | --- |
+| `@radix-ui/react-dropdown-menu` | runtime | Installed, 31.11 kB against an authored 34 kB ceiling |
+
+## Estimation
+
+**Points:** 8
+**Complexity:** High. Not for the rendering - that is a recursive map over a union - but for the
+keyboard pattern, which is mostly third-party behaviour that has to be verified rather than written.
+Five review rounds bear that out: every blocking finding was about EVIDENCE (a fixture that could
+not reach what it asserted, a verifier that survived its own mutant, a rationale that was false)
+rather than about the component misbehaving.
+
+> **Points** are a RELATIVE size on the modified Fibonacci scale (1, 2, 3, 5, 8, 13, 20) - not
+> "how long will this take" but "is this bigger than that one", sized against stories already
+> delivered. The gaps widen deliberately, because uncertainty grows with size: it is much harder
+> to argue a story is a 7 rather than an 8 than to choose between a 5 and an 8. A value off the
+> scale is REFUSED, never rounded - the scale IS the estimate. Above 8, SPLIT the story;
+> estimator consistency collapses beyond it, so a bigger number is a triage failure rather than
+> a harder estimate. This is the one size vocabulary: the planner, the forecast and the measured
+> velocity all read this field.
+
+## Rollback Envelope
+
+> Required when `affects_production_runtime: true`; optional otherwise. See `reference-story.md#rollback-envelope`.
+
+**Affects production runtime:** Yes - a published component and a new runtime dependency.
+
+| Component | Reversal | Expected time |
+| --- | --- | --- |
+| `@luzentialabs/clara-react` | Nothing is published yet (`NPM_TOKEN` unset), so reversal today is `git revert` of the build commits. Once published, a release is IMMUTABLE and the reversal is a forward patch that removes the export - a breaking change requiring a major. | Pre-publish: minutes. Post-publish: a major release |
+
+If `affects_production_runtime: false`, replace with: *Not applicable – story does not change runtime behaviour.*
+
+## Open Questions
+
+- [x] Should a same-length `items` substitution also warn? **Filed as BG-01M1037M.** The hazard is
+      identical; the naive widening (`!==`) warns on every render for the common React shape, so it
+      needs a structural comparison rather than an identity one.
+- [x] Should Tab close the menu, per the WAI-ARIA APG menu-button pattern? **Filed as BG-01M103BV.**
+      Radix's behaviour, not configurable from here, so conformance means Clara owning focus - which
+      ADR-004 adopted Radix to avoid.
+
+## Resolved Questions
+
+- **Is a navigation menu still v1.1?** YES - D0020 stands. AC3 forbids presenting this component as
+  a navigation menu, and since round 5 that is enforced by a `forbid` list rather than a grep, so the
+  page cannot be inverted while the criterion passes. Ruled during this story; no change needed.
+- **Is an unaimed action acceptable to ship?** NO in silence, YES disclosed - the QA seat's round-4
+  ruling, taken as the design decision. It warns in development, the docs page carries a section, and
+  the record carries the gap. BG-01M1037M narrows the remaining case.

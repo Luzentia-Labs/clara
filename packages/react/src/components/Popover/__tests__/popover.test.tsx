@@ -76,13 +76,54 @@ describe('Popover returns focus without trapping', () => {
     expect(document.activeElement).toBe(outside)
   })
 
-  it('closes on an outside click and returns focus to the trigger', async () => {
+  it('closes on an outside click and LEAVES focus where the click landed', async () => {
+    // The title used to say "returns focus to the trigger", and the body asserted no focus at all.
+    // It was false in both directions a review measured: clicking a focusable element leaves focus
+    // THERE, and clicking a non-focusable one leaves it on `document.body` - never on the trigger.
+    //
+    // Radix is explicit about it: `if (!hasInteractedOutsideRef.current) triggerRef.current?.focus()`,
+    // so an outside interaction deliberately suppresses the restore. That is correct for a non-modal
+    // surface - yanking focus back to a trigger the user just clicked away from is the trap this
+    // component exists not to be - and the sibling test above already says so. Only the title
+    // disagreed, and it sat inside AC1's own verifier, so it printed as evidence.
     render(<Harness />)
     const trigger = screen.getByRole('button', { name: 'Options' })
     await userEvent.click(trigger)
     await screen.findByRole('button', { name: 'Inside' })
-    await userEvent.click(screen.getByRole('link', { name: 'Before' }))
+    const before = screen.getByRole('link', { name: 'Before' })
+    await userEvent.click(before)
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Inside' })).toBeNull())
+    // Asserted, not merely titled: focus is where the user put it.
+    expect(document.activeElement, 'focus was yanked back to the trigger, which is the trap')
+      .toBe(before)
+    expect(document.activeElement).not.toBe(trigger)
+  })
+
+  it('keeps the consumer className alongside its own', async () => {
+    // Unpinned until now, against an in-repo precedent: Modal already asserts its equivalent.
+    // `cx('clara-popover', className)` collapsing to `cx('clara-popover')` survived all 818 tests.
+    render(
+      <Popover open onOpen={() => {}} onClose={() => {}} label="Options" className="tenant-popover"
+        trigger={<Button>Options</Button>}>
+        <button>Inside</button>
+      </Popover>,
+    )
+    await screen.findByRole('button', { name: 'Inside' })
+    const panel = document.querySelector('.clara-popover')
+    expect(panel, 'the panel lost its own class').not.toBeNull()
+    expect(panel!.classList.contains('tenant-popover'), 'the consumer className was dropped').toBe(true)
+  })
+
+  it('hides the accessible name visually, rather than printing it in the panel', async () => {
+    // Deleting just the CLASS (keeping the span) survived 818 tests, and would render the label as
+    // visible text at the top of every panel. jsdom cannot see the styling; what it CAN see is that
+    // the element carries the class the stylesheet acts on, which is the mechanism.
+    render(<Harness />)
+    await userEvent.click(screen.getByRole('button', { name: 'Options' }))
+    await screen.findByRole('button', { name: 'Inside' })
+    const label = document.querySelector('.clara-popover .clara-visually-hidden')
+    expect(label, 'the label is no longer visually hidden - it prints inside the panel').not.toBeNull()
+    expect(label!.textContent).toBe('Column options')
   })
 
   it('names the panel, so it is not announced as an unnamed group', async () => {

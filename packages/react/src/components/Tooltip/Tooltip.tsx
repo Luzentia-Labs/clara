@@ -50,14 +50,24 @@ export interface TooltipProps {
 }
 
 /**
- * A short explanation attached to a control, reachable by pointer and by keyboard - and NOT on
- * touch, which is a limit of the pattern rather than of this implementation.
+ * A short explanation attached to a control, reachable by pointer, by keyboard, and by assistive
+ * technology - but NOT by touch gestures.
  *
- * Measured on a touch context: tap, long-press and programmatic focus all leave it closed, by
- * Radix's construction. That is why AC3 forbids a tooltip being the sole source of anything -
- * on a phone there is no route to it at all. An earlier version of this line said "reachable by
- * pointer AND by keyboard" without qualification; the docs page said it correctly and the
- * docblock did not.
+ * Measured in a touch context: tap does not open it and neither does a long press. FOCUS does,
+ * including a programmatic `.focus()`, because Radix opens on focus whenever no pointer is down
+ * (`onFocus: if (!isPointerDownRef.current) context.onOpen()`). That matters: VoiceOver's rotor and
+ * TalkBack's swipe navigation move DOM focus, so the mobile screen-reader path DOES reach the
+ * content even though a sighted touch user cannot.
+ *
+ * Two earlier versions of this paragraph got it wrong in both directions - one claimed it was
+ * reachable by pointer without qualification, the next claimed "programmatic focus" also left it
+ * closed and that "on a phone there is no route to it at all". The second understated the component:
+ * it told the next author the mobile assistive-technology path was hopeless, which is the surest way
+ * to make sure nobody tests it again. The behaviour is now asserted in
+ * `__tests__/tooltip.test.tsx`, so this paragraph cannot drift from the code again.
+ *
+ * A sighted touch user still has no route, which is why AC3 forbids a tooltip being the sole source
+ * of anything.
  *
  * ## Why it opens on focus and not only on hover
  *

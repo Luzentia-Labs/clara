@@ -113,11 +113,13 @@ Open order decides which paints on top, because the relationship is bidirectiona
 
 ## Stated gaps
 
-- **Unreachable on TOUCH, and that is the pattern, not a defect here.** Measured on a touch context:
-  tap, long-press and programmatic focus all leave it closed, by Radix's construction. It is the
-  reason AC3 forbids a tooltip being the sole source of anything - on a phone there is no route to
-  the content at all. The docs page says so; the component docblock did not until a review pointed
-  it out.
+- **Unreachable by TOUCH GESTURE, but reachable by assistive technology on the same device.**
+  Measured: tap does not open it, a long press does not open it, but FOCUS does - including a
+  programmatic `.focus()`, because Radix opens on focus whenever no pointer is down. VoiceOver's
+  rotor and TalkBack's swipe move DOM focus, so the mobile screen-reader path reaches the content.
+  A sighted touch user has no route, which is why AC3 forbids a tooltip being the sole source of
+  anything. An earlier version of this bullet claimed programmatic focus left it closed and that
+  there was "no route at all" on a phone - false, and understating a path worth protecting.
 
 - **The hover bridge is NOT verified in jsdom, and cannot be.** Radix implements WCAG 1.4.13's
   "hoverable" requirement as a grace-area polygon computed from the trigger's and the content's

@@ -42,9 +42,15 @@ export const Bottom: Story = { render: () => <Demo placement="bottom" /> }
 export const Top: Story = { render: () => <Demo placement="top" /> }
 
 /**
- * Pinned against the edge, which is where AC2's flip and shift are supposed to happen. Nothing
- * automated proves they do - gate 9's fixture is a server render and no portal appears in it
- * (BG-01M0XVXS) - so this story is where a person can currently see it.
+ * Pinned against the edge, where AC2's flip and shift happen.
+ *
+ * This story is now the FIXTURE for `e2e/stacking.spec.ts`'s "a popover pinned against an edge
+ * stays on screen", which drives it in a real browser - so it is proof, not only a place to look.
+ * The comment here previously said nothing automated proved it, which stopped being true when
+ * BG-01M0XVXS was closed and this assertion was written.
+ *
+ * It is a `tags: ['autodocs']` docstring, so it renders as the story's description in Storybook -
+ * a stale sentence here is read by anyone browsing the component.
  */
 export const AgainstTheEdge: Story = { render: () => <Demo placement="left" align="flex-start" /> }
 

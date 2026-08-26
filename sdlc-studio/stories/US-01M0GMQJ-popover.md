@@ -22,7 +22,12 @@
 
 - **Given** an open Popover
 - **When** I dismiss it
-- **Then** focus returns to the trigger without ever having been trapped
+- **Then** focus is never trapped, and on ESCAPE it returns to the trigger
+- **And** on the other two dismissal routes it deliberately does NOT return: an outside click leaves
+  focus where the click landed, and moving focus out leaves it where the user put it. Yanking focus
+  back to a trigger somebody just navigated away from is the trap this component exists not to be,
+  and Radix suppresses the restore after an outside interaction for that reason. An earlier version
+  of this Then-clause said "focus returns to the trigger" for every route, which is true of one
 - **Verify:** vitest "Popover returns focus without trapping"
 - **Verified:** yes (2026-08-26)
 - **Verification target:** functional
@@ -34,9 +39,10 @@
 - **Then** the collision behaviour is configured and the requested placement reaches the panel
 - **And** the RENDERED half of this criterion - that it actually flips, shifts and stays anchored -
   is not verified here and cannot be: it is entirely layout, jsdom computes none, and gate 9's
-  fixture is a server render that no portalled surface appears in at all. Deferred to BG-01M0XVXS
-  rather than claimed, because a criterion asserting a rendered behaviour its verifier cannot see is
-  the defect this epic has spent nine review rounds removing
+  fixture is a server render that no portalled surface appears in at all. Asserted separately in
+  `e2e/stacking.spec.ts`, in a real browser, since BG-01M0XVXS closed - the panel stays on screen
+  when pinned against an edge, and reports a different `data-side`, so it demonstrably moved. This
+  clause previously deferred the rendered half as unclaimable; that stopped being true
 - **Verify:** vitest "Popover collision handling is configured"
 - **Verified:** yes (2026-08-26)
 - **Verification target:** functional

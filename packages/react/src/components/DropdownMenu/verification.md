@@ -108,7 +108,10 @@ directions, so open order decides and a per-role constant cannot (D0088, D0102).
   asserted by nothing for three rounds: neutering every submenu `onSelect` left the entire
   repository green, so a menu that opened submenus and moved focus into them could run none of
   their actions - `__tests__/dropdown-menu.test.tsx`
-- Changing `items` while open warns, and a stable menu does not -
+- Changing the LENGTH of `items` while open warns, and a stable menu does not. The word is
+  load-bearing: the check is gated on a length change, so a SAME-LENGTH substitution is silent and
+  can still misaim - measured. The docs page states the broad hazard correctly; this line is the
+  precise one -
   `__tests__/dropdown-menu.test.tsx`
 - The positioning props reach Radix - the root menu's four and the SUBMENU's two - so `placement`
   is not an inert prop - `__tests__/positioning.test.tsx`

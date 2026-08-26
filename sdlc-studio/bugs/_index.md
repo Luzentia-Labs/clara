@@ -1,6 +1,6 @@
 # Bug Registry
 
-**Last Updated:** 2026-08-26
+**Last Updated:** 2026-08-27
 
 ## Summary
 
@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 2 |
+| inbox | 4 |
 | Superseded | 1 |
-| **Total** | **19** |
+| **Total** | **21** |
 
 ## By Severity
 
@@ -44,6 +44,8 @@
 | [BG-01M0Y2H2](BG-01M0Y2H2-two-simultaneous-toasts-render-two-overlapping-viewports.md) | Two simultaneous toasts render two overlapping viewports | Medium | Medium | Fixed | -- | -- | 2026-08-26 |
 | [BG-01M0YTT4](BG-01M0YTT4-a-toast-ownership-handover-restarts-every-survivor-s.md) | A toast ownership handover restarts every survivor's dismiss countdown | Medium | Medium | inbox | -- | -- | 2026-08-26 |
 | [BG-01M0Z6R3](BG-01M0Z6R3-storybook-s-theme-toolbar-cannot-reach-a-portalled.md) | Storybook's theme toolbar cannot reach a portalled overlay - two ClaraSettingsContext instances | Medium | Medium | inbox | -- | -- | 2026-08-26 |
+| [BG-01M1037M](BG-01M1037M-a-same-length-items-substitution-misaims-silently-because.md) | A same-length items substitution misaims silently, because the warning is gated on length | Medium | Medium | inbox | -- | -- | 2026-08-27 |
+| [BG-01M103BV](BG-01M103BV-tab-does-not-close-a-dropdownmenu-against-the.md) | Tab does not close a DropdownMenu, against the WAI-ARIA APG menu-button pattern | Medium | Medium | inbox | -- | -- | 2026-08-27 |
 
 ## Notes
 

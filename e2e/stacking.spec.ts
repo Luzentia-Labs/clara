@@ -177,9 +177,12 @@ test('a tooltip on a toast action paints above it', async ({ page }) => {
   const toast = page.locator('.clara-toast')
   await toast.waitFor({ state: 'visible' })
 
-  // Hover, not a programmatic `.focus()`. Radix gates focus-opening on `:focus-visible`, which a
-  // scripted focus call does not set - so `.focus()` leaves the tooltip closed and the probe below
-  // reads a null box. Measured: both AC7 tests failed that way before this changed.
+  // Hover rather than a programmatic `.focus()`, and the ORIGINAL reason given here was wrong.
+  //
+  // It claimed Radix gates focus-opening on `:focus-visible`. It does not - `focus-visible` appears
+  // zero times in the primitive, and the gate is `isPointerDownRef`. A scripted `.focus()` on this
+  // story's Retry button DOES open the tooltip, with a real 288x52 box. Hover is used because it is
+  // the route this test is about, not because focus fails.
   await page.getByRole('button', { name: 'Retry' }).hover()
   const tip = page.locator('.clara-tooltip')
   await tip.waitFor({ state: 'visible' })

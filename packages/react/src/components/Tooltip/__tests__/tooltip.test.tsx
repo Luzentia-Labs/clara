@@ -62,6 +62,32 @@ describe('Tooltip appears on keyboard focus', () => {
   })
 })
 
+/**
+ * The mobile assistive-technology path, pinned so the docblock cannot drift from it a sixth time.
+ *
+ * Five review rounds each found the blocking defect in one component docblock, and the fifth was
+ * this exact sentence: it claimed "tap, long-press and programmatic focus all leave it closed",
+ * which is false in its third. Radix opens on focus whenever no pointer is down
+ * (`onFocus: if (!isPointerDownRef.current) context.onOpen()`), so a programmatic `.focus()` opens
+ * it - and that is the route VoiceOver's rotor and TalkBack's swipe navigation take, because both
+ * move DOM focus.
+ *
+ * The prose was wrong twice in opposite directions. The fix for a claim that keeps rotting is to
+ * stop it being only a claim.
+ */
+describe('Tooltip is reachable by programmatic focus, which is the mobile AT route', () => {
+  it('opens when focus is moved to the trigger by script, not only by tabbing', async () => {
+    render(<Tooltip content="Recalculates every open line"><button>Recalculate</button></Tooltip>)
+    const trigger = screen.getByRole('button', { name: 'Recalculate' })
+    // No keyboard, no pointer: exactly what a screen reader's rotor does.
+    trigger.focus()
+    await waitFor(() => {
+      expect(screen.getAllByText('Recalculates every open line').length).toBeGreaterThan(0)
+    })
+    expect(document.activeElement).toBe(trigger)
+  })
+})
+
 describe('Tooltip on a non-focusable child', () => {
   it('WARNS in development, and is still unreachable by keyboard', async () => {
     // Two rounds of review deferred this warning, the second on the stated ground that Clara had no
