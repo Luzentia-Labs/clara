@@ -1,9 +1,11 @@
 import { StrictMode, Suspense, useState } from 'react'
+import { createRoot } from 'react-dom/client'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { runAxe } from '../../../../../../test/axe'
 import { ClaraProvider } from '../../../theme/ClaraProvider'
+import { resetToastStore } from '../toast-store'
 import { Toast } from '../Toast'
 import type { ToastIntent } from '../Toast'
 
@@ -24,7 +26,12 @@ const INTENTS: ToastIntent[] = ['info', 'success', 'warning', 'danger']
  */
 const useTimerFakes = () => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
 
-afterEach(() => { vi.useRealTimers() })
+afterEach(() => {
+  vi.useRealTimers()
+  // The store is module state and outlives a render, so a toast left registered by one test is
+  // found by the next - which two review seats hit as an order-dependent flake.
+  resetToastStore()
+})
 
 /** The announcer Radix renders, which is what a screen reader actually reads. */
 const politeness = () =>
@@ -323,5 +330,48 @@ describe('Toast survives a discarded render', () => {
     render(<Toast open onClose={() => {}} title="Second" />)
     expect(await screen.findByText(/Second/), 'a dead entry still owns the shared host')
       .toBeInTheDocument()
+  })
+})
+
+/**
+ * The store's NOTIFICATION half, which no gate reached.
+ *
+ * A review made `emit()` notify nobody, and separately made `subscribe()` register nobody, and
+ * measured 1173 tests, 26 guards, typecheck, size and all 29 e2e still green.
+ * `useSyncExternalStore` re-reads its snapshot during React's own render for a single root, so the
+ * subscription only earns its keep ACROSS independent roots - which is exactly the case nothing
+ * exercised.
+ *
+ * Two React roots is not a contrived scenario for this component: a toast raised by a widget mounted
+ * separately from the main app is the ordinary shape of an incrementally-adopted design system,
+ * which is what this library is for.
+ */
+describe('Toast notifies across independent React roots', () => {
+  it('a toast in a SECOND root joins the first root\'s stack', async () => {
+    const a = document.createElement('div')
+    const b = document.createElement('div')
+    document.body.append(a, b)
+    const rootA = createRoot(a)
+    const rootB = createRoot(b)
+    try {
+      await act(async () => {
+        rootA.render(<Toast open onClose={() => {}} title="From root A" />)
+      })
+      await waitFor(() => expect(screen.getByText(/From root A/)).toBeInTheDocument())
+
+      await act(async () => {
+        rootB.render(<Toast open onClose={() => {}} title="From root B" />)
+      })
+      // The second root's toast must appear, and both must share ONE viewport - which can only
+      // happen if the first root was NOTIFIED that the store changed.
+      await waitFor(() => expect(screen.getByText(/From root B/)).toBeInTheDocument())
+      expect(document.querySelectorAll('.clara-toast__viewport'),
+        'the two roots each built their own stack, so the subscription did nothing')
+        .toHaveLength(1)
+      expect(document.querySelectorAll('.clara-toast')).toHaveLength(2)
+    } finally {
+      await act(async () => { rootA.unmount(); rootB.unmount() })
+      a.remove(); b.remove()
+    }
   })
 })

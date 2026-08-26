@@ -87,6 +87,11 @@ arrive later into the same host. The trade-off is unchanged, and so is the reaso
   mechanism - `e2e/stacking.spec.ts`
 - Three toasts render ONE viewport holding all three, in arrival order, and the stack survives its
   owning toast unmounting - `__tests__/toast.test.tsx`
+- A toast raised from a SECOND React root joins the first root's stack, which is the only case the
+  store's subscription earns its keep in - `useSyncExternalStore` re-reads its snapshot during a
+  single root's own render, so making `emit` notify nobody was invisible to every gate until this
+  existed - `__tests__/toast.test.tsx`
+- A server render is SILENT: no React `useLayoutEffect` warning, and no markup - `__tests__/ssr.test.tsx`
 - In a browser, three toasts occupy distinct rows and every close button is the topmost element at
   its own centre, which is what reachable means to a pointer - `e2e/stacking.spec.ts`
 - Reduced motion REPLACES the entrance slide with a fade rather than removing it, so a toast still
@@ -104,6 +109,13 @@ arrive later into the same host. The trade-off is unchanged, and so is the reaso
   a survivor fires at t=9.0s instead of its original t=5.0s. Dismissing one toast silently
   extends every other one. The handover test here asserts presence and viewport count, both of
   which are true while the timer is wrong.
+- **`key={id}` on the rendered Root is NOT pinned, and a test asserting it was deleted rather than
+  kept.** Removing the key leaves every gate green with no React key warning. A test was written
+  for it and a mutation probe showed it proved nothing - the survivors' titles and buttons render
+  from current props either way, and the state that WOULD follow identity (a dismiss timer) is
+  not observable in jsdom. Shipping an assertion that looks authoritative and observes nothing is
+  the defect this project keeps finding, so the key stays as a correctness measure and the gap is
+  recorded here instead of being papered over.
 - **Swipe-to-dismiss is not verified.** Radix's swipe handling needs real pointer geometry; jsdom has
   none. It is not asserted anywhere, and it is not claimed anywhere either.
 - **Multiple toasts share ONE viewport** - this was broken and is fixed (BG-01M0Y2H2). Each

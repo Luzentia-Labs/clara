@@ -102,3 +102,21 @@ export function useToastEntries (): ToastEntry[] {
 export function useIsToastHost (id: number): boolean {
   return useSyncExternalStore(subscribe, () => owner === id, () => false)
 }
+
+/**
+ * Test-only: forget every registered toast.
+ *
+ * The store is module state, so it outlives a `render()` - and a test whose toasts are not retracted
+ * before the next one leaves entries behind, which surfaces as `getMultipleElementsFoundError` in
+ * whichever test runs next. Two separate review seats hit that as an order-dependent flake, and a
+ * flaky gate weakens every verdict that leans on it.
+ *
+ * The same shape as `resetDevWarnings`, and for the same reason: module state that persists by
+ * design needs a documented way to be cleared by design.
+ */
+export function resetToastStore (): void {
+  entries.length = 0
+  listeners.clear()
+  snapshot = []
+  owner = null
+}
