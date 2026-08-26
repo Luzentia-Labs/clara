@@ -8,11 +8,11 @@
 | --- | --- |
 | Open | 0 |
 | In Progress | 0 |
-| Fixed | 11 |
+| Fixed | 12 |
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 5 |
+| inbox | 4 |
 | Superseded | 1 |
 | **Total** | **17** |
 
@@ -39,7 +39,7 @@
 | [BG-01M0XN7S](BG-01M0XN7S-clara-ships-no-font-family-token-at-all.md) | Clara ships no font-family token at all, and PRD F04 AC2 requires one | major | Medium | Fixed | -- | -- | 2026-08-26 |
 | [BG-01M0XVXS](BG-01M0XVXS-gate-9-cannot-see-any-portalled-overlay-so.md) | Gate 9 cannot see any portalled overlay, so five components' rendered behaviour is unasserted | major | Medium | inbox | -- | -- | 2026-08-26 |
 | [BG-01M0XXSA](BG-01M0XXSA-third-party-size-budgets-double-count-the-shared.md) | Third-party size budgets double-count the shared @floating-ui chain | Medium | Medium | Fixed | -- | -- | 2026-08-26 |
-| [BG-01M0XX4V](BG-01M0XX4V-ac5-s-verifier-runs-at-96-of-the.md) | AC5's verifier runs at 96% of the verify timeout and has stamped a false Verified: no | Medium | Medium | inbox | -- | -- | 2026-08-26 |
+| [BG-01M0XX4V](BG-01M0XX4V-ac5-s-verifier-runs-at-96-of-the.md) | AC5's verifier runs at 96% of the verify timeout and has stamped a false Verified: no | Medium | Medium | Fixed | -- | -- | 2026-08-26 |
 | [BG-01M0XZMJ](BG-01M0XZMJ-tier-3-tokens-are-private-by-policy-but.md) | Tier 3 tokens are private by policy but exported as public API by clara-tokens | Medium | Medium | inbox | -- | -- | 2026-08-26 |
 | [BG-01M0Y2H2](BG-01M0Y2H2-two-simultaneous-toasts-render-two-overlapping-viewports.md) | Two simultaneous toasts render two overlapping viewports | Medium | Medium | Fixed | -- | -- | 2026-08-26 |
 

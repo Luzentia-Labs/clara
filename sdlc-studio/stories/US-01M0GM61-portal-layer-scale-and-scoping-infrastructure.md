@@ -121,7 +121,13 @@ does, and adds the layer scale beside it.
   own diagnostic rather than reporting the generic "does not resolve"
 - **And** the criterion claims coverage of these shapes and no more. It is a denylist of the escapes
   three review rounds actually found, which is not the same as proving the scale cannot be escaped
-- **Verify:** shell node scripts/check-component-css.mjs && node scripts/prove-guards-fail.mjs
+- **And** the verifier runs the mutations THIS criterion claims, not all 136. Running the whole
+  prover to substantiate a claim about the layer scale asserts far more than the criterion means,
+  and the surplus is other criteria's evidence. It was also a real flake: the full expression
+  measured 105s against `verify_ac.py`'s 120s default and stamped a false `Verified: no` on a run
+  that tipped over (BG-01M0XX4V). Filtered it is 34.5s and pins 33 mutations. A filter matching
+  nothing FAILS rather than passing - `pnpm check` still runs the prover unfiltered
+- **Verify:** shell node scripts/check-component-css.mjs && node scripts/prove-guards-fail.mjs --only "z-index|layer|overlay"
 - **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 

@@ -264,6 +264,34 @@ const snapshot = (dir) => {
   return parts.sort().join('\n')
 }
 
+/**
+ * `--only <regex>` - run just the mutations whose NAME matches.
+ *
+ * BG-01M0XX4V. The whole prover measures ~103s, and US-01M0GM61's AC5 chains it behind another
+ * guard for ~105s against `verify_ac.py`'s 120s default. It has already stamped a false
+ * `Verified: no` into a story on a run that tipped over, and the margin closes on its own as guards
+ * accumulate.
+ *
+ * A filter is the better answer than a bigger timeout, and not only because it is faster: a
+ * criterion that runs 136 mutations to substantiate a claim about overlay stacking is asserting far
+ * more than it means, and the extra mutations are somebody else's evidence. `--only` lets a
+ * criterion pin exactly what it claims.
+ *
+ * `pnpm check` runs the prover with NO filter, so nothing stops being proved on the CI path. This
+ * only narrows what an individual acceptance criterion shells out to.
+ *
+ * A filter that matches NOTHING is a failure, never a pass. A selector that silently selects zero
+ * cases and exits 0 is the vacuous-gate shape this file exists to prevent, and it would be the most
+ * embarrassing possible instance of it.
+ */
+const onlyIndex = process.argv.indexOf('--only')
+const onlyPattern = onlyIndex === -1 ? null : process.argv[onlyIndex + 1]
+if (onlyIndex !== -1 && !onlyPattern) {
+  fail('prove-guards', ['--only was given with no pattern'])
+}
+const only = onlyPattern ? new RegExp(onlyPattern, 'i') : null
+const selected = (name) => !only || only.test(name)
+
 const problems = []
 const killed = []
 
@@ -294,7 +322,7 @@ const cleanRunFor = (guard) => {
   return cleanRuns.get(guard)
 }
 
-for (const { name, guard, mutate, expect } of CASES) {
+for (const { name, guard, mutate, expect } of CASES.filter((c) => selected(c.name))) {
   const clean = cleanRunFor(guard)
   if (clean.code !== 0) {
     problems.push(`${name}: ${guard} already fails on an unmutated copy (exit ${clean.code})`)
@@ -1878,7 +1906,7 @@ const OUTPUT_CASES = [
   },
 ]
 
-for (const { name, guard, stage: corrupt, expect, args = [], withGit = false, withStories = false } of OUTPUT_CASES) {
+for (const { name, guard, stage: corrupt, expect, args = [], withGit = false, withStories = false } of OUTPUT_CASES.filter((c) => selected(c.name))) {
   const stage = stageWorkspace({ withOutput: true, withGit, withStories })
   try {
     const clean = runGuard(guard, stage, args)
@@ -1915,4 +1943,12 @@ for (const { name, guard, stage: corrupt, expect, args = [], withGit = false, wi
 }
 
 if (problems.length) fail('prove-guards', problems)
-pass('prove-guards', `${killed.length} mutation(s) killed on a staged copy: ${killed.join('; ')}`)
+if (only && !killed.length) {
+  fail('prove-guards', [
+    `--only ${onlyPattern} selected NO mutations, so this run proved nothing. A filter that ` +
+    'matches nothing must never exit 0 - that is the vacuous gate this file exists to prevent.',
+  ])
+}
+pass('prove-guards', only
+  ? `${killed.length} of ${CASES.length + OUTPUT_CASES.length} mutation(s) killed, filtered by --only ${onlyPattern}: ${killed.join('; ')}`
+  : `${killed.length} mutation(s) killed on a staged copy: ${killed.join('; ')}`)

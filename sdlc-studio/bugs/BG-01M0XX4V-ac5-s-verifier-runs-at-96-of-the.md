@@ -1,6 +1,7 @@
 # BG-01M0XX4V: AC5's verifier runs at 96% of the verify timeout and has stamped a false Verified: no
 
-> **Status:** inbox
+> **Status:** Fixed
+> **Triaged-by:** anton-reis; persona; review-seat
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -132,7 +133,42 @@ So the race was not theoretical and the fix is what closes it. Note the directio
 reported a *broken guard* when the guard was fine. The same coupling can report a guard as fine when
 it is broken, which is the class that took ten review rounds to clear out of US-01M0GM61.
 
-## Partly fixed - the timing margin
+## Fixed - the timing margin
+
+Measured on a quiet machine, and the first attempt did NOT work:
+
+| | real |
+| --- | --- |
+| Prover, before any change (135 mutations) | 97.8s |
+| Prover, after the clean-run cache (136 mutations) | **103.2s** |
+| AC5's full chained expression | **105.1s** against a 120s default |
+| AC5 filtered to its own claim | **34.5s** |
+| US-01M0GM61's WHOLE 8-criterion run, after | **83.4s** |
+
+**The clean-run cache bought nothing measurable.** It removes 115 redundant guard invocations, which
+sounded like the cost and was not: staging dominates - 136 tree copies - and the guard runs are
+cheap beside them. It is kept because it is strictly less work and reports a broken guard once under
+its own name rather than 45 times, but it is not the fix and this record does not pretend it was.
+
+**The fix is `--only`.** `prove-guards-fail.mjs` takes a regex over mutation names, and AC5 now
+runs `--only "z-index|layer|overlay"` - 33 mutations, the ones the criterion actually claims.
+
+That is not merely faster, it is more honest. A criterion that shells out to 136 mutations to
+substantiate a claim about the layer scale is asserting far more than it means, and the surplus is
+other criteria's evidence borrowed to look thorough. `pnpm check` still runs the prover
+UNFILTERED, so nothing stops being proved on the CI path.
+
+**A filter matching nothing FAILS.** A selector that silently selects zero cases and exits 0 would
+be the vacuous gate this whole file exists to prevent, and the most embarrassing possible instance
+of it. Proved: `--only zzz-no-such` exits 1 with a message naming the pattern;
+`--only "z-index|layer|overlay"` exits 0 with 33; unfiltered exits 0 with 136.
+
+> **Note to future editors:** this section was written twice. The first attempt passed the
+> prose through an UNQUOTED shell heredoc, so every backticked span was executed as a command
+> and 174 lines of `pnpm check` output were pasted into this file where the words should have
+> been. AGENTS.md says it plainly - pass prose as a document, not as a shell argument.
+
+## Superseded - the earlier note on this half
 
 The clean run is now established **once per guard instead of once per case**. 135 cases share only
 20 distinct guards, and the unmutated verdict cannot depend on which mutation is about to be
@@ -140,6 +176,7 @@ applied - all 135 stages are copies of the same tree - so the other 115 clean ru
 fact already established. The precondition is not weakened: a guard failing unmutated is still
 caught, and now reported once under its own name rather than 45 times.
 
+**(Superseded by the measurements above; kept because it records what was true at the time.)**
 **The speedup is NOT measured, and this bug stays open on that point.** The four overlay review
 seats were running concurrently on this machine during the only window available to time it, and a
 wall-clock number taken under that contention says nothing - a run measured 192.98s where the
