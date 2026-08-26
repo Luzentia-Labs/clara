@@ -49,7 +49,7 @@ clear name — with an icon-only trigger, that is `IconButton`'s `label`.
 | Key | Result |
 | --- | --- |
 | Enter / Space on the trigger | Opens the menu, highlighting the first entry. |
-| ArrowDown / ArrowUp | Moves between entries, skipping disabled ones and wrapping at the ends. |
+| ArrowDown / ArrowUp | Moves between entries, skipping disabled ones and wrapping around at either end. |
 | ArrowRight | Opens a submenu and moves into it. |
 | ArrowLeft | Closes the submenu and returns to its entry. |
 | A printable character | Jumps to the next entry whose label starts with it. |

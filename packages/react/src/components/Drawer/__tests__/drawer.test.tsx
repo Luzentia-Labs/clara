@@ -66,7 +66,11 @@ describe('Drawer placements', () => {
         <Drawer open onClose={() => {}} title="Filters" placement={placement}><p>Body</p></Drawer>,
       )
       await screen.findByRole('dialog')
-      await expect(runAxe(container)).resolves.toHaveNoBlockingViolations()
+      // `document.body`, not `container`: the panel is portalled out of the React root, so a
+      // container-scoped run inspects the opener and nothing else. Measured on Popover - an
+      // `aria-allowed-attr` violation injected into the panel left the container-scoped run green
+      // while the body-scoped matrix caught it (review B1/M4).
+      await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
       unmount()
     }
   })
@@ -197,7 +201,14 @@ describe('Drawer theme and density matrix', () => {
       </ClaraProvider>,
     )
     await screen.findByRole('dialog')
-    const scope = container.querySelector('[data-clara-theme]')
+    // Walked UP from an element INSIDE the panel, not `container.querySelector`.
+    //
+    // The panel is portalled to `document.body`, so `container` holds only the trigger and the
+    // provider's own wrapper - and that wrapper carries the theme attributes too. Querying it found
+    // a correct-looking answer that was never the portal's scope: stripping the attributes from
+    // ClaraPortal entirely left this assertion green (BG review B3, D0065 - observe the property,
+    // not a proxy for it).
+    const scope = (await screen.findByRole('dialog')).closest('[data-clara-theme]')
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
     await expect(runAxe(document.body as unknown as ReactNode extends never ? never : HTMLElement))

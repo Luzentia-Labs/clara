@@ -13,8 +13,8 @@ entry's `onSelect` are function props, which TRD Section 7 makes the boundary te
 | Key | Result |
 | --- | --- |
 | Enter / Space on the trigger | Opens the menu and moves the highlight to the first entry. |
-| ArrowDown | Moves to the next entry, SKIPPING disabled ones, and wraps at the end. |
-| ArrowUp | Moves to the previous entry. On a freshly opened menu it lands on the LAST entry. |
+| ArrowDown | Moves to the next entry, SKIPPING disabled ones, and wraps to the first at the end. |
+| ArrowUp | Moves to the previous entry, wrapping to the last. On a freshly opened menu it lands on the LAST entry. |
 | ArrowRight | Opens a submenu and moves into it. |
 | ArrowLeft | Closes the submenu and returns to its trigger entry. |
 | A printable character | Typeahead: jumps to the next entry whose label starts with it. |
@@ -64,7 +64,7 @@ closes the wrong level.
 
 ## The z-index is earned, not silenced
 
-`.clara-menu` declares `position: relative` alongside its layer token, for the reason
+`.clara-dropdown-menu` declares `position: relative` alongside its layer token, for the reason
 `.clara-popover` records: the popper reads the computed z-index off the content and copies it onto
 the wrapper it positions.
 
@@ -76,6 +76,14 @@ directions, so open order decides and a per-role constant cannot (D0088, D0102).
 
 - ArrowDown moves the highlight and SKIPS the disabled entry - `__tests__/dropdown-menu.test.tsx`
 - ArrowUp on a freshly opened menu lands on the last entry - `__tests__/dropdown-menu.test.tsx`
+- Arrowing off EITHER end wraps, in both directions - `__tests__/dropdown-menu.test.tsx`. Radix's
+  `loop` defaults to FALSE, so this is asked for explicitly. It was documented in three places
+  before it was implemented, and a review measured the menu simply stopping at the ends; worse, the
+  suite was blind both ways, because the test named "wraps from the last entry back to the first"
+  asserted where ArrowUp lands on a freshly OPENED menu, which is a different property
+- Focus returns to the trigger after an OUTSIDE CLICK, the third dismissal route - it was the one
+  route left unpinned, and a mutant suppressing restoration on exactly that route survived the whole
+  repository green - `__tests__/dropdown-menu.test.tsx`
 - Typeahead jumps to an entry by its label - `__tests__/dropdown-menu.test.tsx`
 - ArrowRight opens a submenu and reveals its items - `__tests__/dropdown-menu.test.tsx`
 - Selecting a NON-FIRST entry runs that entry's own handler and no other's. The non-first part is

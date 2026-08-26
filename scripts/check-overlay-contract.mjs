@@ -65,7 +65,7 @@ const sourcesFor = (name) => {
  * Only a JSX element counts, which is the thing the runtime does.
  */
 function portalUsage (files) {
-  const usage = { rendersClaraPortal: false, radixPortals: new Set() }
+  const usage = { rendersClaraPortal: false, radixPortals: new Set(), constantOpen: [] }
 
   for (const file of files) {
     const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
@@ -104,7 +104,38 @@ function portalUsage (files) {
       if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
         const tag = node.tagName
         if (ts.isIdentifier(tag)) {
-          if (tag.text === 'ClaraPortal') usage.rendersClaraPortal = true
+          if (tag.text === 'ClaraPortal') {
+            usage.rendersClaraPortal = true
+            /*
+             * The `open` prop must carry STATE, not a constant.
+             *
+             * ClaraPortal appends its host at the moment its surface opens, and that append order
+             * IS the open-order stacking mechanism D0102 rests on: tooltip and toast share one
+             * layer, so whichever opened last paints on top. `<ClaraPortal open>` - a bare
+             * attribute, or `open={true}` - freezes the host at MOUNT order instead, and the
+             * relationship the shared layer exists to express stops holding.
+             *
+             * This is not hypothetical. Tooltip shipped with a literal `open` while every sibling
+             * passed state, and a review measured a tooltip opened over a live toast painting
+             * UNDERNEATH it in Chromium - the exact outcome D0102 exists to prevent. Both AC7 e2e
+             * assertions were green throughout, because in both of them the tooltip's host happens
+             * to be created first anyway, so mount order and open order agree.
+             *
+             * A bare `<ClaraPortal open>` and `open={true}` are the same thing to the parser and
+             * both are refused. An omitted `open` is refused too: the default is not this guard's
+             * to assume, and an overlay that never says when it opens has the same defect.
+             */
+            const attrs = node.attributes.properties
+            const openAttr = attrs.find((a) => ts.isJsxAttribute(a) && a.name.getText() === 'open')
+            const initializer = openAttr && ts.isJsxAttribute(openAttr) ? openAttr.initializer : undefined
+            const isConstant =
+              !openAttr ||
+              initializer === undefined ||
+              (initializer && ts.isJsxExpression(initializer) && initializer.expression &&
+                (initializer.expression.kind === ts.SyntaxKind.TrueKeyword ||
+                 initializer.expression.kind === ts.SyntaxKind.FalseKeyword))
+            if (isConstant) usage.constantOpen.push(relative(root, file))
+          }
           if (radixLocal.has(tag.text)) usage.radixPortals.add(tag.text)
         } else if (ts.isPropertyAccessExpression(tag)) {
           // `<Dialog.Portal>` - only when `Dialog` really is a Radix namespace import.
@@ -156,7 +187,7 @@ for (const { name } of built) {
     continue
   }
 
-  const { rendersClaraPortal, radixPortals } = portalUsage(files)
+  const { rendersClaraPortal, radixPortals, constantOpen } = portalUsage(files)
 
   if (!rendersClaraPortal) {
     problems.push(
@@ -169,6 +200,17 @@ for (const { name } of built) {
     problems.push(
       `${where}: ${name} renders <${tag}>, a Radix portal - it drops its content on document.body ` +
       'with no `data-clara-*`, so the scope stops at the trigger. Use ClaraPortal',
+    )
+  }
+
+  for (const file of constantOpen) {
+    problems.push(
+      `${where}: ${name} renders ClaraPortal with a CONSTANT \`open\`, in ${file}. The host is ` +
+      'appended when the surface OPENS, and that append order is the open-order stacking D0102 ' +
+      'rests on - two surfaces sharing one layer are separated by which opened last, and nothing ' +
+      'else. A literal freezes the host at MOUNT order, so the relationship stops holding while ' +
+      'every stacking test that happens to mount in the same order stays green. Pass the state ' +
+      'that drives the surface',
     )
   }
 

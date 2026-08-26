@@ -37,6 +37,34 @@ for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
 }
 process.on('exit', sweep)
 
+/**
+ * Copy `sdlc-studio/stories` out of git HEAD into the stage.
+ *
+ * Falls back to the working tree ONLY when the directory is untracked wholesale (a fresh clone
+ * mid-bootstrap), and says so, because a silent fallback would reintroduce the race it exists to
+ * remove.
+ */
+function stageStoriesFromHead (stage) {
+  const dest = join(stage, 'sdlc-studio/stories')
+  mkdirSync(dest, { recursive: true })
+  let tracked = []
+  try {
+    tracked = execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', 'sdlc-studio/stories'],
+      { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean)
+  } catch {
+    tracked = []
+  }
+  if (!tracked.length) {
+    cpSync(join(root, 'sdlc-studio/stories'), dest, { recursive: true })
+    return
+  }
+  for (const rel of tracked) {
+    const to = join(stage, rel)
+    mkdirSync(dirname(to), { recursive: true })
+    writeFileSync(to, execFileSync('git', ['show', `HEAD:${rel}`], { cwd: root, encoding: 'utf8' }))
+  }
+}
+
 /** A throwaway workspace holding only what the guards read: manifests, the workspace file, LICENSE. */
 function stageWorkspace ({ withOutput = false, withGit = false, withStories = false } = {}) {
   const stage = mkdtempSync(join(tmpdir(), 'clara-prove-'))
@@ -95,7 +123,23 @@ function stageWorkspace ({ withOutput = false, withGit = false, withStories = fa
   if (withStories) {
     // `check-story-verifiers.mjs` reads the story files AND the declared test names, so both have
     // to be real in the staged copy - a guard proven against an empty suite proves nothing.
-    cpSync(join(root, 'sdlc-studio/stories'), join(stage, 'sdlc-studio/stories'), { recursive: true })
+    // Staged from git HEAD, not from the working tree (BG-01M0XX4V).
+    //
+    // `verify_ac.py run` walks a story's criteria and REWRITES the file as it goes, stamping each
+    // `Verified:` line. US-01M0GM61's AC5 invokes this prover, and this prover mutates a story
+    // criterion to build its `a verified criterion whose verifier cannot reach the file its mutant
+    // changes` case. So the prover was reading a file the process invoking it was concurrently
+    // editing.
+    //
+    // Measured: on a pass where five earlier criteria had just been stamped `no` by an unrelated
+    // PATH fault, the set of `Verified: yes` criteria available to mutate changed and the mutation
+    // SURVIVED - reporting a broken guard that, run standalone a minute later, killed all 135. It
+    // failed in the safe direction that time. The same coupling can report a guard as fine when it
+    // is broken, which is the class that took ten review rounds to clear out of US-01M0GM61.
+    //
+    // HEAD is a quiescent baseline no other process holds open. A story whose criteria are still
+    // uncommitted is not yet the thing this prover is meant to hold to account.
+    stageStoriesFromHead(stage)
     for (const pkg of ['packages', 'test', 'scripts']) {
       if (existsSync(join(root, pkg))) {
         cpSync(join(root, pkg), join(stage, pkg), {
@@ -223,14 +267,41 @@ const snapshot = (dir) => {
 const problems = []
 const killed = []
 
+/**
+ * The clean run is per GUARD, not per case (BG-01M0XX4V).
+ *
+ * Every case staged a fresh copy and ran its guard twice: once unmutated to establish the
+ * precondition, once mutated for the verdict. But 135 cases share only 20 distinct guards, and the
+ * unmutated verdict cannot depend on which mutation is about to be applied - `stageWorkspace()`
+ * takes no arguments here, so all 135 stages are copies of the same tree. The other 115 clean runs
+ * re-established a fact already established.
+ *
+ * That mattered because the whole prover measured 97.8s against `verify_ac.py`'s 120s default, and
+ * it had already stamped a false `Verified: no` into a story on a run that tipped over. The margin
+ * closed on its own as guards accumulated.
+ *
+ * The precondition is not weakened: a guard that fails unmutated is still caught, reported once
+ * with its own name rather than 45 times, and every case using it is still skipped.
+ */
+const cleanRuns = new Map()
+const cleanRunFor = (guard) => {
+  if (!cleanRuns.has(guard)) {
+    const probe = stageWorkspace()
+    cleanRuns.set(guard, runGuard(guard, probe))
+    rmSync(probe, { recursive: true, force: true })
+    staged.delete(probe)
+  }
+  return cleanRuns.get(guard)
+}
+
 for (const { name, guard, mutate, expect } of CASES) {
+  const clean = cleanRunFor(guard)
+  if (clean.code !== 0) {
+    problems.push(`${name}: ${guard} already fails on an unmutated copy (exit ${clean.code})`)
+    continue
+  }
   const stage = stageWorkspace()
   try {
-    const clean = runGuard(guard, stage)
-    if (clean.code !== 0) {
-      problems.push(`${name}: ${guard} already fails on an unmutated copy (exit ${clean.code})`)
-      continue
-    }
     /**
      * Snapshot the staged tree, so a mutation that no longer APPLIES is distinguishable from a
      * guard that stopped working. Both currently report SURVIVED, and they read identically - a
@@ -511,6 +582,28 @@ const OUTPUT_CASES = [
       const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
       writeFileSync(f, readFileSync(f, 'utf8')
         .replaceAll('<ClaraPortal', '<div').replaceAll('</ClaraPortal>', '</div>'))
+    },
+  },
+  {
+    /*
+     * The open-order half, and it shipped once.
+     *
+     * ClaraPortal appends its host when the surface OPENS, and that append order IS the mechanism
+     * D0102 rests on - tooltip and toast share one layer, so whichever opened last paints on top.
+     * A literal `open` freezes the host at MOUNT order instead. Tooltip shipped that way while
+     * every sibling passed state, and a review measured a tooltip opened over a live toast painting
+     * UNDERNEATH it in Chromium.
+     *
+     * Nothing was red: both AC7 e2e assertions mount the tooltip's host first anyway, so mount
+     * order and open order agree in exactly the two cases that were asserted. The suite now carries
+     * the third direction, and this entry pins the guard that catches it without a browser.
+     */
+    name: 'an overlay whose ClaraPortal open prop is a constant, freezing the host at mount order',
+    guard: 'check-overlay-contract.mjs',
+    expect: /renders ClaraPortal with a CONSTANT `open`/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8').replace('<ClaraPortal open={open}', '<ClaraPortal open'))
     },
   },
   {

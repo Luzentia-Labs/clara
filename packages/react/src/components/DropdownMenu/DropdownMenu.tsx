@@ -104,7 +104,9 @@ function Entries ({ items }: { items: DropdownMenuEntry[] }) {
                 * walk the DOM from the root menu, so a separately portalled submenu is invisible to
                 * both, and Escape then closes the wrong level.
                 */}
-              <RadixMenu.SubContent className="clara-dropdown-menu" sideOffset={2} alignOffset={-4}>
+              {/* `loop` here too - a submenu that behaves differently from its parent is a
+                  worse surprise than one that does not wrap at all. */}
+              <RadixMenu.SubContent className="clara-dropdown-menu" sideOffset={2} alignOffset={-4} loop>
                 <Entries items={entry.items} />
               </RadixMenu.SubContent>
             </RadixMenu.Sub>
@@ -170,6 +172,21 @@ export function DropdownMenu ({
           avoidCollisions
           collisionPadding={8}
           sideOffset={4}
+          /*
+           * ArrowDown past the last entry returns to the first, and ArrowUp past the first goes to
+           * the last. Radix's `loop` defaults to FALSE, so this has to be asked for.
+           *
+           * It was documented in three places - the docs keyboard table, the verification record
+           * and the commit message - before it was implemented, and a review measured the menu
+           * simply stopping at the ends. Worse, the suite was blind in BOTH directions: turning
+           * looping on changed no test result either, because the test named "wraps from the last
+           * entry back to the first" actually asserted where ArrowUp lands on a freshly OPENED
+           * menu, which is a different property.
+           *
+           * On a thirty-entry menu the difference is real: without it, arrowing to an entry near
+           * the top from the bottom means traversing the whole list.
+           */
+          loop
         >
           <Entries items={items} />
         </RadixMenu.Content>

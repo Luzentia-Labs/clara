@@ -74,3 +74,79 @@ Two things follow, and the second is the dangerous one:
 Candidate fix, beyond the three already listed above: `prove-guards-fail.mjs` should stage
 `sdlc-studio/stories/` from **`git show HEAD:`** rather than the working tree, so its story mutations
 are built against a committed, quiescent baseline instead of a file another process holds open.
+
+
+## Acceptance Criteria
+
+### AC1: The prover reads a quiescent baseline, not a file another process is editing
+
+- **Given** a story file whose `Verified:` stamps are being rewritten in the working tree
+- **When** `prove-guards-fail.mjs` runs
+- **Then** every mutation still dies, because the prover stages `sdlc-studio/stories` from `git HEAD`
+- **Verify:** shell node scripts/prove-guards-fail.mjs
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+### AC2: The race was real, and the fix is what closes it
+
+- **Given** the OLD working-tree staging restored
+- **When** the same story is rewritten mid-run
+- **Then** mutations SURVIVE that otherwise die - so the fix is load-bearing, not decorative
+- **Verify:** manual revert stageStoriesFromHead to cpSync, flip Verified stamps, confirm SURVIVED
+- **Verification target:** functional
+
+### AC3: The clean run is established once per guard, not once per case
+
+- **Given** 135 cases sharing 20 distinct guards
+- **When** the prover runs
+- **Then** the unmutated precondition is established 20 times rather than 135, and a guard that
+  fails unmutated is still caught and reported
+- **Verify:** shell node scripts/prove-guards-fail.mjs
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+> **Verification depth:** functional
+
+## Fixed (2026-08-26) - the self-reference
+
+**This was the dangerous half, and it is closed.**
+
+`verify_ac.py run` rewrites a story's `Verified:` lines as it walks the criteria. US-01M0GM61's AC5
+invokes this prover, and the prover mutates a story criterion to build its
+`a verified criterion whose verifier cannot reach the file its mutant changes` case. The prover was
+therefore reading a file the process invoking it was concurrently editing.
+
+`sdlc-studio/stories` is now staged from **git HEAD** via `stageStoriesFromHead()`, which no other
+process holds open. It falls back to the working tree only when the directory is untracked
+wholesale, and says so - a silent fallback would reintroduce the race.
+
+**Proved by counterfactual, both directions**, flipping 11 `Verified: yes` stamps to `no` in
+`US-01M0GM48-modal.md` to simulate a concurrent `verify_ac` pass:
+
+| Staging | Result |
+| --- | --- |
+| Working tree (the old code, restored for the probe) | **FAIL** - `a vitest-only verifier over a mutant in an asset no test can load: SURVIVED` and `a Test Plan row naming a file that does not exist: SURVIVED` |
+| `git HEAD` (the fix) | **PASS**, 135 killed |
+
+So the race was not theoretical and the fix is what closes it. Note the direction: the old code
+reported a *broken guard* when the guard was fine. The same coupling can report a guard as fine when
+it is broken, which is the class that took ten review rounds to clear out of US-01M0GM61.
+
+## Partly fixed - the timing margin
+
+The clean run is now established **once per guard instead of once per case**. 135 cases share only
+20 distinct guards, and the unmutated verdict cannot depend on which mutation is about to be
+applied - all 135 stages are copies of the same tree - so the other 115 clean runs re-established a
+fact already established. The precondition is not weakened: a guard failing unmutated is still
+caught, and now reported once under its own name rather than 45 times.
+
+**The speedup is NOT measured, and this bug stays open on that point.** The four overlay review
+seats were running concurrently on this machine during the only window available to time it, and a
+wall-clock number taken under that contention says nothing - a run measured 192.98s where the
+pre-change baseline was 97.78s, which is the load, not the change. Recording a figure taken under
+those conditions would be exactly the kind of measured-sounding claim this project keeps deleting.
+
+**Re-measure on a quiet machine before closing this half**, and if the margin is still thin, the
+remaining options are unchanged: parallelize the two case loops across cores (`user 125s` against
+`real 98s` says it is barely parallel today, and staging is I/O bound), stage the tree copy once and
+reuse it, or give the prover a `--only` filter so an AC pins exactly the mutations it claims.

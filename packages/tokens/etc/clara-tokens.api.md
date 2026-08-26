@@ -956,6 +956,9 @@ export const TooltipBorderWidth = "1px";
 export const TooltipFg = "#1f1e1d";
 
 // @public (undocumented)
+export const TooltipFontSize = "14px";
+
+// @public (undocumented)
 export const TooltipMaxInlineSize = "18rem";
 
 // @public (undocumented)

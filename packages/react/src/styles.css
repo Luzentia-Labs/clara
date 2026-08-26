@@ -468,6 +468,12 @@
  * be decoration, and decoration under a 700 ms open delay reads as lag.
  */
 .clara-tooltip {
+  /*
+   * The font size is DECLARED, not inherited. A tooltip portals to `document.body`, so it does not
+   * inherit from where its trigger lives - without this its size is whatever the consumer set on
+   * `body`. Measured at 13px on a page with `body { font-size: 13px }`, below the 14px floor.
+   */
+  font-size: var(--clara-tooltip-font-size);
   position: relative;
   z-index: var(--clara-layer-tooltip);
   box-sizing: border-box;

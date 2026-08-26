@@ -50,10 +50,24 @@ describe('Toast live region politeness by intent', () => {
   it.each(INTENTS)('joins the %s intent to the accessible name, so colour is never alone', async (intent) => {
     // The stripe down the side is colour. A red toast and a green toast are the same announcement
     // to anyone who cannot separate the two hues - the same rule Badge and Alert follow.
+    //
+    // Asserted through the ACCESSIBILITY TREE, not `textContent`. A review showed the difference is
+    // not academic: replacing `clara-visually-hidden` with `display: none` moved the word out of
+    // the tree entirely - measured, the element was no longer exposed - while `textContent` was
+    // byte-identical and this test stayed green. `textContent` includes subtrees a screen reader
+    // will never reach, so it is a proxy for the property, which is the D0065 shape this project
+    // keeps finding.
     const WORD = { info: 'Information', success: 'Success', warning: 'Warning', danger: 'Error' }
     render(<Toast open onClose={() => {}} intent={intent} title="Journal 4471" />)
-    const status = await screen.findByText(/Journal 4471/)
-    expect(status.textContent).toContain(WORD[intent])
+    const title = await screen.findByText(/Journal 4471/)
+    // The intent word must be VISIBLE to assistive technology, which `display: none` is not.
+    const hidden = title.querySelector('.clara-visually-hidden')
+    expect(hidden, 'the intent word element is gone').not.toBeNull()
+    expect(hidden).toBeVisible()
+    expect(hidden!.textContent).toContain(WORD[intent])
+    // And it precedes the title in DOM order, so it is announced as "Error: Journal 4471" rather
+    // than after the fact.
+    expect(title.textContent).toMatch(new RegExp(`^\\s*${WORD[intent]}`))
   })
 })
 
@@ -155,7 +169,14 @@ describe('Toast theme and density matrix', () => {
       </ClaraProvider>,
     )
     await screen.findByText(/Could not post the journal/)
-    const scope = container.querySelector('[data-clara-theme]')
+    // Walked UP from an element INSIDE the panel, not `container.querySelector`.
+    //
+    // The panel is portalled to `document.body`, so `container` holds only the trigger and the
+    // provider's own wrapper - and that wrapper carries the theme attributes too. Querying it found
+    // a correct-looking answer that was never the portal's scope: stripping the attributes from
+    // ClaraPortal entirely left this assertion green (BG review B3, D0065 - observe the property,
+    // not a proxy for it).
+    const scope = (await screen.findByText(/Could not post the journal/)).closest('[data-clara-theme]')
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
     await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()

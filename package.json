@@ -28,7 +28,7 @@
     "check:stylesheets": "node scripts/check-stylesheets.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "pnpm --filter @clara-internal/storybook build && playwright test",
+    "test:e2e": "pnpm build && pnpm --filter @clara-internal/storybook build && playwright test",
     "test:mutation": "stryker run",
     "size": "size-limit",
     "check:mutation-config": "node scripts/check-mutation-config.mjs",

@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Popover/**, packages/react/src/components/Popover/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Popover/**, packages/react/src/components/Popover/verification.md, packages/react/src/styles.css, packages/tokens/src/component/popover.json, packages/react/src/index.ts, packages/react/client-boundary.json, apps/docs/src/content/components/popover.md, scripts/check-verification.mjs, scripts/sync-size-budgets.mjs, .size-limit.json
 > **Points:** 5
 
 ## User Story
@@ -123,6 +123,38 @@ two Clara-shaped events read more clearly at a call site than one that must be d
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Test Plan
+
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/Popover/Popover.tsx | Set `modal={true}` (measured: 3 fail), or suppress Radix's restore with `onCloseAutoFocus` preventDefault (measured: 1 fails). | Non-modal focus |
+| AC2 | packages/react/src/components/Popover/Popover.tsx | Delete `avoidCollisions` and `collisionPadding={8}`. This SURVIVED the whole repository until `__tests__/collision.test.tsx` was written - `collisionPadding` defaults to 0, so the documented 8px gap could be lost in silence. | Positioning |
+| AC3 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the `.clara-popover` rules. | Token-only styling |
+| AC4 | packages/react/src/theme/ClaraPortal.tsx | Strip `claraAttributes` from the portal root. Before the AC4 assertion walked UP from inside the panel, this left all 14 Popover tests green while failing 7 elsewhere. | Both themes and densities |
+| AC5 | packages/react/src/components/Popover/verification.md | Delete the record, its docs page, or its keyboard table. | Definition of done |
+
+## Spec delta
+
+Derived after an independent review REJECTED the first pass. Four blocking findings, all confirmed
+by re-running the reviewer's own mutations, and all fixed here.
+
+1. **The axe assertions could not see the component.** `runAxe(container)` was scoped to the React
+   root while the panel portals to `document.body`, so an injected `aria-allowed-attr` violation
+   left every gate green. Now `runAxe(document.body)`, and the violation reddens it. Drawer had the
+   identical blindness and is fixed in the same pass.
+2. **AC2's own narrowed claim had no witness.** The criterion was correctly narrowed from "it flips"
+   to "the collision behaviour is configured" - and then nothing observed the configuration either.
+   `__tests__/collision.test.tsx` records the props reaching the panel, which is the criterion's
+   actual subject.
+3. **AC4 observed a proxy** (D0065): `container.querySelector('[data-clara-theme]')` finds the
+   provider's OWN element, not the portal's scope. It now walks up from an element inside the panel,
+   which is what Modal already did. The same proxy was in Drawer, Tooltip, Toast and DropdownMenu -
+   every portalled overlay - and all five are fixed.
+4. **The story carried no `## Test Plan`**, and `check-story-verifiers.mjs` skips a story that has
+   none - both the row-alignment check and the `Touches` reachability check begin
+   `if (!text.includes('## Test Plan')) continue`. So five `Verified: yes` stamps sat outside the
+   gate AGENTS.md mandates for exactly this. The table above closes it.
 
 ## Revision History
 

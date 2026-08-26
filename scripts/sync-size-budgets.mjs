@@ -57,6 +57,7 @@ const PEERS = ['react', 'react-dom', 'react/jsx-runtime', 'react-dom/client']
  */
 const unmeasured = []
 const unbudgeted = []
+const thirdPartyChunks = new Set()
 const runtimeDeps = Object.keys(
   JSON.parse(readFileSync('packages/react/package.json', 'utf8')).dependencies ?? {},
 ).filter((name) => !name.startsWith('@luzentialabs/'))
@@ -154,6 +155,24 @@ const THIRD_PARTY_LIMITS = {
   '@radix-ui/react-dropdown-menu': '34 kB',
 }
 
+/**
+ * The ceiling for the WHOLE package with its dependencies bundled - the only number that can be
+ * compared against a total.
+ *
+ * Authored like the entries above, and for the same reason: it is a decision about what Clara is
+ * willing to charge a consumer who imports everything, not an observation.
+ *
+ * Measured 46.65 kB, against a naive sum of the five per-dependency entries of 102.33 kB. So
+ * roughly 56 kB of that sum is the same code counted more than once - which is the double-count
+ * BG-01M0XXSA is about, now measured rather than argued.
+ *
+ * 50 kB leaves headroom for the overlays still to come (Select, Combobox, the three date pickers).
+ * They are all popper-based, so each should add its own code and almost none of the shared chain -
+ * and if one of them moves this number by more than a couple of kB, that is the signal this entry
+ * exists to give.
+ */
+const THIRD_PARTY_UNION_LIMIT = '50 kB'
+
 const fixed = [
   { name: `@luzentialabs/clara-react (ESM entry, ${builtCount} components x ${ENTRY_BYTES_PER_COMPONENT} B, floor ${ENTRY_FLOOR_BYTES} B)`, path: 'packages/react/dist/index.js', limit: entryLimit, gzip: true, ignore: IGNORED },
   { name: '@luzentialabs/clara-icons (ESM entry)', path: 'packages/icons/dist/index.js', limit: '5 kB', gzip: true },
@@ -191,14 +210,55 @@ const fixed = [
       return null
     }
     return { dep, importer }
-  }).filter(Boolean).map(({ dep, importer }) => ({
-    name: `third-party runtime: ${dep} (shared by every overlay that uses it)`,
+  }).filter(Boolean).map(({ dep, importer }) => (thirdPartyChunks.add(importer), {
+    name: `third-party runtime: ${dep} (measured alone - these DO NOT SUM, see the union entry)`,
     path: importer,
     limit: THIRD_PARTY_LIMITS[dep] ?? (unbudgeted.push(dep), '0 B'),
     gzip: true,
     ignore: [...PEERS, ...runtimeDeps.filter((d) => d !== dep)],
   })),
 ]
+
+/**
+ * What a consumer using EVERY overlay actually pays for third-party runtime, deduplicated.
+ *
+ * BG-01M0XXSA. Each per-dependency entry above measures its own chunk with the other DECLARED
+ * dependencies ignored - but a TRANSITIVE dependency is in nobody's ignore list, so a chain reached
+ * by several Radix packages is counted in full inside every entry that reaches it. Popover and
+ * Tooltip and DropdownMenu each carry `@radix-ui/react-popper` -> `@floating-ui/react-dom` -> `/dom`
+ * -> `/core`, roughly 14 kB, and each of the three entries reports all of it.
+ *
+ * Every one of those numbers is TRUE on its own terms - a consumer importing only Popover really
+ * does pay 24 kB. What is false is the implication that they add up, which is what a reader does
+ * with a list of budgets: the five entries sum to over 100 kB and no consumer has ever paid that.
+ *
+ * So the real total is measured too, by bundling the package ENTRY with nothing but peers ignored.
+ * The entry re-exports every component, so following its imports is what a consumer's bundler
+ * actually does, and shared code is counted once. Measured 46.65 kB against a naive sum of
+ * 102.33 kB: about 56 kB of that sum is the same code counted more than once.
+ *
+ * A first attempt handed size-limit an ARRAY of the five chunks, expecting it to bundle them
+ * together and dedupe. It does not - it measures each path and adds them up, reporting 102.45 kB,
+ * within 120 B of the naive sum. That looked like a working dedup entry and was in fact the
+ * double-count with a new name, which is worth recording because it is the exact failure this
+ * entry exists to correct.
+ *
+ * Note what this number includes: Clara's own code as well as the dependencies. That is deliberate
+ * - a consumer pays for both - and it is why the entry is named for the package rather than for
+ * third-party runtime alone. Clara's share is the ESM-entry budget above, measured with the
+ * dependencies ignored.
+ */
+if (thirdPartyChunks.size) {
+  fixed.push({
+    name: 'whole package + dependencies, deduplicated (the ceiling - the entries above do NOT sum)',
+    path: 'packages/react/dist/index.js',
+    limit: THIRD_PARTY_UNION_LIMIT,
+    gzip: true,
+    // Only peers. Every runtime dependency is IN scope here by design: the point of this entry is
+    // the total, so ignoring any of them would measure a total that excludes part of the total.
+    ignore: PEERS,
+  })
+}
 const perComponent = builtClients.map((name) => ({
   name: `${name} (client chunk, D0048)`,
   path: `packages/react/dist/${CLIENT_CHUNK}-${name}.js`,

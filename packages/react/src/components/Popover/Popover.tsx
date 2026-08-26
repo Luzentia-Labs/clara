@@ -19,7 +19,15 @@ export interface PopoverProps {
    * call site than one that has to be destructured.
    */
   onOpen: () => void
-  /** Called for every dismissal route: Escape, an outside click, and a control inside the panel. */
+  /**
+   * Called for every dismissal route Clara offers: Escape, an outside click, and moving focus out
+   * of the panel.
+   *
+   * An earlier version of this line also claimed "a control inside the panel", and Clara exposes no
+   * such control - there is no `Popover.Close`. A probe measured it: clicking a control inside the
+   * panel left the popover open and `onClose` uncalled. The line shipped in the published `.d.ts`,
+   * where it is the only description a consumer reads.
+   */
   onClose: () => void
   /**
    * The control it hangs from. Rendered as the anchor AND as where focus returns.

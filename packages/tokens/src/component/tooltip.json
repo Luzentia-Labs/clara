@@ -34,6 +34,11 @@
       "value": "18rem",
       "type": "dimension",
       "comment": "A raw dimension, following popover.max-inline-size and modal.width-*. A tooltip width has no semantic ancestor in tier 2 size, and inventing one would put a tooltip-shaped value in the public layer. Narrower than a popover's 20rem: a tooltip carries a sentence, not a panel."
+    },
+    "font-size": {
+      "value": "{font.body}",
+      "type": "dimension",
+      "comment": "A tooltip PORTALS to document.body, so it does not even inherit from where its trigger lives - with no declaration its size is the consumer's body font, not Clara's scale. Measured at 13px on a page whose body font-size was 13px, against font.body = 14px, which is below the legibility floor D0104 sets for text that carries meaning. This string is the description of a control (it is what aria-describedby points at), so D0104's implementer test answers yes on the first question and stops there. Precedent: .clara-modal__description pins font.body for the same reason. NOTE: no braces in this comment - Style Dictionary resolves brace expressions as token references wherever they appear, so a CSS snippet written inline here becomes a reference to a token that does not exist, and the build fails with an error naming neither the file nor the text."
     }
   }
 }

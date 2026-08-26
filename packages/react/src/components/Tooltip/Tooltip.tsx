@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import * as RadixTooltip from '@radix-ui/react-tooltip'
 import { cx } from '../../lib/cx'
 import { ClaraPortal } from '../../theme/ClaraPortal'
@@ -18,9 +18,12 @@ export interface TooltipProps {
    * and cannot be operated. Typing this as `ReactNode` would make that bug expressible, and every
    * design system that allows it ends up documenting "do not put buttons in tooltips" instead.
    *
-   * `string` makes it unrepresentable. It also settles the sole-source question (AC3) at the type
-   * level for the common case: a sentence is a description, not a place to hide a control or a
-   * table.
+   * `string` makes it unrepresentable.
+   *
+   * It does NOT settle the sole-source question (AC3), and an earlier version of this comment
+   * claimed it did. A plain string is perfectly capable of being the only place some essential
+   * information appears - the type constrains the SHAPE of the content, not whether the content is
+   * load-bearing. AC3 is a manual audit for exactly that reason.
    */
   content: string
   /**
@@ -64,7 +67,7 @@ export interface TooltipProps {
  * - **Require ClaraProvider.** Rejected twice over. A consumer who forgets it reads a message
  *   naming a Radix type, and Section 4 rule 7 says no Radix surface reaches Clara's - an error
  *   string is the surface a consumer actually reads. Worse, it would put `@radix-ui/react-tooltip`
- *   in ClaraProvider's chunk, so every consumer of the library's ROOT would carry ~24 kB of
+ *   in ClaraProvider's chunk, so every consumer of the library's ROOT would carry ~19 kB of
  *   tooltip machinery whether or not they ever render one.
  * - **A public `<TooltipProvider>` for grouping.** Rejected as speculative: no acceptance criterion
  *   asks for it, and it is public API, which under this project's publishing rules is a one-way
@@ -87,11 +90,32 @@ export interface TooltipProps {
  * which the browser already resolves - is the only mechanism that does.
  */
 export function Tooltip ({ content, children, placement = 'top', className }: TooltipProps) {
+  /*
+   * Open state is held here ONLY so `ClaraPortal` can be told when the surface opens.
+   *
+   * It is not public API and it does not change the component's contract: Radix still owns every
+   * decision about WHEN to open (hover delay, focus, Escape, the hover bridge), and this mirrors
+   * its `onOpenChange` rather than overriding it.
+   *
+   * `<ClaraPortal open>` - a literal `true` - was the bug. The portal host is appended when its
+   * surface OPENS, and that append order is the entire mechanism D0102 relies on: tooltip and toast
+   * share one layer, so whichever opened last paints on top. With a constant `open` the host was
+   * appended at MOUNT instead, freezing the order at render order, and a tooltip opened over a live
+   * toast painted UNDERNEATH it - measured in Chromium with `elementFromPoint`, which is the oracle
+   * D0102 itself mandates. That is precisely the outcome the decision exists to prevent, and it
+   * reached main because both AC7 e2e assertions happen to be consistent with mount order too.
+   *
+   * Every sibling overlay already passed state here (Popover, Toast, Drawer, Modal, DropdownMenu);
+   * Tooltip was the only one that did not. A closed Tooltip also left two nested divs in
+   * `document.body` permanently - sixty of them on a thirty-icon toolbar.
+   */
+  const [open, setOpen] = useState(false)
+
   return (
     <RadixTooltip.Provider>
-      <RadixTooltip.Root>
+      <RadixTooltip.Root open={open} onOpenChange={setOpen}>
         <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
-        <ClaraPortal open>
+        <ClaraPortal open={open}>
           <RadixTooltip.Content
             className={cx('clara-tooltip', className)}
             side={placement}

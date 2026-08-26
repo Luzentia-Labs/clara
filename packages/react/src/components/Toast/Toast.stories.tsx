@@ -92,3 +92,14 @@ function ArrivingDemo () {
 }
 
 export const ToastArrivingOverATooltip: Story = { render: () => <ArrivingDemo /> }
+
+/**
+ * AC7's THIRD direction, and the one that was missing: the toast arrives FIRST and the tooltip
+ * opens over it afterwards.
+ *
+ * Both existing assertions happen to be consistent with mount order as well as open order, so a
+ * bug that froze the stacking at mount order passed them both. A review measured it in Chromium and
+ * found the tooltip painting UNDER the toast, which is the defect D0102 exists to prevent. This
+ * fixture exists so the mechanism is pinned in the direction that actually distinguishes them.
+ */
+export const TooltipOpenedOverALiveToast: Story = { render: () => <ArrivingDemo /> }

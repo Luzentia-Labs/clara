@@ -81,8 +81,13 @@ Open order decides which paints on top, because the relationship is bidirectiona
 - It renders in all four placements and defaults to `top` - `__tests__/tooltip.test.tsx`
 - It works with no `ClaraProvider` above it, rather than throwing a Radix error -
   `__tests__/tooltip.test.tsx`
-- It renders through `ClaraPortal` and takes its stacking from a layer token -
-  `check:overlay-contract`
+- A tooltip on a toast's action paints ABOVE the toast, a toast arriving over an open tooltip
+  paints above IT, and a tooltip opened over a live toast paints above that - all three directions
+  of the shared-layer mechanism, probed with `document.elementFromPoint` inside a measured overlap -
+  `e2e/stacking.spec.ts`
+- The font size is Clara's, not the consumer's `body` - `e2e/stacking.spec.ts`
+- It renders through `ClaraPortal` and takes its stacking from a layer token, with a NON-CONSTANT
+  `open` so the host is appended when the surface opens - `check:overlay-contract`
 - Token-only styling, and a layer token that is not inert - `check:component-css`
 - axe while open, in all four theme x density combinations - `check:axe`
 
@@ -95,10 +100,11 @@ Open order decides which paints on top, because the relationship is bidirectiona
   a false green by construction. What protects the mechanism in the meantime is the public surface:
   `TooltipProps` exposes no `disableHoverableContent`, so a consumer cannot disable the bridge, and
   the API-surface gate fails if one is added. The behavioural assertion belongs in Playwright.
-- **AC7 is NOT satisfied yet and cannot be by this component alone.** "A tooltip on a toast action
-  paints above it" needs a Toast to sit under, and Toast is not built. Tooltip's AC7 and Toast's
-  AC7 are the two directions of one mechanism (D0102) - open order, in a shared layer - so neither
-  is meaningful without the other and both are asserted together in `e2e/stacking.spec.ts`.
+- ~~**AC7 is NOT satisfied yet.**~~ **Satisfied since Toast shipped (bcb98f9).** This paragraph said
+  "Toast is not built" for a commit after it was, which is the stale-orientation failure AGENTS.md
+  warns about in miniature. All three directions are now asserted in `e2e/stacking.spec.ts`, and the
+  third one exists because the first two were both consistent with MOUNT order as well as open
+  order - a defect that froze the stacking at mount order passed them both.
 - **Positioning is NOT verified.** Flip, shift and collision padding are entirely layout. The tests
   assert the behaviour is CONFIGURED, which is a much weaker claim than that it happens. Same gap
   as Popover's, and it belongs to the gate: BG-01M0XVXS.

@@ -35,7 +35,7 @@
     "gzip": true
   },
   {
-    "name": "third-party runtime: @radix-ui/react-dialog (shared by every overlay that uses it)",
+    "name": "third-party runtime: @radix-ui/react-dialog (measured alone - these DO NOT SUM, see the union entry)",
     "path": "packages/react/dist/clara-client-Drawer.js",
     "limit": "18 kB",
     "gzip": true,
@@ -51,7 +51,7 @@
     ]
   },
   {
-    "name": "third-party runtime: @radix-ui/react-dropdown-menu (shared by every overlay that uses it)",
+    "name": "third-party runtime: @radix-ui/react-dropdown-menu (measured alone - these DO NOT SUM, see the union entry)",
     "path": "packages/react/dist/clara-client-DropdownMenu.js",
     "limit": "34 kB",
     "gzip": true,
@@ -67,7 +67,7 @@
     ]
   },
   {
-    "name": "third-party runtime: @radix-ui/react-popover (shared by every overlay that uses it)",
+    "name": "third-party runtime: @radix-ui/react-popover (measured alone - these DO NOT SUM, see the union entry)",
     "path": "packages/react/dist/clara-client-Popover.js",
     "limit": "27 kB",
     "gzip": true,
@@ -83,7 +83,7 @@
     ]
   },
   {
-    "name": "third-party runtime: @radix-ui/react-toast (shared by every overlay that uses it)",
+    "name": "third-party runtime: @radix-ui/react-toast (measured alone - these DO NOT SUM, see the union entry)",
     "path": "packages/react/dist/clara-client-Toast.js",
     "limit": "15 kB",
     "gzip": true,
@@ -99,7 +99,7 @@
     ]
   },
   {
-    "name": "third-party runtime: @radix-ui/react-tooltip (shared by every overlay that uses it)",
+    "name": "third-party runtime: @radix-ui/react-tooltip (measured alone - these DO NOT SUM, see the union entry)",
     "path": "packages/react/dist/clara-client-Tooltip.js",
     "limit": "22 kB",
     "gzip": true,
@@ -112,6 +112,18 @@
       "@radix-ui/react-dropdown-menu",
       "@radix-ui/react-popover",
       "@radix-ui/react-toast"
+    ]
+  },
+  {
+    "name": "whole package + dependencies, deduplicated (the ceiling - the entries above do NOT sum)",
+    "path": "packages/react/dist/index.js",
+    "limit": "50 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client"
     ]
   },
   {

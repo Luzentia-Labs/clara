@@ -60,6 +60,26 @@ describe('Tooltip appears on keyboard focus', () => {
   })
 })
 
+describe('Tooltip on a non-focusable child', () => {
+  it('is UNREACHABLE by keyboard, which is the documented consequence of a non-focusable trigger', async () => {
+    // Pinned, not fixed. A review measured this failing silently - Tab leaves `activeElement` on
+    // `<body>`, no tooltip appears, no warning is emitted - and observed that it is precisely the
+    // failure AC1 exists to prevent, reached by a route the type system does not close.
+    //
+    // Clara cannot enforce focusability in the type system: `children` is a node, and whether it
+    // renders something focusable is not knowable until runtime. What this test does is make the
+    // behaviour a RECORDED fact rather than a surprise, so a future change that appears to fix it
+    // has something to move. The docs page and the `children` doc comment both say the child must
+    // be focusable; this is what happens when it is not.
+    render(<Tooltip content="Never reachable"><span>Not focusable</span></Tooltip>)
+    await userEvent.tab()
+    expect(document.activeElement, 'a non-focusable trigger unexpectedly took focus')
+      .toBe(document.body)
+    expect(screen.queryByText('Never reachable'), 'the tooltip appeared without a focusable trigger')
+      .not.toBeInTheDocument()
+  })
+})
+
 describe('Tooltip escape and hover bridge', () => {
   it('dismisses on Escape without moving the pointer', async () => {
     // AC2, and WCAG 1.4.13 "dismissable". A tooltip that can only be dismissed by moving the
@@ -123,7 +143,14 @@ describe('Tooltip theme and density matrix', () => {
     )
     await userEvent.tab()
     await waitFor(() => expect(screen.getAllByText('Recalculates every open line').length).toBeGreaterThan(0))
-    const scope = container.querySelector('[data-clara-theme]')
+    // Walked UP from an element INSIDE the panel, not `container.querySelector`.
+    //
+    // The panel is portalled to `document.body`, so `container` holds only the trigger and the
+    // provider's own wrapper - and that wrapper carries the theme attributes too. Querying it found
+    // a correct-looking answer that was never the portal's scope: stripping the attributes from
+    // ClaraPortal entirely left this assertion green (BG review B3, D0065 - observe the property,
+    // not a proxy for it).
+    const scope = screen.getAllByText('Recalculates every open line')[0]!.closest('[data-clara-theme]')
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
     await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()

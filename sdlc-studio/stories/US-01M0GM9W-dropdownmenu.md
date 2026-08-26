@@ -41,7 +41,12 @@
 - **Given** the docs
 - **When** a consumer chooses between menus
 - **Then** DropdownMenu is documented as actions-only; navigation Menu is v1.1 (D0020)
-- **Verify:** grep "actions" apps/docs/src/content/components/dropdown-menu.md
+- **And** the verifier checks the LOAD-BEARING strings, not the word "actions". A review
+  rewrote the page to present DropdownMenu as a navigation menu - retitled the section,
+  deleted the D0020 sentence - and the old `grep "actions"` still exited 0, because the word
+  survived in one parenthetical. A criterion whose verifier survives its own Test Plan mutant
+  is the defect class this epic exists to remove
+- **Verify:** shell grep -q "Actions only" apps/docs/src/content/components/dropdown-menu.md && grep -q "v1\.1" apps/docs/src/content/components/dropdown-menu.md && grep -q "D0020" apps/docs/src/content/components/dropdown-menu.md
 - **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 

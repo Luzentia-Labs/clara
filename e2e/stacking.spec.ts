@@ -235,3 +235,122 @@ test('a toast arriving over an open tooltip paints above it', async ({ page }) =
   const owner = await ownerAt(page, (overlapX + overlapRight) / 2, (overlapY + overlapBottom) / 2)
   expect(owner, 'the newly arrived toast is hidden behind a stale tooltip').toBe('toast')
 })
+
+/**
+ * The direction that DISTINGUISHES open order from mount order.
+ *
+ * The two assertions above are each satisfied by mount order as well, because in both the tooltip's
+ * host happens to be created before the toast's. A defect that froze stacking at mount order - a
+ * literal `open` passed to `ClaraPortal`, so the host was appended when the component MOUNTED
+ * rather than when its surface opened - passed both of them, and shipped. A review caught it by
+ * hand, in this exact configuration.
+ *
+ * So: the toast arrives FIRST, and the tooltip opens over it afterwards. Only open order gets this
+ * right. Mount order cannot, because the tooltip's trigger is on the page from the start.
+ */
+test('a tooltip opened over a live toast paints above it', async ({ page }) => {
+  await page.goto(`${origin}/iframe.html?id=overlays-toast--tooltip-opened-over-a-live-toast&viewMode=story`)
+
+  // The toast goes up FIRST this time. `dispatchEvent` keeps the pointer where it is.
+  await page.getByRole('button', { name: 'Notify' }).dispatchEvent('click')
+  const toast = page.locator('.clara-toast')
+  await toast.waitFor({ state: 'visible' })
+  await expect.poll(async () => {
+    const a = await toast.boundingBox()
+    await page.waitForTimeout(60)
+    const b = await toast.boundingBox()
+    return a && b && Math.abs(a.x - b.x) < 0.5
+  }).toBe(true)
+
+  // Only now does the tooltip open.
+  await page.getByRole('button', { name: 'Explain' }).hover()
+  const tip = page.locator('.clara-tooltip')
+  await tip.waitFor({ state: 'visible' })
+
+  const tipBox = (await tip.boundingBox())!
+  const toastBox = (await toast.boundingBox())!
+  const overlapX = Math.max(tipBox.x, toastBox.x)
+  const overlapY = Math.max(tipBox.y, toastBox.y)
+  const overlapRight = Math.min(tipBox.x + tipBox.width, toastBox.x + toastBox.width)
+  const overlapBottom = Math.min(tipBox.y + tipBox.height, toastBox.y + toastBox.height)
+  expect(overlapRight - overlapX, 'the tooltip and the toast do not overlap horizontally')
+    .toBeGreaterThan(2)
+  expect(overlapBottom - overlapY, 'the tooltip and the toast do not overlap vertically')
+    .toBeGreaterThan(2)
+
+  const owner = await ownerAt(page, (overlapX + overlapRight) / 2, (overlapY + overlapBottom) / 2)
+  expect(owner, 'the tooltip opened last but the toast paints above it - stacking is frozen at mount order')
+    .toBe('tooltip')
+})
+
+/**
+ * Toast's motion is Class B (D0100), so reduced motion must REPLACE it rather than remove it.
+ *
+ * The ruling was asserted in four places - the stylesheet, the verification record, the story's
+ * spec delta and the commit message - and exercised by nothing. A review deleted the ENTIRE
+ * `@media (prefers-reduced-motion: reduce)` block and measured every gate still green: 1140 tests,
+ * `pnpm check`, `check:geometry`. Deleting the entrance animation itself was equally invisible.
+ *
+ * That matters more here than the usual "unverified claim", because reduced motion is an
+ * accessibility mechanism for vestibular disorders and Class B is the ruling that KEEPS motion.
+ * Something has to prove the substitution actually happens.
+ *
+ * Both directions, on the pattern `e2e/geometry.spec.ts` already uses for ProgressBar's identical
+ * Class B claim: the reduced treatment must NOT translate, and it must still say "this is new".
+ */
+test('a toast replaces its slide with a fade under reduced motion, rather than losing it', async ({ page }) => {
+  const read = async () => page.evaluate(() => {
+    const el = document.querySelector('.clara-toast')
+    if (!el) return null
+    const s = getComputedStyle(el)
+    return { name: s.animationName, transform: s.transform, duration: s.animationDuration }
+  })
+
+  // 1. No preference: it TRAVELS. That is the spatial-origin half - the toast comes from the edge.
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto(`${origin}/iframe.html?id=overlays-toast--success&viewMode=story`)
+  await page.locator('.clara-toast').waitFor({ state: 'visible' })
+  const moving = await read()
+  expect(moving!.name, 'the toast has no entrance animation at all').not.toBe('none')
+
+  // 2. Reduced: a DIFFERENT animation, and no translation.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto(`${origin}/iframe.html?id=overlays-toast--success&viewMode=story`)
+  await page.locator('.clara-toast').waitFor({ state: 'visible' })
+  const reduced = await read()
+
+  expect(reduced!.name, 'reduced motion did not change the animation at all').not.toBe(moving!.name)
+  // REPLACED, not removed - this is the whole Class B ruling. `none` here would mean a toast
+  // arriving behind the reader's gaze is indistinguishable from one that was always there, which
+  // is the information D0100 says motion is carrying.
+  expect(reduced!.name, 'the motion was REMOVED under reduced motion, not replaced - Class B says replace')
+    .not.toBe('none')
+  // And it must not travel: a translation is exactly what a vestibular trigger is.
+  expect(['none', 'matrix(1, 0, 0, 1, 0, 0)']).toContain(reduced!.transform)
+})
+
+/**
+ * A tooltip's text is Clara's size, not the consumer's.
+ *
+ * A tooltip PORTALS to `document.body`, so it does not inherit from where its trigger lives. With
+ * no `font-size` declared it took the consumer's `body` size - measured at 13px on a page whose
+ * body was 13px, against `font.body` = 14px, which is under the legibility floor D0104 sets for
+ * text that carries meaning. This string is what `aria-describedby` points at, so it is the
+ * description of a control and D0104's implementer test stops at the first question.
+ *
+ * It can only be asserted in a browser: jsdom resolves no `var()` and computes no styles, and the
+ * static geometry fixture cannot contain a portalled overlay at all (BG-01M0XVXS).
+ */
+test('a tooltip renders at Clara\'s font size, not the page\'s', async ({ page }) => {
+  await page.goto(`${origin}/iframe.html?id=overlays-tooltip--hover-bridge&viewMode=story`)
+  // A hostile page: smaller than Clara's floor, which is what the tooltip used to inherit.
+  await page.addStyleTag({ content: 'html, body { font-size: 13px; }' })
+
+  await page.getByRole('button', { name: 'Hover me' }).hover()
+  const tip = page.locator('.clara-tooltip')
+  await tip.waitFor({ state: 'visible' })
+
+  const px = await tip.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))
+  expect(px, 'the tooltip inherited the page font size instead of declaring its own')
+    .toBeGreaterThanOrEqual(14)
+})

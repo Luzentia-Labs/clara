@@ -95,7 +95,10 @@ describe('Popover returns focus without trapping', () => {
     const { container } = render(<Harness />)
     await userEvent.click(screen.getByRole('button', { name: 'Options' }))
     await screen.findByRole('button', { name: 'Inside' })
-    await expect(runAxe(container)).resolves.toHaveNoBlockingViolations()
+    // `document.body`, not `container`: the panel is portalled out of the React root, so a
+    // container-scoped run inspects the trigger and nothing else. Measured - an
+    // `aria-allowed-attr` violation injected into the panel left this green (review B1).
+    await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
   })
 })
 
@@ -110,7 +113,14 @@ describe('Popover theme and density matrix', () => {
     )
     await userEvent.click(screen.getByRole('button', { name: 'Options' }))
     await screen.findByRole('button', { name: 'Inside' })
-    const scope = container.querySelector('[data-clara-theme]')
+    // Walked UP from an element INSIDE the panel, not `container.querySelector`.
+    //
+    // The panel is portalled to `document.body`, so `container` holds only the trigger and the
+    // provider's own wrapper - and that wrapper carries the theme attributes too. Querying it found
+    // a correct-looking answer that was never the portal's scope: stripping the attributes from
+    // ClaraPortal entirely left this assertion green (BG review B3, D0065 - observe the property,
+    // not a proxy for it).
+    const scope = (await screen.findByRole('button', { name: 'Inside' })).closest('[data-clara-theme]')
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
     await expect(runAxe(container)).resolves.toHaveNoBlockingViolations()

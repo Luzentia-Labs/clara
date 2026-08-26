@@ -52,11 +52,36 @@ describe('DropdownMenu keyboard pattern', () => {
     await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Void' })).not.toHaveFocus())
   })
 
-  it('wraps from the last entry back to the first', async () => {
+  it('opens onto the last entry when ArrowUp opens the menu', async () => {
+    // Renamed. This used to be called "wraps from the last entry back to the first" while
+    // asserting where ArrowUp lands on a freshly OPENED menu - a different property from wrapping,
+    // and the name was the only thing claiming wrapping was covered. D0065: a test must observe the
+    // property, not something adjacent to it.
     render(<Harness />)
     await openMenu()
     await userEvent.keyboard('{ArrowUp}')
-    // ArrowUp from closed-then-opened lands on the LAST item, which is the pattern's own rule.
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Zoom to fit' })).toHaveFocus())
+  })
+
+  it('wraps from the last entry back to the first', async () => {
+    // The real thing, asserted by ARROWING OFF THE END. Radix's `loop` defaults to false, so this
+    // fails on a menu that merely stops - which is what shipped, documented as wrapping in three
+    // places, until a review measured it.
+    render(<Harness />)
+    await openMenu()
+    await userEvent.keyboard('{ArrowUp}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Zoom to fit' })).toHaveFocus())
+    await userEvent.keyboard('{ArrowDown}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Post' })).toHaveFocus())
+  })
+
+  it('wraps from the first entry back to the last', async () => {
+    // The other direction. Wrapping one way and stopping the other is its own surprise.
+    render(<Harness />)
+    await openMenu()
+    await userEvent.keyboard('{ArrowDown}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Post' })).toHaveFocus())
+    await userEvent.keyboard('{ArrowUp}')
     await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Zoom to fit' })).toHaveFocus())
   })
 
@@ -117,6 +142,27 @@ describe('DropdownMenu focus restoration', () => {
     await waitFor(() => expect(document.activeElement).toBe(trigger))
   })
 
+  it('returns focus to the trigger after an OUTSIDE CLICK', async () => {
+    // The third dismissal route, and the one that was unpinned. A review built a mutant that
+    // suppressed restoration on exactly this route - `onPointerDownOutside` setting a flag that
+    // `onCloseAutoFocus` then honoured - and measured the entire repository still green: 1155
+    // tests, `pnpm check`, `pnpm typecheck`. The blanket version of that mutation kills two tests,
+    // so Escape and select were pinned and this was not, while the docs claim focus returns on
+    // EVERY route.
+    render(<><Harness /><button>Outside</button></>)
+    const trigger = screen.getByRole('button', { name: 'Actions' })
+    await openMenu()
+    // Two accommodations, both because the menu is MODAL, and both describing real browser state:
+    //  - Radix marks everything outside `aria-hidden`, so the button is absent from the
+    //    accessibility tree and `getByRole` cannot see it without `hidden: true`. That is correct
+    //    behaviour, not a bug: while a modal menu is open, the rest of the page is not for reading.
+    //  - It also sets `pointer-events: none` out there, so the pointer-events check has to be
+    //    waived or userEvent refuses a click the user's mouse can still physically make.
+    const outside = screen.getByRole('button', { name: 'Outside', hidden: true })
+    await userEvent.click(outside, { pointerEventsCheck: 0 })
+    await waitFor(() => expect(document.activeElement).toBe(trigger))
+  })
+
   it('returns focus to the trigger after selecting an entry', async () => {
     // The other dismissal route. Restoring only on Escape strands the user after every action they
     // actually take, which is the common case rather than the edge one.
@@ -137,7 +183,14 @@ describe('DropdownMenu theme and density matrix', () => {
       <ClaraProvider theme={theme} density={density}><Harness /></ClaraProvider>,
     )
     await openMenu()
-    const scope = container.querySelector('[data-clara-theme]')
+    // Walked UP from an element INSIDE the panel, not `container.querySelector`.
+    //
+    // The panel is portalled to `document.body`, so `container` holds only the trigger and the
+    // provider's own wrapper - and that wrapper carries the theme attributes too. Querying it found
+    // a correct-looking answer that was never the portal's scope: stripping the attributes from
+    // ClaraPortal entirely left this assertion green (BG review B3, D0065 - observe the property,
+    // not a proxy for it).
+    const scope = (await screen.findByRole('menuitem', { name: 'Post' })).closest('[data-clara-theme]')
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
     await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
