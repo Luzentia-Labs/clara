@@ -1,25 +1,32 @@
 # Where Clara stands
 
-> **Updated:** 2026-08-24 (close of the EP-01M0GKM2 form-framework run, after six review rounds)
+> **Updated:** 2026-08-26 (close of the EP-01M0GK4P overlay run - all five overlays built)
 > The figures below are generated - `pnpm latest:sync`, checked by `pnpm check:latest`. They were
 > typed by hand twice and were wrong both times.
 > Read this first after any compaction or reset, then run `/sdlc-studio status`.
 
 ## One paragraph
 
-**The form framework is built and its ten stories verify clean**, after **five rounds of
-adversarial review, each of which rejected the previous round's work**. The Field plus nine controls
-(Input, Textarea, NumberInput, PasswordInput, SearchInput, Checkbox, Switch, RadioGroup,
-CheckboxGroup) are on `main`, with 1102 tests and every gate green. Nothing is on npm. The stories
-are **not yet transitioned to Done** - that waits on the round-4 review and the operator's own
-sign-off, because the author never records their own verdict.
+**All five overlays are built** - Popover, Tooltip, Toast and DropdownMenu joined Modal and Drawer
+this run - and **US-01M0GM61 (portal + layer scale) is Done after TEN review rounds**, six of which
+found the same class of defect: a claim asserting proof where no mutation demonstrates it. Rounds 8
+and 9 each found it inside the previous round's fix. A systematic pass - every branch of
+`check-overlay-contract.mjs` deleted in isolation - ended it, and round 10 re-derived that
+independently and approved.
+
+**The four new overlay stories are NOT transitioned to Done.** Each needs its independent
+adversarial review first; the author never records their own verdict. Their acceptance criteria all
+verify green (`ac=7 pass=7` Toast, `ac=7 pass=6 manual=1` Tooltip, `ac=6 pass=6` DropdownMenu),
+which is a different and weaker statement than "reviewed".
+
+The tree is on `main` with 1155 tests and every gate green. Nothing is on npm.
 
 ## Numbers
 
 - `pnpm check` runs **29 guards**; `prove-guards-fail` kills **135 mutations** on a staged copy.
-- **1102 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- **1155 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **104 decisions**. Stories: **42 Done of 89**. `main` is the only branch - this project is
+- **104 decisions**. Stories: **43 Done of 89**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line
@@ -59,6 +66,26 @@ for its validity; `textContent` standing in for the accessible name; an id *coun
 was differing id *values*; an axe fixture rendered without the prop that triggers the failure.
 
 ## Sharp edges an agent will hit
+
+- **jsdom decides nothing about geometry, motion or pointers, and will say yes anyway.** It resolves
+  no `var()`, computes no layout, has no pointer and returns no animation. Three assertions this run
+  had to move to Playwright for that reason: WCAG 1.4.13's hover bridge (a grace-area polygon over
+  real rectangles), and both directions of the toast/tooltip layering. A verdict jsdom reaches about
+  any of those is a false green **by construction**, not a flaky one.
+- **A mutation probe against the e2e suite must `pnpm build` FIRST.** Storybook imports the BUILT
+  `@luzentialabs/clara-react/styles.css`, so an unbuilt source mutation reaches nothing and every
+  test passes - which reads as "the assertion is insensitive" when the assertion was never
+  challenged. This produced a false negative here before it was understood.
+- **A test file that fails to LOAD reports zero failing tests.** A bad `test/setup.ts` addition made
+  `chunk-placement.test.ts` unloadable, and `pnpm test` reported "1131 passed" while a whole file
+  never ran. `check:coverage-gate` caught it, because it refuses to conclude anything from a run
+  containing a failing suite. Watch the **file** count, not only the test count.
+- **An unhandled error can be green in vitest and fatal in Stryker.** jsdom implements no Pointer
+  Capture API; Radix's toast swipe calls it, vitest reported the throw and passed anyway, and
+  Stryker's runner crashed stringifying it - so `pnpm test` was green and `check:mutation-config`
+  was red with a message naming neither file nor cause.
+- **Third-party size budgets are AUTHORED per dependency and fail if unlisted.** Adopting a runtime
+  dependency now forces a measurement and a stated ceiling; it can no longer inherit a constant.
 
 - **Disabled is `aria-disabled` + `readOnly`, never the native attribute** (D0058, D0064, D0068).
   The control keeps its tab stop, so every control must suppress its own interaction - on `onChange`
@@ -102,6 +129,7 @@ skill rather than here.
 | **A VoiceOver session** | Field reaching Done | Field AC6 asks for the announced strings for a description plus an error, recorded before export. Nobody has run it. The DOM order and de-duplication it depends on ARE verified (AC5); what a screen reader SAYS is not. |
 | **An autofill check in Chrome and Safari** | Input reaching Done | Input AC4. Note the feature it would check does not exist: no `:-webkit-autofill` rule is in the repo, and the criterion now says so. What needs confirming is that an autofilled field stays usable and readable with the browser's own colour. |
 | **A manual keyboard pass** | Nothing, today | Outstanding on all 23 records and each says so. It is not a Done gate; it is the thing no automated check reaches. |
-| **The review rounds** | (closed) | Six rounds run, each rejecting the previous round's work. By round 6 every behavioural mechanism deleted went red; what remained were guards with no witness and prose drifting from code. |
+| **Independent review** | US-01M0GM31, US-01M0GMK1, US-01M0GM9W, US-01M0GMQJ reaching Done | All four overlay stories verify green and none has been reviewed. `transition.py` enforces this - it refuses Done without a plan-review APPROVE from a reviewer who is not the author. |
+| **The GM61 review rounds** | (closed, ten of them) | Six consecutive rounds found the same class: a claim asserting proof where no mutation demonstrates it, twice inside the previous round's own fix. Broken by enumerating every branch of the guard and deleting each in isolation. |
 | **US-01M0WSME** | Gate 7, and the two definition-of-done artefacts named above | Storybook workspace + visual regression. |
 | **`NPM_TOKEN`** | Any publish | Unset on the repo, deliberately, until a release is actually wanted. |
