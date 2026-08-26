@@ -848,6 +848,57 @@ export const TagWarningBg = "#fbf6f0";
 export const TagWarningFg = "#754e02";
 
 // @public (undocumented)
+export const ToastAccentDanger = "#ae5751";
+
+// @public (undocumented)
+export const ToastAccentInfo = "#0f7eae";
+
+// @public (undocumented)
+export const ToastAccentSuccess = "#296539";
+
+// @public (undocumented)
+export const ToastAccentWarning = "#9b690b";
+
+// @public (undocumented)
+export const ToastAccentWidth = "3px";
+
+// @public (undocumented)
+export const ToastBg = "#ffffff";
+
+// @public (undocumented)
+export const ToastBorder = "#95928e";
+
+// @public (undocumented)
+export const ToastBorderWidth = "1px";
+
+// @public (undocumented)
+export const ToastEnterDuration = "120ms";
+
+// @public (undocumented)
+export const ToastEnterEasing = "cubic-bezier(0, 0, 0.58, 1)";
+
+// @public (undocumented)
+export const ToastFg = "#1f1e1d";
+
+// @public (undocumented)
+export const ToastGap = "8px";
+
+// @public (undocumented)
+export const ToastInlineSize = "24rem";
+
+// @public (undocumented)
+export const ToastPadding = "12px";
+
+// @public (undocumented)
+export const ToastRadius = "8px";
+
+// @public (undocumented)
+export const ToastViewportInset = "24px";
+
+// @public (undocumented)
+export const ToastViewportMaxInlineSize = "100vw";
+
+// @public (undocumented)
 export const TooltipBg = "#ffffff";
 
 // @public (undocumented)

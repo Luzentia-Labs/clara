@@ -24,6 +24,7 @@
 - **When** it appears
 - **Then** success announces politely and error assertively via a live region
 - **Verify:** vitest "Toast live region politeness by intent"
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC2: Errors persist
@@ -32,6 +33,7 @@
 - **When** it appears
 - **Then** it does not auto-dismiss by default
 - **Verify:** vitest "error Toast does not auto-dismiss"
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC3: Timer pauses
@@ -40,6 +42,7 @@
 - **When** I hover or focus it
 - **Then** the dismiss timer pauses
 - **Verify:** vitest "Toast timer pauses on hover and focus"
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC4: Token-only styling
@@ -48,6 +51,7 @@
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC5: Both themes and densities
@@ -56,6 +60,7 @@
 - **When** it renders in dark theme and compact density
 - **Then** it holds its visual baseline in all four combinations
 - **Verify:** vitest "Toast theme and density matrix"
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 ### AC6: Definition of done
@@ -64,6 +69,7 @@
 - **When** it is proposed for export
 - **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
 - **Verify:** shell node scripts/check-verification.mjs --component Toast
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
@@ -74,6 +80,7 @@
 - **When** a toast arrives
 - **Then** the toast paints above the tooltip
 - **Verify:** shell pnpm test:e2e -g "a toast arriving over an open tooltip paints above it"
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 > D0102, and the mirror of Tooltip's AC7. It is what keeps the ruling honest in the other
@@ -117,6 +124,68 @@ cannot enforce is a wish rather than a design decision. The layering is correct 
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Test Plan
+
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/Toast/Toast.tsx | Announce everything with `type="background"`. Measured: the assertive test fails. The polite direction is asserted too, so announcing EVERYTHING assertively also fails. | Announced by severity |
+| AC2 | packages/react/src/components/Toast/Toast.tsx | Drop the `duration: Infinity` for `danger`. Measured: the persistence test fails. The companion test requires a success toast to DISMISS, so a component where nothing auto-dismisses fails as well. | Errors persist |
+| AC3 | packages/react/src/components/Toast/Toast.tsx | Remove the viewport, which is what Radix binds the pause handlers to. The resume test also fails if a pause never ends. | Timer pauses |
+| AC4 | packages/react/src/styles.css | Add a raw literal or a tier 1 token reference to the Toast rules. | Token-only styling |
+| AC5 | packages/react/src/components/Toast/Toast.tsx | Rename the theme or density attribute. | Both themes and densities |
+| AC6 | packages/react/src/components/Toast/verification.md | Delete the Toast verification record, its docs page, or its keyboard table. | Definition of done |
+| AC7 | packages/react/src/styles.css | Give `.clara-toast__viewport` a layer other than `--clara-layer-toast`. Measured: setting `--clara-layer-overlay` turns "a toast arriving over an open tooltip paints above it" red. **The probe must `pnpm build` first** - Storybook imports the BUILT stylesheet, so an unbuilt mutation reaches nothing and every test passes. | A toast arriving over an open tooltip wins |
+
+## Spec delta
+
+Derived before implementation, per the engagement floor.
+
+**AC7 is one half of a mechanism completed with Tooltip's AC7.** Both were unassertable until both
+components existed; they are now asserted together in `e2e/stacking.spec.ts` with
+`document.elementFromPoint` inside a VERIFIED overlap - the overlap is measured and required to be
+real before the probe reads a point, because a probe inside a region only one element covers passes
+regardless of which paints on top. Never by comparing computed `z-index`: the two are equal by
+design, so a comparison would report "equal" in both directions and prove nothing (D0065, D0102).
+
+**Interactions resolved during implementation:**
+
+1. **Politeness and persistence are ONE prop.** `intent` decides both. Two props would let a
+   consumer build the incoherent halves - an assertive toast that vanishes before it can be read, or
+   a permanent one nobody is told about.
+2. **The layer token goes on the VIEWPORT, not the toast.** Unlike Popover and Tooltip, Radix copies
+   no computed z-index here; the viewport is an ordinary fixed element and is what forms the
+   stacking context, so a token on `.clara-toast` alone would be inert inside it. This also forced
+   the class to be `.clara-toast__viewport` rather than `.clara-toast-viewport`: `check-overlay-contract`
+   resolves a component's rules by BEM (`base`, `base__*`, `base--*`), and a hyphen suffix is none of
+   those. Renaming was correct; adding an inert token to `.clara-toast` to satisfy the guard would
+   have been the exact "silencing a guard" shape D0087 exists to catch.
+3. **Motion is Class B (D0100), so reduced motion REPLACES it rather than removing it.** The slide
+   from the viewport edge is the only signal distinguishing a toast that just arrived from one
+   already there - the "liveness" meaning. Removing it removes information, so the reduced-motion
+   rule substitutes a fade.
+4. **`@radix-ui/react-toast` measured 12.8 kB, budget 15 kB** - the smallest of the four overlays,
+   because a toast is the one that is not positioned against a trigger and so carries no
+   `@radix-ui/react-popper` and none of the `@floating-ui` chain.
+5. **jsdom implements no Pointer Capture API.** Radix's swipe handling calls `hasPointerCapture` on
+   every pointerdown, which raised an UNHANDLED error that vitest reports and then passes anyway,
+   while Stryker's runner crashed on it - so `pnpm test` was green and `check:mutation-config` was
+   red with a message naming neither file nor cause. `test/setup.ts` now implements the real
+   per-element, per-pointer-id semantics rather than a stub returning `false`, because a stub would
+   let a test pass through a branch a browser would not have taken.
+6. **That polyfill then had to be guarded with `typeof Element !== 'undefined'`**, because the setup
+   file also loads for node-environment suites. Without the guard `test/build/chunk-placement.test.ts`
+   failed to LOAD - and a suite that fails to load reports zero failing tests, so `pnpm test` said
+   "1131 passed" while a whole file never ran. Caught by `check:coverage-gate`, which refuses to draw
+   a conclusion from a run with a failing suite.
+
+## Known defect shipped, filed rather than hidden
+
+**BG-01M0Y2H2: two simultaneous toasts render two overlapping viewports.** Measured
+`viewports: 2, toasts: 2` - the second notification paints exactly on top of the first. Every
+criterion here concerns ONE toast, which is why they all pass and the case is still broken. It is
+recorded in the verification record as a DEFECT rather than as an untested area, and the repair does
+not require changing `<Toast>`'s public surface, so shipping this does not close it off.
 
 ## Revision History
 

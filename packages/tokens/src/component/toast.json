@@ -1,0 +1,76 @@
+{
+  "toast": {
+    "bg": {
+      "value": "{color.bg.surface}",
+      "type": "color"
+    },
+    "fg": {
+      "value": "{color.fg.default}",
+      "type": "color"
+    },
+    "border": {
+      "value": "{color.border.default}",
+      "type": "color"
+    },
+    "border-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    },
+    "radius": {
+      "value": "{radius.surface}",
+      "type": "dimension"
+    },
+    "padding": {
+      "value": "{space.stack}",
+      "type": "dimension"
+    },
+    "gap": {
+      "value": "{space.control-gap}",
+      "type": "dimension"
+    },
+    "inline-size": {
+      "value": "24rem",
+      "type": "dimension",
+      "comment": "A raw dimension, following modal.width-* and popover.max-inline-size. A toast width has no semantic ancestor in tier 2 size."
+    },
+    "viewport-inset": {
+      "value": "{space.section}",
+      "type": "dimension",
+      "comment": "How far the stack sits from the viewport edge."
+    },
+    "accent-info": {
+      "value": "{color.bg.info-emphasis}",
+      "type": "color"
+    },
+    "accent-success": {
+      "value": "{color.bg.success-emphasis}",
+      "type": "color"
+    },
+    "accent-warning": {
+      "value": "{color.bg.warning-emphasis}",
+      "type": "color"
+    },
+    "accent-danger": {
+      "value": "{color.bg.danger-emphasis}",
+      "type": "color"
+    },
+    "accent-width": {
+      "value": "3px",
+      "type": "dimension",
+      "comment": "A raw dimension, like inline-size above: `border-width` in tier 2 carries only `default` (a hairline) and `focus` (a focus ring), and neither means \"an intent stripe\". Reusing `focus` would tie the stripe to the focus ring, so re-tuning one would silently move the other. The stripe is a SECOND carrier alongside the announced intent word, never the only one."
+    },
+    "enter-duration": {
+      "value": "{duration.state-change}",
+      "type": "duration"
+    },
+    "enter-easing": {
+      "value": "{easing.enter}",
+      "type": "cubicBezier"
+    },
+    "viewport-max-inline-size": {
+      "value": "100vw",
+      "type": "dimension",
+      "comment": "The screen, as a token, so the rule below can subtract the insets from it without writing a literal. A fixed 24rem viewport overflows a narrow phone otherwise, and a toast half off the screen is a toast nobody can dismiss."
+    }
+  }
+}

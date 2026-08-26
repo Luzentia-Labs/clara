@@ -554,6 +554,25 @@ export interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaE
 export type TextProps = TextBaseProps | TruncatedTextProps;
 
 // @public
+export function Toast(input: ToastProps): JSX_2.Element;
+
+// @public
+export type ToastIntent = 'info' | 'success' | 'warning' | 'danger';
+
+// @public (undocumented)
+export interface ToastProps {
+    action?: ReactNode;
+    // (undocumented)
+    className?: string;
+    closeLabel?: string;
+    description?: string;
+    intent?: ToastIntent;
+    onClose: () => void;
+    open: boolean;
+    title: string;
+}
+
+// @public
 export function Tooltip(input: TooltipProps): JSX_2.Element;
 
 // @public

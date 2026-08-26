@@ -480,6 +480,89 @@
 }
 
 /*
+ * Toast.
+ *
+ * The viewport is the positioned surface and the toast sits inside it, so the LAYER TOKEN GOES ON
+ * THE VIEWPORT. Radix does not copy a z-index here the way the popper does for Popover and Tooltip
+ * - the viewport is an ordinary fixed element it renders, and it is what forms the stacking
+ * context, so a token on `.clara-toast` alone would be inert inside it.
+ *
+ * `--clara-layer-toast` resolves to the SAME layer as `--clara-layer-tooltip`, deliberately
+ * (D0102). Open order decides which paints on top, because the relationship is bidirectional: a
+ * toast arriving over an open tooltip must win, and a tooltip on a toast's own action must win.
+ *
+ * MOTION IS CLASS B (D0100), so it is REPLACED under reduced motion rather than removed. A toast
+ * slides in from the viewport edge, and that travel is not decoration: it is the only thing that
+ * distinguishes a notification that JUST ARRIVED from one that was already sitting there. Take the
+ * motion away entirely and a toast appearing behind the user's gaze is indistinguishable from the
+ * page having always looked like that - which is the "liveness" meaning D0100 permits. So the
+ * reduced-motion rule below substitutes a fade, which carries the same "this is new" without
+ * traversing the screen.
+ */
+.clara-toast__viewport {
+  position: fixed;
+  z-index: var(--clara-layer-toast);
+  inset-block-end: var(--clara-toast-viewport-inset);
+  inset-inline-end: var(--clara-toast-viewport-inset);
+  display: flex;
+  flex-direction: column;
+  gap: var(--clara-toast-gap);
+  inline-size: var(--clara-toast-inline-size);
+  max-inline-size: calc(var(--clara-toast-viewport-max-inline-size) - (2 * var(--clara-toast-viewport-inset)));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* The viewport spans the corner even when empty; only the toasts inside it take pointer events. */
+  pointer-events: none;
+}
+
+.clara-toast {
+  pointer-events: auto;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--clara-toast-gap);
+  align-items: start;
+  padding: var(--clara-toast-padding);
+  border: var(--clara-toast-border-width) solid var(--clara-toast-border);
+  border-inline-start: var(--clara-toast-accent-width) solid var(--clara-toast-accent-info);
+  border-radius: var(--clara-toast-radius);
+  background: var(--clara-toast-bg);
+  color: var(--clara-toast-fg);
+  animation: clara-toast-in var(--clara-toast-enter-duration) var(--clara-toast-enter-easing);
+}
+
+.clara-toast--info { border-inline-start-color: var(--clara-toast-accent-info); }
+.clara-toast--success { border-inline-start-color: var(--clara-toast-accent-success); }
+.clara-toast--warning { border-inline-start-color: var(--clara-toast-accent-warning); }
+.clara-toast--danger { border-inline-start-color: var(--clara-toast-accent-danger); }
+
+/* A bare number, matching the three existing uses - there is no weight token. */
+.clara-toast__title { font-weight: 600; }
+.clara-toast__description { grid-column: 1; margin-block-start: var(--clara-toast-gap); }
+.clara-toast__close { grid-column: 2; grid-row: 1; }
+
+@keyframes clara-toast-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes clara-toast-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/*
+ * REPLACED, not removed - Class B. Deleting the animation outright would remove the only signal
+ * that this toast is new, which is information rather than decoration.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .clara-toast {
+    animation: clara-toast-fade-in var(--clara-toast-enter-duration) var(--clara-toast-enter-easing);
+  }
+}
+
+/*
  * ProgressBar (D0100).
  *
  * DETERMINATE DOES NOT ANIMATE, and no `transition` may be added here. The fill's width is DATA: a

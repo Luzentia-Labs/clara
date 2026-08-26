@@ -80,6 +80,7 @@
 - **When** a Tooltip on that action opens
 - **Then** the tooltip paints above the toast
 - **Verify:** shell pnpm test:e2e -g "a tooltip on a toast action paints above it"
+- **Verified:** yes (2026-08-26)
 - **Verification target:** functional
 
 > D0102. The two tokens share one layer and OPEN ORDER decides, so this criterion and Toast's AC7

@@ -143,6 +143,10 @@ const THIRD_PARTY_LIMITS = {
   // focus. So the two entries do not add up in either direction - a consumer using both pays the
   // shared chain once (BG-01M0XXSA), and the difference between them is real code, not noise.
   '@radix-ui/react-tooltip': '22 kB',
+  // Measured 12.8 kB - the SMALLEST of the four, and the reason is the useful part: a toast is the
+  // one overlay that is not positioned against a trigger, so it carries no @radix-ui/react-popper
+  // and none of the @floating-ui chain. It is a fixed corner region plus a live-region announcer.
+  '@radix-ui/react-toast': '15 kB',
 }
 
 const fixed = [
