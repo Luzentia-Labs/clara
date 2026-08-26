@@ -4,7 +4,7 @@
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Popover/**, packages/react/src/components/Popover/verification.md, packages/react/src/theme/ClaraPortal.tsx, packages/react/src/styles.css, packages/tokens/src/component/popover.json, packages/react/src/index.ts, packages/react/client-boundary.json, packages/react/package.json, packages/react/etc/clara-react.api.md, packages/tokens/etc/clara-tokens.api.md, packages/react/src/components/__tests__/boundary.test.tsx, apps/docs/src/content/components/popover.md, scripts/check-verification.mjs, scripts/sync-size-budgets.mjs, scripts/prove-guards-fail.mjs, .size-limit.json
@@ -15,6 +15,36 @@
 **As a** Grace Adeyemi
 **I want** a non-modal overlay that returns focus correctly and stays anchored
 **So that** a popover neither traps me nor drifts away from its trigger
+
+## Context
+
+### Persona Reference
+
+**Sofia Marchetti** - configures dense ERP screens and needs secondary controls that do not take
+the page away from her while she uses them.
+[Full persona details](../personas.md#sofia-marchetti)
+
+### Background
+
+A table needs per-view controls - column options, a filter builder, a quick edit - that open beside
+their trigger without seizing the page. A Modal is wrong for this: it dims the data the user is
+configuring against, and traps focus away from it.
+
+So Popover is defined by what it does NOT do. It is non-modal: the background stays scrollable,
+nothing is hidden from assistive technology, and focus is never trapped. Every acceptance criterion
+here is really a way of asserting that absence, which is harder to test than a presence - a trap
+shows up as a failure, but the absence of a trap looks exactly like a passing test that checks
+nothing. That is why AC1 asserts focus by identity and asserts where focus is NOT.
+
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| Epic | Portal + scope | Renders through `ClaraPortal` with a non-constant `open`, and takes its stacking from a layer token | AC5 via `check:overlay-contract` |
+| PRD | Bundle | 24.08 kB against an authored 27 kB ceiling - positioning drags in `@floating-ui`, which a modal never loads | AC5 via `pnpm size` |
+| PRD | Public surface | `asChild`, `onOpenChange` and `data-state` never reach Clara's API; `trigger` is a node and the callbacks are Clara-shaped | AC5 via `check:api` |
 
 ## Acceptance Criteria
 
@@ -76,6 +106,115 @@
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
 
+## Scope
+
+### In Scope
+
+- Popover
+
+### Out of Scope
+
+- Anything outside this component's own surface
+- Documentation page content (owned by the documentation epic)
+
+## Technical Notes
+
+**TDD.** This component has a documented keyboard interaction table, so the table is the specification and its tests are written first (D0024).
+
+**Points:** 5 (modified Fibonacci; nothing here exceeds 8, the split threshold).
+
+**Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
+
+**Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Edge Cases & Error Handling
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| Dismissed by Escape | Focus returns to the trigger, by identity |
+| Dismissed by an outside click | Focus stays WHERE THE CLICK LANDED - never yanked back to the trigger. Radix suppresses the restore after an outside interaction, which is correct for a non-modal surface |
+| Focus moved out of the panel | It dismisses, and focus stays where the user put it. A dismissal, not a trap - and the two are distinguishable |
+| Pinned against a viewport edge | Flips or shifts to stay on screen, asserted in a browser; `collisionPadding` is 8, which Radix would otherwise default to 0 |
+| Content taller than the viewport | Caps to the height the popper measured and scrolls. Without it the panel grew unbounded and the overflow was UNREACHABLE, because the popper wrapper is `position: fixed` and does not extend the document |
+| Dark theme | The panel declares its own `color`, so a portalled surface does not take its text colour from the page while taking its background from the portal scope - which measured 1.26:1 before it did |
+| A consumer `className` | Kept alongside `clara-popover`, asserted |
+| No `label` | Type error. Without one the panel announces as an unnamed group |
+
+
+## Test Scenarios
+
+- [x] Focus returns to the trigger on Escape, by identity
+- [x] An outside click dismisses AND leaves focus where it landed - asserted, not just titled
+- [x] The background stays reachable, unhidden and scrollable while open
+- [x] Focus may rest outside the panel and is not yanked back
+- [x] The panel carries an accessible name, visually hidden rather than printed
+- [x] The collision props actually REACH the panel, observed via a forwarding spy
+- [x] axe in all four theme x density combinations, scoped to `document.body` so the panel is seen
+- [x] The theme scope is read from INSIDE the panel, not from the provider's own element
+- [x] In a browser: pinned against an edge it stays on screen and reports a different `data-side`
+- [x] In a browser: long content stays inside the viewport and scrolls, at three viewport heights
+- [x] In a browser: readable in BOTH themes, against the shipped stylesheets
+- [ ] Scroll-anchoring - staying attached while a scroll container moves under it (recorded gap)
+- [ ] Screen-reader announcement; axe reads the tree, not what NVDA says (recorded gap)
+
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| [US-01M0GM61](US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md) | hard | `ClaraPortal` and the layer scale | Done |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| `@radix-ui/react-popover` | runtime | Installed, 24.08 kB against an authored 27 kB ceiling |
+
+## Estimation
+
+**Points:** 5
+**Complexity:** Medium. The component is small; the difficulty is that its contract is an ABSENCE -
+not trapping, not hiding, not stealing focus - and an absence is what a vacuous test looks like when
+it passes. Four of the five review rounds found evidence defects here rather than behaviour defects.
+
+> **Points** are a RELATIVE size on the modified Fibonacci scale (1, 2, 3, 5, 8, 13, 20) - not
+> "how long will this take" but "is this bigger than that one", sized against stories already
+> delivered. The gaps widen deliberately, because uncertainty grows with size: it is much harder
+> to argue a story is a 7 rather than an 8 than to choose between a 5 and an 8. A value off the
+> scale is REFUSED, never rounded - the scale IS the estimate. Above 8, SPLIT the story;
+> estimator consistency collapses beyond it, so a bigger number is a triage failure rather than
+> a harder estimate. This is the one size vocabulary: the planner, the forecast and the measured
+> velocity all read this field.
+
+## Rollback Envelope
+
+> Required when `affects_production_runtime: true`; optional otherwise. See `reference-story.md#rollback-envelope`.
+
+**Affects production runtime:** Yes - a published component and a new runtime dependency.
+
+| Component | Reversal | Expected time |
+| --- | --- | --- |
+| `@luzentialabs/clara-react` | Unpublished (`NPM_TOKEN` unset), so reversal is `git revert`. Once published, immutable: a forward patch removing the export, which is a major. | Pre-publish: minutes. Post-publish: a major release |
+
+If `affects_production_runtime: false`, replace with: *Not applicable – story does not change runtime behaviour.*
+
+## Open Questions
+
+- [ ] Should `aria-haspopup="dialog"` on the trigger be reconciled with `role="group"` on the panel?
+      Radix hardcodes the former; Clara chooses the latter deliberately. A screen reader announces
+      "has dialog popup" and what opens is a group. axe does not flag it - Owner: Idris (ux)
+
+## Resolved Questions
+
+- **Should focus return to the trigger on every dismissal route?** NO - only on Escape. Yanking focus
+  back to a trigger the user has just clicked or tabbed away from is the trap this component exists
+  not to be, and Radix suppresses the restore after an outside interaction for that reason. AC1's
+  Then-clause was corrected in round 5 to say so.
+- **Does the rendered positioning need its own gate?** It has one - `e2e/stacking.spec.ts` drives the
+  against-the-edge story in a browser. BG-01M0XVXS is closed.
+
 ## Specification delta (2026-08-26)
 
 **AC2 cannot be verified where its verifier points, and that is stated rather than papered over.**
@@ -108,27 +247,6 @@ Radix's name and no Radix surface reaches Clara's (TRD Section 402), but the bet
 two Clara-shaped events read more clearly at a call site than one that must be destructured.
 
 **AC4 corrected as in every other story in this epic.**
-
-## Scope
-
-### In Scope
-
-- Popover
-
-### Out of Scope
-
-- Anything outside this component's own surface
-- Documentation page content (owned by the documentation epic)
-
-## Technical Notes
-
-**TDD.** This component has a documented keyboard interaction table, so the table is the specification and its tests are written first (D0024).
-
-**Points:** 5 (modified Fibonacci; nothing here exceeds 8, the split threshold).
-
-**Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
-
-**Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
 
 ## Test Plan
 

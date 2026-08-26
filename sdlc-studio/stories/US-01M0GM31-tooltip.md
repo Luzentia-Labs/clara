@@ -4,7 +4,7 @@
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** e2e/stacking.spec.ts, packages/react/src/components/Tooltip/**, packages/react/src/components/Tooltip/verification.md, scripts/check-component-css.mjs
@@ -15,6 +15,38 @@
 **As a** Grace Adeyemi
 **I want** a tooltip reachable by keyboard as well as pointer
 **So that** the explanation is not invisible to the people most likely to need it
+
+## Context
+
+### Persona Reference
+
+**Grace Adeyemi** - works the keyboard, and is exactly the person a hover-only explanation is
+invisible to.
+[Full persona details](../personas.md#grace-adeyemi)
+
+### Background
+
+A dense ERP toolbar is icons and abbreviations. The explanation has to live somewhere, and a tooltip
+is the smallest surface that can hold it.
+
+The reason this story exists as its own unit is that the default implementation of a tooltip is
+wrong for the people who need it most: hover-only, so invisible to anyone not using a mouse. Opening
+on FOCUS as well is the whole point, and WCAG 1.4.13 is the rest of it - dismissable, hoverable,
+persistent.
+
+The limit worth stating up front: on touch there is no gesture that opens it. Assistive technology
+on the same device DOES reach it, because rotor and swipe navigation move DOM focus. That asymmetry
+is why AC3 forbids a tooltip being the sole source of anything.
+
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| Epic | Portal + scope | Renders through `ClaraPortal` with a non-constant `open` - a literal froze the stacking at mount order and shipped | AC6 via `check:overlay-contract` |
+| PRD | Bundle | 19.26 kB against an authored 22 kB ceiling - 4.8 kB under Popover, because a tooltip has no dismissable layer and no focus scope | AC6 via `pnpm size` |
+| PRD | Public surface | No Radix vocabulary reaches Clara's API; the provider is internal, so a consumer never meets `TooltipProvider` | AC6 via `check:api` |
 
 ## Acceptance Criteria
 
@@ -122,6 +154,107 @@
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Edge Cases & Error Handling
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| Focused by keyboard | Opens IMMEDIATELY - no delay applies to focus, only to hover |
+| Focused programmatically | Opens. This is the route VoiceOver's rotor and TalkBack's swipe take, so the mobile assistive-technology path reaches the content |
+| Tapped or long-pressed on touch | Does NOT open. No gesture route exists - the reason AC3 forbids sole-source content |
+| The pointer travels from trigger to tooltip | It stays open. WCAG 1.4.13 "hoverable", implemented as a grace-area polygon, asserted in a browser because jsdom has no pointer |
+| Escape | Dismisses without moving the pointer. WCAG 1.4.13 "dismissable" |
+| A NON-FOCUSABLE trigger | Warns in development, naming the element; the tooltip is genuinely unreachable, which the warning says |
+| A natively disabled trigger | Warns with advice that works - `aria-disabled` plus `readOnly` (D0058) keeps the tab stop - rather than "use a button" to someone already using one |
+| A trigger made focusable in an EFFECT | Does NOT warn. The check is deferred a tick for exactly this |
+| Opened over a live toast | Paints above it. Both share one layer and open order decides (D0102) |
+| A page with a small `body` font | Renders at Clara's 14px floor, not the page's - it declares its own size because a portalled surface inherits from nowhere |
+
+
+## Test Scenarios
+
+- [x] Opens on keyboard focus, and closes when focus leaves
+- [x] Opens on PROGRAMMATIC focus - the mobile assistive-technology route
+- [x] `aria-describedby` resolves to an element whose text IS the content
+- [x] Escape dismisses, and the content is genuinely absent beforehand
+- [x] A non-focusable trigger warns; a button and a `tabIndex` span stay silent
+- [x] A trigger focusable only from an effect stays silent - the deferral, pinned
+- [x] A disabled control gets its own advice; two broken tooltips produce two named warnings
+- [x] The positioning props reach the content - placement, collision avoidance, padding, offset
+- [x] Works with no `ClaraProvider` above it, rather than throwing a Radix error
+- [x] axe in all four theme x density combinations
+- [x] In a browser: the hover bridge holds at every step of the pointer's journey, and the tooltip
+      closes when the pointer leaves without reaching it
+- [x] In a browser: renders at Clara's font size against a hostile 13px page
+- [x] In a browser: all three directions of the shared-layer mechanism against Toast
+- [x] The dev-only warning is eliminated by a production minify
+- [ ] The 700ms open delay is unpinned; the keyboard path is unaffected (recorded gap)
+- [ ] Screen-reader announcement; axe reads the tree, not what NVDA says (recorded gap)
+
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| [US-01M0GM61](US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md) | hard | `ClaraPortal` and the layer scale | Done |
+| [US-01M0GMK1](US-01M0GMK1-toast.md) | hard | AC7 needs a Toast to sit under; the two are one mechanism | Done |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| `@radix-ui/react-tooltip` | runtime | Installed, 19.26 kB against an authored 22 kB ceiling |
+
+## Estimation
+
+**Points:** 5
+**Complexity:** Medium to build, HIGH to get honest. Five review rounds each found their blocking
+defect in this component's docblock - a literal `open`, a criterion pointing at the wrong test, a
+false deferral rationale, an unpinned deferral, and a false touch measurement. The component was
+right earlier than its description of itself was, and the durable fix was to make the claims
+executable rather than to rewrite the prose a sixth time.
+
+> **Points** are a RELATIVE size on the modified Fibonacci scale (1, 2, 3, 5, 8, 13, 20) - not
+> "how long will this take" but "is this bigger than that one", sized against stories already
+> delivered. The gaps widen deliberately, because uncertainty grows with size: it is much harder
+> to argue a story is a 7 rather than an 8 than to choose between a 5 and an 8. A value off the
+> scale is REFUSED, never rounded - the scale IS the estimate. Above 8, SPLIT the story;
+> estimator consistency collapses beyond it, so a bigger number is a triage failure rather than
+> a harder estimate. This is the one size vocabulary: the planner, the forecast and the measured
+> velocity all read this field.
+
+## Rollback Envelope
+
+> Required when `affects_production_runtime: true`; optional otherwise. See `reference-story.md#rollback-envelope`.
+
+**Affects production runtime:** Yes - a published component, a new runtime dependency, and a development-only warning that must not ship (gated, and proved eliminable by `check:dev-warnings`).
+
+| Component | Reversal | Expected time |
+| --- | --- | --- |
+| `@luzentialabs/clara-react` | Unpublished (`NPM_TOKEN` unset), so reversal is `git revert`. Once published, immutable: a forward patch removing the export, which is a major. | Pre-publish: minutes. Post-publish: a major release |
+
+If `affects_production_runtime: false`, replace with: *Not applicable – story does not change runtime behaviour.*
+
+## Open Questions
+
+- [ ] Should the 700ms open delay be reduced, or delay grouping added? Radix's 700 is calibrated
+      against a 300ms skip window that the per-Tooltip provider shape deletes, so a toolbar waits it
+      out on every button. Ruled MINOR three rounds running because the keyboard path is unaffected -
+      Owner: Idris (ux)
+
+## Resolved Questions
+
+- **Should `content` be `ReactNode`?** NO - `string`. Tooltip content is not in the tab order, so a
+  focusable element inside one is a control that paints and cannot be operated. The type makes that
+  unrepresentable. It does NOT settle AC3, and an earlier comment claiming it did was corrected.
+- **Should a non-focusable trigger be a type error?** It cannot be - whether a node renders something
+  focusable is not knowable until runtime. It warns in development instead. Two rounds deferred that
+  warning, the second on a premise that was false: the `console.warn` convention already existed.
+- **Is the tooltip reachable on mobile?** Not by gesture; YES by assistive technology, because rotor
+  and swipe navigation move DOM focus. Round 5 corrected a claim that said otherwise, and the
+  behaviour is now pinned by a test so it cannot drift again.
 
 ## Test Plan
 
