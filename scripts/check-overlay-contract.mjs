@@ -26,6 +26,24 @@
  * in the codebase and was replaced with the PostCSS imported ten lines away. Both parsers are
  * already dependencies here.
  */
+/*
+ * WHAT THIS GUARD DOES NOT CLOSE, stated so the next reader learns it from the code (BG-01M0XJBW).
+ *
+ * 1. **A `<ClaraPortal>` in an unreachable branch.** `if (false) { return <ClaraPortal .../> }`
+ *    satisfies the render check, against a docblock below claiming "only a JSX element counts,
+ *    which is the thing the runtime does" - a JSX element behind a dead branch is not what the
+ *    runtime does. The probe as written happens to be refused today, but by the `constant open`
+ *    rule rather than by any reachability analysis, so a dead-branch `<ClaraPortal open={state}>`
+ *    would pass. Detecting unreachable code in general is undecidable, and recognising only the
+ *    literal `if (false)` would be theatre.
+ *
+ * 2. **Imports out of the component's own directory.** Re-exports and aliases are followed WITHIN
+ *    the directory that gets scanned, which is where every measured bypass lived. A component
+ *    importing a portal from a shared helper elsewhere in the package would not be seen.
+ *
+ * Both are denylist limits, not oversights. The list below is the set of escapes that were actually
+ * found and measured, which is not the same as proving the contract cannot be escaped.
+ */
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import postcss from 'postcss'
@@ -67,27 +85,65 @@ const sourcesFor = (name) => {
 function portalUsage (files) {
   const usage = { rendersClaraPortal: false, radixPortals: new Set(), constantOpen: [] }
 
-  for (const file of files) {
-    const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  /*
+   * Names bound to a Radix portal, however the author spelled it:
+   *   `import { Portal } from '@radix-ui/react-dialog'`       -> "Portal"
+   *   `import { Portal as P } from '@radix-ui/react-popover'`  -> "P"
+   *   `import * as Dialog from '@radix-ui/react-dialog'`       -> "Dialog" (namespace)
+   *   `export { Portal } from '@radix-ui/react-dialog'`        -> re-exported, see below
+   *   `const P = Portal`                                       -> aliased
+   *
+   * SHARED ACROSS THE COMPONENT'S FILES, not per file (BG-01M0XJBW). A re-export in a sibling
+   * (`export { Portal } from '@radix-ui/react-dialog'` in `./portal.ts`) put the name in scope for
+   * the component while the per-file sets kept it invisible: `portal.ts` learned the binding, and
+   * `Modal.tsx` - which imports it relatively, so `isRadix` is false - had its own empty set.
+   * Reproduced at PASS rc=0. The component directory is the unit that gets scanned, so it is the
+   * unit the bindings belong to.
+   */
+  const radixLocal = new Set()
+  const radixNamespace = new Set()
+  /** Names this component's own files re-export from Radix, so a relative import of them binds. */
+  const reExported = new Set()
 
-    // Local names bound to a Radix portal, however the author spelled the import:
-    //   `import { Portal } from '@radix-ui/react-dialog'`      -> "Portal"
-    //   `import { Portal as P } from '@radix-ui/react-popover'` -> "P"
-    //   `import * as Dialog from '@radix-ui/react-dialog'`      -> "Dialog" (namespace)
-    const radixLocal = new Set()
-    const radixNamespace = new Set()
+  const sources = files.map((file) => ({
+    file,
+    source: ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX),
+  }))
 
-    const visit = (node) => {
+
+    /*
+     * TWO PASSES: bindings first, then JSX (BG-01M0XJBW).
+     *
+     * A single walk populated `radixLocal` as it REACHED each import, so anything rendered above
+     * its own import was checked against an empty set. Imports are hoisted, so that source is
+     * perfectly legal and ran fine - a review measured `PASS rc=0` on a component rendering a Radix
+     * portal above its import, with every problem-push intact and the state feeding them empty.
+     *
+     * The binding pass also traces two indirections the single walk could not:
+     *
+     *   `export { Portal } from '@radix-ui/react-dialog'`  - a re-export, in the component's own
+     *      directory, which IS scanned; `ExportDeclaration` simply was not handled.
+     *   `const P = Portal`                                 - an alias bound outside the import.
+     *
+     * Both were reproduced at `PASS rc=0`. Neither is exotic: the first is what a developer writes
+     * to "keep the imports tidy", and the second is what they write to shorten a long name.
+     */
+    const bindings = (node) => {
       if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
         const from = node.moduleSpecifier.text
         const isRadix = from.startsWith('@radix-ui/')
         const clause = node.importClause
         // `import type { ... }` renders nothing.
+        // A RELATIVE import of a name this component re-exports from Radix binds it too. That is
+        // the re-export bypass: the Radix specifier is in one file and the render is in another,
+        // and neither file alone looks wrong.
+        const isLocalReExport = from.startsWith('.')
         if (clause && !clause.isTypeOnly && clause.namedBindings) {
           if (ts.isNamedImports(clause.namedBindings)) {
             for (const el of clause.namedBindings.elements) {
               if (el.isTypeOnly) continue
               const imported = (el.propertyName ?? el.name).text
+              if (isLocalReExport && reExported.has(imported)) radixLocal.add(el.name.text)
               // `/Portal$/`, not `=== 'Portal'`. Radix exports every primitive under BOTH names -
               // `Portal` and `DialogPortal` are both first-class exports of
               // @radix-ui/react-dialog, and `DialogPortal` is the one an editor's auto-import
@@ -101,6 +157,53 @@ function portalUsage (files) {
         }
       }
 
+      // A re-export binds the name for anything importing THIS file, and the component's own
+      // directory is what gets scanned - so `export { Portal } from '@radix-ui/react-dialog'` in a
+      // sibling file put the name in scope with nothing tracing it.
+      if (ts.isExportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)
+        && node.moduleSpecifier.text.startsWith('@radix-ui/') && !node.isTypeOnly
+        && node.exportClause && ts.isNamedExports(node.exportClause)) {
+        for (const el of node.exportClause.elements) {
+          if (el.isTypeOnly) continue
+          const exported = (el.propertyName ?? el.name).text
+          if (/Portal$/.test(exported)) {
+            radixLocal.add(el.name.text)
+            // Remember it under its EXPORTED name too, so a sibling importing it relatively binds.
+            reExported.add(el.name.text)
+          }
+        }
+      }
+
+      // `const P = Portal`, and `const P = Dialog.Portal`.
+      if (ts.isVariableDeclaration(node) && node.initializer && ts.isIdentifier(node.name)) {
+        const init = node.initializer
+        if (ts.isIdentifier(init) && radixLocal.has(init.text)) radixLocal.add(node.name.text)
+        if (ts.isPropertyAccessExpression(init) && ts.isIdentifier(init.expression)
+          && radixNamespace.has(init.expression.text) && /Portal$/.test(init.name.text)) {
+          radixLocal.add(node.name.text)
+        }
+      }
+
+      ts.forEachChild(node, bindings)
+    }
+    // Run to FIXPOINT, so a chain (`const A = Portal; const B = A`) is followed however it is
+    // ordered. Two passes would catch one link; a chain of three is no harder to write.
+  /*
+   * To FIXPOINT over EVERY file, not once per file.
+   *
+   * The re-export bypass spans two files - the Radix specifier in one, the render in another - so a
+   * per-file fixpoint still loses whenever the importer happens to be scanned first, which is just
+   * filesystem order. Chained aliases (`const A = Portal; const B = A`) need the repetition for the
+   * same reason, and are no harder to write than a single one.
+   */
+  let before = -1
+  while (before !== radixLocal.size + radixNamespace.size + reExported.size) {
+    before = radixLocal.size + radixNamespace.size + reExported.size
+    for (const { source: each } of sources) bindings(each)
+  }
+
+  for (const { file, source } of sources) {
+    const visit = (node) => {
       if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
         const tag = node.tagName
         if (ts.isIdentifier(tag)) {

@@ -635,6 +635,60 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // BG-01M0XJBW bypass 1: rendered ABOVE its own import. Imports are hoisted, so this is legal
+    // source that runs fine - and the single-pass visitor populated its binding set as it REACHED
+    // each import, so anything rendered earlier was checked against an empty set. PASS rc=0 with
+    // every problem-push intact and the state feeding them empty.
+    name: 'a Radix portal rendered above its own import, where the binding set was still empty',
+    guard: 'check-overlay-contract.mjs',
+    expect: /renders <HoistedPortal>, a Radix portal/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8') +
+        "\nexport function HoistProbe () { return <HoistedPortal /> }\n" +
+        "import { Portal as HoistedPortal } from '@radix-ui/react-dialog'\n")
+    },
+  },
+  {
+    // Bypass 2: the Radix specifier in one file, the render in another. Neither file alone looks
+    // wrong, and the per-file binding sets meant neither file alone WAS wrong.
+    name: 'a Radix portal reached through a re-export in a sibling file',
+    guard: 'check-overlay-contract.mjs',
+    expect: /renders <RePortal>, a Radix portal/,
+    stage: (stage) => {
+      const dir = join(stage, 'packages/react/src/components/Modal')
+      writeFileSync(join(dir, 'portal.ts'), "export { Portal } from '@radix-ui/react-dialog'\n")
+      const f = join(dir, 'Modal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8') +
+        "\nimport { Portal as RePortal } from './portal'\n" +
+        'export function ReExportProbe () { return <RePortal /> }\n')
+    },
+  },
+  {
+    // Bypass 3: bound outside the import. What an author writes to shorten a long name.
+    name: 'a Radix portal bound to a local alias outside the import',
+    guard: 'check-overlay-contract.mjs',
+    expect: /renders <AliasedPortal>, a Radix portal/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8') +
+        '\nconst AliasedPortal = Dialog.Portal\n' +
+        'export function AliasProbe () { return <AliasedPortal /> }\n')
+    },
+  },
+  {
+    // And a CHAIN of aliases, which is why the binding pass runs to a fixpoint rather than twice.
+    name: 'a Radix portal reached through a chain of two aliases',
+    guard: 'check-overlay-contract.mjs',
+    expect: /renders <LinkB>, a Radix portal/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Modal/Modal.tsx')
+      writeFileSync(f, readFileSync(f, 'utf8') +
+        '\nconst LinkA = Dialog.Portal\nconst LinkB = LinkA\n' +
+        'export function ChainProbe () { return <LinkB /> }\n')
+    },
+  },
+  {
     // BG-01M0WZGB. `%` was absent from the unit list, so a hand-typed percentage was invisible to
     // the guard whose entire job is refusing hand-typed values. The first fix appended `%` to the
     // list and changed nothing: `\\b` after `%` demands a word character, and a declaration ends

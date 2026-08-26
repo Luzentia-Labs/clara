@@ -1,6 +1,7 @@
 # BG-01M0XJBW: Four known bypasses of the overlay-portal binding, each needing analysis the guard does not do
 
-> **Status:** inbox
+> **Status:** Fixed
+> **Triaged-by:** claude-implementer; agent; opus-5
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -46,3 +47,74 @@ The reason to fix rather than accept: this guard is the declared binding for twe
 | Date | Author | Change |
 | --- | --- | --- |
 | 2026-08-26 | sdlc-studio | Created via `new` (deterministic) |
+
+## Acceptance Criteria
+
+### AC1: Three of the four bypasses are closed, and each is pinned
+
+- **Given** a Radix portal reached by re-export, by alias, or rendered above its own import
+- **When** the overlay contract runs
+- **Then** each is refused, naming the local tag it was reached through
+- **Verify:** shell node scripts/prove-guards-fail.mjs --only "Radix portal (rendered above|reached through|bound to a local)"
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+### AC2: A chain of aliases is closed too, not just one link
+
+- **Given** `const A = Dialog.Portal; const B = A`
+- **When** `<B>` is rendered
+- **Then** it is refused - the binding pass runs to a FIXPOINT over every file, so a chain is no
+  more of a bypass than a single alias
+- **Verify:** shell node scripts/prove-guards-fail.mjs --only "chain of two aliases"
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+### AC3: The remaining limits are stated rather than implied
+
+- **Given** the guard
+- **When** its reach is described
+- **Then** the two cases it still does NOT close are named in the file, with why
+- **Verify:** grep "WHAT THIS GUARD DOES NOT CLOSE" scripts/check-overlay-contract.mjs
+- **Verified:** yes (2026-08-26)
+- **Verification target:** functional
+
+> **Verification depth:** functional
+
+## Fixed (2026-08-26) - three of four, plus one the bug did not list
+
+The guard now resolves bindings in a separate pass, to a fixpoint, over ALL of a component's files
+rather than as it walks each one.
+
+| Bypass | Before | Now |
+| --- | --- | --- |
+| 1. Re-export through a local file | PASS rc=0 | **caught** |
+| 2. Alias bound outside the import | PASS rc=0 | **caught** |
+| 3. `<ClaraPortal>` in a dead branch | PASS rc=0 | see below |
+| 4. Cross-file resolution generally | PASS rc=0 | **narrowed**, not closed |
+| 5. Rendered ABOVE its own import (found in round 10, not in this bug) | PASS rc=0 | **caught** |
+| 6. A CHAIN of two aliases (not previously recorded) | would have passed | **caught** |
+
+Three structural causes, each fixed at the cause rather than at the symptom:
+
+1. **Bindings were collected DURING the JSX walk.** Imports are hoisted, so a portal rendered above
+   its own import was checked against an empty set. Bindings are now a separate first pass.
+2. **Binding sets were PER FILE.** The re-export bypass spans two files - the Radix specifier in one,
+   the render in another - so neither file alone looked wrong, and neither alone WAS wrong. The sets
+   are now per COMPONENT, which is the unit that gets scanned.
+3. **One pass could not follow a chain.** The binding pass now runs to a fixpoint over every file,
+   so `const A = Portal; const B = A` is followed however it is ordered - and filesystem order stops
+   deciding anything.
+
+**Bypass 3 (the dead branch) is caught incidentally, and that is not good enough to claim.** The
+probe is refused, but by the `constant open` rule added for BG-01M0Y2H2 rather than by any
+reachability analysis. A dead-branch `<ClaraPortal open={someState}>` would still satisfy the
+render check. Detecting unreachable code in general is undecidable, and a guard that recognised only
+`if (false)` would be theatre. **Stated, not claimed.**
+
+**Bypass 4 is narrowed rather than closed.** The guard follows re-exports and aliases within the
+component's own directory, which is where every measured instance lived. It still follows no import
+OUT of that directory. A component importing a portal from a shared helper elsewhere in the package
+would not be seen.
+
+Both remaining limits are now named in the guard file itself, so the next reader learns them from
+the code rather than from this bug.
