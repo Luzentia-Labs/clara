@@ -93,6 +93,11 @@
     "heading-lg": {
       "value": "{font.size.2xl}",
       "type": "dimension"
+    },
+    "family": {
+      "value": "{font.stack.system}",
+      "type": "fontFamily",
+      "comment": "The single override point PRD F04 AC2 requires: set this one token and every Clara component follows. Clara named no typeface at all until now, which made the 14px body floor, D0037's 24px line-box reservation and D0098's control-height arithmetic assumptions about a face the package never asked for (BG-01M0XN7S)."
     }
   },
   "layer": {

@@ -306,6 +306,19 @@
 @keyframes clara-spin { to { transform: rotate(1turn); } }
 @keyframes clara-pulse { to { border-color: var(--clara-spinner-idle); } }
 
+/*
+ * The typeface, applied once (PRD F04 AC2, BG-01M0XN7S).
+ *
+ * Clara named no typeface at ANY tier until now - `grep font-family` found it only in two test
+ * fixtures, which set `system-ui` themselves. So every component rendered in whatever the consumer's
+ * page happened to set, while the 14px body floor, D0037's 24px line-box reservation and D0098's
+ * control-height arithmetic all assumed a face the package never asked for.
+ *
+ * One declaration on `:root` rather than per component: PRD F04 AC2 asks for a single override
+ * point, and a consumer setting `--clara-font-family` gets every Clara surface at once.
+ */
+:root { font-family: var(--clara-font-family); }
+
 .clara-spinner { display: inline-flex; }
 
 /*

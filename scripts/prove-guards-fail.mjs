@@ -395,6 +395,52 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // VACUITY 1. A guard that enumerates nothing passes for the wrong reason, and this is the shape
+    // that would do it silently: the flag disappears in a refactor and the guard reports success
+    // over an empty loop for as long as the epic takes.
+    name: 'the overlay flag removed from every component, so the guard enumerates nothing',
+    guard: 'check-overlay-contract.mjs',
+    expect: /flags no component `overlay: true`/,
+    stage: patch('packages/react/client-boundary.json', (m) => {
+      for (const c of m.components) delete c.overlay
+    }),
+  },
+  {
+    // VACUITY 2. Every overlay flagged but none built - true for most of this epic's life, and the
+    // guard must refuse to report success rather than pass over a list it cannot check.
+    name: 'every flagged overlay marked planned, so the guard checks nothing',
+    guard: 'check-overlay-contract.mjs',
+    expect: /no flagged overlay is built yet/,
+    stage: patch('packages/react/client-boundary.json', (m) => {
+      for (const c of m.components) if (c.overlay) c.status = 'planned'
+    }),
+  },
+  {
+    // A component the classification calls built with nothing on disk. The guard must say so rather
+    // than skip it, because skipping is how a component ships unchecked.
+    name: 'an overlay classified built with no source directory',
+    guard: 'check-overlay-contract.mjs',
+    expect: /classified as a built overlay but has no source directory/,
+    stage: patch('packages/react/client-boundary.json', (m) => {
+      // Popover is flagged and planned, and has no directory yet - marking it built is exactly the
+      // mistake a sprint makes when it updates the classification before writing the component.
+      for (const c of m.components) if (c.name === 'Popover') c.status = 'built'
+    }),
+  },
+  {
+    // No rule of its own at all. Distinct from "declares no layer token": that one has rules and no
+    // token, this one has nothing for a token to live in, and the messages differ so an author is
+    // told which.
+    name: 'an overlay with no stylesheet rule of its own',
+    guard: 'check-overlay-contract.mjs',
+    expect: /no stylesheet rule of its own/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      const css = readFileSync(f, 'utf8')
+      writeFileSync(f, css.replace(/\.clara-modal[\w-]*[^{]*\{[^}]*\}/g, ''))
+    },
+  },
+  {
     // The conditional-at-rule branch, which round 8 ADDED and round 9 deleted without a single gate
     // noticing: replacing the `unconditional` filter with `const unconditional = rules` left this
     // prover at PASS, 129 killed, zero survivors. The entry below it ("declares no layer token at

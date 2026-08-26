@@ -36,7 +36,7 @@ const page = (title, theme, body) => `<!doctype html><html lang="en"><head><meta
 <style>${css('packages/tokens/dist/themes/dark.css')}</style>
 <style>${css('packages/tokens/dist/themes/compact.css')}</style>
 <style>${css('packages/react/dist/styles.css')}</style>
-<style>body{margin:0;padding:32px;font-family:system-ui;background:var(--clara-color-bg-canvas);color:var(--clara-color-fg-default)}
+<style>body{margin:0;padding:32px;background:var(--clara-color-bg-canvas);color:var(--clara-color-fg-default)}
 main{max-width:28rem;display:grid;gap:24px}h2{font:600 13px system-ui;margin:0;opacity:.7}</style>
 </head><body data-clara-theme="${theme}" data-clara-density="comfortable"><main>${body}</main></body></html>`
 

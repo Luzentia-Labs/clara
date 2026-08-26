@@ -8,11 +8,11 @@
 | --- | --- |
 | Open | 0 |
 | In Progress | 0 |
-| Fixed | 8 |
+| Fixed | 9 |
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 3 |
+| inbox | 2 |
 | Superseded | 1 |
 | **Total** | **12** |
 
@@ -36,7 +36,7 @@
 | [BG-01M0WZEM](BG-01M0WZEM-the-button-loading-spinner-never-spins-there-is.md) | The Button loading spinner never spins - there is no animation anywhere in Clara | major | Medium | Fixed | -- | -- | 2026-08-26 |
 | [BG-01M0WZGB](BG-01M0WZGB-the-component-css-literal-gate-does-not-treat.md) | The component-CSS literal gate does not treat a percentage as a literal | major | Medium | inbox | -- | -- | 2026-08-26 |
 | [BG-01M0XJBW](BG-01M0XJBW-four-known-bypasses-of-the-overlay-portal-binding.md) | Four known bypasses of the overlay-portal binding, each needing analysis the guard does not do | major | Medium | inbox | -- | -- | 2026-08-26 |
-| [BG-01M0XN7S](BG-01M0XN7S-clara-ships-no-font-family-token-at-all.md) | Clara ships no font-family token at all, and PRD F04 AC2 requires one | major | Medium | inbox | -- | -- | 2026-08-26 |
+| [BG-01M0XN7S](BG-01M0XN7S-clara-ships-no-font-family-token-at-all.md) | Clara ships no font-family token at all, and PRD F04 AC2 requires one | major | Medium | Fixed | -- | -- | 2026-08-26 |
 
 ## Notes
 

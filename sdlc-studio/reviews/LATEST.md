@@ -16,7 +16,7 @@ sign-off, because the author never records their own verdict.
 
 ## Numbers
 
-- `pnpm check` runs **29 guards**; `prove-guards-fail` kills **131 mutations** on a staged copy.
+- `pnpm check` runs **29 guards**; `prove-guards-fail` kills **135 mutations** on a staged copy.
 - **1086 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
 - **104 decisions**. Stories: **42 Done of 89**. `main` is the only branch - this project is

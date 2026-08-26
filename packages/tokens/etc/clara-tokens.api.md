@@ -539,6 +539,9 @@ export const FontBodyLg = "16px";
 export const FontCaption = "12px";
 
 // @public (undocumented)
+export const FontFamily = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'";
+
+// @public (undocumented)
 export const FontHeadingLg = "32px";
 
 // @public (undocumented)
@@ -564,6 +567,9 @@ export const FontSizeXl = "24px";
 
 // @public (undocumented)
 export const FontSizeXs = "12px";
+
+// @public (undocumented)
+export const FontStackSystem = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'";
 
 // @public (undocumented)
 export const Layer0 = "0";

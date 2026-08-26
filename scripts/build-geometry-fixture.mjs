@@ -126,7 +126,7 @@ export function buildGeometryFixture ({ root = defaultRoot, out } = {}) {
 <style>${css('packages/tokens/dist/themes/compact.css')}</style>
 <style>${css('packages/react/dist/styles.css')}</style>
 <style>
-  body { margin: 0; padding: 24px; font-family: system-ui;
+  body { margin: 0; padding: 24px; 
          background: var(--clara-color-bg-canvas); color: var(--clara-color-fg-default) }
   section { margin-bottom: 32px }
   h2 { font: 600 13px system-ui; margin: 0 0 12px; opacity: .7 }

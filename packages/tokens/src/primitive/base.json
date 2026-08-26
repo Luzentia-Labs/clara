@@ -373,6 +373,13 @@
         "value": "32px",
         "type": "dimension"
       }
+    },
+    "stack": {
+      "system": {
+        "value": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'",
+        "type": "fontFamily",
+        "comment": "The platform's own UI face first, then the named fallbacks a system may lack, then a generic, then the emoji faces - which come LAST so they never win a Latin glyph they happen to contain."
+      }
     }
   },
   "duration": {

@@ -1,6 +1,7 @@
 # BG-01M0XN7S: Clara ships no font-family token at all, and PRD F04 AC2 requires one
 
-> **Status:** inbox
+> **Status:** Fixed
+> **Triaged-by:** Claude Opus 5; agent; claude-opus-5
 > **Created:** 2026-08-26
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -46,6 +47,51 @@ Load-bearing for every type decision already recorded, which is why it is filed 
 It also makes the geometry gate's measurements less than they appear: `build-geometry-fixture.mjs` sets `system-ui` in the fixture, so gate 9 measures Clara's boxes in a typeface the package never asks for. Those measurements are still right about padding and borders - which is most of what they assert - but any assertion that depends on a line box is measuring the fixture's choice.
 
 Nothing is broken for a consumer today: a page that sets its own font gets it, which is usually what a consumer wants. The defect is that Clara has no opinion and states one nowhere, while several of its recorded decisions assume it does.
+
+## Acceptance Criteria
+
+- **AC1** - A tier 2 `font.family` exists, references a tier 1 stack, and emits
+  `--clara-font-family`. The tier boundary is what makes it overridable without reaching into a
+  primitive.
+- **Verify:** shell pnpm check:token-output
+- **Verified:** yes (2026-08-26)
+
+- **AC2** - The stylesheet applies it ONCE, so a consumer setting one token gets every Clara
+  surface - which is what PRD F04 AC2 means by a single override point.
+- **Verify:** grep "^:root \{ font-family: var\(--clara-font-family\)" packages/react/src/styles.css
+- **Verified:** yes (2026-08-26)
+  <!-- Escaped: the `grep` verb is RIPGREP, so the pattern is a regex and an unescaped
+       `var(--clara-font-family)` reads as a capture group matching `var--clara-font-family`,
+       which is not in the file. The criterion failed while the declaration was present. -->
+
+- **AC3** - The geometry gate measures the face the PACKAGE ships, not one the fixture chose.
+- **Verify:** shell pnpm check:geometry
+- **Verified:** yes (2026-08-26)
+
+## Verification
+
+**Verified by:** Claude Opus 5 (agent)
+
+**Verification date:** 2026-08-26
+
+**Verification depth:** functional
+
+Tier 1 is `font.stack.system` rather than `font.family.system`: a tier 1 `font.family` GROUP
+collides with the tier 2 `font.family` LEAF and makes the reference self-referential, which is the
+same collision `size.bar` hit and which the repo already avoids by hyphenating
+(`size.control.comfortable` -> `size.control-height`). Here the public name was chosen first, so
+tier 1 moved instead.
+
+Both fixtures stopped setting their own `system-ui`. Gate 9 still passes with them inheriting, which
+is the part worth recording: the control heights, target sizes and type floors it asserts hold on
+the face the package actually ships, and were not resting on the fixture's guess.
+
+**What this does NOT resolve:** the decisions that assumed a typeface were made before one existed.
+D0037's 24px line-box reservation and D0098's `40 = 24 + 2x8` arithmetic are unchanged and still
+correct on this stack, but neither was DERIVED from it. If the stack is ever changed, both want
+re-checking, and D0100's note that no line-height token exists anywhere still stands.
+
+**Not yet adversarially reviewed.**
 
 ## Revision History
 
