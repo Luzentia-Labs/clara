@@ -182,3 +182,80 @@ describe('Toast theme and density matrix', () => {
     await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
   })
 })
+
+/**
+ * BG-01M0Y2H2 - one stack, not one stack per toast.
+ *
+ * Every `<Toast>` used to render its own Radix Provider and Viewport, so two toasts produced two
+ * fixed viewports at the identical rect. A review measured the consequence in Chromium:
+ * `elementFromPoint` on the first toast's close button returned the SECOND toast's close button, so
+ * the covered toast's controls were unreachable - and with `duration: Infinity` on `danger`, a
+ * covered error toast persisted forever, invisible and unactionable.
+ *
+ * Asserted on the DOM rather than on geometry, deliberately: jsdom computes no layout, so "they
+ * overlap" is not observable here. What IS observable is the cause - how many viewports exist - and
+ * that is the thing the repair changes.
+ */
+describe('Toast stacks in one shared viewport', () => {
+  it('renders ONE viewport for three toasts, holding all three', async () => {
+    render(
+      <>
+        <Toast open onClose={() => {}} title="First" />
+        <Toast open onClose={() => {}} title="Second" />
+        <Toast open onClose={() => {}} intent="danger" title="Third" />
+      </>,
+    )
+    await screen.findByText(/First/)
+    const viewports = document.querySelectorAll('.clara-toast__viewport')
+    expect(viewports, 'each toast still brings its own fixed viewport').toHaveLength(1)
+    expect(document.querySelectorAll('.clara-toast')).toHaveLength(3)
+  })
+
+  it('keeps every toast reachable by its own accessible name', async () => {
+    // The defect was not cosmetic: a covered toast's close button could not be hit. Addressing each
+    // by name is the jsdom-visible form of "all three are reachable".
+    render(
+      <>
+        <Toast open onClose={() => {}} title="First" closeLabel="Close first" />
+        <Toast open onClose={() => {}} title="Second" closeLabel="Close second" />
+      </>,
+    )
+    expect(await screen.findByRole('button', { name: 'Close first' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Close second' })).toBeInTheDocument()
+  })
+
+  it('holds them in arrival order', async () => {
+    render(
+      <>
+        <Toast open onClose={() => {}} title="First" />
+        <Toast open onClose={() => {}} title="Second" />
+      </>,
+    )
+    await screen.findByText(/First/)
+    const titles = [...document.querySelectorAll('.clara-toast__title')].map((e) => e.textContent)
+    expect(titles[0]).toContain('First')
+    expect(titles[1]).toContain('Second')
+  })
+
+  it('survives the owning toast unmounting', async () => {
+    // Ownership of the shared host belongs to the first toast to mount. If it goes away, the host
+    // has to pass to one that is still there - otherwise closing the first toast takes every other
+    // toast off the screen with it.
+    function Harness () {
+      const [first, setFirst] = useState(true)
+      return (
+        <>
+          {first && <Toast open onClose={() => setFirst(false)} title="First" closeLabel="Close first" />}
+          <Toast open onClose={() => {}} title="Second" />
+        </>
+      )
+    }
+    render(<Harness />)
+    await screen.findByText(/Second/)
+    await userEvent.click(screen.getByRole('button', { name: 'Close first' }))
+    await waitFor(() => expect(screen.queryByText(/First/)).not.toBeInTheDocument())
+    // The survivor is still on screen, in a viewport that still exists.
+    expect(screen.getByText(/Second/)).toBeInTheDocument()
+    expect(document.querySelectorAll('.clara-toast__viewport')).toHaveLength(1)
+  })
+})

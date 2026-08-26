@@ -1,9 +1,10 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import * as RadixToast from '@radix-ui/react-toast'
 import { cx } from '../../lib/cx'
 import { ClaraPortal } from '../../theme/ClaraPortal'
+import { claimToastId, publishToast, retractToast, useIsToastHost, useToastEntries } from './toast-store'
 
 /** The intents Clara's semantic colour families cover. */
 export type ToastIntent = 'info' | 'success' | 'warning' | 'danger'
@@ -49,6 +50,27 @@ const INTENT_WORD: Record<ToastIntent, string> = {
 }
 
 /**
+ * The shared provider and viewport, rendered exactly once by whichever toast currently owns it.
+ *
+ * `open` is driven by whether ANY toast is open, not a constant - a constant would append the host
+ * at mount and leave a fixed empty region on every page that imports a Toast, and
+ * `check-overlay-contract` refuses it for the stacking reason recorded there.
+ */
+function ToastHost () {
+  const entries = useToastEntries()
+  const anyOpen = entries.some((entry) => entry.isOpen)
+
+  return (
+    <RadixToast.Provider swipeDirection="right">
+      <ClaraPortal open={anyOpen}>
+        <RadixToast.Viewport className="clara-toast__viewport" />
+        {entries.map((entry) => entry.node)}
+      </ClaraPortal>
+    </RadixToast.Provider>
+  )
+}
+
+/**
  * A transient notification that is announced, and that never disappears before it is read.
  *
  * ## Politeness and persistence are ONE decision, not two
@@ -82,43 +104,51 @@ export function Toast ({
   open, onClose, intent = 'info', title, description, action, closeLabel = 'Close', className,
 }: ToastProps) {
   const isError = intent === 'danger'
+  const idRef = useRef<number | null>(null)
+  idRef.current ??= claimToastId()
+  const id = idRef.current
 
-  return (
-    <RadixToast.Provider
-      // `foreground` is Radix's name for an assertive live region, `background` for a polite one.
-      // The mapping is made here, once, so no Radix vocabulary reaches Clara's surface.
-      swipeDirection="right"
+  const isHost = useIsToastHost(id)
+
+  const root = (
+    <RadixToast.Root
+      key={id}
+      className={cx('clara-toast', `clara-toast--${intent}`, className)}
+      open={open}
+      onOpenChange={(next) => { if (!next) onClose() }}
+      type={isError ? 'foreground' : 'background'}
+      // `Infinity` is Radix's documented way to disable the timer outright, rather than a very
+      // large number that would still fire on a machine left open overnight.
+      //
+      // Spread rather than passed as `undefined`: under `exactOptionalPropertyTypes` an explicit
+      // `undefined` is not the same as an absent prop, and Radix's own default (5 s) only applies
+      // when the prop is ABSENT.
+      {...(isError ? { duration: Infinity } : {})}
     >
-      <ClaraPortal open={open}>
-        <RadixToast.Viewport className="clara-toast__viewport" />
-        <RadixToast.Root
-          className={cx('clara-toast', `clara-toast--${intent}`, className)}
-          open={open}
-          onOpenChange={(next) => { if (!next) onClose() }}
-          type={isError ? 'foreground' : 'background'}
-          // `Infinity` is Radix's documented way to disable the timer outright, rather than a very
-          // large number that would still fire on a machine left open overnight.
-          //
-          // Spread rather than passed as `undefined`: under `exactOptionalPropertyTypes` an explicit
-          // `undefined` is not the same as an absent prop, and Radix's own default (5 s) only
-          // applies when the prop is ABSENT.
-          {...(isError ? { duration: Infinity } : {})}
-        >
-          <RadixToast.Title className="clara-toast__title">
-            <span className="clara-visually-hidden">{INTENT_WORD[intent]}: </span>
-            {title}
-          </RadixToast.Title>
-          {description && (
-            <RadixToast.Description className="clara-toast__description">
-              {description}
-            </RadixToast.Description>
-          )}
-          {action && <RadixToast.Action asChild altText={title}>{action}</RadixToast.Action>}
-          <RadixToast.Close className="clara-toast__close" aria-label={closeLabel}>
-            <span aria-hidden="true">&times;</span>
-          </RadixToast.Close>
-        </RadixToast.Root>
-      </ClaraPortal>
-    </RadixToast.Provider>
+      <RadixToast.Title className="clara-toast__title">
+        <span className="clara-visually-hidden">{INTENT_WORD[intent]}: </span>
+        {title}
+      </RadixToast.Title>
+      {description && (
+        <RadixToast.Description className="clara-toast__description">
+          {description}
+        </RadixToast.Description>
+      )}
+      {action && <RadixToast.Action asChild altText={title}>{action}</RadixToast.Action>}
+      <RadixToast.Close className="clara-toast__close" aria-label={closeLabel}>
+        <span aria-hidden="true">&times;</span>
+      </RadixToast.Close>
+    </RadixToast.Root>
   )
+
+  // Published on EVERY render, so the node the host renders closes over current props. Publishing
+  // only on mount would freeze a toast's title at its first value.
+  publishToast(id, root, open)
+
+  useEffect(() => () => { retractToast(id) }, [id])
+
+  // Exactly one toast renders the shared provider and viewport; the rest render nothing of their
+  // own, because their content is rendered by the host. That is the whole fix: one viewport, one
+  // stack, in arrival order.
+  return isHost ? <ToastHost /> : null
 }

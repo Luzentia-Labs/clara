@@ -103,3 +103,21 @@ export const ToastArrivingOverATooltip: Story = { render: () => <ArrivingDemo />
  * fixture exists so the mechanism is pinned in the direction that actually distinguishes them.
  */
 export const TooltipOpenedOverALiveToast: Story = { render: () => <ArrivingDemo /> }
+
+/**
+ * Three at once - BG-01M0Y2H2's fixture.
+ *
+ * Every `<Toast>` used to bring its own fixed viewport, so these three landed at the identical rect
+ * and only the last was reachable. `elementFromPoint` on the first one's close button returned the
+ * third one's. They now share one stack.
+ */
+export const AStackOfThree: Story = {
+  render: () => (
+    <>
+      <Toast open onClose={() => {}} intent="success" title="Journal 4471 posted" />
+      <Toast open onClose={() => {}} intent="info" title="Journal 4472 queued" />
+      <Toast open onClose={() => {}} intent="danger" title="Journal 4473 could not post"
+        description="The period is closed." />
+    </>
+  ),
+}

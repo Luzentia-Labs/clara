@@ -354,3 +354,48 @@ test('a tooltip renders at Clara\'s font size, not the page\'s', async ({ page }
   expect(px, 'the tooltip inherited the page font size instead of declaring its own')
     .toBeGreaterThanOrEqual(14)
 })
+
+/**
+ * BG-01M0Y2H2, in the only place the original evidence could be gathered.
+ *
+ * The defect was measured geometrically: three toasts at the IDENTICAL rect, with
+ * `elementFromPoint` on the first one's close button returning the third one's, so the covered
+ * toasts' controls were unreachable rather than merely hidden. jsdom computes no layout, so the
+ * unit tests can only assert the cause (one viewport, three children). This asserts the effect.
+ */
+test('three toasts stack instead of covering each other, and each close button is hittable', async ({ page }) => {
+  await page.goto(`${origin}/iframe.html?id=overlays-toast--a-stack-of-three&viewMode=story`)
+
+  const toasts = page.locator('.clara-toast')
+  await expect(toasts).toHaveCount(3)
+  expect(await page.locator('.clara-toast__viewport').count(),
+    'each toast brought its own fixed viewport again').toBe(1)
+
+  // Wait for the entrance animation to finish before measuring ANYTHING. The toast slides in from
+  // the viewport edge, so mid-flight it is still translated off-screen and every hit test at its
+  // resting position returns something else - which reads as "unreachable" when it is simply not
+  // there yet. Measured: without this the three close buttons all report false.
+  await page.evaluate(() => Promise.all(
+    [...document.querySelectorAll('.clara-toast')]
+      .flatMap((el) => el.getAnimations())
+      .map((a) => a.finished.catch(() => undefined)),
+  ))
+
+  const boxes = await toasts.evaluateAll((els) =>
+    els.map((el) => { const r = el.getBoundingClientRect(); return { y: Math.round(r.y), h: Math.round(r.height) } }))
+
+  // Distinct vertical positions. Identical `y` values are the defect itself.
+  expect(new Set(boxes.map((b) => b.y)).size, 'two or more toasts occupy the same row').toBe(3)
+
+  // And every close button is the topmost element at its own centre - which is what "reachable"
+  // means to a pointer, and precisely what the covered toasts failed.
+  const reachable = await page.evaluate(() => {
+    const buttons = [...document.querySelectorAll('.clara-toast__close')]
+    return buttons.map((b) => {
+      const r = b.getBoundingClientRect()
+      const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+      return b.contains(hit) || b === hit
+    })
+  })
+  expect(reachable, 'a covered toast\'s close button is not hittable').toEqual([true, true, true])
+})

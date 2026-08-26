@@ -66,6 +66,10 @@ sibling, so a tooltip opened in between can cover it. The obvious fix - re-appen
 host so it is last - is worse than the defect: moving a live DOM node re-parents its subtree, which
 resets focus and remounts anything stateful inside it.
 
+Since BG-01M0Y2H2 the host is shared, so this applies to the STACK rather than to each toast: the
+host is appended when the first toast opens, and a tooltip opened after that can cover toasts that
+arrive later into the same host. The trade-off is unchanged, and so is the reason for accepting it.
+
 ## What is verified automatically
 
 - An error is announced ASSERTIVELY, and info, success and warning POLITELY - both directions, so
@@ -81,6 +85,12 @@ resets focus and remounts anything stateful inside it.
   `document.elementFromPoint` inside a verified overlap - `e2e/stacking.spec.ts`
 - A toast arriving over an already-open tooltip paints ABOVE it, the other direction of the same
   mechanism - `e2e/stacking.spec.ts`
+- Three toasts render ONE viewport holding all three, in arrival order, and the stack survives its
+  owning toast unmounting - `__tests__/toast.test.tsx`
+- In a browser, three toasts occupy distinct rows and every close button is the topmost element at
+  its own centre, which is what reachable means to a pointer - `e2e/stacking.spec.ts`
+- Reduced motion REPLACES the entrance slide with a fade rather than removing it, so a toast still
+  reads as new - the Class B half of D0100, which nothing exercised before - `e2e/stacking.spec.ts`
 - It renders through `ClaraPortal` and takes its stacking from a layer token -
   `check:overlay-contract`
 - Token-only styling, and a layer token that is not inert - `check:component-css`
@@ -90,15 +100,14 @@ resets focus and remounts anything stateful inside it.
 
 - **Swipe-to-dismiss is not verified.** Radix's swipe handling needs real pointer geometry; jsdom has
   none. It is not asserted anywhere, and it is not claimed anywhere either.
-- **Multiple simultaneous toasts are BROKEN, not merely unverified - BG-01M0Y2H2.** Two `<Toast open>`
-  siblings render TWO viewports, both fixed to the same corner, so the second notification paints
-  exactly on top of the first. Measured: `viewports: 2, toasts: 2`. This component is self-contained
-  - it renders its own Radix Provider and Viewport, the same shape Tooltip uses - and that is right
-  for a tooltip, where each is independent, and wrong for a toast, where the whole point is a shared
-  stack. Every acceptance criterion here concerns ONE toast, which is why the criteria pass and the
-  case is still broken. The repair does not have to change `<Toast>`'s public surface (see the bug),
-  so shipping this does not close it off. **Do not read the rest of this record as evidence that a
-  toast stack works.**
+- **Multiple toasts share ONE viewport** - this was broken and is fixed (BG-01M0Y2H2). Each
+  `<Toast>` used to render its own Radix Provider and Viewport, so two siblings produced two fixed
+  viewports at the identical rect; a review measured `elementFromPoint` on the first toast's close
+  button returning the SECOND toast's, so covered controls were unreachable rather than merely
+  hidden, and a covered `danger` toast persisted forever because its timer is `Infinity`. Every
+  toast now registers into one module-level stack. `ToastProps` did not change.
+- **Swipe-to-dismiss is not verified.** Radix's swipe handling needs real pointer geometry; jsdom has
+  none. It is not asserted anywhere, and it is not claimed anywhere either.
 - **The F8 hotkey is Radix's and is not asserted.** It is documented in the keyboard table because it
   is how a keyboard user reaches a toast at all, but no test presses it.
 - **Screen reader testing is not automated.** PRD F17 names NVDA as a stated gap; it stays one.

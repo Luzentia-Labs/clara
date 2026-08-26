@@ -617,7 +617,7 @@ export interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaE
 export type TextProps = TextBaseProps | TruncatedTextProps;
 
 // @public
-export function Toast(input: ToastProps): JSX_2.Element;
+export function Toast(input: ToastProps): JSX_2.Element | null;
 
 // @public
 export type ToastIntent = 'info' | 'success' | 'warning' | 'danger';
