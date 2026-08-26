@@ -7,28 +7,30 @@
 
 ## One paragraph
 
-**All five overlays are built and every one has been through an independent adversarial review.**
-All four reviews REJECTED, with thirteen blocking findings between them. Every one is fixed and
-proved by re-running the reviewer's own mutation, and a confirming round is what the stories are
-waiting on - none is Done, because a REJECT is not a sign-off and the author never records their own
-verdict.
+**All five overlays are built and have been through TWO independent adversarial review rounds.**
+Round 1: four REJECTs, thirteen blocking findings. Round 2: four REJECTs again - and three of the
+four were the round-1 defect surviving INSIDE its own repair, which is the pattern US-01M0GM61 hit
+in rounds 8 and 9. Everything found is fixed and proved by re-running the reviewer's own mutation.
 
-**One was a real functional defect, not a paperwork one.** Tooltip passed a literal `open` to
-`ClaraPortal`, so its host was appended at MOUNT rather than at OPEN - which defeats the open-order
-stacking D0102 rests on, and a tooltip opened over a live toast painted underneath it. It shipped
-because both AC7 assertions happened to be consistent with mount order too.
+**The worst defect of the run was introduced BY a repair.** The shared toast stack published to its
+store during render, so any discarded render - StrictMode, or any Suspense boundary in production -
+orphaned an entry that then owned the shared host forever, and `<Toast>` rendered nothing at all,
+permanently. Every gate was green throughout. That is the case for confirming rounds in one
+sentence.
 
-**Seven bugs filed during the run, seven fixed.** The tokens package stopped exporting 257 private
-tokens as public API; the toast stack stopped rendering one fixed viewport per toast; the literal
-gate learned to see percentages; the overlay guard learned to follow re-exports and aliases; and
-portalled overlays finally have a gate that can see them.
+**Nothing is Done.** Two REJECTs are not a sign-off, and the author never records their own verdict.
+A third round is the operator's call.
 
-The tree is on `main` with 1165 tests and every gate green. Nothing is on npm.
+**Eight bugs filed across the run, seven fixed.** BG-01M0YTT4 is open by choice: a toast ownership
+handover restarts every survivor's dismiss countdown, and the mechanism it would change is the one
+the regression above came from.
+
+The tree is on `main` with 1173 tests and every gate green. Nothing is on npm.
 
 ## Numbers
 
-- `pnpm check` runs **29 guards**; `prove-guards-fail` kills **143 mutations** on a staged copy.
-- **1165 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- `pnpm check` runs **29 guards**; `prove-guards-fail` kills **144 mutations** on a staged copy.
+- **1173 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
 - **104 decisions**. Stories: **43 Done of 89**. `main` is the only branch - this project is
   trunk-based.
