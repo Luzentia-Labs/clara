@@ -60,6 +60,11 @@
       "value": "12rem",
       "type": "dimension",
       "comment": "A raw dimension, following popover.max-inline-size. A menu MINIMUM width has no semantic ancestor in tier 2 size; without one a menu of short labels renders as a sliver that is hard to aim at."
+    },
+    "max-block-size": {
+      "value": "85vh",
+      "type": "dimension",
+      "comment": "A FALLBACK, used only when the positioning engine has not reported an available height - it cannot itself hold `var(--radix-...)`. A var() referencing another var() is substituted at the element where it is DECLARED, and this token is declared at :root where no Radix variable exists, so routing it through here collapsed the whole declaration to `none` and the panel grew unbounded. That is BG-01M0WQY1 exactly, one tier down. The live value is read in the rule, where the popper has set it."
     }
   }
 }

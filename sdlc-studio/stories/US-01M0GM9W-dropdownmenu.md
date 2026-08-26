@@ -46,13 +46,16 @@
   deleted the D0020 sentence - and the old `grep "actions"` still exited 0, because the word
   survived in one parenthetical. A criterion whose verifier survives its own Test Plan mutant
   is the defect class this epic exists to remove
-- **And** the verifier greps the LOAD-BEARING SENTENCE, not three landmarks. Three separate token
-  greps are structural markers a rewording naturally preserves: a review kept the heading, `v1.1`
-  and `D0020` while rewriting the body to say entries "may be commands OR destinations" and that
-  the restriction "is lifted" - and the chain still exited 0. That is the SECOND of the two
-  mutants the Test Plan itself names, and the criterion's own And-clause exists to forbid it
-- **Verify:** shell grep -q "is a separate pattern and is planned for" apps/docs/src/content/components/dropdown-menu.md && grep -q "For links today, use ordinary anchors" apps/docs/src/content/components/dropdown-menu.md && grep -q "D0020" apps/docs/src/content/components/dropdown-menu.md
-- **Verified:** yes (2026-08-26)
+- **And** the verifier is a `forbid` list, not a `grep` chain. Three rounds widened the grep - one
+  token, then three, then a whole sentence - and each version killed the previous mutant and left
+  the next: a page can keep every grepped sentence byte-identical and APPEND "this restriction is
+  lifted; entries may be commands OR destinations", which is verbatim the wording this criterion
+  forbids. Measured at exit 0 twice. Checking for present strings cannot catch an inversion, because
+  inverting a page adds text rather than removing it
+- **And** the mechanism already existed for exactly this class: `DOC_CLAIMS` in
+  `check-verification.mjs` carries `require` AND `forbid` pairs, and `prove-guards` already proves an
+  inverted SearchInput page dies. `dropdown-menu.md` simply was not enrolled
+- **Verify:** shell node scripts/check-verification.mjs --component DropdownMenu --docs
 - **Verification target:** functional
 
 ### AC4: Token-only styling

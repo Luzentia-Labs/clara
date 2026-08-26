@@ -161,12 +161,28 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
    * warnings about a value the user is entering correctly. A developer learns to filter that, which
    * makes it worse than silent. On blur the value has settled and the composition mistake is real.
    */
-  const warnIfUnreported = () => devWarning(
-    outOfRange && !wiring?.invalid,
-    'A NumberInput holds a value outside its min/max, and the Field around it has no `error`. ' +
-    'Clara does not flag this to the user - detection is your form\'s job (D0086) - so nothing is ' +
-    'telling them. Pass `error` to the Field when the value is wrong.',
-  )
+  const warnIfUnreported = () => {
+    /*
+     * Guarded at the CALL SITE, not only inside `devWarning`.
+     *
+     * `devWarning` returns early in production, but its arguments are still evaluated and the
+     * message literal is still reachable - a minifier cannot drop a string handed to a function it
+     * cannot prove inert. Measured: this ~200-byte message survived a production minify of
+     * `dist/clara-client-NumberInput.js` and shipped to every consumer, against `dev-warning.ts`'s
+     * own promise of "dead code a minifier removes from a production build".
+     *
+     * With the test outside, the minifier sees `if (false)` and removes the block, the string
+     * included. Found by `check-dev-warnings.mjs`, which was written for the same defect in Tooltip
+     * and caught this one on its first run.
+     */
+    if (process.env.NODE_ENV === 'production') return
+    devWarning(
+      outOfRange && !wiring?.invalid,
+      'A NumberInput holds a value outside its min/max, and the Field around it has no `error`. ' +
+      'Clara does not flag this to the user - detection is your form\'s job (D0086) - so nothing is ' +
+      'telling them. Pass `error` to the Field when the value is wrong.',
+    )
+  }
   const spinbuttonAria = numeric
     ? {
         role: 'spinbutton',

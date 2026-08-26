@@ -447,6 +447,22 @@
   z-index: var(--clara-layer-overlay);
   box-sizing: border-box;
   max-inline-size: var(--clara-popover-max-inline-size);
+  /*
+   * A viewport-aware height cap, and a scroll container. Without both, long content grows the panel
+   * past the screen - and because the popper wrapper is `position: fixed`, the overflow is
+   * UNREACHABLE: the document does not extend, so neither the browser nor the user can scroll to it.
+   * Measured at 900x400: panel bottom 784, document scrollHeight 432, focus landing at top 750 with
+   * scrollY 0. Modal and Drawer both cap and scroll; this rule did not.
+   *
+   * The Radix variable is read HERE, not routed through the Clara token, and that is load-bearing: a
+   * `var()` referencing another `var()` is substituted at the element where it is DECLARED, and the
+   * token is declared at `:root` where no Radix variable exists - so the whole declaration collapsed
+   * to `none` and the panel grew unbounded, measured at 1106px in a 600px viewport. That is
+   * BG-01M0WQY1's defect one tier down. The Clara token is the FALLBACK for when the popper has not
+   * reported a height.
+   */
+  max-block-size: var(--radix-popover-content-available-height, var(--clara-popover-max-block-size));
+  overflow-y: auto;
   padding: var(--clara-popover-padding);
   border: var(--clara-popover-border-width) solid var(--clara-popover-border);
   border-radius: var(--clara-popover-radius);
@@ -594,6 +610,22 @@
   z-index: var(--clara-layer-overlay);
   box-sizing: border-box;
   min-inline-size: var(--clara-dropdown-menu-min-inline-size);
+  /*
+   * A viewport-aware height cap, and a scroll container. Without both, long content grows the panel
+   * past the screen - and because the popper wrapper is `position: fixed`, the overflow is
+   * UNREACHABLE: the document does not extend, so neither the browser nor the user can scroll to it.
+   * Measured at 900x400: panel bottom 784, document scrollHeight 432, focus landing at top 750 with
+   * scrollY 0. Modal and Drawer both cap and scroll; this rule did not.
+   *
+   * The Radix variable is read HERE, not routed through the Clara token, and that is load-bearing: a
+   * `var()` referencing another `var()` is substituted at the element where it is DECLARED, and the
+   * token is declared at `:root` where no Radix variable exists - so the whole declaration collapsed
+   * to `none` and the panel grew unbounded, measured at 1106px in a 600px viewport. That is
+   * BG-01M0WQY1's defect one tier down. The Clara token is the FALLBACK for when the popper has not
+   * reported a height.
+   */
+  max-block-size: var(--radix-dropdown-menu-content-available-height, var(--clara-dropdown-menu-max-block-size));
+  overflow-y: auto;
   padding-block: var(--clara-dropdown-menu-padding-block);
   border: var(--clara-dropdown-menu-border-width) solid var(--clara-dropdown-menu-border);
   border-radius: var(--clara-dropdown-menu-radius);

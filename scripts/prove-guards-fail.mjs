@@ -18,7 +18,7 @@
  * `cwd` set to the copy. The real tree is only ever read.
  */
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, copyFileSync, cpSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync, renameSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, copyFileSync, cpSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync, renameSync, symlinkSync } from 'node:fs'
 import { statSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
@@ -104,6 +104,22 @@ function stageWorkspace ({ withOutput = false, withGit = false, withStories = fa
     // The output guards read dist/ and build/ rather than manifests, so proving they can fail
     // means staging real build artifacts and corrupting the copy (R8).
     if (withOutput) {
+      /*
+       * A SYMLINK to the real `node_modules`, not a copy.
+       *
+       * `check-dev-warnings.mjs` proves a dev-only message is eliminable by actually bundling the
+       * chunk with esbuild, which is the only honest form of that check - and esbuild lives in
+       * `node_modules`, which the stage does not have. Without this the guard failed on an
+       * UNMUTATED copy, which reads as a broken prover rather than a missing fixture; the file's own
+       * comment about `sdlc-studio/reviews` records the same lesson.
+       *
+       * A symlink because copying `node_modules` per mutation would add minutes to a run that
+       * already stages 144 trees. Nothing mutates it, so sharing it is safe.
+       */
+      const modules = join(root, 'node_modules')
+      if (existsSync(modules) && !existsSync(join(stage, 'node_modules'))) {
+        try { symlinkSync(modules, join(stage, 'node_modules'), 'dir') } catch { /* best effort */ }
+      }
       // `src` and the generator are staged too. Without them `check-token-output`'s "tier 2
       // references only tier 1 / no raw literals" section walked an EMPTY tree and checked zero
       // files on every prover run - and a guard that checks nothing also exits 0, so the clean-run
@@ -700,6 +716,46 @@ const OUTPUT_CASES = [
       writeFileSync(f, readFileSync(f, 'utf8') +
         '\nconst LinkA = Dialog.Portal\nconst LinkB = LinkA\n' +
         'export function ChainProbe () { return <LinkB /> }\n')
+    },
+  },
+  {
+    /*
+     * A dev-only warning must be ELIMINABLE, and the promise was unchecked.
+     *
+     * `dev-warning.ts` says the call is "dead code a minifier removes from a production build" -
+     * the entire reason a library may ship a runtime warning. A review measured Tooltip's trigger
+     * check sitting outside the guard, so a timer, a selector and a 330-byte message shipped to
+     * every consumer. The new guard found the same defect in NumberInput on its first run, which is
+     * the component the helper was written FOR.
+     */
+    name: 'a dev-only warning whose message survives a production minify, so it ships to consumers',
+    guard: 'check-dev-warnings.mjs',
+    expect: /survives a production minify/,
+    stage: (stage) => {
+      // Mutates the BUILT chunk, not the source: this guard bundles `dist`, which is the artifact a
+      // consumer actually installs, so a source edit would leave it measuring the unmutated build.
+      const f = join(stage, 'packages/react/dist/clara-client-NumberInput.js')
+      writeFileSync(f, readFileSync(f, 'utf8')
+        .replace('process.env.NODE_ENV !== "production" && ', ''))
+    },
+    withOutput: true,
+  },
+  {
+    /*
+     * The docs INVERSION, which a grep chain cannot catch.
+     *
+     * AC3's verifier was a grep for present strings, widened three times, and each widening killed
+     * the previous mutant and left the next - because inverting a page ADDS text rather than
+     * removing it. This is the mutant the criterion's own Test Plan names, measured passing twice.
+     */
+    name: 'the DropdownMenu docs page inverted to present it as a navigation menu',
+    guard: 'check-verification.mjs',
+    args: ['--component', 'DropdownMenu', '--docs'],
+    expect: /inversion AC3 exists to refuse|contradicts D0020/,
+    stage: (stage) => {
+      const f = join(stage, 'apps/docs/src/content/components/dropdown-menu.md')
+      writeFileSync(f, readFileSync(f, 'utf8') +
+        '\n**Update:** this restriction is lifted. Entries may be commands OR destinations.\n')
     },
   },
   {

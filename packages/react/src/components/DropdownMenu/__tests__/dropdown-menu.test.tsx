@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { resetDevWarnings } from '../../../lib/dev-warning'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -153,6 +154,27 @@ describe('DropdownMenu keyboard pattern', () => {
     expect(onVoid).not.toHaveBeenCalled()
   })
 
+  it('runs a SUBMENU entry\'s own handler, and closes the whole menu', async () => {
+    // The THIRD unreachable arm found in this component, and the one a QA seat went looking for
+    // because the first two had the same shape. `onCsv` was declared, wired to the CSV entry, and
+    // asserted by nothing: neutering EVERY submenu `onSelect` left 49 files and 1177 tests green.
+    //
+    // So a menu that renders submenus, opens them, moves focus into them and wraps inside them -
+    // all pinned - could run none of their actions, and every gate agreed it was fine.
+    onCsv.mockClear(); onPost.mockClear()
+    render(<Harness />)
+    const trigger = screen.getByRole('button', { name: 'Actions' })
+    await openMenu()
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowRight}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'CSV' })).toHaveFocus())
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => expect(onCsv).toHaveBeenCalledTimes(1))
+    // Its OWN handler, not a neighbour's - the same distinction the root-entry test makes.
+    expect(onPost, 'selecting a submenu entry ran a root entry\'s handler').not.toHaveBeenCalled()
+    // And selecting inside a submenu dismisses the whole menu, returning focus to the trigger.
+    await waitFor(() => expect(document.activeElement).toBe(trigger))
+  })
+
   it('never runs a disabled entry\'s onSelect', async () => {
     onVoid.mockClear()
     render(<Harness />)
@@ -168,6 +190,56 @@ describe('DropdownMenu keyboard pattern', () => {
     // that a menu exists is what would catch the naming being dropped.
     render(<Harness />)
     expect(await openMenu()).toBeInTheDocument()
+  })
+})
+
+describe('DropdownMenu warns when items change while open', () => {
+  it('warns, because keyboard focus tracks a POSITION and not an entry', async () => {
+    // A review measured the hazard: with the highlight on an entry, inserting an entry above it
+    // leaves roving focus on the same collection index - now a different row - so Enter runs an
+    // action the user did not aim at. It is Radix's collection index, not Clara's keys: keying by
+    // `${index}:${label}` changes nothing.
+    //
+    // Clara cannot fix it without owning focus itself, which is the machinery ADR-004 adopted Radix
+    // to avoid. So it is disclosed, and this is what makes the disclosure checkable.
+    function Growing () {
+      const [extra, setExtra] = useState(false)
+      const items: DropdownMenuEntry[] = extra
+        ? [{ label: 'Inserted', onSelect: () => {} }, { label: 'Target', onSelect: () => {} }]
+        : [{ label: 'Target', onSelect: () => {} }]
+      return (
+        <>
+          <button onClick={() => setExtra(true)}>Grow</button>
+          <DropdownMenu open onOpen={() => {}} onClose={() => {}}
+            trigger={<button>Actions</button>} items={items} />
+        </>
+      )
+    }
+    resetDevWarnings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      render(<Growing />)
+      await screen.findByRole('menuitem', { name: 'Target' })
+      await userEvent.click(screen.getByRole('button', { name: 'Grow', hidden: true }), { pointerEventsCheck: 0 })
+      await waitFor(() => expect(warn).toHaveBeenCalled())
+      expect(warn.mock.calls.flat().join(' ')).toMatch(/changed while the menu was OPEN/)
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('stays silent when items are stable, so the warning is not noise', async () => {
+    resetDevWarnings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      render(<Harness />)
+      await openMenu()
+      await userEvent.keyboard('{ArrowDown}')
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      expect(warn, 'a stable menu produced a warning').not.toHaveBeenCalled()
+    } finally {
+      warn.mockRestore()
+    }
   })
 })
 

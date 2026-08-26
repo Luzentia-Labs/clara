@@ -492,7 +492,7 @@ test('a popover pinned against an edge stays on screen', async ({ page }) => {
 })
 
 /**
- * Every portalled panel is READABLE in dark theme.
+ * Every portalled panel is READABLE, in both themes.
  *
  * `.clara-popover` and `.clara-drawer` declared a background and no `color`. A portalled panel does
  * not inherit text colour from where it was written, and `[data-clara-theme]` redefines custom
@@ -517,7 +517,7 @@ const contrast = (fg: number[], bg: number[]) => {
 }
 const parseRgb = (value: string) => (value.match(/\d+(\.\d+)?/g) ?? []).slice(0, 3).map(Number)
 
-test('every portalled panel is readable in dark theme', async ({ page }) => {
+test('every portalled panel is readable in BOTH themes', async ({ page }) => {
   /*
    * Driven from a STATIC fixture built out of the shipped stylesheets, not from Storybook.
    *
@@ -539,18 +539,70 @@ test('every portalled panel is readable in dark theme', async ({ page }) => {
   const panels = ['clara-popover', 'clara-drawer', 'clara-tooltip', 'clara-toast',
     'clara-dropdown-menu', 'clara-modal']
 
-  await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head>
-<body data-clara-theme="light">
-  ${panels.map((c) => `<div data-clara-theme="dark"><div class="${c}" id="p-${c}">Sample</div></div>`).join('\n')}
+  /*
+   * BOTH themes, and light is expressed by the ABSENCE of a dark ancestor - never by writing
+   * `data-clara-theme="light"`.
+   *
+   * That attribute is inert: light lives on `:root`, and only `[data-clara-theme="dark"]` scopes
+   * anything, so a "light" wrapper inside a dark page still renders dark. A loop that flipped the
+   * value would produce a light row that was actually dark - vacuous in exactly the way the first
+   * version of this test was, and the way BG-01M0Z6R3 describes.
+   *
+   * Light matters on its own: repointing a panel's fg token to a different tier 2 alias measured
+   * 3.10:1 in LIGHT and 5.37:1 in dark, so a dark-only assertion would have passed it.
+   */
+  const wrap = (inner: string, dark: boolean) =>
+    dark ? `<div data-clara-theme="dark">${inner}</div>` : inner
+
+  for (const dark of [true, false]) {
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head>
+<body>
+  ${panels.map((c) => wrap(`<div class="${c}" id="p-${c}">Sample</div>`, dark)).join('\n')}
 </body></html>`)
 
-  for (const cls of panels) {
-    const seen = await page.locator(`#p-${cls}`).evaluate((el) => {
-      const s = getComputedStyle(el)
-      return { color: s.color, background: s.backgroundColor }
-    })
-    const ratio = contrast(parseRgb(seen.color), parseRgb(seen.background))
-    expect(ratio, `.${cls} renders ${seen.color} on ${seen.background} - ${ratio.toFixed(2)}:1 in dark theme`)
-      .toBeGreaterThanOrEqual(CONTRAST_MIN)
+    for (const cls of panels) {
+      const seen = await page.locator(`#p-${cls}`).evaluate((el) => {
+        const s = getComputedStyle(el)
+        return { color: s.color, background: s.backgroundColor }
+      })
+      const ratio = contrast(parseRgb(seen.color), parseRgb(seen.background))
+      expect(ratio, `.${cls} renders ${seen.color} on ${seen.background} - ${ratio.toFixed(2)}:1 in ${dark ? 'dark' : 'light'} theme`)
+        .toBeGreaterThanOrEqual(CONTRAST_MIN)
+    }
   }
+})
+
+/**
+ * A positioned panel with long content must stay INSIDE the viewport and scroll.
+ *
+ * `.clara-popover` had no `max-block-size` and no `overflow`, so it grew to 656px at every viewport
+ * - which made the existing "stays on screen" assertion a property of its fixture rather than of
+ * the component: true at 1280x720, false at 1280x600, with nothing about the code changing.
+ *
+ * The overflow was also UNREACHABLE, which is the part that makes it a WCAG failure rather than an
+ * aesthetic one. The popper wrapper is `position: fixed`, so a panel taller than the screen does
+ * not extend the document: measured a panel bottom of 784 against a 400px viewport with
+ * `document.scrollHeight` at 432, and focusing the last row left it at `top: 750` with `scrollY: 0`.
+ * Neither the browser nor the user could reach it. WCAG 2.4.7 and 1.4.10.
+ */
+test('a popover with long content stays in the viewport and scrolls', async ({ page }) => {
+  for (const height of [720, 600, 400]) {
+    await page.setViewportSize({ width: 1280, height })
+    await page.goto(`${origin}/iframe.html?id=overlays-popover--long-content&viewMode=story`)
+    const panel = page.locator('.clara-popover')
+    await panel.waitFor({ state: 'visible' })
+
+    const seen = await panel.evaluate((el) => {
+      const r = el.getBoundingClientRect()
+      return { bottom: r.bottom, scrollable: el.scrollHeight > el.clientHeight + 1,
+        overflowY: getComputedStyle(el).overflowY }
+    })
+    expect(seen.bottom, `at ${height}px the panel runs past the viewport edge`)
+      .toBeLessThanOrEqual(height + 1)
+    expect(seen.overflowY, `at ${height}px the panel does not scroll its overflow`)
+      .toMatch(/auto|scroll/)
+    expect(seen.scrollable, `at ${height}px the content fits, so this viewport tests nothing`)
+      .toBe(true)
+  }
+  await page.setViewportSize({ width: 1280, height: 720 })
 })

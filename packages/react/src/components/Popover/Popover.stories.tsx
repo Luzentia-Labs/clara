@@ -48,5 +48,38 @@ export const Top: Story = { render: () => <Demo placement="top" /> }
  */
 export const AgainstTheEdge: Story = { render: () => <Demo placement="left" align="flex-start" /> }
 
+/**
+ * Sixty rows, so the content overflows at every viewport this is measured at - a fixture that
+ * happens to fit is a fixture that tests nothing, which the assertion says out loud.
+ *
+ * Measured before the cap: 106x656 at EVERY viewport, so the assertion that it "stays on screen"
+ * was true at 1280x720 and false at 1280x600 - a property of the fixture, not of the component. And
+ * the overflow was unreachable, because the popper wrapper is `position: fixed` and does not extend
+ * the document: panel bottom 784 against a viewport of 400, `document.scrollHeight` 432.
+ */
+export const LongContent: Story = {
+  render: () => {
+    function Demo () {
+      const [open, setOpen] = useState(true)
+      return (
+        <div style={{ padding: 48, display: 'flex', justifyContent: 'center' }}>
+          <Popover
+            open={open} onOpen={() => setOpen(true)} onClose={() => setOpen(false)}
+            label="Column options" placement="bottom"
+            trigger={<Button variant="secondary">Options</Button>}
+          >
+            <div>
+              {Array.from({ length: 60 }, (_, i) => (
+                <p key={i} id={`row-${i + 1}`} style={{ margin: 0 }}>Column {i + 1}</p>
+              ))}
+            </div>
+          </Popover>
+        </div>
+      )
+    }
+    return <Demo />
+  },
+}
+
 /** Open it, then Tab: focus leaves the panel and the page behind keeps scrolling. */
 export const NotAModal: Story = { render: () => <Demo placement="bottom" /> }

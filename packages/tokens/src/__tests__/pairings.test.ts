@@ -14,11 +14,36 @@ const required = JSON.parse(readFileSync(join(pkg, 'contrast-required.json'), 'u
 const ramps = JSON.parse(readFileSync(join(pkg, 'src/primitive/base.json'), 'utf8')).color
 const themeSource = (theme: string) => JSON.parse(readFileSync(
   join(pkg, theme === 'dark' ? 'src/themes/dark.json' : 'src/semantic/color.json'), 'utf8')).color
-const hexFor = (path: string, theme: string) => {
-  const [, group, key] = path.split('.')
-  const ref = themeSource(theme)[group][key].value as string
+/**
+ * Component (tier 3) sources, so a two-segment path like `popover.fg` resolves.
+ *
+ * The overlay panels declare their OWN fg/bg pair, because a portalled surface resolves its
+ * background against the portal scope and its text against wherever it was written - which shipped
+ * 1.26:1 in dark theme. Those paths have two segments, and this resolver assumed three, so it read
+ * `undefined.value` and the suite failed with a TypeError rather than a verdict.
+ */
+const componentSource = (name: string) => JSON.parse(readFileSync(
+  join(pkg, `src/component/${name}.json`), 'utf8'))[name]
+
+/**
+ * Resolve a token path to its hex, following `{references}` to a ramp step.
+ *
+ * A tier 3 token points at a tier 2 semantic, which points at a tier 1 ramp step, so the walk is
+ * one hop longer for a component path - and the tier 2 hop must be resolved in the SAME theme, or a
+ * dark-theme pairing would be measured against light values.
+ */
+const hexFor = (path: string, theme: string): string => {
+  const parts = path.split('.')
+  if (parts.length === 2) {
+    // `popover.fg` -> `{color.fg.default}` -> the semantic path, resolved in this theme.
+    const [name, key] = parts as [string, string]
+    const ref = componentSource(name)[key].value as string
+    return hexFor(ref.replace(/[{}]/g, ''), theme)
+  }
+  const [, group, key] = parts
+  const ref = themeSource(theme)[group!][key!].value as string
   const [, ramp, step] = ref.replace(/[{}]/g, '').split('.')
-  return ramps[ramp][step].value as string
+  return ramps[ramp!][step!].value as string
 }
 
 describe('pairing row count matches documented table', () => {

@@ -29,6 +29,11 @@
       "value": "{color.fg.default}",
       "type": "color",
       "comment": "The panel PORTALS to document.body, so it does not inherit text colour from where it was written - and `[data-clara-theme]` redefines custom properties only, it declares no `color`. With no declaration the text colour came from the PAGE while the background came from the portal scope, so a dark-theme panel rendered near-black text on a dark surface: measured 1.26:1 in Chromium, against 16.64:1 for the overlays that declare it. Modal, Tooltip, Toast and DropdownMenu all declare colour; these two did not."
+    },
+    "max-block-size": {
+      "value": "85vh",
+      "type": "dimension",
+      "comment": "A FALLBACK, used only when the positioning engine has not reported an available height - it cannot itself hold `var(--radix-...)`. A var() referencing another var() is substituted at the element where it is DECLARED, and this token is declared at :root where no Radix variable exists, so routing it through here collapsed the whole declaration to `none` and the panel grew unbounded. That is BG-01M0WQY1 exactly, one tier down. The live value is read in the rule, where the popper has set it."
     }
   }
 }

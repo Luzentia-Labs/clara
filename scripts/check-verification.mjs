@@ -72,6 +72,34 @@ const DOC_CLAIMS = {
       [/Clara debounces|we debounce for you|debounces? for you/i, 'a claim that Clara debounces, which is the opposite of the decision'],
     ],
   },
+  /*
+   * DropdownMenu is enrolled because AC3's `grep` verifier could not be made to hold (round 4).
+   *
+   * A grep chain checks that STRINGS are present. Three rounds of widening it - one token, then
+   * three, then a whole sentence - each killed the previous mutant and left the next: a page can
+   * keep every grepped sentence byte-identical and append "this restriction is lifted; entries may
+   * be commands OR destinations", which is verbatim the wording AC3 itself forbids. Measured at
+   * exit 0 twice.
+   *
+   * `forbid` is the mechanism that answers it, and it already existed here for exactly this class -
+   * "the SearchInput docs page inverted to claim Clara debounces for you" is a prover mutation. A
+   * page cannot be inverted while a forbidden phrase is absent, because inverting it IS writing one.
+   */
+  'dropdown-menu.md': {
+    require: [
+      [/^#+ .*Actions only/m, 'the actions-only section, as a heading rather than a passing mention'],
+      [/is a separate pattern and is planned for/, 'that navigation is a SEPARATE pattern, not a mode of this one'],
+      [/For links today, use ordinary anchors/, 'the instruction for what to use instead'],
+      [/D0020/, 'the decision this defers to'],
+    ],
+    forbid: [
+      [/restriction is lifted|may be commands OR destinations|commands or destinations/i,
+        'a claim that entries may be destinations, which is the inversion AC3 exists to refuse'],
+      [/(is|as) a (perfectly good |fine )?navigation menu/i,
+        'a claim that this IS a navigation menu, which contradicts D0020'],
+      [/navigation (is|as) (the )?primary/i, 'navigation presented as the primary use case'],
+    ],
+  },
   'field.md': {
     require: [
       [/\*\*A disabled field still submits\.\*\*/, 'the submission consequence of aria-disabled (D0068)'],
@@ -406,7 +434,7 @@ for (const name of inScope) {
 
 const docsDir = join(ROOT, 'apps/docs/src/content/components')
 // Every page in DOC_CLAIMS needs an owner, or the scoped run silently checks nothing for it.
-const DOC_OWNER = { 'search-input.md': 'SearchInput', 'switch.md': 'Switch', 'field.md': 'Field', 'input.md': 'Input' }
+const DOC_OWNER = { 'search-input.md': 'SearchInput', 'switch.md': 'Switch', 'field.md': 'Field', 'input.md': 'Input', 'dropdown-menu.md': 'DropdownMenu' }
 for (const page of Object.keys(DOC_CLAIMS)) {
   if (!DOC_OWNER[page]) throw new Error(`DOC_CLAIMS has ${page} with no DOC_OWNER entry - the scoped run would skip it`)
 }

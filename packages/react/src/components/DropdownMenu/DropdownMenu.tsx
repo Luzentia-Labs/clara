@@ -1,9 +1,10 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import * as RadixMenu from '@radix-ui/react-dropdown-menu'
 import { cx } from '../../lib/cx'
 import { ClaraPortal } from '../../theme/ClaraPortal'
+import { devWarning } from '../../lib/dev-warning'
 
 /** Which side of the trigger it prefers. It flips when there is no room. */
 export type DropdownMenuPlacement = 'top' | 'right' | 'bottom' | 'left'
@@ -99,10 +100,19 @@ function Entries ({ items }: { items: DropdownMenuEntry[] }) {
                 {entry.label}
               </RadixMenu.SubTrigger>
               {/*
-                * NOT wrapped in a ClaraPortal, unlike the root content. A submenu has to render
-                * inside the parent menu's own portal subtree: Radix's roving focus and typeahead
-                * walk the DOM from the root menu, so a separately portalled submenu is invisible to
-                * both, and Escape then closes the wrong level.
+                * NOT wrapped in a ClaraPortal, unlike the root content - because it does not need
+                * one: `SubContent` renders into the portal its parent menu already established, so
+                * it inherits the Clara scope without asking.
+                *
+                * An earlier version of this comment gave two REASONS, and a review measured both
+                * FALSE: wrapping `SubContent` in a Radix portal leaves all 22 tests green, roving
+                * focus and typeahead included, and Escape's level does not depend on portalling at
+                * all - `@radix-ui/react-menu` calls the ROOT context's close unconditionally
+                * (`dist/index.mjs:753`), so a submenu Escape closes the whole menu either way.
+                *
+                * The decision stands; the justification did not survive contact with the code, and
+                * this comment now says only what is true. The Escape behaviour is a real APG
+                * deviation and is recorded as a gap rather than as a feature.
                 */}
               {/* `loop` here too - a submenu that behaves differently from its parent is a
                   worse surprise than one that does not wrap at all. */}
@@ -161,6 +171,40 @@ export function DropdownMenu ({
   open, onOpen, onClose, trigger, items, placement = 'bottom', className,
 }: DropdownMenuProps) {
   const handleOpenChange = (next: boolean) => { if (next) onOpen(); else onClose() }
+
+  /*
+   * Changing `items` while the menu is OPEN can fire an action the user did not aim at.
+   *
+   * Measured: with the highlight on an entry, inserting a new entry above it leaves roving focus on
+   * the same COLLECTION INDEX, which is now a different row - so Enter runs the inserted entry's
+   * handler and not the one the user was looking at. If the inserted entry is destructive, that is
+   * a destructive action nobody chose.
+   *
+   * It is NOT the index keys, which is what an earlier comment here implied: keying by
+   * `${index}:${label}` changes nothing, and a plain click still runs the right handler. The
+   * mechanism is Radix's roving-focus collection index, and Clara cannot fix it without owning focus
+   * itself - which is the machinery ADR-004 adopted Radix to avoid.
+   *
+   * So it is DISCLOSED rather than silently shipped: a review's plain ruling was that an unaimed
+   * action is not acceptable to ship in silence, and is acceptable to ship disclosed. An async load
+   * or a poll landing while a menu is open is ordinary in the domain this library is for.
+   */
+  const itemsRef = useRef(items)
+  useEffect(() => {
+    // Guarded at the CALL SITE, for the reason `check-dev-warnings.mjs` exists: `devWarning` returns
+    // early in production, but its arguments are still evaluated and the message literal is still
+    // reachable, so a minifier cannot drop it. That guard caught this very warning shipping
+    // unguarded on the same day it was written to catch the identical defect in NumberInput.
+    if (process.env.NODE_ENV === 'production') return
+    devWarning(
+      open && itemsRef.current !== items && itemsRef.current.length !== items.length,
+      'A DropdownMenu\'s `items` changed while the menu was OPEN. Keyboard focus tracks a position ' +
+      'in the list, not an entry, so the highlight can end up on a different entry than the one the ' +
+      'user was looking at - and Enter then runs THAT entry\'s action. If a list can change while ' +
+      'open (an async load, a poll), close the menu first or keep the list stable while it is open.',
+    )
+    itemsRef.current = items
+  }, [items, open])
 
   return (
     <RadixMenu.Root open={open} onOpenChange={handleOpenChange}>

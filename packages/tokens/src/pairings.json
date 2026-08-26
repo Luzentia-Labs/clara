@@ -478,6 +478,36 @@
       "roles": [
         "non-text"
       ]
+    },
+    {
+      "foreground": "popover.fg",
+      "background": "popover.bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints. Tier 3, where the rest of this table is tier 2, and deliberately so: a portalled surface resolves its background against the portal scope and, with no declared colour, its text against the page - which shipped 1.26:1 in dark theme. Declaring only the tier 2 ancestors is not equivalent; repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because nothing measured the pair the component paints."
+    },
+    {
+      "foreground": "drawer.fg",
+      "background": "drawer.bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints. Tier 3, where the rest of this table is tier 2, and deliberately so: a portalled surface resolves its background against the portal scope and, with no declared colour, its text against the page - which shipped 1.26:1 in dark theme. Declaring only the tier 2 ancestors is not equivalent; repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because nothing measured the pair the component paints."
+    },
+    {
+      "foreground": "tooltip.fg",
+      "background": "tooltip.bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints. Tier 3, where the rest of this table is tier 2, and deliberately so: a portalled surface resolves its background against the portal scope and, with no declared colour, its text against the page - which shipped 1.26:1 in dark theme. Declaring only the tier 2 ancestors is not equivalent; repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because nothing measured the pair the component paints."
+    },
+    {
+      "foreground": "toast.fg",
+      "background": "toast.bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints. Tier 3, where the rest of this table is tier 2, and deliberately so: a portalled surface resolves its background against the portal scope and, with no declared colour, its text against the page - which shipped 1.26:1 in dark theme. Declaring only the tier 2 ancestors is not equivalent; repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because nothing measured the pair the component paints."
+    },
+    {
+      "foreground": "dropdown-menu.fg",
+      "background": "dropdown-menu.bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints. Tier 3, where the rest of this table is tier 2, and deliberately so: a portalled surface resolves its background against the portal scope and, with no declared colour, its text against the page - which shipped 1.26:1 in dark theme. Declaring only the tier 2 ancestors is not equivalent; repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because nothing measured the pair the component paints."
     }
   ]
 }

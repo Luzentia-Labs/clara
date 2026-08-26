@@ -88,6 +88,31 @@
     {
       "fg": "color-fg-default",
       "bg": "color-bg-selected-hover"
+    },
+    {
+      "fg": "popover-fg",
+      "bg": "popover-bg",
+      "_why": "The pair the panel ACTUALLY paints. These are tier 3, and the table is otherwise tier 2 - deliberately: a portalled panel resolves its background against the portal scope and, without a declared colour, its text against the page, so the pair that matters is the component-level one. Round 3 shipped 1.26:1 in dark theme through exactly that gap. Declaring the tier 2 ancestors is not equivalent: repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because no gate measured the pair the component paints."
+    },
+    {
+      "fg": "drawer-fg",
+      "bg": "drawer-bg",
+      "_why": "The pair the panel ACTUALLY paints. These are tier 3, and the table is otherwise tier 2 - deliberately: a portalled panel resolves its background against the portal scope and, without a declared colour, its text against the page, so the pair that matters is the component-level one. Round 3 shipped 1.26:1 in dark theme through exactly that gap. Declaring the tier 2 ancestors is not equivalent: repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because no gate measured the pair the component paints."
+    },
+    {
+      "fg": "tooltip-fg",
+      "bg": "tooltip-bg",
+      "_why": "The pair the panel ACTUALLY paints. These are tier 3, and the table is otherwise tier 2 - deliberately: a portalled panel resolves its background against the portal scope and, without a declared colour, its text against the page, so the pair that matters is the component-level one. Round 3 shipped 1.26:1 in dark theme through exactly that gap. Declaring the tier 2 ancestors is not equivalent: repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because no gate measured the pair the component paints."
+    },
+    {
+      "fg": "toast-fg",
+      "bg": "toast-bg",
+      "_why": "The pair the panel ACTUALLY paints. These are tier 3, and the table is otherwise tier 2 - deliberately: a portalled panel resolves its background against the portal scope and, without a declared colour, its text against the page, so the pair that matters is the component-level one. Round 3 shipped 1.26:1 in dark theme through exactly that gap. Declaring the tier 2 ancestors is not equivalent: repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because no gate measured the pair the component paints."
+    },
+    {
+      "fg": "dropdown-menu-fg",
+      "bg": "dropdown-menu-bg",
+      "_why": "The pair the panel ACTUALLY paints. These are tier 3, and the table is otherwise tier 2 - deliberately: a portalled panel resolves its background against the portal scope and, without a declared colour, its text against the page, so the pair that matters is the component-level one. Round 3 shipped 1.26:1 in dark theme through exactly that gap. Declaring the tier 2 ancestors is not equivalent: repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because no gate measured the pair the component paints."
     }
   ],
   "nonText": [

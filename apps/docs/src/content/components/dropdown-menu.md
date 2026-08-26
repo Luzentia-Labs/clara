@@ -59,6 +59,16 @@ clear name — with an icon-only trigger, that is `IconButton`'s `label`.
 Focus returns to the trigger on **every** dismissal route, including after you select an entry —
 not only on Escape.
 
+## Do not change `items` while the menu is open
+
+Keyboard focus tracks a **position** in the list, not an entry. If entries are inserted or removed
+while the menu is open — an async load landing, a poll refreshing — the highlight stays on the same
+position, which is now a different entry, and pressing Enter runs *that* entry's action.
+
+Clara warns about this in development. It cannot fix it: the position is owned by the underlying
+menu implementation, and taking that over would mean Clara owning keyboard focus itself. If a list
+can change while it is open, close the menu first or hold the list stable until it closes.
+
 ## Disabled entries
 
 A disabled entry stays visible and is still announced, but it cannot be focused or selected. Keeping

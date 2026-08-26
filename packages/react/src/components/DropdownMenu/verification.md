@@ -58,9 +58,14 @@ submenu" and "a separator with a label" type errors rather than support question
 
 ## The submenu is NOT separately portalled
 
-A submenu renders inside the parent menu's own portal subtree. Radix's roving focus and typeahead
-walk the DOM from the root menu, so a separately portalled submenu is invisible to both and Escape
-closes the wrong level.
+It does not need to be: `SubContent` renders into the portal its parent menu already established, so
+it inherits the Clara scope without asking for one.
+
+**This section previously gave two reasons and a review measured both FALSE.** Wrapping `SubContent`
+in a Radix portal leaves all 22 tests green - roving focus and typeahead included - and Escape's
+level does not depend on portalling at all: `@radix-ui/react-menu` calls the root context's close
+unconditionally, so a submenu Escape closes the whole menu either way. The decision is unchanged;
+the justification was not true, in the artefact whose entire value is that it can be checked.
 
 ## The z-index is earned, not silenced
 
@@ -96,6 +101,12 @@ directions, so open order decides and a per-role constant cannot (D0088, D0102).
   construction and deleting it left all sixteen tests green - `__tests__/dropdown-menu.test.tsx`
 - ArrowRight moves FOCUS into the submenu, not merely revealing it. The earlier assertion observed
   presence, which is one word from the property (D0065) - `__tests__/dropdown-menu.test.tsx`
+- A SUBMENU entry runs its OWN handler and closes the whole menu. `onCsv` was declared, wired and
+  asserted by nothing for three rounds: neutering every submenu `onSelect` left the entire
+  repository green, so a menu that opened submenus and moved focus into them could run none of
+  their actions - `__tests__/dropdown-menu.test.tsx`
+- Changing `items` while open warns, and a stable menu does not -
+  `__tests__/dropdown-menu.test.tsx`
 - The positioning props reach Radix - the root menu's four and the SUBMENU's two - so `placement`
   is not an inert prop - `__tests__/positioning.test.tsx`
 - Focus returns to the trigger BY IDENTITY on Escape, and after selecting an entry - the second
@@ -107,6 +118,17 @@ directions, so open order decides and a per-role constant cannot (D0088, D0102).
 - axe while open, in all four theme x density combinations - `check:axe`
 
 ## Stated gaps
+
+- **Changing `items` while the menu is OPEN can run an action the user did not aim at.** Keyboard
+  focus tracks a POSITION, so inserting an entry above the highlight leaves it on the same index -
+  now a different entry - and Enter runs that one. Measured. It is not the index keys (keying by
+  `${index}:${label}` changes nothing); it is the underlying menu's roving-focus collection, which
+  Clara cannot take over without owning focus itself. Warned in development, documented on the docs
+  page, and pinned by a test in both directions - disclosed rather than silently shipped.
+
+- **Escape inside a submenu closes the WHOLE menu**, where the WAI-ARIA APG specifies it closes the
+  menu containing focus. AC1 claims APG conformance, so this is a deviation and not a detail. It is
+  Radix's behaviour and not configurable from here; recorded rather than claimed away.
 
 - **Positioning is CONFIGURED and asserted; the RENDERED result is not.** A review stripped all five
   positioning props - `side`, `avoidCollisions`, `collisionPadding`, `sideOffset`, and the submenu's

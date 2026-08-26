@@ -1,3 +1,4 @@
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -96,6 +97,73 @@ describe('Tooltip on a non-focusable child', () => {
       render(<Tooltip content="Reachable"><button>Focusable</button></Tooltip>)
       await new Promise((resolve) => setTimeout(resolve, 10))
       expect(warn, 'a correct trigger produced a warning').not.toHaveBeenCalled()
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('stays silent for a child that sets tabIndex in an EFFECT, not in JSX', async () => {
+    // THE deferral test. Every other case here sets `tabIndex` in JSX, so the ref sees it
+    // immediately and the `setTimeout(0)` is doing nothing - which is why deleting the timer left
+    // all 1177 tests green for a round while the mechanism was real.
+    //
+    // A `forwardRef` wrapper that makes itself focusable in its own effect is the ordinary shape,
+    // and its effect has not run when the ref fires. Without the deferral this warns about a
+    // trigger that is about to be perfectly fine.
+    const Late = forwardRef<HTMLSpanElement>((props, ref) => {
+      const own = useRef<HTMLSpanElement>(null)
+      useImperativeHandle(ref, () => own.current!)
+      useEffect(() => { own.current?.setAttribute('tabindex', '0') }, [])
+      return <span ref={own} {...props}>Focusable later</span>
+    })
+    Late.displayName = 'Late'
+
+    resetDevWarnings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      render(<Tooltip content="Reachable"><Late /></Tooltip>)
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      expect(warn, 'a trigger made focusable in an effect was warned about anyway')
+        .not.toHaveBeenCalled()
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('gives a NATIVELY disabled control its own advice, not "use a button"', async () => {
+    // "Why is this disabled?" is the canonical enterprise tooltip, and the generic message told an
+    // author already using a button to put the tooltip on a button. Clara's own rule is that
+    // disabled means `aria-disabled` plus `readOnly` (D0058), which keeps the tab stop - so that is
+    // the fix worth naming.
+    resetDevWarnings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      render(<Tooltip content="Close the period first"><button disabled>Post</button></Tooltip>)
+      await waitFor(() => expect(warn).toHaveBeenCalled())
+      const said = warn.mock.calls.flat().join(' ')
+      expect(said).toMatch(/aria-disabled/)
+      expect(said, 'a disabled button was told to use a button').not.toMatch(/Put the tooltip on a button/)
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('names WHICH tooltip is broken, so ten of them are not one line', async () => {
+    // `devWarning` dedupes by message, and the message carried only a tag name - so a page with ten
+    // broken tooltips produced a single line identifying none of them.
+    resetDevWarnings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      render(
+        <>
+          <Tooltip content="A"><span>Recalculate</span></Tooltip>
+          <Tooltip content="B"><span>Post journal</span></Tooltip>
+        </>,
+      )
+      await waitFor(() => expect(warn.mock.calls.length).toBeGreaterThan(1))
+      const said = warn.mock.calls.flat().join(' ')
+      expect(said).toMatch(/Recalculate/)
+      expect(said, 'the second broken tooltip was deduped away').toMatch(/Post journal/)
     } finally {
       warn.mockRestore()
     }

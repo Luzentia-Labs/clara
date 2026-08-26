@@ -114,3 +114,6 @@
 | US01M0GMQJ | REJECT | anton-reis | claude-implementer | 2026-08-26 | 38ee83604a92 | spec | - |
 | US01M0GM9W | REJECT | anton-reis | claude-implementer | 2026-08-26 | 5f995901a5d0 | spec | - |
 | US01M0GM31 | REJECT | idris-vale | claude-implementer | 2026-08-26 | 77b63756586b | spec | - |
+| US01M0GMQJ | REJECT | anton-reis | claude-implementer | 2026-08-26 | 1d1f215baf18 | spec | - |
+| US01M0GM31 | REJECT | idris-vale | claude-implementer | 2026-08-26 | 15214fb1e272 | spec | - |
+| US01M0GM9W | REJECT | mira-calderon | claude-implementer | 2026-08-26 | fd096c2f4a27 | spec | - |

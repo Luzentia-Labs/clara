@@ -73,6 +73,17 @@ Open order decides which paints on top, because the relationship is bidirectiona
 ## What is verified automatically
 
 - It opens on keyboard focus, not only on hover - `__tests__/tooltip.test.tsx`
+- The dev-only warning is ELIMINABLE from a production build, proved by bundling the built chunk
+  with `NODE_ENV=production` and minifying it - `check:dev-warnings`. The timer, the selector and
+  the message all shipped to consumers before that guard existed, against `dev-warning.ts`'s own
+  promise
+- A trigger made focusable in an EFFECT rather than in JSX is NOT warned about - the deferral that
+  makes that true was itself unpinned for a round, because every other test set `tabIndex` in JSX -
+  `__tests__/tooltip.test.tsx`
+- A natively disabled control gets advice that works (`aria-disabled`, D0058) rather than being told
+  to use a button it is already using - `__tests__/tooltip.test.tsx`
+- Two broken tooltips produce TWO warnings naming each trigger, not one line naming neither -
+  `__tests__/tooltip.test.tsx`
 - A NON-FOCUSABLE trigger warns in development, and a focusable one (including a `span` carrying
   `tabIndex`) stays silent - both halves, because a warning that fires on correct usage is one a
   developer learns to filter, which is the failure `dev-warning.ts` names in its own docblock -
@@ -96,6 +107,12 @@ Open order decides which paints on top, because the relationship is bidirectiona
 - axe while open, in all four theme x density combinations - `check:axe`
 
 ## Stated gaps
+
+- **Unreachable on TOUCH, and that is the pattern, not a defect here.** Measured on a touch context:
+  tap, long-press and programmatic focus all leave it closed, by Radix's construction. It is the
+  reason AC3 forbids a tooltip being the sole source of anything - on a phone there is no route to
+  the content at all. The docs page says so; the component docblock did not until a review pointed
+  it out.
 
 - **The hover bridge is NOT verified in jsdom, and cannot be.** Radix implements WCAG 1.4.13's
   "hoverable" requirement as a grace-area polygon computed from the trigger's and the content's

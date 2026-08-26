@@ -50,7 +50,14 @@ export interface TooltipProps {
 }
 
 /**
- * A short explanation attached to a control, reachable by pointer AND by keyboard.
+ * A short explanation attached to a control, reachable by pointer and by keyboard - and NOT on
+ * touch, which is a limit of the pattern rather than of this implementation.
+ *
+ * Measured on a touch context: tap, long-press and programmatic focus all leave it closed, by
+ * Radix's construction. That is why AC3 forbids a tooltip being the sole source of anything -
+ * on a phone there is no route to it at all. An earlier version of this line said "reachable by
+ * pointer AND by keyboard" without qualification; the docs page said it correctly and the
+ * docblock did not.
  *
  * ## Why it opens on focus and not only on hover
  *
@@ -135,19 +142,60 @@ export function Tooltip ({ content, children, placement = 'top', className }: To
    * closing; a `tabIndex` set later still warns, and the message says what to do about it.
    */
   const checkTrigger = useCallback((node: HTMLElement | null) => {
+    /*
+     * The ENTIRE check sits behind the production guard, not just the `devWarning` call.
+     *
+     * `dev-warning.ts` promises "dead code a minifier removes from a production build", and that
+     * only holds for what is inside the guard. The timer, the selector match and a 330-byte message
+     * string were outside it, so they shipped and ran in every consumer's production bundle -
+     * measured in `dist/clara-client-Tooltip.js`. A library that costs its consumers runtime work to
+     * produce a warning they will never see is worse than one that does not warn.
+     */
+    if (process.env.NODE_ENV === 'production') return
     if (!node) return
+    /*
+     * DEFERRED a tick, and this is the mechanism the whole check turns on.
+     *
+     * A child may set `tabIndex` in its own effect - a `forwardRef` wrapper around a focusable node
+     * is the ordinary shape - and that effect has not run when the ref fires. Checking immediately
+     * warns about a trigger that is about to be perfectly fine, which is the false positive that
+     * makes a warning noise.
+     *
+     * It was unpinned for a round: every test set `tabIndex` in JSX, so all three exercised the
+     * SELECTOR and none the deferral, and deleting the timer left 1177 tests green. There is now a
+     * `forwardRef` child that sets `tabIndex` in an effect, and it reddens without this.
+     */
     setTimeout(() => {
       if (!node.isConnected) return
       const focusable = node.matches(
         'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), ' +
         'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
       )
+      if (focusable) return
+      /*
+       * A NATIVELY disabled control gets its own message, because the generic one told an author
+       * already using a button to "put the tooltip on a button".
+       *
+       * It is also the single most common enterprise tooltip - explaining WHY a control is
+       * disabled - so the advice has to be the one that actually works. Clara's own rule (D0058,
+       * D0064, D0068) is that disabled is `aria-disabled` plus `readOnly`, never the native
+       * attribute, precisely so the control keeps its tab stop. That is the fix to name.
+       */
+      const nativelyDisabled = node.hasAttribute('disabled')
       devWarning(
-        !focusable,
-        `A Tooltip's trigger is a <${node.tagName.toLowerCase()}>, which cannot receive keyboard ` +
-        'focus, so the tooltip opens on hover only and its content never reaches a keyboard or ' +
-        'screen-reader user - `aria-describedby` points at a description nobody can reach. Put the ' +
-        'tooltip on a button, a link, or any element with `tabIndex={0}`.',
+        true,
+        nativelyDisabled
+          ? `A Tooltip's trigger is a natively disabled <${node.tagName.toLowerCase()}>, which ` +
+            'cannot receive keyboard focus, so the explanation never reaches the people most ' +
+            'likely to need it - and "why is this disabled?" is exactly what a tooltip here is ' +
+            'for. Clara marks a control unavailable with `aria-disabled` and `readOnly` rather ' +
+            'than the native attribute (D0058), which keeps the tab stop and keeps this readable.'
+          : `A Tooltip's trigger is a <${node.tagName.toLowerCase()}>${
+              node.textContent ? ` ("${node.textContent.trim().slice(0, 30)}")` : ''
+            }, which cannot receive keyboard focus, so the tooltip opens on hover only and its ` +
+            'content never reaches a keyboard or screen-reader user - `aria-describedby` points ' +
+            'at a description nobody can reach. Put the tooltip on a button, a link, or any ' +
+            'element with `tabIndex={0}`.',
       )
     }, 0)
   }, [])

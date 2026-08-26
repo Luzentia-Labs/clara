@@ -388,11 +388,11 @@ const SHAPE_CONTRACT = [
    * inherit from where it was written.
    */
   ['.clara-modal__scrim', ['position', 'inset', 'background']],
-  ['.clara-popover', ['box-sizing', 'background', 'color', 'border', 'border-radius']],
+  ['.clara-popover', ['box-sizing', 'background', 'color', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
   ['.clara-drawer', ['box-sizing', 'position', 'background', 'color']],
   ['.clara-tooltip', ['box-sizing', 'background', 'color', 'border-radius']],
   ['.clara-toast', ['box-sizing', 'background', 'color', 'border-radius']],
-  ['.clara-dropdown-menu', ['box-sizing', 'background', 'color', 'border-radius']],
+  ['.clara-dropdown-menu', ['box-sizing', 'background', 'color', 'border-radius', 'max-block-size', 'overflow-y']],
   ['.clara-modal__body', ['overflow-y']],
   // A flex column shrinks its children by default, so a fixed-height child is squashed rather than
   // scrolled. The rule that stops it is on the CHILDREN, and nothing else can see its absence.
@@ -431,6 +431,12 @@ const VALUE_CONTRACT = [
   // `[selector, family, ok(prop, value), why]`. The family is a PREFIX: every `overflow*`,
   // `background*` and `flex*` declaration on the element is checked, so a property nobody thought
   // to enumerate fails rather than slips through.
+  ['.clara-popover', 'overflow', (prop, v) => (
+    prop === 'overflow-y' ? v === 'auto' || v === 'scroll' : !/(^|\s)(visible|hidden)(\s|$)/.test(v)
+  ), 'a positioned panel must SCROLL its overflow, not show it: the popper wrapper is `position: fixed`, so anything past the viewport edge cannot be reached by the browser or by the page. The `overflow` shorthand sets it too'],
+  ['.clara-dropdown-menu', 'overflow', (prop, v) => (
+    prop === 'overflow-y' ? v === 'auto' || v === 'scroll' : !/(^|\s)(visible|hidden)(\s|$)/.test(v)
+  ), 'a positioned menu must SCROLL its overflow - a thirty-entry menu past the viewport edge is unreachable under a fixed wrapper'],
   ['.clara-modal__body', 'overflow', (prop, v) => (
     prop === 'overflow-x' ? true : /^(auto|scroll|overlay)$/.test(v.split(/\s+/)[0] ?? '')
   ), 'the BODY is the scroll container (AC5); `visible` scrolls the whole panel and takes the header and footer with it. The `overflow` shorthand sets it too'],
