@@ -15,6 +15,23 @@
     "gap": {
       "value": "{space.control-gap}",
       "type": "dimension"
+    },
+    "width-full": {
+      "value": "100%",
+      "type": "dimension"
+    },
+    "width-three-quarters": {
+      "value": "75%",
+      "type": "dimension",
+      "comment": "The four Skeleton widths are a DESIGN decision, not structural geometry - they are the shape of the placeholder text a reader is about to see, and they are exposed as a prop. They lived as raw percentages in the stylesheet only because the literal gate could not see a percentage at all (BG-01M0WZGB)."
+    },
+    "width-half": {
+      "value": "50%",
+      "type": "dimension"
+    },
+    "width-quarter": {
+      "value": "25%",
+      "type": "dimension"
     }
   }
 }

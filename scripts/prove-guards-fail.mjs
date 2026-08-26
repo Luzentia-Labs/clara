@@ -635,6 +635,20 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // BG-01M0WZGB. `%` was absent from the unit list, so a hand-typed percentage was invisible to
+    // the guard whose entire job is refusing hand-typed values. The first fix appended `%` to the
+    // list and changed nothing: `\\b` after `%` demands a word character, and a declaration ends
+    // `25%;` where both sides are non-word. This entry exists because that fix could not fail.
+    name: 'a hand-typed percentage in component CSS, which no unit in the literal list matched',
+    guard: 'check-component-css.mjs',
+    expect: /uses the literal 25%/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/styles.css')
+      writeFileSync(f, readFileSync(f, 'utf8') + '\n.clara-probe-pct { width: 25%; }\n')
+    },
+    withOutput: true,
+  },
+  {
     // BG-01M0XZMJ. The package entry emitted all 322 tokens - tier 1 primitives and tier 3
     // component values alongside the 65 semantics - so 257 names were public API in flat
     // contradiction of PRD F01 and of `tokens.public.lock.json`, which lists 65 and no others.

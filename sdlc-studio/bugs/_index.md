@@ -8,11 +8,11 @@
 | --- | --- |
 | Open | 0 |
 | In Progress | 0 |
-| Fixed | 13 |
+| Fixed | 14 |
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 3 |
+| inbox | 2 |
 | Superseded | 1 |
 | **Total** | **17** |
 
@@ -34,7 +34,7 @@
 | [BG-01M0WQ92](BG-01M0WQ92-comfortable-control-height-renders-48px-not-the-40px.md) | Comfortable control height renders 48px, not the 40px the PRD specifies | major | Medium | Fixed | -- | -- | 2026-08-25 |
 | [BG-01M0WR22](BG-01M0WR22-sm-controls-declare-a-target-floor-below-24px.md) | sm controls declare a target floor below 24px, or none at all | major | Medium | Fixed | -- | -- | 2026-08-25 |
 | [BG-01M0WZEM](BG-01M0WZEM-the-button-loading-spinner-never-spins-there-is.md) | The Button loading spinner never spins - there is no animation anywhere in Clara | major | Medium | Fixed | -- | -- | 2026-08-26 |
-| [BG-01M0WZGB](BG-01M0WZGB-the-component-css-literal-gate-does-not-treat.md) | The component-CSS literal gate does not treat a percentage as a literal | major | Medium | inbox | -- | -- | 2026-08-26 |
+| [BG-01M0WZGB](BG-01M0WZGB-the-component-css-literal-gate-does-not-treat.md) | The component-CSS literal gate does not treat a percentage as a literal | major | Medium | Fixed | -- | -- | 2026-08-26 |
 | [BG-01M0XJBW](BG-01M0XJBW-four-known-bypasses-of-the-overlay-portal-binding.md) | Four known bypasses of the overlay-portal binding, each needing analysis the guard does not do | major | Medium | inbox | -- | -- | 2026-08-26 |
 | [BG-01M0XN7S](BG-01M0XN7S-clara-ships-no-font-family-token-at-all.md) | Clara ships no font-family token at all, and PRD F04 AC2 requires one | major | Medium | Fixed | -- | -- | 2026-08-26 |
 | [BG-01M0XVXS](BG-01M0XVXS-gate-9-cannot-see-any-portalled-overlay-so.md) | Gate 9 cannot see any portalled overlay, so five components' rendered behaviour is unasserted | major | Medium | inbox | -- | -- | 2026-08-26 |

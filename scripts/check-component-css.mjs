@@ -86,12 +86,51 @@ const NAMED_COLOURS = [
 // `s` and `ms` were absent, so two hand-typed durations passed the literal rule while the guard
 // reported "no literals". Motion is a design value like any other - D0094 turns entirely on a
 // component not being able to type one - and the tier 1 duration steps exist to be referenced.
+//
+// `%` was absent too (BG-01M0WZGB), so `width: 25%` and `border-radius: 50%` were invisible to the
+// guard whose entire job is refusing hand-typed values. It is now a unit like any other, with ONE
+// exemption below.
 const UNITS = 'px|rem|em|pt|pc|cm|mm|in|q|ch|ex|vh|vw|vmin|vmax|svh|lvh|dvh|ms|s'
+
+/**
+ * `100%` is exempt, and nothing else is.
+ *
+ * A percentage is usually a design value - `width: 25%` is a decision somebody made about how wide
+ * a thing should look, and it belongs in a token like every other such decision. `100%` is not that
+ * kind of statement. It means "all of the container" or "my own full extent", which is structural
+ * geometry: there is no other number it could have been, and no design review would ever re-tune
+ * it.
+ *
+ * Percentages inside `transform` are already covered by STRUCTURAL below, which is why
+ * `translateX(-100%)` and `translate(-50%, -50%)` do not need to be enumerated here - they are
+ * offsets by an element's own extent, not appearance.
+ */
+const STRUCTURAL_PERCENT = /^100%$/
+
+/**
+ * Properties where a percentage is PLACEMENT rather than appearance.
+ *
+ * `top: 50%` paired with `translate(-50%, -50%)` is the centring idiom; `clip-path: circle(50%)`
+ * means "a circle inscribed in this box". Neither is a design value - there is no other number
+ * they could be, and no design review would re-tune them.
+ *
+ * Deliberately NOT added to STRUCTURAL above, which exempts a property's literals ENTIRELY.
+ * `top: 13px` is a design value and must stay caught; only the percentage form is placement.
+ *
+ * Size and appearance properties are absent on purpose: `width: 25%` IS a decision about how wide
+ * something should look, and it belongs in a token like every other such decision.
+ */
+const PERCENT_IS_PLACEMENT = /^(top|left|right|bottom|inset|clip-path|background-position|object-position|transform-origin)/
 const LITERAL = new RegExp(
   '(#[0-9a-f]{3,8}\\b' +
   '|\\brgba?\\([^)]*\\)|\\bhsla?\\([^)]*\\)|\\boklch\\([^)]*\\)|\\boklab\\([^)]*\\)' +
   '|\\blab\\([^)]*\\)|\\blch\\([^)]*\\)|\\bcolor-mix\\([^)]*\\)|\\bcolor\\([^)]*\\)' +
-  `|(?<![\\w-])\\d*\\.?\\d+(${UNITS})\\b` +
+  // `%` is matched WITHOUT a trailing `\\b`, and that is not a stylistic choice: `%` is not a
+  // word character, so `\\b` after it demands a word character next - and a declaration ends
+  // `25%;`, where both sides are non-word. A first attempt at this bug simply appended `%` to
+  // UNITS above, and the probe from the bug report still reported PASS: the pattern was there
+  // and matched nothing. A fix that cannot fail is the defect it was fixing.
+  `|(?<![\\w-])\\d*\\.?\\d+(?:(${UNITS})\\b|%)` +
   `|(?<![\\w-])(${NAMED_COLOURS.join('|')})(?![\\w-]))`,
   'gi',
 )
@@ -274,6 +313,8 @@ for (const file of files) {
     if (decl.prop.startsWith('--') || STRUCTURAL.test(decl.prop)) return
     for (const lit of decl.value.matchAll(LITERAL)) {
       if (/^0(px|rem|em)$/.test(lit[0])) continue
+      if (STRUCTURAL_PERCENT.test(lit[0])) continue
+      if (lit[0].endsWith('%') && PERCENT_IS_PLACEMENT.test(decl.prop)) continue
       problems.push(`${at}: ${decl.prop} uses the literal ${lit[0]} - use a token`)
     }
   })

@@ -23,6 +23,11 @@
     "cycle": {
       "value": "calc({duration.step} * 5)",
       "type": "duration"
+    },
+    "segment": {
+      "value": "25%",
+      "type": "dimension",
+      "comment": "One quarter of the track. The indeterminate traverse period is derived from it - segment + track = 1.25 track-widths = five segment-widths, which is why the keyframe is `step x 5` - so the two must move together, and a raw literal here would let one change without the other."
     }
   }
 }

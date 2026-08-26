@@ -336,10 +336,10 @@
   border-radius: var(--clara-skeleton-radius);
   background: var(--clara-skeleton-bg);
 }
-.clara-skeleton--full { width: 100%; }
-.clara-skeleton--three-quarters { width: 75%; }
-.clara-skeleton--half { width: 50%; }
-.clara-skeleton--quarter { width: 25%; }
+.clara-skeleton--full { width: var(--clara-skeleton-width-full); }
+.clara-skeleton--three-quarters { width: var(--clara-skeleton-width-three-quarters); }
+.clara-skeleton--half { width: var(--clara-skeleton-width-half); }
+.clara-skeleton--quarter { width: var(--clara-skeleton-width-quarter); }
 .clara-skeleton-group { display: grid; gap: var(--clara-skeleton-gap); }
 
 /*
@@ -662,7 +662,7 @@
   background: var(--clara-progress-fill-bg);
 }
 .clara-progress--indeterminate .clara-progress__fill {
-  inline-size: 25%;
+  inline-size: var(--clara-progress-segment);
   animation: clara-traverse var(--clara-progress-cycle) linear infinite;
 }
 @keyframes clara-traverse {
