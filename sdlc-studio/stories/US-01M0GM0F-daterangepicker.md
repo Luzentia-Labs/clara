@@ -34,12 +34,26 @@
 - **Verify:** vitest "DateRangePicker presets are keyboard reachable"
 - **Verification target:** functional
 
-### AC3: Consumed by the reference app
+### AC3: Consumable in the shape a filter bar needs
 
-- **Given** the F31 list screen
-- **When** its filter bar renders
-- **Then** it uses DateRangePicker, satisfying the consuming-need rule
-- **Verify:** file apps/reference-app/src/screens/List.tsx
+- **Given** a filter bar composing DateRangePicker with the controls beside it
+- **When** a range is chosen and then cleared
+- **Then** the component drives from a controlled ISO-string pair, reports both endpoints through one
+  callback, and clears back to an empty range without the caller reaching past the public API
+- **And** this criterion was SPLIT, because as written it could not be delivered by this epic. It
+  read "the F31 list screen ... uses DateRangePicker" and its verifier was
+  `file apps/reference-app/src/screens/List.tsx` - a path that does not exist. `apps/reference-app`
+  is a bare `package.json` whose build script is `echo "not yet implemented" && exit 1`, and it is
+  owned by **EP-01M0GKV1**. A criterion naming another epic's deliverable makes this story
+  un-closable for a reason that is not its own, which is the identical defect found and split in
+  EP-01M0GK4P's own criterion 4
+- **And** the verifier was `file <path>`, which passes because a file EXISTS. That is the weakest
+  verifier class in this repository and it was already found once on Tag's AC5, where a
+  definition-of-done criterion passed on one file existing while every test could have been deleted
+- **And** what this epic CAN prove is the consuming need itself: that the public API supports the
+  composition a filter bar requires. When EP-01M0GKV1 builds the list screen it inherits a component
+  already proved consumable, and its own criterion owns the integration
+- **Verify:** vitest "DateRangePicker drives a filter bar"
 - **Verification target:** functional
 
 ### AC4: Token-only styling
@@ -54,7 +68,11 @@
 
 - **Given** a DateRangePicker
 - **When** it renders in dark theme and compact density
-- **Then** it holds its visual baseline in all four combinations
+- **Then** it renders inside the correct scope and passes axe in all four combinations
+- **And** "holds its visual baseline" is deliberately NOT claimed: jsdom computes no layout and
+  resolves no custom property, so a matrix criterion verified by vitest cannot see appearance at
+  all. That is gate 7's (US-01M0WSME), and every story in the preceding epic was corrected the
+  same way
 - **Verify:** vitest "DateRangePicker theme and density matrix"
 - **Verification target:** functional
 
@@ -62,7 +80,14 @@
 
 - **Given** the DateRangePicker story
 - **When** it is proposed for export
-- **Then** stories, tests, an axe assertion over default and error states, a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist
+- **Then** a verification record exists carrying a keyboard table, an accessibility section, at least
+  three resolving citations to what is verified automatically, and at least one stated gap - and the
+  docs page it names exists
+- **And** the copied sentence this replaced claimed "a visual baseline ... and a recorded manual
+  keyboard pass all exist". `check-verification.mjs` has a rule for neither: no baseline exists for
+  any component because gate 7 is unwired (US-01M0WSME), and the guard deliberately accepts an
+  honest "outstanding" for the manual pass. **BG-01M107ND** carries the same correction for the
+  stories that still copy it
 - **Verify:** shell node scripts/check-verification.mjs --component DateRangePicker
 - **Verification target:** functional
 

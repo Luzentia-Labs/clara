@@ -30,6 +30,12 @@ A real list screen and a real form screen, built entirely on Clara, consuming th
 
 ## Acceptance Criteria (Epic Level)
 
+- [ ] The F31 list screen's filter bar uses `DateRangePicker`. **Moved here from US-01M0GM0F AC3 on
+      2026-08-27**, which named `apps/reference-app/src/screens/List.tsx` - a file this epic owns and
+      that does not exist yet - and so made a DateRangePicker story un-closable for a reason that was
+      not its own. That story now proves the component is CONSUMABLE in a filter bar's shape; proving
+      this application consumes it is this epic's.
+
 - [ ] Both screens are built entirely from `@luzentialabs/clara-react`, with no ad-hoc CSS beyond page layout
 - [ ] **Every escape hatch the application needs is recorded as a finding against the component that forced it.** This is the output the epic exists to produce
 - [ ] Both screens are operable end to end by keyboard alone
