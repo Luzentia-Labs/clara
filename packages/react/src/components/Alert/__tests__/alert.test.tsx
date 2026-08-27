@@ -9,6 +9,7 @@ import { runAxe } from '../../../../../../test/axe'
 // local copy could agree with itself while disagreeing with the gate.
 import { contrastRatio } from '../../../../../../scripts/lib/wcag.mjs'
 import { ClaraProvider } from '../../../theme/ClaraProvider'
+import { DangerIcon, InfoIcon, SuccessIcon, WarningIcon } from '@luzentialabs/clara-icons'
 import { Alert } from '../Alert'
 
 const INTENTS = ['info', 'success', 'warning', 'danger'] as const
@@ -19,6 +20,45 @@ describe('Alert intent is not colour alone', () => {
     // The icon is what carries the intent ON SCREEN. A visually-hidden word paints nothing, so it
     // cannot satisfy this criterion on its own.
     expect(container.querySelector('.clara-alert__icon')).toBeTruthy()
+  })
+
+  /*
+   * WHICH icon, not merely that there is one.
+   *
+   * The assertion above reads presence, and presence is a proxy for identity (D0065). A review
+   * swapped `danger`'s entry from `DangerIcon` to `InfoIcon` and measured 1200 unit tests,
+   * `pnpm test:e2e` at 34 passed and every guard green - so a danger alert displayed an "i" while
+   * the criterion that exists to make the intent VISIBLE reported success.
+   *
+   * The glyphs are genuinely different: DangerIcon draws `M9 9l6 6M15 9l-6 6`, an "x"; InfoIcon
+   * draws `M12 11v5M12 8h.01`, an "i". Comparing the rendered path data against the icon component
+   * rendered on its own is the identity check - it needs no fixture and cannot drift from the icon
+   * set, because it reads the icon set.
+   */
+  const glyphOf = (root: Element | null) =>
+    [...(root?.querySelectorAll('path') ?? [])].map((n) => n.getAttribute('d')).join('|')
+
+  it.each([
+    ['info', InfoIcon],
+    ['success', SuccessIcon],
+    ['warning', WarningIcon],
+    ['danger', DangerIcon],
+  ] as const)('%s renders ITS OWN glyph, not merely some glyph', (intent, Expected) => {
+    const alert = render(<Alert intent={intent}>Body</Alert>)
+    const standalone = render(<Expected />)
+    const seen = glyphOf(alert.container.querySelector('.clara-alert__icon'))
+    expect(seen, `the ${intent} alert renders no path data to compare`).not.toBe('')
+    expect(seen).toBe(glyphOf(standalone.container.firstElementChild))
+  })
+
+  it('gives the four intents four DISTINCT glyphs', () => {
+    // Without this, an icon set whose four entries collapsed to one glyph would satisfy every
+    // per-intent comparison above and still leave the intent invisible.
+    const seen = INTENTS.map((intent) => {
+      const { container } = render(<Alert intent={intent}>Body</Alert>)
+      return glyphOf(container.querySelector('.clara-alert__icon'))
+    })
+    expect(new Set(seen).size, `the intents share glyphs: ${seen.join(' / ')}`).toBe(INTENTS.length)
   })
 
   it.each([
@@ -47,6 +87,34 @@ describe('Alert intent is not colour alone', () => {
     // interrupts, a confirmation does not.
     render(<Alert intent={intent}>Message.</Alert>)
     expect(screen.getByRole(role)).toBeInTheDocument()
+  })
+
+  /*
+   * The PROP reaching its own CLASS - the link AC6 does not cover, and cannot.
+   *
+   * AC6 proves a class resolves to its intent's tokens, in a browser. It composes its markup BY HAND
+   * (`e2e/stacking.spec.ts`), so it never renders this component and never sees the prop. Hardcoding
+   * the modifier makes every danger, warning and success alert render INFO colours, and a review
+   * measured that surviving 1200 unit tests, `pnpm typecheck`, `pnpm test:e2e` at 34 passed, and all
+   * 30 guards including 147 prover mutations.
+   *
+   * Badge carried this assertion from the start and the other two did not, which is exactly how the
+   * gap survived: the test already existed in this repository and was not copied across.
+   *
+   * EVERY intent, including the default where there is one - `neutral` takes its colour from the
+   * base rule rather than a modifier, so a loop over the non-neutral intents leaves the most-used
+   * path unbound.
+   */
+  it.each(INTENTS)('%s reaches its own class, so the colour is a token and not a style', (intent) => {
+    const { container } = render(<Alert intent={intent}>Body</Alert>)
+    const el = container.firstElementChild as HTMLElement
+    expect(el.className).toContain(`clara-alert--${intent}`)
+    // Every OTHER intent's modifier must be absent, or a component emitting all of them would pass.
+    for (const other of INTENTS.filter((i) => i !== intent)) {
+      expect(el.className).not.toContain(`clara-alert--${other}`)
+    }
+    // A token, not an inline style: an inline colour cannot be re-resolved per theme.
+    expect(el.getAttribute('style')).toBeNull()
   })
 })
 

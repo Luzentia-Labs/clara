@@ -42,7 +42,14 @@ describe('EmptyState distinguishes empty from filtered', () => {
   it('announces politely, because an empty list is already what the user is looking at', () => {
     render(<EmptyState reason="empty" title="No invoices yet" />)
     // `status`, not `alert`. Interrupting a screen reader to announce the obvious is shouting.
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    const region = screen.getByRole('status')
+    expect(region).toBeInTheDocument()
+    // And it must actually announce. `role="status"` implies `aria-live="polite"`; an explicit
+    // `aria-live="off"` beside it silences the region in every screen reader while leaving the role
+    // intact, and a review measured that mutation passing 1200 unit tests, check:axe and
+    // check:verification. The role's PRESENCE was standing in for the announcement (D0065).
+    expect(region).not.toHaveAttribute('aria-live', 'off')
+    expect(region).not.toHaveAttribute('aria-hidden', 'true')
   })
 
   it('renders the action when one is given, and nothing when there is none', () => {

@@ -63,7 +63,17 @@ unannounced count and one that cannot express it.
 
 - **Given** a Badge with an intent
 - **When** it renders
-- **Then** a mark, icon or text label accompanies the colour (Tier 3 colour-alone gap)
+- **Then** the intent reaches the ACCESSIBLE NAME as a word, and the intent prop reaches its own
+  class so the colour is a token rather than an inline style
+- **And** the criterion used to read "a mark, icon or text label accompanies the colour", and
+  Badge renders none of those three - only a `clara-visually-hidden` word. **BG-01M11KT6** carries
+  the gap: Grace Adeyemi is named in this story's `Serves:` and is SIGHTED with a red-green
+  deficiency, so an accessibility-tree carrier does not reach her, and red/green is exactly the pair
+  she cannot separate. The title is left as written rather than quietly reworded, because it points
+  at a real gap that renaming would hide
+- **And** what IS guaranteed is stated in the component's own docblock and now in the criterion: the
+  intent never depends on the colour for a screen-reader user. What is NOT guaranteed is that two
+  badges with the same text and different intents look different, and no API can promise that
 - **Verify:** vitest "Badge intent is not colour alone"
 - **Verified:** yes (2026-08-25)
 - **Verification target:** functional
@@ -247,7 +257,7 @@ verifier must fail on, and the verdict beside it is what happened when that edit
 
 | Criterion | Touches | Mutant - the production change this test must fail on | Title |
 | --- | --- | --- | --- |
-| AC1 | packages/react/src/components/Badge/Badge.tsx | Suppress the announcement: `{intent !== 'neutral' && (` becomes `{false && (`. KILLED, 4 tests. Written as a suppression rather than a deletion on purpose - deleting the span outright leaves invalid JSX, and a suite that fails to COMPILE reports a lower test count rather than a failing assertion, which reads as a kill and proves nothing. Total stayed 1200. | Intent is not colour alone |
+| AC1 | packages/react/src/components/Badge/Badge.tsx | **(review)** Also hardcode the modifier to `'clara-badge--info'`, and repoint the base rule's neutral tokens at danger - both KILLED now, both previously survived everything including `test:e2e`. `neutral` is in the loop deliberately: it is the DEFAULT and takes its colour from the base rule rather than a modifier, so a loop over the four non-neutral intents left the most-used path bound to nothing. Then, the announcement mutant: suppress it with `{intent !== 'neutral' && (` becomes `{false && (`. KILLED, 4 tests. Written as a suppression rather than a deletion on purpose - deleting the span outright leaves invalid JSX, and a suite that fails to COMPILE reports a lower test count rather than a failing assertion, which reads as a kill and proves nothing. Total stayed 1200. | Intent is not colour alone |
 | AC2 | packages/react/src/components/Badge/Badge.tsx | Delete `<span className="clara-visually-hidden"> {input.countLabel}</span>`. KILLED, 2 tests. A bare number is the one badge shape whose visible text cannot carry its own meaning, which is why `countLabel` is required rather than defaulted. | Counts are announced |
 | AC3 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-badge` - a raw literal where a token belongs. KILLED, `check-component-css` exits 1. The verifier is a guard that READS the stylesheet, which is required here: no test imports a CSS file, so a vitest-only verifier over this mutant would be green by construction. | Token-only styling |
 | AC4 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. KILLED, 4 of 4 combinations. Mutating the PROVIDER rather than the component is what proves the assertion reads the scope rather than merely finding the component. What this criterion claims is bounded and the story says so: jsdom sees no layout and resolves no custom property, so the APPEARANCE is gate 7's. | Both themes and densities |

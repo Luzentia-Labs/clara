@@ -329,6 +329,34 @@ test.describe('a busy indicator states liveness (D0100)', () => {
     }
   })
 
+  test('a loading button does not resize, so the layout around it does not jump', async ({ page }) => {
+    // `.clara-button__spinner { position: absolute }` is what holds this, and its deletion left the
+    // ENTIRE repo green: 1200 unit tests, check:geometry, test:e2e at 34 passed, component-css and
+    // stylesheets all fine. The `motion-button-loading` fixture case is `kind: 'motion'`, so the
+    // geometry suite measured its animation and never its box.
+    //
+    // Without the absolute position the ring joins the flex row instead of overlaying the reserved
+    // label, and the button grows by the ring's width the moment it starts saving - which moves
+    // every control after it, mid-click.
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.goto(`file://${FIXTURE}`)
+
+    const box = (c: string) => page.evaluate((sel) => {
+      const el = document.querySelector(sel)!
+      const r = el.getBoundingClientRect()
+      return { w: r.width, h: r.height }
+    }, `[data-case="${c}"] .clara-button`)
+
+    const loading = await box('motion-button-loading')
+    const idle = await box('motion-button-idle')
+    expect(idle.w, 'the idle button has no width to compare against').toBeGreaterThan(0)
+    // Sub-pixel layout is real; a whole pixel of drift is not what this is looking for.
+    expect(Math.abs(loading.w - idle.w),
+      `a loading button is ${loading.w}px against an idle ${idle.w}px - it resizes when it starts working`)
+      .toBeLessThan(1)
+    expect(Math.abs(loading.h - idle.h), 'a loading button changes height').toBeLessThan(1)
+  })
+
   test('under reduced motion it displaces nothing, and still changes over time', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto(`file://${FIXTURE}`)
@@ -337,6 +365,21 @@ test.describe('a busy indicator states liveness (D0100)', () => {
       const animation = await animationOf(page, sel)
       expect(animation.name, `${sel}: the motion was removed rather than replaced - a spinner that stops is a broken spinner`).not.toBe('none')
       expect(animation.iterations).toBe('infinite')
+      // THE PERIOD, under `reduce` as well as under `no-preference`.
+      //
+      // The bounds above were applied only to the no-preference branch - that is, only to the
+      // branch a motion-sensitive user never sees. Measured: dropping the reduced pulse from
+      // `--clara-spinner-cycle` (800ms) to `--clara-duration-state-change` (120ms) left this gate
+      // at 10 passed. A 120ms alternate pulse is roughly 8.3 luminance changes per second,
+      // delivered specifically to the users who asked for less motion, and WCAG 2.3.1 bounds
+      // flashing at three per second.
+      //
+      // The substitution has to stay slow to be a substitution at all. It is the same bound, and it
+      // matters MORE here, not less.
+      expect(animation.seconds, `${sel}: the reduced treatment cycles faster than 3Hz, which is the flash hazard WCAG 2.3.1 bounds`)
+        .toBeGreaterThan(1 / 3)
+      expect(animation.seconds, `${sel}: the reduced treatment is so slow it no longer reads as live`)
+        .toBeLessThan(2)
     }
 
     // Sampled on one ring: they share a class, and the assertions above already proved the shared
@@ -423,6 +466,30 @@ test.describe('progress states its value rather than animating toward it (D0100)
     // A traverse is a TRANSLATION, which is the case condition 1 of the Class B rule exists for.
     expect([...new Set(samples.map((s) => s.transform))],
       'the reduced treatment still translates the fill').toHaveLength(1)
+
+    // THE FILL MUST SPAN THE TRACK under `reduce`, and this is not decoration.
+    //
+    // The indeterminate fill is a quarter-width segment that travels. Stop it travelling without
+    // widening it and you have a quarter segment parked at the start of the track - which reads as
+    // "25% complete", a percentage the component does not know and explicitly refuses to claim.
+    // The stylesheet widens it to 100% for exactly that reason and says so in a comment; measured,
+    // deleting that one line left this gate at 10 passed, because the samples read `transform` and
+    // `backgroundColor` and never the width.
+    const geometry = await page.evaluate((sel) => {
+      const el = document.querySelector(sel)!
+      const track = el.parentElement!
+      return { fill: el.getBoundingClientRect().width, track: track.getBoundingClientRect().width }
+    }, FILL('indeterminate'))
+    expect(geometry.track, 'the indeterminate track has no width to measure against').toBeGreaterThan(0)
+    expect(geometry.fill / geometry.track,
+      'under reduced motion the fill is a parked segment, which reads as a percentage the bar does not know')
+      .toBeGreaterThan(0.99)
+
+    // The period, for the same reason it is bounded on the spinner: a fast colour cycle delivered
+    // to a user who asked for less motion is a flash hazard, not a reduction.
+    const cycle = await page.evaluate((sel) => parseFloat(getComputedStyle(document.querySelector(sel)!).animationDuration), FILL('indeterminate'))
+    expect(cycle, 'the reduced colour cycle is faster than 3Hz, which is the flash hazard WCAG 2.3.1 bounds')
+      .toBeGreaterThan(1 / 3)
     // And liveness survives, or the motion was destroyed rather than reduced.
     expect(new Set(samples.map((s) => s.background)).size,
       'the reduced treatment is static, so it no longer says the system is working').toBeGreaterThan(1)

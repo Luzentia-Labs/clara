@@ -20,6 +20,37 @@ describe('Tag intent is not colour alone', () => {
     const { container } = render(<Tag>Draft</Tag>)
     expect(container.firstElementChild?.textContent?.trim()).toBe('Draft')
   })
+
+  /*
+   * The PROP reaching its own CLASS - the link AC6 does not cover, and cannot.
+   *
+   * AC6 proves a class resolves to its intent's tokens, in a browser. It composes its markup BY HAND
+   * (`e2e/stacking.spec.ts`), so it never renders this component and never sees the prop. Hardcoding
+   * the modifier makes every danger, warning and success tag render INFO colours, and a review
+   * measured that surviving 1200 unit tests, `pnpm typecheck`, `pnpm test:e2e` at 34 passed, and all
+   * 30 guards including 147 prover mutations.
+   *
+   * Badge carried a version of this assertion from the start and the other two did not, which is
+   * exactly how the gap survived: the test already existed in this repository and was not copied.
+   *
+   * `neutral` is in the loop, and it is the case that was missed everywhere. It is the DEFAULT and
+   * the most-used path, and its colour comes from the base rule rather than a modifier - so a loop
+   * over the four non-neutral intents leaves it bound to nothing. Repointing the base rule at the
+   * danger tokens makes every default tag render as an error, and that survived everything too.
+   */
+  const ALL_INTENTS = ['neutral', 'info', 'success', 'warning', 'danger'] as const
+
+  it.each(ALL_INTENTS)('%s reaches its own class, so the colour is a token and not a style', (intent) => {
+    const { container } = render(<Tag intent={intent}>Overdue</Tag>)
+    const el = container.firstElementChild as HTMLElement
+    expect(el.className).toContain(`clara-tag--${intent}`)
+    // Every OTHER intent's modifier must be absent, or a component emitting all five would pass.
+    for (const other of ALL_INTENTS.filter((i) => i !== intent)) {
+      expect(el.className).not.toContain(`clara-tag--${other}`)
+    }
+    // A token, not an inline style: an inline colour cannot be re-resolved per theme.
+    expect(el.getAttribute('style')).toBeNull()
+  })
 })
 
 describe('Tag remove control names its value', () => {

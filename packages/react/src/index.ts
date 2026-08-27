@@ -34,11 +34,17 @@ export type { SkeletonProps, SkeletonGroupProps, SkeletonWidth } from './compone
 export { Spinner } from './components/Spinner/Spinner'
 export type { SpinnerProps } from './components/Spinner/Spinner'
 export { Alert } from './components/Alert/Alert'
-export type { AlertProps, AlertIntent } from './components/Alert/Alert'
+// The VARIANT interfaces are exported too, not only the union. They are already public in
+// substance - they are the shapes a consumer writes - and api-extractor reported them only as
+// `(ae-forgotten-export)` warnings, never as declarations. So a breaking change to
+// `BadgeCountProps.countLabel` or `TagRemovableProps.children` did not appear in the public
+// surface diff at all, on a project whose first stated gotcha is that publishing is a one-way
+// door. Exporting them puts the discriminated pairs under `check:api-report`.
+export type { AlertProps, AlertIntent, AlertStaticProps, AlertDismissibleProps } from './components/Alert/Alert'
 export { Badge } from './components/Badge/Badge'
-export type { BadgeProps, BadgeIntent } from './components/Badge/Badge'
+export type { BadgeProps, BadgeIntent, BadgeLabelProps, BadgeCountProps } from './components/Badge/Badge'
 export { Tag } from './components/Tag/Tag'
-export type { TagProps, TagIntent } from './components/Tag/Tag'
+export type { TagProps, TagIntent, TagStaticProps, TagRemovableProps } from './components/Tag/Tag'
 export { Divider } from './components/Divider/Divider'
 export type { DividerProps } from './components/Divider/Divider'
 export { Heading } from './components/Heading/Heading'

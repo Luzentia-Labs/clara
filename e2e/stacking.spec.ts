@@ -760,12 +760,19 @@ test('every intent class renders its own intent colours, in both themes', async 
 
   for (const dark of [true, false]) {
     const theme = dark ? 'dark' : 'light'
-    const subjects = COMPONENTS.flatMap((c) =>
-      INTENTS.map((i) => `<div class="clara-${c} clara-${c}--${i}" id="s-${c}-${i}">Sample</div>`))
+    const subjects = [
+      ...COMPONENTS.flatMap((c) =>
+        INTENTS.map((i) => `<div class="clara-${c} clara-${c}--${i}" id="s-${c}-${i}">Sample</div>`)),
+      // The default shape: the base class plus its neutral modifier, exactly as the components emit it.
+      ...['badge', 'tag'].map((c) => `<div class="clara-${c} clara-${c}--neutral" id="s-${c}-neutral">Sample</div>`),
+    ]
     // The probe carries the tier 2 pair the intent is SUPPOSED to resolve to, read through the same
     // cascade the components are read through, so a theme override moves both together.
-    const probes = INTENTS.map((i) =>
-      `<div id="probe-${i}" style="color: var(--clara-color-fg-${i}); background: var(--clara-color-bg-${i}-subtle)">Sample</div>`)
+    const probes = [
+      ...INTENTS.map((i) =>
+        `<div id="probe-${i}" style="color: var(--clara-color-fg-${i}); background: var(--clara-color-bg-${i}-subtle)">Sample</div>`),
+      `<div id="probe-neutral" style="color: var(--clara-color-fg-default); background: var(--clara-color-bg-subtle)">Sample</div>`,
+    ]
 
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head>
 <body>
@@ -791,6 +798,29 @@ test('every intent class renders its own intent colours, in both themes', async 
         const seen = await read(`s-${component}-${intent}`)
         expect(seen, `.clara-${component}--${intent} does not render the ${intent} pair in ${theme} theme`)
           .toEqual(expected[intent])
+      }
+    }
+
+    // NEUTRAL, which is the DEFAULT and was bound to nothing.
+    //
+    // Badge and Tag are five-member unions defaulting to `neutral`, and neutral takes its colour
+    // from the BASE rule rather than a modifier - so the loop above, over the four non-neutral
+    // intents, left the most-used path uncovered. A review repointed `.clara-badge`'s base
+    // background at the danger tokens, making every default badge render as an error, and measured
+    // 1200 unit tests, `check-component-css`, `check-contrast` and the whole e2e suite green.
+    //
+    // Alert has no neutral: its `AlertIntent` is a four-member union with no default, because an
+    // alert with no intent is not a thing you can show someone.
+    const neutralProbe = await read('probe-neutral')
+    for (const component of ['badge', 'tag'] as const) {
+      const seen = await read(`s-${component}-neutral`)
+      expect(seen, `.clara-${component} does not render the neutral pair in ${theme} theme`)
+        .toEqual(neutralProbe)
+      // And neutral must be its OWN colour, not a repeat of an intent - otherwise a default badge
+      // reads as a status it was never given.
+      for (const intent of INTENTS) {
+        expect(seen, `the neutral ${component} is indistinguishable from ${intent} in ${theme} theme`)
+          .not.toEqual(expected[intent])
       }
     }
   }

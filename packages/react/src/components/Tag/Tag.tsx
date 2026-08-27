@@ -30,7 +30,7 @@ export interface TagStaticProps extends TagBaseProps {
 export interface TagRemovableProps extends TagBaseProps {
   children: string
   onRemove: () => void
-  /** Overrides the "Remove {children}" accessible name, for a different word or another language. */
+  /** Overrides the `Remove <children>` accessible name, for a different word or another language. */
   removeLabel?: string
 }
 

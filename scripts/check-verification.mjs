@@ -94,6 +94,42 @@ const DOC_CLAIMS = {
    * "the SearchInput docs page inverted to claim Clara debounces for you" is a prover mutation. A
    * page cannot be inverted while a forbidden phrase is absent, because inverting it IS writing one.
    */
+  /*
+   * Skeleton and EmptyState are enrolled because a review inverted both pages and every gate stayed
+   * green. `empty-state.md` was rewritten to tell authors that "Nothing found" is the right title
+   * for BOTH cases - the exact inversion of the distinction the component exists to draw, and of
+   * what Grace needs from it - and `check`, `check-verification --component EmptyState` and the
+   * whole vitest suite all passed. The docs half of a criterion is not covered by a vitest selector,
+   * because a test cannot read markdown.
+   *
+   * `existsSync` is not coverage either: `skeleton.md` reduced to "# Skeleton\n\nTODO." passed the
+   * same gates. That is the "passed because one file existed" class this project has now found three
+   * times.
+   */
+  'skeleton.md': {
+    require: [
+      [/^#+ .*do not shimmer/im, 'the no-shimmer section, as a heading rather than a passing mention'],
+      [/announces once, for the whole group|announces once/i, 'that the GROUP announces once, which is the whole split'],
+      [/no way to override it/i, 'that a placeholder cannot be made announceable'],
+      [/^#+ .*when it arrives/im, 'the section handing the arrival announcement to the caller, which is the easiest part to forget'],
+    ],
+    forbid: [
+      [/skeletons? (shimmer|pulse|sweep)s?\b(?!,? no)/i, 'a claim that skeletons animate, which is the opposite of the decision'],
+      [/each (placeholder|skeleton) announces/i, 'a claim that placeholders announce individually, which is the defect the split prevents'],
+    ],
+  },
+  'empty-state.md': {
+    require: [
+      [/^#+ .*title for the case/im, 'the section telling the author to write the title for the case'],
+      [/\bNothing found\b/, 'the "Nothing found" example, which the page exists to reject'],
+      [/useful for neither|worse than showing nothing/i, 'why one title for both cases is wrong, stated rather than implied'],
+      [/`action` is \*\*required\*\* on `filtered`/, 'that the escape route is required on the filtered case'],
+    ],
+    forbid: [
+      [/"Nothing found" is (the right|a good|an acceptable)/i, 'a claim that one title serves both cases, which inverts the distinction'],
+      [/`?reason`? is optional|defaults? to `?empty`?/i, 'a claim that the reason may be omitted, which would let every forgetful author ship the misleading case'],
+    ],
+  },
   'dropdown-menu.md': {
     require: [
       [/^#+ .*Actions only/m, 'the actions-only section, as a heading rather than a passing mention'],
@@ -443,7 +479,7 @@ for (const name of inScope) {
 
 const docsDir = join(ROOT, 'apps/docs/src/content/components')
 // Every page in DOC_CLAIMS needs an owner, or the scoped run silently checks nothing for it.
-const DOC_OWNER = { 'search-input.md': 'SearchInput', 'switch.md': 'Switch', 'field.md': 'Field', 'input.md': 'Input', 'dropdown-menu.md': 'DropdownMenu' }
+const DOC_OWNER = { 'search-input.md': 'SearchInput', 'switch.md': 'Switch', 'field.md': 'Field', 'input.md': 'Input', 'dropdown-menu.md': 'DropdownMenu', 'skeleton.md': 'Skeleton', 'empty-state.md': 'EmptyState' }
 for (const page of Object.keys(DOC_CLAIMS)) {
   if (!DOC_OWNER[page]) throw new Error(`DOC_CLAIMS has ${page} with no DOC_OWNER entry - the scoped run would skip it`)
 }

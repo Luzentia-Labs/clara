@@ -104,6 +104,24 @@ is REPLACED by a pulse on the same period rather than removed. A stopped ring re
 - **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
+### AC6: Placing the shared ring does not resize its host
+
+- **Given** a `<Button loading>` and an identical idle button
+- **When** both are measured in a real browser
+- **Then** their boxes are the same size
+- **And** this is the other half of "one ring implementation". The story already claims Spinner and
+  Button render the SAME class so the two cannot drift; what holds the button's size while that ring
+  is inside it is `.clara-button__spinner { position: absolute }`, which overlays the ring on the
+  label box the button has already reserved
+- **And** deleting that one rule left the ENTIRE repository green - 1200 unit tests,
+  `check:geometry`, `pnpm test:e2e` at 34 passed, `check-component-css` and `check-stylesheets`.
+  The `motion-button-loading` fixture case is `kind: 'motion'`, so the geometry suite measured its
+  animation and never its box. Without the rule the ring joins the flex row and the button grows the
+  moment it starts saving, moving every control after it mid-click
+- **Verify:** shell pnpm check:geometry
+- **Verified:** yes (2026-08-27)
+- **Verification target:** functional
+
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
 
 ## Scope
@@ -229,6 +247,7 @@ verifier must fail on, and the verdict beside it is what happened when that edit
 | AC3 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-spinner` - a raw literal where a token belongs. KILLED, `check-component-css` exits 1. The verifier is a guard that READS the stylesheet, which is required here: no test imports a CSS file, so a vitest-only verifier over this mutant would be green by construction. | Token-only styling |
 | AC4 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. KILLED, 4 of 4 combinations. Mutating the PROVIDER rather than the component is what proves the assertion reads the scope rather than merely finding the component. What this criterion claims is bounded and the story says so: jsdom sees no layout and resolves no custom property, so the APPEARANCE is gate 7's. | Both themes and densities |
 | AC5 | packages/react/src/components/Spinner/verification.md | Rename `## Keyboard` to `## Keys`. KILLED - `missing section "## Keyboard"`, exit 1. Renaming it to anything CONTAINING `## Keyboard` was accepted until 2026-08-27, when `sectionBody`'s prefix match was anchored to a whole line; that suffix form is now `prove-guards` mutation 147. | Definition of done |
+| AC6 | packages/react/src/styles.css | Delete `.clara-button__spinner { position: absolute; }`. KILLED by `check:geometry` - `a loading button ... resizes when it starts working`. It previously survived EVERYTHING: 1200 unit tests, `check:geometry`, `pnpm test:e2e` at 34 passed, `check-component-css` and `check-stylesheets`, because the `motion-button-loading` fixture case is `kind: 'motion'` and the suite measured its animation and never its box. The fixture now carries an idle twin so both boxes are on the page at once - a size claim needs something to be the same size AS. | Placing the shared ring does not resize its host |
 
 ## Revision History
 

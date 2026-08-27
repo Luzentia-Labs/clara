@@ -31,8 +31,13 @@ moment its `role="status"` matters.
 
 `role="status"` rather than `role="alert"`. An empty list is information, and it is already the
 thing the user is looking at - interrupting a screen reader mid-sentence to announce it would be
-shouting about the obvious. It still announces, because the state usually appears in response to a
-filter change the user made without looking at this region.
+shouting about the obvious.
+
+**A claim that used to sit here was false and is corrected.** It read "It still announces, because
+the state usually appears in response to a filter change the user made without looking at this
+region." The second half is the case that is MOST at risk, not least: the region and its text are
+created in the same commit, which is precisely the shape this repo records as commonly silent. See
+the stated gap below.
 
 ## The distinction this component exists for
 
@@ -65,6 +70,22 @@ Two things make the distinction survive contact with an author:
 - Token-only styling, no literals and no tier 1 reads - `check:component-css`
 
 ## Stated gaps
+
+- **The announcement may not actually be made, and nothing here can tell.** The `role="status"`
+  region and its text are created in the SAME commit, and this repo has already recorded, in
+  the Input component, that "a region that appears in the same commit as its text is
+  commonly not announced at all - so the boundary crossing, the one announcement that matters, was
+  the likeliest to be silent". Input answers it with an announcer that is always present and empty
+  until there is something to say; that shape needs an effect, and an effect makes a component
+  client-only.
+
+  What IS proved here: the region exists, carries `role="status"`, is not silenced with
+  `aria-live="off"` or `aria-hidden`, and appears exactly once. What is NOT proved is that a screen
+  reader speaks it, and no gate in this repository can decide that - jsdom has no announcement
+  model and axe reads the accessibility tree rather than what is spoken.
+
+  Filed as **BG-01M11JWY**, with the boundary trade-off stated: the fix is known, and paying for it
+  costs this component its server classification.
 
 - **Nothing enforces that the TITLE distinguishes the two cases.** The type forces a `reason` and
   an escape route; it cannot force "No invoices yet" over "Nothing found". The docs page carries

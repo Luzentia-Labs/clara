@@ -21,14 +21,28 @@ import { TextareaHTMLAttributes } from 'react';
 // @public
 export function Alert(input: AlertProps): JSX_2.Element;
 
+// Warning: (ae-forgotten-export) The symbol "AlertBaseProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface AlertDismissibleProps extends AlertBaseProps {
+    dismissLabel?: string;
+    // (undocumented)
+    onDismiss: () => void;
+}
+
 // @public
 export type AlertIntent = 'info' | 'success' | 'warning' | 'danger';
 
-// Warning: (ae-forgotten-export) The symbol "AlertStaticProps" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "AlertDismissibleProps" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type AlertProps = AlertStaticProps | AlertDismissibleProps;
+
+// @public (undocumented)
+export interface AlertStaticProps extends AlertBaseProps {
+    // (undocumented)
+    dismissLabel?: never;
+    // (undocumented)
+    onDismiss?: never;
+}
 
 // @public
 export interface AsProp<C extends ElementType> {
@@ -39,12 +53,30 @@ export interface AsProp<C extends ElementType> {
 // @public
 export function Badge(input: BadgeProps): JSX_2.Element;
 
+// Warning: (ae-forgotten-export) The symbol "BadgeBaseProps" needs to be exported by the entry point index.d.ts
+//
+// @public
+export interface BadgeCountProps extends BadgeBaseProps {
+    // (undocumented)
+    children?: never;
+    // (undocumented)
+    count: number;
+    countLabel: string;
+}
+
 // @public
 export type BadgeIntent = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
 
-// Warning: (ae-forgotten-export) The symbol "BadgeLabelProps" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "BadgeCountProps" needs to be exported by the entry point index.d.ts
-//
+// @public
+export interface BadgeLabelProps extends BadgeBaseProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    count?: never;
+    // (undocumented)
+    countLabel?: never;
+}
+
 // @public (undocumented)
 export type BadgeProps = BadgeLabelProps | BadgeCountProps;
 
@@ -590,11 +622,29 @@ export function Tag(input: TagProps): JSX_2.Element;
 // @public
 export type TagIntent = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
 
-// Warning: (ae-forgotten-export) The symbol "TagStaticProps" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "TagRemovableProps" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type TagProps = TagStaticProps | TagRemovableProps;
+
+// Warning: (ae-forgotten-export) The symbol "TagBaseProps" needs to be exported by the entry point index.d.ts
+//
+// @public
+export interface TagRemovableProps extends TagBaseProps {
+    // (undocumented)
+    children: string;
+    // (undocumented)
+    onRemove: () => void;
+    removeLabel?: string;
+}
+
+// @public
+export interface TagStaticProps extends TagBaseProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    onRemove?: never;
+    // (undocumented)
+    removeLabel?: never;
+}
 
 // @public (undocumented)
 function Text_2(input: TextProps): JSX_2.Element;

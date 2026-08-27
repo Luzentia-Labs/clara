@@ -16,6 +16,17 @@ describe('Skeleton container announces once', () => {
     const statuses = screen.getAllByRole('status')
     expect(statuses).toHaveLength(1)
     expect(statuses[0]).toHaveTextContent('Loading invoices')
+    // The region must actually ANNOUNCE, not merely carry the role.
+    //
+    // `role="status"` implies `aria-live="polite"`, and an explicit `aria-live="off"` beside it
+    // overrides that and makes the group permanently silent in every screen reader. A review added
+    // exactly that and measured 1200 unit tests, check:axe at 212 passed and check:verification all
+    // green: the criterion says "announces once" and could not fail on a component that announces
+    // zero times. Presence of the role was standing in for the announcement (D0065).
+    //
+    // ZERO is a failure here, not just forty. This is the assertion for the zero direction.
+    expect(statuses[0]).not.toHaveAttribute('aria-live', 'off')
+    expect(statuses[0]).not.toHaveAttribute('aria-hidden', 'true')
   })
 
   it('hides every placeholder from the accessibility tree', () => {

@@ -105,6 +105,29 @@ transitions, because it states its value rather than travelling toward it.
 - **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
+### AC6: It states its value rather than travelling toward it
+
+- **Given** a determinate ProgressBar, and an indeterminate one
+- **When** each is measured in a real browser, under both motion preferences
+- **Then** the determinate bar neither animates nor transitions; the indeterminate one traverses
+  forever and never backwards; and under `prefers-reduced-motion: reduce` it stops traversing,
+  spans the full track, and cycles colour on a period no faster than 3Hz
+- **And** the criterion exists because **this story had no D0100 criterion at all**. The gate did -
+  `e2e/geometry.spec.ts` has held these assertions since the component was built - but nothing
+  named it, so `reconcile --verify` was green with the defect installed. A review measured it:
+  adding `transition: inline-size ... linear` to `.clara-progress__fill` - the precise edit this
+  story's own Open Question calls "settled by D0100 and asserted in the browser" - passed all five
+  of the then-existing verifiers, and failed `check:geometry` the moment anything ran it
+- **And** a transition is not a style choice here. `aria-valuenow` reports the NEW value immediately
+  while a transitioned width still paints the old one, so for the length of the transition a sighted
+  user and a screen-reader user are told different numbers
+- **And** the full-track width under `reduce` is load-bearing, not tidiness: stop a quarter-width
+  segment travelling without widening it and it parks at the start of the track, reading as "25%
+  complete" - a percentage the bar does not know and AC2 explicitly refuses to claim
+- **Verify:** shell pnpm check:geometry
+- **Verified:** yes (2026-08-27)
+- **Verification target:** functional
+
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
 
 ## Scope
@@ -236,6 +259,7 @@ verifier must fail on, and the verdict beside it is what happened when that edit
 | AC3 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-progress` - a raw literal where a token belongs. KILLED, `check-component-css` exits 1. The verifier is a guard that READS the stylesheet, which is required here: no test imports a CSS file, so a vitest-only verifier over this mutant would be green by construction. | Token-only styling |
 | AC4 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. KILLED, 4 of 4 combinations. Mutating the PROVIDER rather than the component is what proves the assertion reads the scope rather than merely finding the component. What this criterion claims is bounded and the story says so: jsdom sees no layout and resolves no custom property, so the APPEARANCE is gate 7's. | Both themes and densities |
 | AC5 | packages/react/src/components/ProgressBar/verification.md | Rename `## Keyboard` to `## Keys`. KILLED - `missing section "## Keyboard"`, exit 1. Renaming it to anything CONTAINING `## Keyboard` was accepted until 2026-08-27, when `sectionBody`'s prefix match was anchored to a whole line; that suffix form is now `prove-guards` mutation 147. | Definition of done |
+| AC6 | packages/react/src/styles.css | THREE mutants, all KILLED by `check:geometry`, one per clause. (a) Add `transition: inline-size var(--clara-duration-state-change) linear` to `.clara-progress__fill` - `a transitioned width lies about the current value for its duration`. **This survived every one of the five criteria that existed before AC6**, because none of them ran a browser. (b) Delete `inline-size: 100%` from the reduced-motion block - `the fill is a parked segment, which reads as a percentage the bar does not know`; it previously survived because the samples read `transform` and `backgroundColor` and never the width. (c) Speed the reduced colour cycle below 3Hz - `faster than 3Hz, which is the flash hazard WCAG 2.3.1 bounds`; the period was bounded only in the `no-preference` branch, which is the branch a motion-sensitive user never sees. | It states its value rather than travelling toward it |
 
 ## Revision History
 
