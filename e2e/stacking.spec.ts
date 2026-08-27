@@ -724,3 +724,75 @@ test('a popover with long content stays in the viewport and scrolls', async ({ p
   }
   await page.setViewportSize({ width: 1280, height: 720 })
 })
+
+/**
+ * An intent class must render ITS OWN intent's colours.
+ *
+ * Alert, Badge and Tag each map four intent classes onto four tier 3 token pairs, and every one of
+ * those pairs is correct in the token build - `Alert intent contrast both themes` proves the PAIRS
+ * meet AA, and `check:contrast` measures all 106 declared pairings. Neither asserts that
+ * `.clara-alert--danger` uses the DANGER pair.
+ *
+ * Measured: repointing `.clara-alert--danger`, `.clara-badge--danger` and `.clara-tag--danger` at
+ * their info tokens left everything green - 1200 unit tests, `check-component-css` and
+ * `check-contrast` - and a contrast assertion could never catch it, because info-on-info is a
+ * perfectly good AA pair. The failure is not a contrast failure. It is a danger alert that renders
+ * as an information alert, with the colour saying one thing and the visually-hidden word saying
+ * another.
+ *
+ * So this reads the COMPUTED colours off the shipped stylesheets and compares each intent class
+ * against a probe carrying that intent's tier 2 pair directly. Both halves are asserted: every class
+ * matches its own probe, AND the four intents are mutually distinct - without the second half, a
+ * build that collapsed all four tier 2 aliases to one colour would satisfy the first.
+ */
+test('every intent class renders its own intent colours, in both themes', async ({ page }) => {
+  const css = ['packages/tokens/dist/tokens.css', 'packages/tokens/dist/themes/dark.css',
+    'packages/react/dist/styles.css']
+    .map((f) => readFileSync(join(process.cwd(), f), 'utf8')).join('\n')
+
+  const COMPONENTS = ['alert', 'badge', 'tag'] as const
+  const INTENTS = ['info', 'success', 'warning', 'danger'] as const
+  // Light is the ABSENCE of a dark ancestor, never `data-clara-theme="light"` - that attribute is
+  // inert, because light lives on `:root` and only the dark selector scopes anything. The panel
+  // contrast test above records what a value-flipping loop costs.
+  const wrap = (inner: string, dark: boolean) =>
+    dark ? `<div data-clara-theme="dark">${inner}</div>` : inner
+
+  for (const dark of [true, false]) {
+    const theme = dark ? 'dark' : 'light'
+    const subjects = COMPONENTS.flatMap((c) =>
+      INTENTS.map((i) => `<div class="clara-${c} clara-${c}--${i}" id="s-${c}-${i}">Sample</div>`))
+    // The probe carries the tier 2 pair the intent is SUPPOSED to resolve to, read through the same
+    // cascade the components are read through, so a theme override moves both together.
+    const probes = INTENTS.map((i) =>
+      `<div id="probe-${i}" style="color: var(--clara-color-fg-${i}); background: var(--clara-color-bg-${i}-subtle)">Sample</div>`)
+
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head>
+<body>
+  ${wrap([...subjects, ...probes].join('\n'), dark)}
+</body></html>`)
+
+    const read = (id: string) => page.locator(`#${id}`).evaluate((el) => {
+      const s = getComputedStyle(el)
+      return { color: s.color, background: s.backgroundColor }
+    })
+
+    const expected: Record<string, { color: string, background: string }> = {}
+    for (const intent of INTENTS) expected[intent] = await read(`probe-${intent}`)
+
+    // Mutually distinct FIRST: if the four probes collapsed to one colour, every comparison below
+    // would pass and prove nothing at all.
+    const seenPairs = INTENTS.map((i) => `${expected[i]!.color}|${expected[i]!.background}`)
+    expect(new Set(seenPairs).size, `the four intents are not visually distinct in ${theme}: ${seenPairs.join(' / ')}`)
+      .toBe(INTENTS.length)
+
+    for (const component of COMPONENTS) {
+      for (const intent of INTENTS) {
+        const seen = await read(`s-${component}-${intent}`)
+        expect(seen, `.clara-${component}--${intent} does not render the ${intent} pair in ${theme} theme`)
+          .toEqual(expected[intent])
+      }
+    }
+  }
+})
+

@@ -4,7 +4,7 @@
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** packages/react/src/components/Badge/**, packages/react/src/components/Badge/index.tsx, scripts/check-component-css.mjs
@@ -15,6 +15,47 @@
 **As a** Grace Adeyemi
 **I want** a count indicator whose intent is readable without colour
 **So that** a hundred badges on a list screen do not become a colour puzzle
+
+## Context
+
+### Persona Reference
+
+**Grace Adeyemi** - a red "3" and a green "3" are the same "3" to her, which is exactly the case
+this component's API is shaped around.
+[Full persona details](../personas.md#grace-adeyemi)
+
+**Sofia Marchetti** - puts a count on a tab label and expects it to announce as something, not as a
+bare number.
+[Full persona details](../personas.md#sofia-marchetti)
+
+### Background
+
+A badge is the smallest surface in the library and it carries the sharpest version of the
+colour-alone problem. `<Badge intent="danger">Open</Badge>` beside
+`<Badge intent="success">Open</Badge>` reads identically to a sighted user who cannot separate the
+two hues, and no API can stop an author writing that.
+
+So the component draws a line and the documentation states it plainly rather than implying the
+component solves WCAG 1.4.1 on the author's behalf. What it GUARANTEES is that the intent reaches
+the accessible name, so a screen reader never depends on the colour. What it CANNOT guarantee is
+that the visible text distinguishes two badges.
+
+The count variant is where the API does more than document. `countLabel` is REQUIRED and not
+optional-with-a-default, because a bare number is the one badge shape where the visible text cannot
+carry its own meaning. Making it required is the difference between a component that permits an
+unannounced count and one that cannot express it.
+
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| Epic | Accessibility | No state in Clara is carried by colour alone, and none by motion alone (D0100). The seat that DECIDES inclusive design (Idris, ux) is not the seat that PROVES it (Mira, qa) - neither may assume the other covered it | AC1 - the intent reaches the accessible name as a word; AC2 - a count announces WHAT is counted; AC6 - the class resolves to its own intent's colours |
+| PRD F01 | API surface | Tier 2 tokens are public and permanent at publish; tiers 1 and 3 are not. Prop types use literal unions, never a bare `string`, wherever the value set is closed | `BadgeIntent` is a five-member literal union, and `BadgeLabelProps`/`BadgeCountProps` are a discriminated pair so `count` and `children` are mutually exclusive at the type level |
+| PRD | Styling | Component CSS may reference tier 2 and tier 3 tokens only - a tier 1 reference or a raw literal fails CI. All CSS emits inside `@layer clara.reset, clara.tokens, clara.components;` | AC3 |
+| TRD Section 7 | Boundary | Every component is classified server or client, and the classification is proved by three oracles that deliberately do not share a reader (D0051) | Badge is SERVER - it holds no state and no handler. `Badge renders on the server` asserts it directly, and `check:client-boundary` proves the classification |
+| PRD | Performance | Per-component JavaScript budgets apply; CSS is deliberately not tree-shaken and ships as one stylesheet | No AC of its own - held by `pnpm size` |
 
 ## Acceptance Criteria
 
@@ -64,26 +105,26 @@
 - **Verified:** yes (2026-08-25)
 - **Verification target:** functional
 
+### AC6: An intent class renders its OWN intent's colours
+
+- **Given** a Badge in each of its four intents
+- **When** its computed colours are read in a real browser, in both themes
+- **Then** each intent class resolves to that intent's tier 2 pair, and the four intents are
+  mutually distinct
+- **And** BOTH halves are load-bearing. Without the distinctness check, a build that collapsed all
+  four tier 2 aliases to one colour would satisfy the per-intent comparison and prove nothing
+- **And** **this is not a contrast criterion and no contrast assertion could replace it.** Measured:
+  repointing `.clara-badge--danger` at the info tokens left 1200 unit tests,
+  `check-component-css` and `check-contrast` all green - because info-on-info is a perfectly good AA
+  pair. The failure is a danger badge that renders as an information badge, with the colour
+  saying one thing and the announced word saying another
+- **And** it cannot be asserted in jsdom, which resolves no `var()` at all, so any verdict it
+  reached here would be a false green by construction rather than a flaky one
+- **Verify:** shell pnpm test:e2e -g "every intent class renders its own intent colours"
+- **Verified:** yes (2026-08-27)
+- **Verification target:** functional
+
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
-
-## Specification delta (2026-08-26)
-
-**AC4 claimed a visual baseline that its verifier cannot see.** The Then-clause read "holds its
-visual baseline in all four combinations" and the verifier is a Vitest matrix, which runs in jsdom.
-jsdom computes no layout and resolves no custom property, so that test can observe that the
-component rendered inside the right scope and that axe found nothing - and nothing about how it
-looks. The clause now says that, and the visual baseline is named where it actually lives: gate 7,
-Chromatic, US-01M0WSME, still pending. Recorded in the verification record's Stated gaps too.
-
-**AC5's verifier was `file .../index.tsx`.** The criterion lists five artefacts - stories, tests,
-an axe assertion, a visual baseline, a docs page - and the existence of `index.tsx` proves none of
-them. It now runs `check-verification.mjs`, which resolves the record's cited test files, requires
-the manual-pass section to state a real result or admit it is outstanding, and checks the docs page
-exists. The same weakness was found and fixed in US-01M0GMZW's ACs the day before; it is a grooming
-pattern across this epic rather than one story's slip.
-
-**The visual baseline stays out of scope here**, rather than being quietly dropped: it is gate 7's,
-it needs Chromatic and an operator-held token, and US-01M0WSME owns it (D0099).
 
 ## Scope
 
@@ -105,6 +146,113 @@ it needs Chromatic and an operator-held token, and US-01M0WSME owns it (D0099).
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold.
+
+## Edge Cases & Error Handling
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| `intent="neutral"` (the default) | Announces NOTHING extra. Neutral means "no intent", so a word here would add a syllable to every badge that says nothing |
+| A count of `0` | Renders `0`. Treating zero as absent hides the one state a user most often wants confirmed - that there are none |
+| A count with no `countLabel` | A type error, not a runtime warning. `countLabel` is required on `BadgeCountProps`, so the unannounced-count shape cannot be written |
+| `count` and `children` together | A type error. The two prop shapes are a discriminated union with `never` on the opposite member |
+| A column of counts | Digits line up. `font-variant-numeric: tabular-nums`, because a ragged column of counts is harder to scan than a padded one |
+| Two badges whose text is identical and whose intent differs | **Indistinguishable to a sighted user who cannot separate the hues, and the component cannot fix it.** The docs say so rather than implying otherwise. A screen-reader user is unaffected - the word is in the accessible name |
+| Rendered in a Server Component | Works. No directive, no browser API |
+| An intent repointed at another intent's tokens | Caught by AC6 in a browser, and by nothing else |
+
+## Test Scenarios
+
+- [x] Every non-neutral intent joins its word to the accessible name
+- [x] The neutral default says nothing extra
+- [x] The intent is carried in a CLASS as well, so the colour comes from a token and not a style prop
+- [x] A count announces what is being counted, not just the number
+- [x] Zero renders rather than being treated as absent
+- [x] Digits sit on a tabular figure, so a column of counts lines up
+- [x] axe passes with a count and with a label
+- [x] It renders on the server, producing markup with no directive and no browser API
+- [x] All four theme and density combinations render and pass axe
+- [x] **In a browser:** every intent class resolves to its OWN intent's colour pair, in both themes
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| [US-01M0GMAE](US-01M0GMAE-semantic-token-layer.md) | Blocking | The tier 2 semantic tokens every colour here resolves through | Done |
+| [US-01M0GM5M](US-01M0GM5M-theming-light-dark-and-context-based-scoping.md) | Blocking | `ClaraProvider`, and the rule that light lives on `:root` while only the dark selector scopes anything | Done |
+| [US-01M0GMC6](US-01M0GMC6-density-modes-with-computed-geometry-assertions.md) | Blocking | The density scale the matrix criterion renders against | Done |
+| [US-01M0WSME](US-01M0WSME-chromatic-visual-regression-blocking-on-unreviewed-diffs.md) | Non-blocking | Gate 7. Nothing here can see what the component LOOKS like | Draft |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| None at runtime | - | This component imports no third-party package. The library reads no environment variables and makes no network call |
+
+## Estimation
+
+**Points:** 2
+**Complexity:** Low
+
+A 2 rather than a 1: the component is trivial to render, and the work is in the API shape -
+making `countLabel` required and the two variants mutually exclusive is a decision that has to be
+right before publish, because widening it later is easy and narrowing it is a major.
+
+> **Points** are a RELATIVE size on the modified Fibonacci scale (1, 2, 3, 5, 8, 13, 20) - not
+> "how long will this take" but "is this bigger than that one", sized against stories already
+> delivered. The gaps widen deliberately, because uncertainty grows with size: it is much harder
+> to argue a story is a 7 rather than an 8 than to choose between a 5 and an 8. A value off the
+> scale is REFUSED, never rounded - the scale IS the estimate. Above 8, SPLIT the story;
+> estimator consistency collapses beyond it, so a bigger number is a triage failure rather than
+> a harder estimate. This is the one size vocabulary: the planner, the forecast and the measured
+> velocity all read this field.
+
+## Rollback Envelope
+
+> Required when `affects_production_runtime: true`; optional otherwise. See `reference-story.md#rollback-envelope`.
+
+**Affects production runtime:** false
+
+This is a library. It runs no service, holds no data and is never deployed - so there is nothing to
+roll back operationally. What it HAS is a one-way door: once `Badge` and its props are published
+under `@luzentialabs/clara-react`, a rename breaks consumers already shipped, and a bad release is
+fixed FORWARD with a patch and never unpublished.
+
+| Component | Reversal | Expected time |
+| --- | --- | --- |
+| The `Badge` export, before any publish | Revert the commit. `NPM_TOKEN` is unset deliberately, so nothing has left this repository | Minutes |
+| The `Badge` export, after a publish | Not reversible. Deprecate the release, ship a corrected patch, leave the bad version in place - releases are immutable by policy | One release cycle |
+| The four `--clara-badge-*` tier 3 token pairs | Not independently reversible | Requires re-running every consumer of the shared surface |
+
+## Open Questions
+
+- [x] Should Badge refuse two badges whose visible text is identical and whose intent differs?
+      **It cannot, and pretending otherwise would be the defect.** Whether two badges on a screen
+      read alike is a property of the page, not of a component that renders one of them. Settled in
+      the component's own docblock and in the docs page, both of which state the limit rather than
+      implying the component solves WCAG 1.4.1 for the author.
+
+## Resolved Questions
+
+- [x] Should `countLabel` default to something, so the count variant is easier to reach for?
+      **No.** The only default available is a generic word, and a generic word is exactly the one
+      that carries no information - the same argument Spinner's required `label` rests on. A
+      required prop that makes the bad shape unwriteable beats an optional one that makes it easy.
+
+## Test Plan
+
+Every row below was RUN against this tree. `Mutant` is the production edit the criterion's own
+verifier must fail on, and the verdict beside it is what happened when that edit was made.
+
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/Badge/Badge.tsx | Suppress the announcement: `{intent !== 'neutral' && (` becomes `{false && (`. KILLED, 4 tests. Written as a suppression rather than a deletion on purpose - deleting the span outright leaves invalid JSX, and a suite that fails to COMPILE reports a lower test count rather than a failing assertion, which reads as a kill and proves nothing. Total stayed 1200. | Intent is not colour alone |
+| AC2 | packages/react/src/components/Badge/Badge.tsx | Delete `<span className="clara-visually-hidden"> {input.countLabel}</span>`. KILLED, 2 tests. A bare number is the one badge shape whose visible text cannot carry its own meaning, which is why `countLabel` is required rather than defaulted. | Counts are announced |
+| AC3 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-badge` - a raw literal where a token belongs. KILLED, `check-component-css` exits 1. The verifier is a guard that READS the stylesheet, which is required here: no test imports a CSS file, so a vitest-only verifier over this mutant would be green by construction. | Token-only styling |
+| AC4 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. KILLED, 4 of 4 combinations. Mutating the PROVIDER rather than the component is what proves the assertion reads the scope rather than merely finding the component. What this criterion claims is bounded and the story says so: jsdom sees no layout and resolves no custom property, so the APPEARANCE is gate 7's. | Both themes and densities |
+| AC5 | packages/react/src/components/Badge/verification.md | Rename `## Keyboard` to `## Keys`. KILLED - `missing section "## Keyboard"`, exit 1. Renaming it to anything CONTAINING `## Keyboard` was accepted until 2026-08-27, when `sectionBody`'s prefix match was anchored to a whole line; that suffix form is now `prove-guards` mutation 147. | Definition of done |
+| AC6 | packages/react/src/styles.css | Repoint `.clara-badge--danger` at the info tokens, leaving the class name alone. KILLED by this criterion ALONE. Measured surviving everything else: 1200 unit tests, `check-component-css` and `check-contrast`. **No contrast assertion could ever catch it** - info-on-info is a good AA pair - which is why this criterion reads the computed colours and compares them against a probe carrying the intent's tier 2 pair, rather than measuring a ratio. | An intent class renders its OWN intent's colours |
 
 ## Revision History
 
