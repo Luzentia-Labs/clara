@@ -236,3 +236,25 @@ If `affects_production_runtime: false`, replace with: *Not applicable – story 
 - **Is an unaimed action acceptable to ship?** NO in silence, YES disclosed - the QA seat's round-4
   ruling, taken as the design decision. It warns in development, the docs page carries a section, and
   the record carries the gap. BG-01M1037M narrows the remaining case.
+
+## Test Plan
+
+Added 2026-08-27, after the story had already reached Done. It was missing, and
+`check-story-verifiers.mjs` begins `if (!text.includes('## Test Plan')) continue` - so six
+`Verified: yes` stamps sat outside the gate AGENTS.md mandates for exactly this. Popover's spec
+delta records the identical omission; this story simply never got the same treatment. The gate does not
+FAIL on a missing plan, it SKIPS the story - **BG-01M109XY** carries that, with 31 other Done
+stories and 133 stamps still on the wrong side of it.
+
+Adding the table does not disturb the stamps: no criterion's TEXT changed, so nothing was certified
+against different words. Every row below was RUN against this tree, and all six mutants were killed.
+
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/DropdownMenu/DropdownMenu.tsx | Drop `{...(entry.disabled ? { disabled: true } : {})}` from `RadixMenu.Item`, so a disabled entry is an ordinary one. KILLED - disabled-item skipping is the half of the menu pattern Clara actually controls; arrows, typeahead and submenus are Radix's and would not move under a Clara-side mutation. | Menu pattern |
+| AC2 | packages/react/src/components/DropdownMenu/DropdownMenu.tsx | Set `modal={false}` on `RadixMenu.Root`. KILLED. | Focus restoration |
+| AC3 | apps/docs/src/content/components/dropdown-menu.md | APPEND "This restriction is lifted; entries may be commands OR destinations." KILLED by the `forbid` list. This is the mutant the criterion's own body describes: it inverts the page by ADDING text, leaving every previously-grepped sentence byte-identical, and three successive `grep` versions of this verifier let it through at exit 0. | Distinct from navigation |
+| AC4 | packages/react/src/styles.css | Add `border-radius: 6px` to `.clara-dropdown-menu` - a raw literal where a token belongs. KILLED. The verifier is a guard that READS the stylesheet, which is required: no test imports a CSS file, so a vitest-only verifier over this mutant is green by construction. | Token-only styling |
+| AC5 | packages/react/src/theme/ClaraPortal.tsx | Strip `{...claraAttributes(settings)}` from the portal root. KILLED. Mutating the PORTAL rather than the component is what proves the assertion reads the portal's scope and not the render container, which carries the same attributes. | Both themes and densities |
+| AC6 | packages/react/src/components/DropdownMenu/verification.md | Rename `## Keyboard` to `## Keys`. KILLED. Rename it to anything CONTAINING `## Keyboard` and it survives - the guard finds sections with `indexOf`, so a longer heading still matches the shorter one as a prefix. | Definition of done |
+
