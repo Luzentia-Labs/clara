@@ -63,7 +63,7 @@ is REPLACED by a pulse on the same period rather than removed. A stopped ring re
 - **When** it renders
 - **Then** it carries an accessible label describing what is loading
 - **Verify:** vitest "Spinner has accessible label"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC2: Respects reduced motion
@@ -73,7 +73,7 @@ is REPLACED by a pulse on the same period rather than removed. A stopped ring re
 - **Then** the motion is REPLACED, not removed: the ring displaces nothing across the cycle and
   still changes over time, on the same period (D0100)
 - **Verify:** shell pnpm check:geometry
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC3: Token-only styling
@@ -82,7 +82,7 @@ is REPLACED by a pulse on the same period rather than removed. A stopped ring re
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC4: Both themes and densities
@@ -91,7 +91,7 @@ is REPLACED by a pulse on the same period rather than removed. A stopped ring re
 - **When** it renders in dark theme and compact density
 - **Then** it renders inside the correct scope and passes axe in all four combinations
 - **Verify:** vitest "Spinner theme and density matrix"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC5: Definition of done
@@ -101,7 +101,7 @@ is REPLACED by a pulse on the same period rather than removed. A stopped ring re
 - **Then** a verification record, its cited tests, an axe assertion, and a docs page all exist and
   resolve
 - **Verify:** shell node scripts/check-verification.mjs --component Spinner
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC6: Placing the shared ring does not resize its host

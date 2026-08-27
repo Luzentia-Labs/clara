@@ -65,7 +65,7 @@ transitions, because it states its value rather than travelling toward it.
 - **When** it renders
 - **Then** aria-valuenow, valuemin and valuemax are correct and update
 - **Verify:** vitest "ProgressBar aria values"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC2: Indeterminate mode
@@ -74,7 +74,7 @@ transitions, because it states its value rather than travelling toward it.
 - **When** it renders
 - **Then** it announces as busy without claiming a false percentage
 - **Verify:** vitest "ProgressBar indeterminate mode"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC3: Token-only styling
@@ -83,7 +83,7 @@ transitions, because it states its value rather than travelling toward it.
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC4: Both themes and densities
@@ -92,7 +92,7 @@ transitions, because it states its value rather than travelling toward it.
 - **When** it renders in dark theme and compact density
 - **Then** it renders inside the correct scope and passes axe in all four combinations
 - **Verify:** vitest "ProgressBar theme and density matrix"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC5: Definition of done
@@ -102,7 +102,7 @@ transitions, because it states its value rather than travelling toward it.
 - **Then** a verification record, its cited tests, an axe assertion, and a docs page all exist and
   resolve
 - **Verify:** shell node scripts/check-verification.mjs --component ProgressBar
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC6: It states its value rather than travelling toward it

@@ -84,7 +84,7 @@ unannounced count and one that cannot express it.
 - **When** a screen reader encounters it
 - **Then** the count and its meaning are announced, not just the number
 - **Verify:** vitest "Badge count is announced with meaning"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC3: Token-only styling
@@ -93,7 +93,7 @@ unannounced count and one that cannot express it.
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC4: Both themes and densities
@@ -102,7 +102,7 @@ unannounced count and one that cannot express it.
 - **When** it renders in dark theme and compact density
 - **Then** it renders inside the correct scope and passes axe in all four combinations
 - **Verify:** vitest "Badge theme and density matrix"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC5: Definition of done
@@ -112,7 +112,7 @@ unannounced count and one that cannot express it.
 - **Then** a verification record, its cited tests, an axe assertion, and a docs page all exist and
   resolve
 - **Verify:** shell node scripts/check-verification.mjs --component Badge
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC6: An intent class renders its OWN intent's colours
@@ -131,6 +131,29 @@ unannounced count and one that cannot express it.
 - **And** it cannot be asserted in jsdom, which resolves no `var()` at all, so any verdict it
   reached here would be a false green by construction rather than a flaky one
 - **Verify:** shell pnpm test:e2e -g "every intent class renders its own intent colours"
+- **Verified:** yes (2026-08-27)
+- **Verification target:** functional
+
+### AC7: The prop shapes cannot be written wrong
+
+- **Given** the discriminated prop pairs on Badge
+- **When** the workspace is type-checked
+- **Then** every shape the component refuses is a COMPILE error, and each refusal is asserted
+- **And** the guarantees held and NOTHING held them. Deleting a `?: never` discriminator left
+  `pnpm typecheck` at exit 0, 1219 tests passing and the API report clean, and the variant
+  interfaces were not even exported - so they reached `clara-react.api.md` only as
+  `(ae-forgotten-export)` warnings and a breaking change to one would not have appeared in the public
+  surface diff at all. They are exported now, which is what puts them under `check:api-report`
+- **And** the assertions are written in TWO forms on purpose. A confirmation seat proved the JSX form
+  insufficient by itself: JSX applies its own excess-children check, so deleting `children?: never`
+  from `BadgeCountProps` was invisible through that route. Sweeping all seven discriminators one at a
+  time, five were caught through JSX and two were not. Non-literal assignability assertions cover the
+  rest, and narrowing assertions cover the two that a component merely happened to hold by reading
+  the prop
+- **And** an `@ts-expect-error` that would never have errored is dead weight reading as coverage, so
+  the seat also replaced every directive with an inert token and confirmed all 14 sites produce a
+  real `TS2322` naming the asserted cause
+- **Verify:** shell pnpm typecheck
 - **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
@@ -263,6 +286,7 @@ verifier must fail on, and the verdict beside it is what happened when that edit
 | AC4 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. KILLED, 4 of 4 combinations. Mutating the PROVIDER rather than the component is what proves the assertion reads the scope rather than merely finding the component. What this criterion claims is bounded and the story says so: jsdom sees no layout and resolves no custom property, so the APPEARANCE is gate 7's. | Both themes and densities |
 | AC5 | packages/react/src/components/Badge/verification.md | Rename `## Keyboard` to `## Keys`. KILLED - `missing section "## Keyboard"`, exit 1. Renaming it to anything CONTAINING `## Keyboard` was accepted until 2026-08-27, when `sectionBody`'s prefix match was anchored to a whole line; that suffix form is now `prove-guards` mutation 147. | Definition of done |
 | AC6 | packages/react/src/styles.css | Repoint `.clara-badge--danger` at the info tokens, leaving the class name alone. KILLED by this criterion ALONE. Measured surviving everything else: 1200 unit tests, `check-component-css` and `check-contrast`. **No contrast assertion could ever catch it** - info-on-info is a good AA pair - which is why this criterion reads the computed colours and compares them against a probe carrying the intent's tier 2 pair, rather than measuring a ratio. | An intent class renders its OWN intent's colours |
+| AC7 | packages/react/src/components/Badge/Badge.tsx, packages/react/src/components/__tests__/prop-shapes.test-d.tsx | Delete `BadgeLabelProps.count`, `BadgeLabelProps.countLabel` and `BadgeCountProps.children` - each `?: never` discriminator, one at a time. ALL KILLED, and the sweep is the point: run individually rather than together, because deleting two at once masks which one was doing the work. Two of the seven across the three components previously SURVIVED this sweep - JSX excess-children checking hid them - and two more reddened only the component file rather than the assertions, so a refactor that stopped reading the prop would have unguarded them. | The prop shapes cannot be written wrong |
 
 ## Revision History
 

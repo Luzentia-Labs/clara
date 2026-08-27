@@ -66,7 +66,7 @@ read-only screen.
 - **When** it renders
 - **Then** documented guidance and distinct content separate 'no data yet' from 'no results for this filter'
 - **Verify:** vitest "EmptyState distinguishes empty from filtered"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC2: Token-only styling
@@ -75,7 +75,7 @@ read-only screen.
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC3: Both themes and densities
@@ -84,7 +84,7 @@ read-only screen.
 - **When** it renders in dark theme and compact density
 - **Then** it renders inside the correct scope and passes axe in all four combinations
 - **Verify:** vitest "EmptyState theme and density matrix"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC4: Definition of done
@@ -94,7 +94,7 @@ read-only screen.
 - **Then** a verification record, its cited tests, an axe assertion, and a docs page all exist and
   resolve
 - **Verify:** shell node scripts/check-verification.mjs --component EmptyState
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
@@ -217,7 +217,7 @@ verifier must fail on, and the verdict beside it is what happened when that edit
 
 | Criterion | Touches | Mutant - the production change this test must fail on | Title |
 | --- | --- | --- | --- |
-| AC1 | packages/react/src/components/EmptyState/EmptyState.tsx | THREE mutants, both KILLED. Also add `aria-live="off"` beside `role="status"` - KILLED. **(review)** That silences the region in every screen reader while leaving the role intact, and it previously survived 1200 unit tests, `check:axe` at 212 passed and `check:verification`: the role's PRESENCE was standing in for the announcement. ZERO announcements is a failure here, not only forty. (a) Give both reasons the SAME guidance string in `GUIDANCE` - 1 test fails, and the two cases stop pointing at different ways forward. (b) Hardcode the modifier to `'clara-empty-state--empty'` - 1 fails, and the distinction vanishes from the DOM while the copy still carries it. (b) is the one worth having: copy is what an author replaces, so an assertion that survives replaced prose is the one that means something. | Two distinct cases |
+| AC1 | packages/react/src/components/EmptyState/EmptyState.tsx | THREE mutants, all KILLED. Also add `aria-live="off"` beside `role="status"` - KILLED. **(review)** That silences the region in every screen reader while leaving the role intact, and it previously survived 1200 unit tests, `check:axe` at 212 passed and `check:verification`: the role's PRESENCE was standing in for the announcement. ZERO announcements is a failure here, not only forty. (a) Give both reasons the SAME guidance string in `GUIDANCE` - 1 test fails, and the two cases stop pointing at different ways forward. (b) Hardcode the modifier to `'clara-empty-state--empty'` - 1 fails, and the distinction vanishes from the DOM while the copy still carries it. (b) is the one worth having: copy is what an author replaces, so an assertion that survives replaced prose is the one that means something. | Two distinct cases |
 | AC2 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-empty-state` - a raw literal where a token belongs. KILLED, `check-component-css` exits 1. The verifier is a guard that READS the stylesheet, which is required here: no test imports a CSS file, so a vitest-only verifier over this mutant would be green by construction. | Token-only styling |
 | AC3 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. KILLED, 4 of 4 combinations. Mutating the PROVIDER rather than the component is what proves the assertion reads the scope rather than merely finding the component. What this criterion claims is bounded and the story says so: jsdom sees no layout and resolves no custom property, so the APPEARANCE is gate 7's. | Both themes and densities |
 | AC4 | packages/react/src/components/EmptyState/verification.md | Rename `## Keyboard` to `## Keys`. KILLED - `missing section "## Keyboard"`, exit 1. Renaming it to anything CONTAINING `## Keyboard` was accepted until 2026-08-27, when `sectionBody`'s prefix match was anchored to a whole line; that suffix form is now `prove-guards` mutation 147. | Definition of done |

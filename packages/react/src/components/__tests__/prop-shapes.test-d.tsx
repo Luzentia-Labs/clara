@@ -118,3 +118,32 @@ export function tagShapesWithoutJsx () {
   const b: TagProps = removableWithNode
   return [a, b]
 }
+
+/*
+ * NARROWING, which is what two of the seven discriminators actually buy.
+ *
+ * A confirmation seat measured that deleting `AlertStaticProps.onDismiss` or `BadgeLabelProps.count`
+ * reddens only the COMPONENT files - `Property 'onDismiss' does not exist on type 'AlertProps'` at
+ * Alert.tsx:78 - and no line in this file. So those two are held by the implementation happening to
+ * read those props, and a refactor that stopped reading them would silently unguard both, by exactly
+ * the mechanism JSX masked the first two.
+ *
+ * What those members buy is a DISCRIMINATED union: without them the variants overlap, and TypeScript
+ * cannot narrow `AlertProps` by testing one field. These assertions exercise the narrowing directly,
+ * so the guarantee is held here rather than incidentally.
+ */
+export function narrowingHolds (alert: AlertProps, badge: BadgeProps, tag: TagProps) {
+  // Reading the discriminator narrows to the variant that declares it.
+  const dismiss = alert.onDismiss === undefined ? 'static' : alert.onDismiss
+  const count = badge.count === undefined ? 'label' : badge.count
+  const remove = tag.onRemove === undefined ? 'static' : tag.onRemove
+
+  // And the NARROWED branch exposes the rest of its own variant. If the union stops being
+  // discriminated these stop compiling, which is the point.
+  let label = ''
+  if (badge.count !== undefined) label = badge.countLabel
+  if (tag.onRemove !== undefined) label = tag.children
+  if (alert.onDismiss !== undefined) label = alert.dismissLabel ?? ''
+
+  return { dismiss, count, remove, label }
+}
