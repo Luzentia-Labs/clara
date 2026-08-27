@@ -6,6 +6,13 @@
  * happening. That is the whole mechanism - a discriminator that is deleted makes the line compile,
  * and an unused `@ts-expect-error` is itself an error.
  *
+ * They come in TWO forms, and the second is not decoration. The JSX assertions below were written
+ * first and a confirmation seat proved them insufficient on their own: JSX applies its own
+ * excess-children check, so deleting `children?: never` from `BadgeCountProps` left `pnpm typecheck`
+ * at exit 0. Sweeping all seven discriminators one at a time, five were caught through JSX and two
+ * were not. The non-JSX assignability block at the bottom of this file covers every member, and all
+ * seven now redden when deleted.
+ *
  * They exist because a review measured the gap. All four guarantees held, and NOTHING held them:
  * deleting `dismissLabel?: never` from `AlertStaticProps` left `pnpm typecheck` Done, 1200 tests
  * passing and the API report at exit 0. The variant interfaces were not exported from the entry
@@ -61,4 +68,53 @@ export function tagShapes () {
       <Tag removeLabel="Remove this">Draft</Tag>
     </>
   )
+}
+
+/*
+ * The same guarantees again, WITHOUT JSX.
+ *
+ * A confirmation seat proved the JSX assertions above are not sufficient on their own. Deleting
+ * `children?: never` from `BadgeCountProps` left `pnpm typecheck` at exit 0, because JSX applies its
+ * own excess-children check: `<Badge count={3} countLabel="x">Overdue</Badge>` is rejected whether or
+ * not the discriminator exists, so the discriminator's loss is invisible through that route. Sweeping
+ * all seven `?: never` members one at a time, five were caught by the JSX assertions and two were
+ * not - `BadgeCountProps.children` and `BadgeLabelProps.countLabel`.
+ *
+ * Assigning a NON-LITERAL object gets past excess-property checking and exercises the union member
+ * directly, which is what makes the discriminator the only thing standing between these values and
+ * the type. Written for every member rather than the two survivors, so the coverage does not depend
+ * on which shapes JSX happens to mask today.
+ */
+import type { AlertProps, BadgeProps, TagProps } from '../../index'
+
+export function alertShapesWithoutJsx () {
+  const withLabelButNoHandler = { intent: 'info' as const, children: 'Body', dismissLabel: 'Close' }
+  // @ts-expect-error `dismissLabel` on the static variant - a label for a control that does not exist
+  const a: AlertProps = withLabelButNoHandler
+  const withHandlerButStatic = { intent: 'info' as const, children: 'Body', onDismiss: () => {} }
+  const b: AlertProps = withHandlerButStatic
+  return [a, b]
+}
+
+export function badgeShapesWithoutJsx () {
+  const countWithChildren = { count: 3, countLabel: 'overdue invoices', children: 'Overdue' }
+  // @ts-expect-error a count badge cannot also take children - the two variants are exclusive
+  const a: BadgeProps = countWithChildren
+  const labelWithCountLabel = { children: 'Overdue', countLabel: 'overdue invoices' }
+  // @ts-expect-error `countLabel` naming a count that does not exist
+  const b: BadgeProps = labelWithCountLabel
+  const countWithoutLabel = { count: 3 }
+  // @ts-expect-error a count with no `countLabel` is the unannounced-number shape AC2 forbids
+  const c: BadgeProps = countWithoutLabel
+  return [a, b, c]
+}
+
+export function tagShapesWithoutJsx () {
+  const staticWithHandler = { children: 'Draft', removeLabel: 'Remove this' }
+  // @ts-expect-error `removeLabel` on the static variant - a label for a control that does not exist
+  const a: TagProps = staticWithHandler
+  const removableWithNode = { children: 42, onRemove: () => {} }
+  // @ts-expect-error a removable tag narrows `children` to string, because the name interpolates it
+  const b: TagProps = removableWithNode
+  return [a, b]
 }

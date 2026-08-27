@@ -75,7 +75,7 @@ unannounced count and one that cannot express it.
   intent never depends on the colour for a screen-reader user. What is NOT guaranteed is that two
   badges with the same text and different intents look different, and no API can promise that
 - **Verify:** vitest "Badge intent is not colour alone"
-- **Verified:** yes (2026-08-25)
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC2: Counts are announced
