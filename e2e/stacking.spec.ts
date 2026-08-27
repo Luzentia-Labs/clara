@@ -449,6 +449,55 @@ test('a drawer slides in from the edge it is anchored to', async ({ page }) => {
   }
 })
 
+/**
+ * WHERE the panel ends up, which is a different claim from which keyframe it uses.
+ *
+ * AC1 said "left, right and bottom all render correctly" and was verified by a class-name
+ * assertion. A class name is a proxy for a position (D0065), and the slide test above reads the
+ * ANIMATION NAME - also a proxy. Measured: swapping `inset-inline-start: 0` and
+ * `inset-inline-end: 0` between `.clara-drawer--left` and `.clara-drawer--right`, leaving the
+ * keyframe names untouched, put every left drawer on the right edge and left ALL of it green -
+ * 1191 unit tests, both drawer e2e tests, and `check-component-css`. This test is the property
+ * itself.
+ *
+ * Reduced motion is emulated deliberately: with the slide removed there is no transform to wait
+ * out, so the box read here is the panel's resting position and not a frame of its entrance.
+ */
+test('a drawer rests against the edge it names, and spans the other axis', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  const viewport = page.viewportSize()
+  if (!viewport) throw new Error('no viewport to measure against')
+  // Sub-pixel layout is real; an exact equality here would be flaky for a reason that is not a defect.
+  const EDGE = 1
+
+  for (const placement of ['left', 'right', 'bottom'] as const) {
+    await page.goto(`${origin}/iframe.html?id=overlays-drawer--${placement}&viewMode=story`)
+    await page.getByRole('button', { name: `Open ${placement} drawer` }).click()
+    const panel = page.locator('.clara-drawer')
+    await panel.waitFor({ state: 'visible' })
+    const box = await panel.boundingBox()
+    if (!box) throw new Error(`the ${placement} drawer has no box`)
+
+    if (placement === 'bottom') {
+      expect(box.y + box.height, 'the bottom drawer does not reach the bottom edge')
+        .toBeGreaterThan(viewport.height - EDGE)
+      expect(box.width, 'the bottom drawer does not span the viewport').toBeGreaterThan(viewport.width - EDGE)
+      // Not the whole screen: a bottom drawer that filled the viewport would be a modal.
+      expect(box.y, 'the bottom drawer covers the whole viewport').toBeGreaterThan(EDGE)
+      continue
+    }
+
+    // Both halves matter. "Touches the left edge" alone passes on a panel spanning the whole
+    // viewport, and "does not touch the right edge" alone passes on a panel floating in the middle.
+    const near = placement === 'left' ? box.x : viewport.width - (box.x + box.width)
+    const far = placement === 'left' ? viewport.width - (box.x + box.width) : box.x
+    expect(near, `the ${placement} drawer does not reach the ${placement} edge`).toBeLessThan(EDGE)
+    expect(far, `the ${placement} drawer spans the whole viewport`).toBeGreaterThan(EDGE)
+    expect(box.height, `the ${placement} drawer does not run the full height`)
+      .toBeGreaterThan(viewport.height - EDGE)
+  }
+})
+
 test('a drawer removes its slide entirely under reduced motion', async ({ page }) => {
   // Class A, unlike Toast: the slide is spatial-origin decoration here, and the panel's presence is
   // already the information. D0100 says remove it rather than substitute something.

@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 6 |
+| inbox | 7 |
 | Superseded | 1 |
-| **Total** | **23** |
+| **Total** | **24** |
 
 ## By Severity
 
@@ -48,6 +48,7 @@
 | [BG-01M103BV](BG-01M103BV-tab-does-not-close-a-dropdownmenu-against-the.md) | Tab does not close a DropdownMenu, against the WAI-ARIA APG menu-button pattern | Medium | Medium | inbox | -- | -- | 2026-08-27 |
 | [BG-01M105X5](BG-01M105X5-the-700ms-tooltip-delay-assumes-a-skip-window.md) | The 700ms tooltip delay assumes a skip window the per-Tooltip provider deletes | Medium | Medium | inbox | -- | -- | 2026-08-27 |
 | [BG-01M105C0](BG-01M105C0-popover-s-trigger-announces-aria-haspopup-dialog-while.md) | Popover's trigger announces aria-haspopup=dialog while the panel is a group | Medium | Medium | inbox | -- | -- | 2026-08-27 |
+| [BG-01M107ND](BG-01M107ND-twenty-two-definition-of-done-criteria-assert-a.md) | Twenty-two definition-of-done criteria assert a visual baseline and a recorded manual pass that their own verifier never checks | Medium | Medium | inbox | -- | -- | 2026-08-27 |
 
 ## Notes
 

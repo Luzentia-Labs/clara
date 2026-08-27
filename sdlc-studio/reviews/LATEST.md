@@ -12,10 +12,15 @@
 is fixed and proved by re-running the reviewer's own mutation. Round 5 was the first round in which
 nothing was structurally wrong.
 
-**The fifth overlay, Drawer, ships in the built package and its story has NEVER been reviewed.**
-US-01M0GMWW is still `planning` tier at Draft with six green ACs and zero review rows. This is not
-a sixth round on reviewed work; it is the first round on work that was skipped. It is the single
-largest open item in this epic and it is named here rather than implied.
+**The fifth overlay, Drawer, was never reviewed - and closing that gap found a real defect.**
+US-01M0GMWW had shipped in the built package at `planning` tier with six green criteria and zero
+review rows. It is now full tier with eight criteria, a Test Plan filled from eight mutants that
+were actually run, and two new criteria covering claims nothing held: **AC7** (where the panel
+rests) and **AC8** (motion). The defect: AC1 asserted the placement CLASS, and swapping
+`inset-inline-start: 0` with `inset-inline-end: 0` between `.clara-drawer--left` and
+`.clara-drawer--right` put every left drawer on the right edge while 1191 unit tests,
+`check-component-css`, and both existing drawer browser tests stayed green. **It still needs its
+one independent review round to reach Done** - `transition.py` refuses even Review without it.
 
 **The worst defect of the run was introduced BY a repair.** The shared toast stack published to its
 store during render, so any discarded render - StrictMode, or any Suspense boundary in production -
@@ -163,8 +168,7 @@ skill rather than here.
 | **A VoiceOver session** | Field reaching Done | Field AC6 asks for the announced strings for a description plus an error, recorded before export. Nobody has run it. The DOM order and de-duplication it depends on ARE verified (AC5); what a screen reader SAYS is not. |
 | **An autofill check in Chrome and Safari** | Input reaching Done | Input AC4. Note the feature it would check does not exist: no `:-webkit-autofill` rule is in the repo, and the criterion now says so. What needs confirming is that an autofilled field stays usable and readable with the browser's own colour. |
 | **A manual keyboard pass** | Nothing, today | Outstanding on all 23 records and each says so. It is not a Done gate; it is the thing no automated check reaches. |
-| **Independent review** | US-01M0GMWW (Drawer) reaching Done | Drawer ships in the built package and its story has zero review rows - it was never picked up. The other four overlay stories are Done, each carrying an APPROVE from a seat that did not write the code. `transition.py` enforces this: it refuses Done without a plan-review APPROVE from a reviewer who is not the author. |
-| **Promotion to full tier** | US-01M0GMWW (Drawer) reaching Done | Still `planning` tier: no Test Plan, no Context, no Edge Cases, no Rollback Envelope. Its six ACs verify green, which is necessary and not sufficient. |
+| **Independent review** | US-01M0GMWW (Drawer) reaching Done | The only overlay with no review rows. Its criteria are green and its Test Plan is measured; what is missing is a seat that did not write it. `transition.py` refuses even the Review status without a plan-review APPROVE from a reviewer who is not the author. |
 | **The GM61 review rounds** | (closed, ten of them) | Six consecutive rounds found the same class: a claim asserting proof where no mutation demonstrates it, twice inside the previous round's own fix. Broken by enumerating every branch of the guard and deleting each in isolation. |
 | **US-01M0WSME** | Gate 7, and the two definition-of-done artefacts named above | Storybook workspace + visual regression. |
 | **`NPM_TOKEN`** | Any publish | Unset on the repo, deliberately, until a release is actually wanted. |
