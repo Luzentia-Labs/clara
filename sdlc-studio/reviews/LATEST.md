@@ -12,12 +12,12 @@
 is fixed and proved by re-running the reviewer's own mutation. Round 5 was the first round in which
 nothing was structurally wrong.
 
-**The fifth overlay, Drawer, was never reviewed - and reviewing it found the same defect three
-times over.** US-01M0GMWW had shipped in the built package at `planning` tier with six green
-criteria and zero review rows. It is now full tier with ten criteria and a Test Plan filled from
-mutants that were actually run. Two seats then reviewed it in parallel and BOTH REJECTed, with eight
-blocking findings between them. All eight are fixed and each is proved by re-running the seat's own
-mutant.
+**All five overlays are Done.** Drawer was the last, and it had never been reviewed - it shipped in
+the built package at `planning` tier with six green criteria and zero review rows. It closed at full
+tier with ten criteria and a Test Plan filled from mutants that were actually run. Two seats reviewed
+it in parallel and both REJECTed with eight blocking findings between them; all eight were fixed,
+each proved by re-running the seat's own mutant, and a narrow confirmation seat re-ran all eight and
+APPROVED.
 
 **The defect, three layers deep, is the lesson of this run.** AC1 asserted the placement CLASS - a
 proxy for a position - so swapping `inset-inline-start` and `inset-inline-end` put every left drawer
@@ -36,8 +36,10 @@ in order. A decoy now sits ahead of it. Two public props, `dismissible` and the
 `description`/`footer` pair, had no test at all. Drawer was outside the scroll-container contract
 Modal has carried since its own AC5.
 
-**Drawer is NOT Done.** Both seats REJECTed, `critic.py` has escalated it to the operator, and the
-author never records their own sign-off. It needs one confirmation pass over the eight fixes.
+**A confirmation seat caught its own worktree being branched from the wrong commit** - a base
+predating both fix commits - and reset before measuring anything. Without that, all eight mutants
+would have reported SURVIVED against code that never contained the fixes, and the round would have
+read as a total regression. Check the base ref before trusting a mutation result.
 
 **The worst defect of the run was introduced BY a repair.** The shared toast stack published to its
 store during render, so any discarded render - StrictMode, or any Suspense boundary in production -
@@ -66,7 +68,7 @@ The tree is on `main` with 1200 tests and every gate green. Nothing is on npm.
 - `pnpm check` runs **30 guards**; `prove-guards-fail` kills **147 mutations** on a staged copy.
 - **1200 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **104 decisions**. Stories: **47 Done of 89**. `main` is the only branch - this project is
+- **104 decisions**. Stories: **48 Done of 89**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line
@@ -185,7 +187,7 @@ skill rather than here.
 | **A VoiceOver session** | Field reaching Done | Field AC6 asks for the announced strings for a description plus an error, recorded before export. Nobody has run it. The DOM order and de-duplication it depends on ARE verified (AC5); what a screen reader SAYS is not. |
 | **An autofill check in Chrome and Safari** | Input reaching Done | Input AC4. Note the feature it would check does not exist: no `:-webkit-autofill` rule is in the repo, and the criterion now says so. What needs confirming is that an autofilled field stays usable and readable with the browser's own colour. |
 | **A manual keyboard pass** | Nothing, today | Outstanding on all 23 records and each says so. It is not a Done gate; it is the thing no automated check reaches. |
-| **A confirmation pass** | US-01M0GMWW (Drawer) reaching Done | Two seats reviewed it in parallel and both REJECTed; all eight blocking findings are fixed and each is proved by re-running the seat's own mutant. `critic.py` escalated on the second REJECT. What is left is one seat confirming the fixes - not another full pass. |
+| **Seven skipped stories** | The overlay epic closing | Alert, Badge, Tag, Spinner, ProgressBar, Skeleton and EmptyState are in exactly the condition Drawer was: components shipped, every criterion green, `planning` tier, no Test Plan, no review, still Draft. Drawer's round found eight blocking defects in that condition, so this is not paperwork. |
 | **The GM61 review rounds** | (closed, ten of them) | Six consecutive rounds found the same class: a claim asserting proof where no mutation demonstrates it, twice inside the previous round's own fix. Broken by enumerating every branch of the guard and deleting each in isolation. |
 | **US-01M0WSME** | Gate 7, and the two definition-of-done artefacts named above | Storybook workspace + visual regression. |
 | **`NPM_TOKEN`** | Any publish | Unset on the repo, deliberately, until a release is actually wanted. |

@@ -1,13 +1,13 @@
 # US-01M0GMWW: Drawer
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Drawer/**, packages/react/src/components/Drawer/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Drawer/Drawer.tsx, packages/react/src/components/Drawer/index.tsx, packages/react/src/components/Drawer/Drawer.stories.tsx, packages/react/src/components/Drawer/__tests__/drawer.test.tsx, packages/react/src/lib/overlay-focus.ts, packages/react/src/styles.css, e2e/stacking.spec.ts, apps/docs/src/content/components/drawer.md, scripts/check-verification.mjs, scripts/prove-guards-fail.mjs, package.json, packages/react/src/components/Drawer/verification.md, scripts/check-component-css.mjs
 > **Points:** 5
 
 ## User Story
@@ -372,14 +372,17 @@ release is fixed FORWARD with a patch and never unpublished.
 
 ## Open Questions
 
-- [x] Does AC5's "a visual baseline ... and a recorded manual keyboard pass all exist" match what its
-      verifier checks? **No. Filed as BG-01M107ND.** `check-verification.mjs` has no baseline rule at
-      all, and it deliberately accepts an honest "outstanding" for the manual pass. The same sentence
+- [x] Does AC5's definition-of-done sentence match what its verifier checks? **No - filed as BG-01M107ND.**
+      The copied wording claims "a visual baseline ... and a recorded manual keyboard pass all exist".
+      `check-verification.mjs` has no baseline rule at all, and it deliberately accepts an honest "outstanding" for the manual pass. The same sentence
       appears in 22 criteria across this repo, so it is a copied wording defect rather than this
       story's, and it is filed rather than edited under four Done stamps. AC5's wording here is
       corrected in place, because this story is not yet closed. Owner: Mira Calderon (qa)
-- [x] Should a drawer trap focus, as a modal dialog does? **Yes, and it already does** - AC2's parity
-      requirement settles it: Drawer renders through `@radix-ui/react-dialog`, so it inherits the
+
+## Resolved Questions
+
+- [x] Should a drawer trap focus, as a modal dialog does? **Yes, and it already does.**
+      AC2's parity requirement settles it: Drawer renders through `@radix-ui/react-dialog`, so it inherits the
       focus scope, the inert background and the escape handling. The question is recorded because
       "drawer" suggests a lighter surface than "dialog" and the temptation to make it non-modal is
       real; a non-modal drawer is a Popover, which this epic already ships. Owner: Idris Vale (ux)

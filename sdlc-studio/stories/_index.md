@@ -7,12 +7,12 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 42 |
+| Draft | 41 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
 | Review | 0 |
-| Done | 47 |
+| Done | 48 |
 | Blocked | 0 |
 | **Total** | **89** |
 
@@ -56,7 +56,7 @@
 | [US-01M0GMK8](US-01M0GMK8-link.md) | Link | EP-01M0GKGS | Done | 2 | -- |
 | [US-01M0GM61](US-01M0GM61-portal-layer-scale-and-scoping-infrastructure.md) | Portal, layer scale, and scoping infrastructure | EP-01M0GK4P | Done | 5 | -- |
 | [US-01M0GM48](US-01M0GM48-modal.md) | Modal | EP-01M0GK4P | Done | 8 | -- |
-| [US-01M0GMWW](US-01M0GMWW-drawer.md) | Drawer | EP-01M0GK4P | Draft | 5 | -- |
+| [US-01M0GMWW](US-01M0GMWW-drawer.md) | Drawer | EP-01M0GK4P | Done | 5 | -- |
 | [US-01M0GMQJ](US-01M0GMQJ-popover.md) | Popover | EP-01M0GK4P | Done | 5 | -- |
 | [US-01M0GM31](US-01M0GM31-tooltip.md) | Tooltip | EP-01M0GK4P | Done | 5 | -- |
 | [US-01M0GM9W](US-01M0GM9W-dropdownmenu.md) | DropdownMenu | EP-01M0GK4P | Done | 8 | -- |
