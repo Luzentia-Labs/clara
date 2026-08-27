@@ -12,15 +12,32 @@
 is fixed and proved by re-running the reviewer's own mutation. Round 5 was the first round in which
 nothing was structurally wrong.
 
-**The fifth overlay, Drawer, was never reviewed - and closing that gap found a real defect.**
-US-01M0GMWW had shipped in the built package at `planning` tier with six green criteria and zero
-review rows. It is now full tier with eight criteria, a Test Plan filled from eight mutants that
-were actually run, and two new criteria covering claims nothing held: **AC7** (where the panel
-rests) and **AC8** (motion). The defect: AC1 asserted the placement CLASS, and swapping
-`inset-inline-start: 0` with `inset-inline-end: 0` between `.clara-drawer--left` and
-`.clara-drawer--right` put every left drawer on the right edge while 1191 unit tests,
-`check-component-css`, and both existing drawer browser tests stayed green. **It still needs its
-one independent review round to reach Done** - `transition.py` refuses even Review without it.
+**The fifth overlay, Drawer, was never reviewed - and reviewing it found the same defect three
+times over.** US-01M0GMWW had shipped in the built package at `planning` tier with six green
+criteria and zero review rows. It is now full tier with ten criteria and a Test Plan filled from
+mutants that were actually run. Two seats then reviewed it in parallel and BOTH REJECTed, with eight
+blocking findings between them. All eight are fixed and each is proved by re-running the seat's own
+mutant.
+
+**The defect, three layers deep, is the lesson of this run.** AC1 asserted the placement CLASS - a
+proxy for a position - so swapping `inset-inline-start` and `inset-inline-end` put every left drawer
+on the right edge with every gate green. AC7 was added to measure the box. A seat then swapped only
+the keyframe BODIES, leaving both NAMES alone, and the left drawer entered from the middle of the
+screen while `animationName` still read `clara-drawer-in-start` - 32 browser tests, 1191 unit tests
+and 26 guards green, and AC7 blind to it because AC7 emulates reduced motion precisely so the box it
+reads is the RESTING position. AC8 now measures the animation's paused first frame.
+
+> **A proxy replaced by a better proxy is still a proxy.** Ask of every new assertion: what is the
+> nearest edit that changes the property and not the thing being read?
+
+The same pattern ran through AC2: "asserted by identity" was satisfied by the anonymous fallback,
+because the harness put the opener first in document order and `restoreFallback` walks the document
+in order. A decoy now sits ahead of it. Two public props, `dismissible` and the
+`description`/`footer` pair, had no test at all. Drawer was outside the scroll-container contract
+Modal has carried since its own AC5.
+
+**Drawer is NOT Done.** Both seats REJECTed, `critic.py` has escalated it to the operator, and the
+author never records their own sign-off. It needs one confirmation pass over the eight fixes.
 
 **The worst defect of the run was introduced BY a repair.** The shared toast stack published to its
 store during render, so any discarded render - StrictMode, or any Suspense boundary in production -
@@ -168,7 +185,7 @@ skill rather than here.
 | **A VoiceOver session** | Field reaching Done | Field AC6 asks for the announced strings for a description plus an error, recorded before export. Nobody has run it. The DOM order and de-duplication it depends on ARE verified (AC5); what a screen reader SAYS is not. |
 | **An autofill check in Chrome and Safari** | Input reaching Done | Input AC4. Note the feature it would check does not exist: no `:-webkit-autofill` rule is in the repo, and the criterion now says so. What needs confirming is that an autofilled field stays usable and readable with the browser's own colour. |
 | **A manual keyboard pass** | Nothing, today | Outstanding on all 23 records and each says so. It is not a Done gate; it is the thing no automated check reaches. |
-| **Independent review** | US-01M0GMWW (Drawer) reaching Done | The only overlay with no review rows. Its criteria are green and its Test Plan is measured; what is missing is a seat that did not write it. `transition.py` refuses even the Review status without a plan-review APPROVE from a reviewer who is not the author. |
+| **A confirmation pass** | US-01M0GMWW (Drawer) reaching Done | Two seats reviewed it in parallel and both REJECTed; all eight blocking findings are fixed and each is proved by re-running the seat's own mutant. `critic.py` escalated on the second REJECT. What is left is one seat confirming the fixes - not another full pass. |
 | **The GM61 review rounds** | (closed, ten of them) | Six consecutive rounds found the same class: a claim asserting proof where no mutation demonstrates it, twice inside the previous round's own fix. Broken by enumerating every branch of the guard and deleting each in isolation. |
 | **US-01M0WSME** | Gate 7, and the two definition-of-done artefacts named above | Storybook workspace + visual regression. |
 | **`NPM_TOKEN`** | Any publish | Unset on the repo, deliberately, until a release is actually wanted. |
