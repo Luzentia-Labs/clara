@@ -24,6 +24,7 @@
 - **When** I use the keyboard
 - **Then** aria-expanded, aria-controls, aria-activedescendant and the listbox and option roles are all correct
 - **Verify:** vitest "Select listbox pattern"
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC2: Full keyboard operation
@@ -32,6 +33,7 @@
 - **When** I use only the keyboard
 - **Then** arrows move, Enter selects, Escape closes and restores, Home and End jump, Tab commits
 - **Verify:** vitest "Select keyboard operation"
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC3: Composite value convention
@@ -40,14 +42,23 @@
 - **When** I control it
 - **Then** value, defaultValue and onValueChange receive the value itself rather than an event
 - **Verify:** vitest "Select uses onValueChange"
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC4: Works inside a Modal
 
 - **Given** a Select inside an open Modal
 - **When** it opens
-- **Then** the listbox renders above the modal without clipping
+- **Then** the listbox is portalled OUT of the modal's subtree, onto a host carrying Clara's scope
+  attributes, so it takes the shared overlay layer and is themed by where it was written
+- **And** "renders above the modal without clipping" is a RENDERED fact and jsdom decides none of
+  it - no layout, no paint order. Measured: an assertion that the listbox renders and selects inside
+  a Modal stayed green with `ClaraPortal` removed entirely, because a listbox nested in the modal
+  still renders and still selects. Presence was standing in for stacking (D0065). What is asserted
+  here is the MECHANISM that produces the stacking; the painting half belongs in `e2e/stacking.spec.ts`
+  with every other overlay's rendered claim, and is named in the verification record as not yet done
 - **Verify:** vitest "Select inside Modal"
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC5: Token-only styling
@@ -56,6 +67,7 @@
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC6: Both themes and densities
@@ -68,6 +80,7 @@
   all. That is gate 7's (US-01M0WSME), and every story in the preceding epic was corrected the
   same way
 - **Verify:** vitest "Select theme and density matrix"
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 ### AC7: Definition of done
@@ -83,6 +96,7 @@
   honest "outstanding" for the manual pass. **BG-01M107ND** carries the same correction for the
   stories that still copy it
 - **Verify:** shell node scripts/check-verification.mjs --component Select
+- **Verified:** yes (2026-08-27)
 - **Verification target:** functional
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
@@ -107,6 +121,27 @@
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Test Plan
+
+Every row below was RUN against this tree. `Mutant` is the production change the criterion's own
+verifier must fail on, and the verdict beside it is what happened.
+
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/lib/listbox.ts | TWO mutants, both KILLED. (a) Drop `aria-activedescendant` from `triggerProps` - the highlight stops being announced at all. (b) Emit `aria-controls` unconditionally, so a closed trigger names a listbox that is not rendered. The suite reads the activedescendant id back OUT of the document rather than checking the attribute is present, because an id naming a removed element is the failure a presence check cannot see. | Listbox pattern |
+| AC2 | packages/react/src/lib/listbox.ts | FIVE mutants, all KILLED, one per branch of the keyboard table. (a) Remove `onOpenAutoFocus`'s `preventDefault` in Select.tsx, so Radix moves focus into the panel and the announced highlight and the real focus disagree. (b) Stop skipping disabled options when arrowing. (c) Make Escape commit - a highlight is not a choice, and treating it as one makes Escape destructive on the key users press to back out. (d) `preventDefault` on Tab, which strands a keyboard user inside the control. (e) Make the arrows wrap, which the APG's listbox does not. | Full keyboard operation |
+| AC3 | packages/react/src/components/Select/Select.tsx | TWO mutants, both KILLED. (a) Pass the option object instead of `option.value`, so the callback reports something with a shape rather than the value. (b) `const current = uncontrolled` - the controlled branch stops reading `value`, so a caller that rejects a change still sees it applied. Note (b) is the mutant that WORKS: the first attempt removed the `if (value === undefined)` guard around `setUncontrolled`, and that SURVIVED, because the controlled branch reads `value` first and the guard is redundant for display. A row recording it would have claimed a verdict nobody could reproduce. | Composite value convention |
+| AC4 | packages/react/src/components/Select/Select.tsx | Replace `ClaraPortal` with a plain `div`, keeping the JSX well-formed. KILLED. It previously SURVIVED against an assertion that the listbox renders and selects inside a Modal - true whether portalled or not. The assertion now reads that the dialog does not CONTAIN the listbox and that the listbox landed on a Clara-scoped host. | Works inside a Modal |
+| AC5 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-select__listbox-panel` - a raw literal where a token belongs. KILLED, `check-component-css` exits 1. No test imports a CSS file, so the verifier must be a guard that READS the stylesheet or the row is green by construction. | Token-only styling |
+| AC6 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. KILLED, 4 of 4. Mutating the PROVIDER is what proves the assertion walks up from inside the portalled panel rather than reading the render container, which carries the same attributes and was never the portal's scope. | Both themes and densities |
+| AC7 | packages/react/src/components/Select/verification.md | Rename `## Keyboard` to `## Keys`. KILLED - `missing section "## Keyboard"`, exit 1. | Definition of done |
+
+**One mutant is deliberately absent.** Nothing here proves the listbox PAINTS above a modal, flips
+at a viewport edge, or stays unclipped in a scrollable container. Those are rendered facts, jsdom
+decides none of them, and the browser assertions Popover has in `e2e/stacking.spec.ts` do not yet
+exist for Select. The verification record names it as a stated gap rather than leaving the Test Plan
+implying coverage that is not there.
 
 ## Revision History
 

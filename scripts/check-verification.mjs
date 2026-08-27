@@ -209,6 +209,7 @@ const SCRIPTS = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scr
  * itself inside the Table page it belongs to.
  */
 const DOCS_PAGE_FOR = {
+  Select: 'select.md',
   Alert: 'alert.md',
   Popover: 'popover.md',
   Tooltip: 'tooltip.md',

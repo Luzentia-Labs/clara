@@ -64,6 +64,10 @@ const REQUIRED_PROPS: Record<string, Record<string, unknown>> = {
   Popover: { open: false, onOpen: () => {}, onClose: () => {}, label: 'Options', trigger: null, children: null },
   ProgressBar: { label: 'Posting invoices', value: 62 },
   SkeletonGroup: { label: 'Loading invoices', children: null },
+  // `options` is required and has no sensible default - a select over nothing is not a
+  // control. Without it the sweep crashed on `options.length` rather than reporting a
+  // boundary verdict, which is the failure the Alert entry above records.
+  Select: { options: [{ value: 'a', label: 'A' }] },
 }
 
 /** Render with the watched globals replaced by getters that record any read. */

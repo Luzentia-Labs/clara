@@ -433,6 +433,16 @@ export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>,
 }
 
 // @public
+export interface ListboxOption<T> {
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    value: T;
+}
+
+// @public
 export const Modal: ForwardRefExoticComponent<ModalProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
@@ -555,6 +565,26 @@ export const SearchInput: ForwardRefExoticComponent<SearchInputProps & RefAttrib
 export interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
     clearable?: boolean;
     onClear?: () => void;
+}
+
+// @public
+export function Select<T extends string = string>(input: SelectProps<T>): JSX_2.Element;
+
+// @public (undocumented)
+export type SelectOption<T extends string = string> = ListboxOption<T>;
+
+// @public (undocumented)
+export interface SelectProps<T extends string = string> {
+    // (undocumented)
+    className?: string;
+    defaultValue?: T;
+    // (undocumented)
+    disabled?: boolean;
+    onValueChange?: (value: T) => void;
+    // (undocumented)
+    options: ReadonlyArray<SelectOption<T>>;
+    placeholder?: string;
+    value?: T;
 }
 
 // @public

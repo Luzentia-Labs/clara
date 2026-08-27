@@ -1,8 +1,8 @@
 [
   {
-    "name": "@luzentialabs/clara-react (ESM entry, 38 components x 300 B, floor 5000 B)",
+    "name": "@luzentialabs/clara-react (ESM entry, 39 components x 300 B, floor 5000 B)",
     "path": "packages/react/dist/index.js",
-    "limit": "11400 B",
+    "limit": "11700 B",
     "gzip": true,
     "ignore": [
       "react",
@@ -435,6 +435,23 @@
   {
     "name": "SearchInput (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-SearchInput.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-toast",
+      "@radix-ui/react-tooltip"
+    ]
+  },
+  {
+    "name": "Select (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-Select.js",
     "limit": "5 kB",
     "gzip": true,
     "ignore": [

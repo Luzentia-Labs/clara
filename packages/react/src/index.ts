@@ -33,6 +33,14 @@ export { Skeleton, SkeletonGroup } from './components/Skeleton/Skeleton'
 export type { SkeletonProps, SkeletonGroupProps, SkeletonWidth } from './components/Skeleton/Skeleton'
 export { Spinner } from './components/Spinner/Spinner'
 export type { SpinnerProps } from './components/Spinner/Spinner'
+// The shared option shape. Exported under its own name because Select, Combobox and MultiSelect
+// all take it (D0105) - and because leaving it a forgotten export put `SelectOption` in the API
+// report as an alias whose MEMBERS were invisible, so a breaking change to `label` or `disabled`
+// would not have shown in the public surface diff. That is the defect just fixed on Badge and
+// Tag's variant interfaces, and this is the same mechanism.
+export type { ListboxOption } from './lib/listbox'
+export { Select } from './components/Select/Select'
+export type { SelectProps, SelectOption } from './components/Select/Select'
 export { Alert } from './components/Alert/Alert'
 // The VARIANT interfaces are exported too, not only the union. They are already public in
 // substance - they are the shapes a consumer writes - and api-extractor reported them only as

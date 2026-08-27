@@ -10,7 +10,8 @@
     "Field": "Client-only, reclassified during implementation: Field renders a context Provider, and a Server Component cannot - so it and every control reading that context are client-only. The context object itself lives in lib/, not components/, because it is infrastructure rather than a component and does not belong in this classification.",
     "Checkbox": "Client-only: `indeterminate` is a DOM property that must be set in an effect.",
     "_overlay": "`overlay: true` marks a component that renders a surface floating above the page. check-overlay-contract.mjs requires every BUILT overlay to render through ClaraPortal and to take its stacking from a layer token. Without it, US-01M0GM61's portal is a mechanism nothing obliges anyone to use - which is verbatim the defect D0087 records about the z-index scale.",
-    "Tag": "Client-only, reclassified during implementation: AC2 requires a remove control, so Tag takes `onRemove` - a function prop. Kept as ONE component rather than a server Tag and a client RemovableTag, because splitting it would move the choice into the consumer's import statement."
+    "Tag": "Client-only, reclassified during implementation: AC2 requires a remove control, so Tag takes `onRemove` - a function prop. Kept as ONE component rather than a server Tag and a client RemovableTag, because splitting it would move the choice into the consumer's import statement.",
+    "Select": "Client-only: it holds open state and the activedescendant highlight, which TRD Section 7 makes the boundary test. There is no server-capable variant to split out - a select that cannot open is not a select. `overlay: true` because its listbox floats above the page, so check-overlay-contract requires it to render through ClaraPortal and take the shared layer token (D0105)."
   },
   "components": [
     {
@@ -219,7 +220,7 @@
     {
       "name": "Select",
       "boundary": "client",
-      "status": "planned",
+      "status": "built",
       "overlay": true
     },
     {

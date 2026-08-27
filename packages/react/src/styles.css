@@ -1084,3 +1084,83 @@
   justify-content: flex-end;
   gap: var(--clara-space-control-gap);
 }
+
+/*
+ * Select - a single-choice control whose listbox floats above the page.
+ *
+ * The layer token sits on the LISTBOX PANEL, not on the trigger. The trigger is an ordinary inline
+ * control in the page flow; the panel is the portalled surface, and it takes the shared overlay
+ * layer so which of two overlays paints on top is decided by open order (D0088), not by a per-role
+ * number. `position: relative` earns that z-index for the reason `.clara-popover` records at length:
+ * Radix's popper reads the computed z-index off this element and copies it onto the wrapper it
+ * renders itself, and `relative` makes the declaration true on its own terms whether or not a third
+ * party keeps doing that.
+ */
+.clara-select {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--clara-select-gap);
+  inline-size: 100%;
+  block-size: var(--clara-select-height);
+  padding-inline: var(--clara-select-padding-inline);
+  background: var(--clara-select-bg);
+  color: var(--clara-select-fg);
+  border: var(--clara-select-border-width) solid var(--clara-select-border);
+  border-radius: var(--clara-select-radius);
+  text-align: start;
+  cursor: pointer;
+}
+/* Two-part, per D0054 and the shared control rule below: an outline PLUS an offset ring, so the
+   indicator survives on both a light and a dark surface. The guard caught this missing. */
+.clara-select:focus-visible {
+  outline: var(--clara-select-focus-width) solid var(--clara-color-border-focus);
+  outline-offset: var(--clara-select-focus-width);
+  box-shadow: 0 0 0 var(--clara-select-focus-width) var(--clara-color-border-focus-offset);
+}
+/* aria-disabled, never the native attribute (D0058) - so the cursor is the only affordance that
+   changes, and the control keeps its tab stop. */
+.clara-select--disabled { cursor: not-allowed; color: var(--clara-color-fg-muted); }
+.clara-select__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clara-select__value--placeholder { color: var(--clara-select-placeholder-fg); }
+.clara-select__chevron { flex: 0 0 auto; }
+
+.clara-select__listbox-panel {
+  position: relative;
+  z-index: var(--clara-layer-overlay);
+  box-sizing: border-box;
+  min-inline-size: var(--clara-select-min-inline-size);
+  /*
+   * The live value is read HERE, in the rule, because a var() referencing another var() resolves at
+   * the element where it is DECLARED - and the token is declared at :root, where no Radix variable
+   * exists. Routing it through the token collapsed the whole declaration to `none` on Popover and
+   * let the panel grow unbounded (BG-01M0WQY1). The token is the fallback for the frame before the
+   * popper has measured.
+   */
+  max-block-size: var(--radix-popover-content-available-height, var(--clara-select-max-block-size));
+  /* DECLARED, not inherited: this panel portals to document.body, and [data-clara-theme] redefines
+     custom properties without declaring `color`, so an undeclared panel takes its text colour from
+     the PAGE while taking its background from the portal's scope. */
+  color: var(--clara-select-listbox-fg);
+  background: var(--clara-select-listbox-bg);
+  border: var(--clara-select-border-width) solid var(--clara-select-listbox-border);
+  border-radius: var(--clara-select-listbox-radius);
+  overflow-y: auto;
+}
+.clara-select__listbox {
+  margin: var(--clara-box-padding-none);
+  padding-block: var(--clara-select-listbox-padding-block);
+  padding-inline: var(--clara-box-padding-none);
+  list-style: none;
+}
+.clara-select__option {
+  padding-block: var(--clara-select-option-padding-block);
+  padding-inline: var(--clara-select-option-padding-inline);
+  border-radius: var(--clara-select-option-radius);
+  cursor: pointer;
+}
+/* The ACTIVE option is the activedescendant cursor, which is a different fact from the selected
+   CHOICE - a screen reader announces both, so the two must not share one visual treatment. */
+.clara-select__option--active { background: var(--clara-select-option-bg-active); }
+.clara-select__option--disabled { color: var(--clara-select-option-fg-disabled); cursor: not-allowed; }
