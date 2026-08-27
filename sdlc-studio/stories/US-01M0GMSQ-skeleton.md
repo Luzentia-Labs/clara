@@ -1,13 +1,13 @@
 # US-01M0GMSQ: Skeleton
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Skeleton/**, packages/react/src/components/Skeleton/index.tsx, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Skeleton/Skeleton.tsx, packages/react/src/components/Skeleton/Skeleton.stories.tsx, packages/react/src/components/Skeleton/__tests__/skeleton.test.tsx, packages/react/src/styles.css, apps/docs/src/content/components/skeleton.md, scripts/check-verification.mjs, packages/react/src/components/Skeleton/index.tsx, scripts/check-component-css.mjs
 > **Points:** 1
 
 ## User Story
@@ -191,13 +191,17 @@ fixed FORWARD with a patch and never unpublished.
 
 ## Open Questions
 
+- [ ] None. Both questions below were answered during the
+      review round and are recorded under Resolved Questions.
+
+## Resolved Questions
+
 - [x] Should a placeholder be able to opt IN to being announced, for a one-off case?
       **No - settled by AC1.** An escape hatch here is a route to the forty-announcement failure,
       and the case it would serve (one meaningful placeholder) is better served by the group's
       label. The API exposing no route is what makes AC1 assertable as "no way to become
       announceable" rather than "is not announced today".
 
-## Resolved Questions
 
 - [x] Should the placeholder shimmer while it waits? **No.** The placeholder's PRESENCE is already
       the information, so a shimmer is Class A decoration under D0100 - it would have to be removed

@@ -1,13 +1,13 @@
 # US-01M0GMDG: Alert
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Alert/**, packages/react/src/components/Alert/index.tsx, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Alert/Alert.tsx, packages/react/src/components/Alert/Alert.stories.tsx, packages/react/src/components/Alert/__tests__/alert.test.tsx, packages/react/src/styles.css, e2e/stacking.spec.ts, packages/react/src/components/__tests__/prop-shapes.test-d.tsx, packages/react/src/index.ts, packages/react/src/components/Alert/index.tsx, scripts/check-component-css.mjs
 > **Points:** 3
 
 ## User Story

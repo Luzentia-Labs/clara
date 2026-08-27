@@ -1,13 +1,13 @@
 # US-01M0GMY3: ProgressBar
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/ProgressBar/**, packages/react/src/components/ProgressBar/index.tsx, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/ProgressBar/ProgressBar.tsx, packages/react/src/components/ProgressBar/ProgressBar.stories.tsx, packages/react/src/components/ProgressBar/__tests__/progress-bar.test.tsx, packages/react/src/styles.css, e2e/geometry.spec.ts, packages/react/src/components/ProgressBar/index.tsx, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story
@@ -235,12 +235,16 @@ fixed FORWARD with a patch and never unpublished.
 
 ## Open Questions
 
+- [ ] None. Both questions below were answered during the
+      review round and are recorded under Resolved Questions.
+
+## Resolved Questions
+
 - [x] Should the determinate bar transition between values, so a jump looks smooth?
       **No - settled by D0100 and asserted in the browser.** A transition makes the painted value and
       the reported value disagree for the length of the transition, and the reported one is the only
       one a screen-reader user has. It states its value; it does not travel toward it.
 
-## Resolved Questions
 
 - [x] Should an indeterminate bar report `aria-valuenow="0"`, so the attribute is always present?
       **No.** "Zero percent complete" is a claim, and it is false - the job may be nearly finished.

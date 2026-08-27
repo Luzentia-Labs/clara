@@ -1,13 +1,13 @@
 # US-01M0GMBA: Tag
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Tag/**, packages/react/src/components/Tag/index.tsx, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Tag/Tag.tsx, packages/react/src/components/Tag/Tag.stories.tsx, packages/react/src/components/Tag/__tests__/tag.test.tsx, packages/react/src/styles.css, e2e/stacking.spec.ts, packages/react/src/components/__tests__/prop-shapes.test-d.tsx, packages/react/src/index.ts, packages/react/src/components/Tag/index.tsx, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story
@@ -268,12 +268,16 @@ fixed FORWARD with a patch and never unpublished.
 
 ## Open Questions
 
+- [ ] None. Both questions below were answered during the
+      review round and are recorded under Resolved Questions.
+
+## Resolved Questions
+
 - [x] Should the removable variant accept a `ReactNode` child, like the static one?
       **No - settled by AC2.** The remove control's name is built by interpolating the child, and a
       node cannot be interpolated into a string. Allowing it would mean either an unnamed control or
       a silently generic one, and both are the defect AC2 exists to prevent.
 
-## Resolved Questions
 
 - [x] Should a removable tag's whole surface be clickable, rather than just the control?
       **No.** A tag is frequently the label of something the user wants to click THROUGH to, and a

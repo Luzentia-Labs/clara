@@ -7,12 +7,12 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 41 |
+| Draft | 34 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
 | Review | 0 |
-| Done | 48 |
+| Done | 55 |
 | Blocked | 0 |
 | **Total** | **89** |
 
@@ -61,13 +61,13 @@
 | [US-01M0GM31](US-01M0GM31-tooltip.md) | Tooltip | EP-01M0GK4P | Done | 5 | -- |
 | [US-01M0GM9W](US-01M0GM9W-dropdownmenu.md) | DropdownMenu | EP-01M0GK4P | Done | 8 | -- |
 | [US-01M0GMK1](US-01M0GMK1-toast.md) | Toast | EP-01M0GK4P | Done | 5 | -- |
-| [US-01M0GMDG](US-01M0GMDG-alert.md) | Alert | EP-01M0GK4P | Draft | 3 | -- |
-| [US-01M0GMDJ](US-01M0GMDJ-badge.md) | Badge | EP-01M0GK4P | Draft | 2 | -- |
-| [US-01M0GMBA](US-01M0GMBA-tag.md) | Tag | EP-01M0GK4P | Draft | 2 | -- |
-| [US-01M0GMBC](US-01M0GMBC-spinner.md) | Spinner | EP-01M0GK4P | Draft | 1 | -- |
-| [US-01M0GMY3](US-01M0GMY3-progressbar.md) | ProgressBar | EP-01M0GK4P | Draft | 2 | -- |
-| [US-01M0GMSQ](US-01M0GMSQ-skeleton.md) | Skeleton | EP-01M0GK4P | Draft | 1 | -- |
-| [US-01M0GMJ7](US-01M0GMJ7-emptystate.md) | EmptyState | EP-01M0GK4P | Draft | 2 | -- |
+| [US-01M0GMDG](US-01M0GMDG-alert.md) | Alert | EP-01M0GK4P | Done | 3 | -- |
+| [US-01M0GMDJ](US-01M0GMDJ-badge.md) | Badge | EP-01M0GK4P | Done | 2 | -- |
+| [US-01M0GMBA](US-01M0GMBA-tag.md) | Tag | EP-01M0GK4P | Done | 2 | -- |
+| [US-01M0GMBC](US-01M0GMBC-spinner.md) | Spinner | EP-01M0GK4P | Done | 1 | -- |
+| [US-01M0GMY3](US-01M0GMY3-progressbar.md) | ProgressBar | EP-01M0GK4P | Done | 2 | -- |
+| [US-01M0GMSQ](US-01M0GMSQ-skeleton.md) | Skeleton | EP-01M0GK4P | Done | 1 | -- |
+| [US-01M0GMJ7](US-01M0GMJ7-emptystate.md) | EmptyState | EP-01M0GK4P | Done | 2 | -- |
 | [US-01M0GM3D](US-01M0GM3D-field-framework.md) | Field framework | EP-01M0GKM2 | Done | 8 | -- |
 | [US-01M0GMBM](US-01M0GMBM-input.md) | Input | EP-01M0GKM2 | Done | 5 | -- |
 | [US-01M0GM2K](US-01M0GM2K-textarea.md) | Textarea | EP-01M0GKM2 | Done | 3 | -- |

@@ -1,13 +1,13 @@
 # US-01M0GMBC: Spinner
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Spinner/**, packages/react/src/components/Spinner/index.tsx, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Spinner/Spinner.tsx, packages/react/src/components/Spinner/Spinner.stories.tsx, packages/react/src/components/Spinner/__tests__/spinner.test.tsx, packages/react/src/styles.css, e2e/geometry.spec.ts, scripts/build-geometry-fixture.mjs, package.json, packages/react/src/components/Spinner/index.tsx, scripts/check-component-css.mjs
 > **Points:** 1
 
 ## User Story
@@ -223,12 +223,16 @@ fixed FORWARD with a patch and never unpublished.
 
 ## Open Questions
 
+- [ ] None. Both questions below were answered during the
+      review round and are recorded under Resolved Questions.
+
+## Resolved Questions
+
 - [x] Should `label` default to "Loading", so the component is one prop easier to use?
       **No - settled by AC1.** A default makes the uninformative case the easy one, and on a screen
       with four loading regions "Loading" tells a screen-reader user nothing they did not know. The
       same argument makes Badge's `countLabel` required.
 
-## Resolved Questions
 
 - [x] Under reduced motion, should the ring simply stop? **No - it is Class B under D0100 and the
       motion is REPLACED.** A stopped ring is indistinguishable from a broken one, and the state it

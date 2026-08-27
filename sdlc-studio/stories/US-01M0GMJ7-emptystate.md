@@ -1,13 +1,13 @@
 # US-01M0GMJ7: EmptyState
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/EmptyState/**, packages/react/src/components/EmptyState/index.tsx, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/EmptyState/EmptyState.tsx, packages/react/src/components/EmptyState/EmptyState.stories.tsx, packages/react/src/components/EmptyState/__tests__/empty-state.test.tsx, packages/react/src/styles.css, apps/docs/src/content/components/empty-state.md, scripts/check-verification.mjs, packages/react/src/components/EmptyState/index.tsx, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story
@@ -198,12 +198,16 @@ fixed FORWARD with a patch and never unpublished.
 
 ## Open Questions
 
+- [ ] None. Both questions below were answered during the
+      review round and are recorded under Resolved Questions.
+
+## Resolved Questions
+
 - [x] Should `reason` default to `empty`, so the common case is one prop shorter?
       **No - settled by AC1.** The two cases point at opposite actions, and a default means every
       author who forgets the prop ships the misleading one. Required is what makes the distinction
       the component's guarantee rather than its suggestion.
 
-## Resolved Questions
 
 - [x] Should the distinction live only in the copy, since that is what the user reads?
       **No - it reaches the DOM as `data-reason` too.** Copy is what an author can replace, and the

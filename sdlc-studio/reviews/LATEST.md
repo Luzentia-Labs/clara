@@ -7,59 +7,44 @@
 
 ## One paragraph
 
-**Four of the five overlay stories are Done** - Toast, DropdownMenu, Popover, Tooltip - after
-**five independent adversarial review rounds** that produced 32+ blocking findings. Every finding
-is fixed and proved by re-running the reviewer's own mutation. Round 5 was the first round in which
-nothing was structurally wrong.
+**EP-01M0GK4P is DONE - all fourteen stories.** The five overlays, the portal and layer-scale
+foundation, Modal, and the seven feedback components. PRD F13 and F14 both move to Done with it;
+they had read "Not Started" while every component in them was built and shipping.
 
-**All five overlays are Done.** Drawer was the last, and it had never been reviewed - it shipped in
-the built package at `planning` tier with six green criteria and zero review rows. It closed at full
-tier with ten criteria and a Test Plan filled from mutants that were actually run. Two seats reviewed
-it in parallel and both REJECTed with eight blocking findings between them; all eight were fixed,
-each proved by re-running the seat's own mutant, and a narrow confirmation seat re-ran all eight and
-APPROVED.
+**It took eight adversarial review rounds and every one of them found something.** Rounds 1-5 on
+the four overlays, one on Drawer (never reviewed - it had shipped at planning tier with zero review
+rows), and two on the seven feedback components. Nine seats REJECTed. Nothing reached Done on the
+author's own say-so.
 
-**The defect, three layers deep, is the lesson of this run.** AC1 asserted the placement CLASS - a
-proxy for a position - so swapping `inset-inline-start` and `inset-inline-end` put every left drawer
-on the right edge with every gate green. AC7 was added to measure the box. A seat then swapped only
-the keyframe BODIES, leaving both NAMES alone, and the left drawer entered from the middle of the
-screen while `animationName` still read `clara-drawer-in-start` - 32 browser tests, 1191 unit tests
-and 26 guards green, and AC7 blind to it because AC7 emulates reduced motion precisely so the box it
-reads is the RESTING position. AC8 now measures the animation's paused first frame.
+**One defect class accounts for most of it, and it kept reappearing one layer deeper than the fix.**
 
 > **A proxy replaced by a better proxy is still a proxy.** Ask of every new assertion: what is the
 > nearest edit that changes the property and not the thing being read?
 
-The same pattern ran through AC2: "asserted by identity" was satisfied by the anonymous fallback,
-because the harness put the opener first in document order and `restoreFallback` walks the document
-in order. A decoy now sits ahead of it. Two public props, `dismissible` and the
-`description`/`footer` pair, had no test at all. Drawer was outside the scroll-container contract
-Modal has carried since its own AC5.
+Drawer: a placement CLASS stood in for the position, so AC7 measured the box - then the animation
+NAME stood in for the direction, so AC8 measured the paused first frame. Alert, Badge and Tag: AC6
+bound a class to its tokens, and a seat then hardcoded the MODIFIER so every intent rendered info
+colours with 1200 tests, typecheck, 34 e2e and 147 prover mutations green. Skeleton and EmptyState:
+`role="status"` PRESENCE stood in for announcing, and `aria-live="off"` silenced both with every gate
+passing. Alert again: icon PRESENCE stood in for icon IDENTITY, so a danger alert could show an "i".
 
-**A confirmation seat caught its own worktree being branched from the wrong commit** - a base
-predating both fix commits - and reset before measuring anything. Without that, all eight mutants
-would have reported SURVIVED against code that never contained the fixes, and the round would have
-read as a total regression. Check the base ref before trusting a mutation result.
+**Three gates were certifying a stale build.** `check:geometry` ran bare `playwright test` while its
+fixture inlines `dist/styles.css`; `check:scoping` and `check:storybook` built Storybook but not the
+library, and the Storybook build does not build its workspace dependencies. All three build first
+now, and `check-ci-gates` fails any playwright script without it. This file had already recorded the
+class as fixed for `test:e2e` - fixing one instance without enumerating the rest is how it came back.
 
-**The worst defect of the run was introduced BY a repair.** The shared toast stack published to its
-store during render, so any discarded render - StrictMode, or any Suspense boundary in production -
-orphaned an entry that then owned the shared host forever, and `<Toast>` rendered nothing at all,
-permanently. Every gate was green throughout. That is the case for confirming rounds in one
-sentence.
+**The worst self-inflicted moment was a commit message.** It said "Re-stamped" while re-stamping two
+criteria out of seventeen whose text was authored after the date they carried, several of which had
+changed their VERIFIER, so the certificate predated the verifier that produced it. A seat
+reconstructed every criterion's text at every commit and caught it. All 41 stamps were then stripped
+and re-earned; `verify_ac --dry-run` reports `changes=0`, which is what proves they were earned
+rather than date-bumped.
 
-**What broke the review loop was not another round.** Rounds 1-4 were reactive: fix what the seat
-found, hand it back, get a new class of finding. Round 5 was preceded by a systematic self-sweep -
-enumerate the classes a seat could examine, check each BEFORE handing over - which is the same
-technique that ended US-01M0GM61's six-round loop. It found two real gaps and produced the first
-clean round. **Sweep ahead of the reviewer; do not react to them.**
-
-**Ten bugs filed across the run.** Eight fixed. Two are open BY CHOICE as recorded decisions, not
-oversights: BG-01M105X5 (the 700 ms tooltip delay assumes a skip window the per-Tooltip provider
-deletes - a comfort regression for pointer users; focus is unaffected) and BG-01M105C0 (Popover's
-trigger announces `aria-haspopup="dialog"` while its panel is a `group` - the UX seat's call).
-BG-01M0YTT4 also stays open: a toast ownership handover restarts every survivor's dismiss countdown
-AND re-announces the whole stack, and the mechanism it would change is the one the regression above
-came from.
+**Six worktrees in a row arrived 28-33 commits behind their target.** Every seat caught it with
+`git merge-base --is-ancestor` before measuring. Had one not, every probe would have reported
+SURVIVED against a tree that never contained the fix, and the round would have read as a total
+regression. **Check the base ref before trusting any mutation result.**
 
 The tree is on `main` with 1219 tests and every gate green. Nothing is on npm.
 
@@ -68,7 +53,7 @@ The tree is on `main` with 1219 tests and every gate green. Nothing is on npm.
 - `pnpm check` runs **30 guards**; `prove-guards-fail` kills **147 mutations** on a staged copy.
 - **1219 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **104 decisions**. Stories: **48 Done of 89**. `main` is the only branch - this project is
+- **104 decisions**. Stories: **55 Done of 89**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line

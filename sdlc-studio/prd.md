@@ -151,8 +151,8 @@ the higher principle wins.
 | F10 Selection controls | Checkbox, CheckboxGroup, Radio, RadioGroup, Switch | Not Started | Must-have | `packages/react` |
 | F11 Select and Combobox | Native-feel Select, searchable Combobox, MultiSelect | Not Started | Must-have | `packages/react` |
 | F12 Date and time inputs | DatePicker, DateRangePicker, TimePicker | Not Started | Must-have | `packages/react` |
-| F13 Overlays | Modal, Drawer, Popover, Tooltip, DropdownMenu | Not Started | Must-have | `packages/react` |
-| F14 Feedback and status | Toast, Alert, Badge, Spinner, ProgressBar, Skeleton, EmptyState | Not Started | Must-have | `packages/react` |
+| F13 Overlays | Modal, Drawer, Popover, Tooltip, DropdownMenu | Done | Must-have | `packages/react` |
+| F14 Feedback and status | Toast, Alert, Badge, Spinner, ProgressBar, Skeleton, EmptyState | Done | Must-have | `packages/react` |
 | F15 Data display | Table (basic), Card, Avatar, Tag, DescriptionList, Tooltip content | Not Started | Must-have | `packages/react` |
 | F16 Navigation | Tabs, Breadcrumb, Pagination, Menu | Not Started | Must-have | `packages/react` |
 | F17 Accessibility conformance | WCAG 2.2 AA across the library, automated and manual verification | Not Started | Must-have | cross-cutting |

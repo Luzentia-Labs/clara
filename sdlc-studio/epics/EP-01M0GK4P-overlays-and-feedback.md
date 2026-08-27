@@ -1,6 +1,6 @@
 # EP-01M0GK4P: Overlays and feedback
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -197,13 +197,13 @@ _DERIVED, not estimated: the sum of this epic's stories' points. `reconcile` rec
 - [x] [US-01M0GM31: Tooltip](../stories/US-01M0GM31-tooltip.md)
 - [x] [US-01M0GM9W: DropdownMenu](../stories/US-01M0GM9W-dropdownmenu.md)
 - [x] [US-01M0GMK1: Toast](../stories/US-01M0GMK1-toast.md)
-- [ ] [US-01M0GMDG: Alert](../stories/US-01M0GMDG-alert.md)
-- [ ] [US-01M0GMDJ: Badge](../stories/US-01M0GMDJ-badge.md)
-- [ ] [US-01M0GMBA: Tag](../stories/US-01M0GMBA-tag.md)
-- [ ] [US-01M0GMBC: Spinner](../stories/US-01M0GMBC-spinner.md)
-- [ ] [US-01M0GMY3: ProgressBar](../stories/US-01M0GMY3-progressbar.md)
-- [ ] [US-01M0GMSQ: Skeleton](../stories/US-01M0GMSQ-skeleton.md)
-- [ ] [US-01M0GMJ7: EmptyState](../stories/US-01M0GMJ7-emptystate.md)
+- [x] [US-01M0GMDG: Alert](../stories/US-01M0GMDG-alert.md)
+- [x] [US-01M0GMDJ: Badge](../stories/US-01M0GMDJ-badge.md)
+- [x] [US-01M0GMBA: Tag](../stories/US-01M0GMBA-tag.md)
+- [x] [US-01M0GMBC: Spinner](../stories/US-01M0GMBC-spinner.md)
+- [x] [US-01M0GMY3: ProgressBar](../stories/US-01M0GMY3-progressbar.md)
+- [x] [US-01M0GMSQ: Skeleton](../stories/US-01M0GMSQ-skeleton.md)
+- [x] [US-01M0GMJ7: EmptyState](../stories/US-01M0GMJ7-emptystate.md)
 
 ## Test Plan
 

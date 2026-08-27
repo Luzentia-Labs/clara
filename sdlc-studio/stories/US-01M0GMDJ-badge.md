@@ -1,13 +1,13 @@
 # US-01M0GMDJ: Badge
 
-> **Status:** Draft
+> **Status:** Done
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
 > **Template:** full
 > **Epic:** EP-01M0GK4P
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Badge/**, packages/react/src/components/Badge/index.tsx, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Badge/Badge.tsx, packages/react/src/components/Badge/Badge.stories.tsx, packages/react/src/components/Badge/__tests__/badge.test.tsx, packages/react/src/styles.css, e2e/stacking.spec.ts, packages/react/src/components/__tests__/prop-shapes.test-d.tsx, packages/react/src/index.ts, packages/react/src/components/Badge/index.tsx, scripts/check-component-css.mjs
 > **Points:** 2
 
 ## User Story
@@ -260,13 +260,17 @@ fixed FORWARD with a patch and never unpublished.
 
 ## Open Questions
 
+- [ ] None. Both questions below were answered during the
+      review round and are recorded under Resolved Questions.
+
+## Resolved Questions
+
 - [x] Should Badge refuse two badges whose visible text is identical and whose intent differs?
       **It cannot, and pretending otherwise would be the defect.** Whether two badges on a screen
       read alike is a property of the page, not of a component that renders one of them. Settled in
       the component's own docblock and in the docs page, both of which state the limit rather than
       implying the component solves WCAG 1.4.1 for the author.
 
-## Resolved Questions
 
 - [x] Should `countLabel` default to something, so the count variant is easier to reach for?
       **No.** The only default available is a generic word, and a generic word is exactly the one
