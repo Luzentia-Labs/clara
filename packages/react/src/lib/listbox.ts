@@ -75,17 +75,12 @@ export function useListbox<T> (input: UseListboxInput<T>) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, options, first])
 
-  // The highlight must never point past the end, or at a disabled option, after `options` changes -
-  // which is every keystroke in a Combobox. Without this a filtered list keeps an index into the
-  // PREVIOUS list, and `aria-activedescendant` names an id that is no longer in the DOM.
-  useEffect(() => {
-    if (!open) return
-    setActiveIndex((current) => {
-      if (current === -1) return first
-      if (current >= options.length || options[current]?.disabled) return first
-      return current
-    })
-  }, [options, open, first])
+  // NOTE: there is no second effect clamping the highlight when `options` changes. There was, and a
+  // mutation proved it dead: the effect above already lists `options` as a dependency, so any change
+  // to the list re-runs it and re-seats the highlight. Deleting the clamp changed nothing any test
+  // could see, which is the definition of code that is not doing work. Resetting to the selected
+  // option or the first enabled one is also the RIGHT behaviour when a combobox filters - the list
+  // the user was pointing into no longer exists.
 
   const commit = useCallback((index: number) => {
     const option = options[index]

@@ -210,6 +210,40 @@ export interface ClaraScopeProps {
     theme?: ThemePreference;
 }
 
+// @public
+export function Combobox<T extends string = string>(input: ComboboxProps<T>): JSX_2.Element;
+
+// @public
+export interface ComboboxOption<T extends string = string> extends ListboxOption<T> {
+    group?: string;
+}
+
+// @public (undocumented)
+export interface ComboboxProps<T extends string = string> {
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    defaultValue?: T;
+    // (undocumented)
+    disabled?: boolean;
+    emptyMessage?: string;
+    errorMessage?: string;
+    onQueryChange?: (query: string) => void;
+    // (undocumented)
+    onValueChange?: (value: T) => void;
+    // (undocumented)
+    options: ReadonlyArray<ComboboxOption<T>>;
+    // (undocumented)
+    placeholder?: string;
+    // (undocumented)
+    status?: ComboboxStatus;
+    // (undocumented)
+    value?: T;
+}
+
+// @public
+export type ComboboxStatus = 'idle' | 'loading' | 'error';
+
 // @public (undocumented)
 export const Divider: ForwardRefExoticComponent<DividerProps & RefAttributes<HTMLHRElement>>;
 

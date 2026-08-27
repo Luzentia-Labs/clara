@@ -61,8 +61,32 @@ try {
     const source = readFileSync(join(SRC, name, `${name}.tsx`), 'utf8')
     // Every string literal of 24+ characters passed to devWarning, as a proxy-free sample of the
     // message: if the call survives minification, its text does.
-    const phrases = [...source.matchAll(/'([^'\\]{24,})'/g)].map((m) => m[1])
-      .filter((p) => !p.includes('import') && !p.startsWith('.'))
+    /*
+     * Sample the strings passed to `devWarning`, not every long literal in the file.
+     *
+     * The previous sampler took any single-quoted run of 24+ characters that was not an import or a
+     * path. That is not "the warning message", it is "a long string", and the two coincided only by
+     * luck. Combobox has `'clara-combobox--disabled'` - a CSS class name of exactly 24 characters
+     * which MUST survive a production build - and the guard reported it as dev-only text shipping to
+     * every consumer. A guard that fails on correct code is worse than one that misses, because the
+     * way past it is to weaken it.
+     *
+     * The call site is the honest boundary: walk from each `devWarning(` to its balancing paren and
+     * take the literals inside. That is exactly the text this guard's docblock is about.
+     */
+    const phrases = []
+    for (const call of source.matchAll(/\bdevWarning\s*\(/g)) {
+      let depth = 1
+      let i = call.index + call[0].length
+      for (; i < source.length && depth > 0; i++) {
+        if (source[i] === '(') depth++
+        else if (source[i] === ')') depth--
+      }
+      const args = source.slice(call.index + call[0].length, i - 1)
+      // Both quoting styles: a message long enough to need concatenation uses either, and a
+      // template literal's static chunks ship the same way.
+      for (const m of args.matchAll(/'([^'\\]{24,})'|`([^`\\$]{24,})`/g)) phrases.push(m[1] ?? m[2])
+    }
     if (!phrases.length) {
       problems.push(`${name} calls devWarning but no message text could be sampled from its source`)
       continue

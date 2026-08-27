@@ -1,0 +1,36 @@
+{
+  "combobox": {
+    "bg": { "value": "{color.bg.surface}", "type": "color" },
+    "fg": { "value": "{color.fg.default}", "type": "color" },
+    "border": { "value": "{color.border.default}", "type": "color" },
+    "border-width": { "value": "{border-width.default}", "type": "dimension" },
+    "focus-width": { "value": "{border-width.focus}", "type": "dimension" },
+    "radius": { "value": "{radius.control}", "type": "dimension" },
+    "height": { "value": "{size.control-height}", "type": "dimension" },
+    "padding-inline": { "value": "{space.control-padding-x}", "type": "dimension" },
+    "panel-bg": { "value": "{color.bg.surface}", "type": "color" },
+    "panel-fg": { "value": "{color.fg.default}", "type": "color" },
+    "panel-border": { "value": "{color.border.default}", "type": "color" },
+    "panel-radius": { "value": "{radius.surface}", "type": "dimension" },
+    "panel-padding-block": { "value": "{space.control-padding-y}", "type": "dimension" },
+    "option-padding-block": { "value": "{space.control-padding-y}", "type": "dimension" },
+    "option-padding-inline": { "value": "{space.control-padding-x}", "type": "dimension" },
+    "option-radius": { "value": "{radius.control}", "type": "dimension" },
+    "option-bg-active": { "value": "{color.bg.row-hover}", "type": "color" },
+    "option-fg-disabled": { "value": "{color.fg.muted}", "type": "color" },
+    "group-label-fg": { "value": "{color.fg.muted}", "type": "color" },
+    "group-label-size": { "value": "{font.caption}", "type": "dimension" },
+    "message-fg": { "value": "{color.fg.muted}", "type": "color" },
+    "message-fg-error": { "value": "{color.fg.danger}", "type": "color" },
+    "min-inline-size": {
+      "value": "12rem",
+      "type": "dimension",
+      "comment": "A raw dimension, following dropdown-menu.min-inline-size. A listbox MINIMUM width has no semantic ancestor in tier 2 size, and without one a list of short labels renders as a sliver that is hard to aim at."
+    },
+    "max-block-size": {
+      "value": "85vh",
+      "type": "dimension",
+      "comment": "A FALLBACK for the frame before the popper has measured. It cannot itself hold a var(--radix-...) reference: a var() referencing another var() resolves at the element where it is DECLARED, and this token is declared at :root where no Radix variable exists, so routing it through here would collapse the declaration to `none` and let the panel grow unbounded. BG-01M0WQY1 one tier down. The live value is read in the rule."
+    }
+  }
+}

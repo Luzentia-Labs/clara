@@ -818,6 +818,7 @@
 .clara-search__clear:focus-visible,
 .clara-input-group__clear:focus-visible,
 .clara-password__toggle:focus-visible,
+.clara-combobox__input:focus-visible,
 .clara-link:focus-visible,
 .clara-text:focus-visible,
 .clara-table-sort:focus-visible {
@@ -1164,3 +1165,86 @@
    CHOICE - a screen reader announces both, so the two must not share one visual treatment. */
 .clara-select__option--active { background: var(--clara-select-option-bg-active); }
 .clara-select__option--disabled { color: var(--clara-select-option-fg-disabled); cursor: not-allowed; }
+
+/*
+ * Combobox - a text input that filters a list.
+ *
+ * Same shape as Select: the trigger is in the page flow, the PANEL is the portalled surface and is
+ * where the layer token belongs. `position: relative` earns that z-index for the reason
+ * `.clara-popover` records - Radix's popper reads the computed z-index off this element and copies
+ * it onto the wrapper it renders itself.
+ */
+.clara-combobox {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  block-size: var(--clara-combobox-height);
+  padding-inline: var(--clara-combobox-padding-inline);
+  background: var(--clara-combobox-bg);
+  color: var(--clara-combobox-fg);
+  border: var(--clara-combobox-border-width) solid var(--clara-combobox-border);
+  border-radius: var(--clara-combobox-radius);
+}
+.clara-combobox__input {
+  flex: 1 1 auto;
+  min-inline-size: var(--clara-box-padding-none);
+  background: none;
+  border: var(--clara-box-padding-none);
+  color: inherit;
+  font: inherit;
+}
+/* The ring goes on the INPUT, not the wrapper - the convention `.clara-input-group` already
+   follows, where the inner `.clara-input` keeps its own ring inside the group's box. A
+   `:focus-within` on the wrapper would also fire on a mouse click, which `:focus-visible` exists to
+   avoid, and suppressing the inner ring left a `:focus-visible` selector that draws nothing - which
+   `check-component-css` refuses, correctly. The declaration lives in the shared control rule above.
+   */
+.clara-combobox--disabled { color: var(--clara-color-fg-muted); cursor: not-allowed; }
+
+.clara-combobox__panel {
+  position: relative;
+  z-index: var(--clara-layer-overlay);
+  box-sizing: border-box;
+  min-inline-size: var(--clara-combobox-min-inline-size);
+  /* Read HERE, in the rule, because a var() referencing another var() resolves at the element where
+     it is DECLARED - and the token is declared at :root, where no Radix variable exists
+     (BG-01M0WQY1). The token is the fallback for the frame before the popper has measured. */
+  max-block-size: var(--radix-popover-content-available-height, var(--clara-combobox-max-block-size));
+  /* DECLARED, not inherited: the panel portals to document.body, and [data-clara-theme] redefines
+     custom properties without declaring `color`. */
+  color: var(--clara-combobox-panel-fg);
+  background: var(--clara-combobox-panel-bg);
+  border: var(--clara-combobox-border-width) solid var(--clara-combobox-panel-border);
+  border-radius: var(--clara-combobox-panel-radius);
+  overflow-y: auto;
+}
+.clara-combobox__listbox,
+.clara-combobox__group {
+  margin: var(--clara-box-padding-none);
+  padding-block: var(--clara-combobox-panel-padding-block);
+  padding-inline: var(--clara-box-padding-none);
+  list-style: none;
+}
+.clara-combobox__option {
+  padding-block: var(--clara-combobox-option-padding-block);
+  padding-inline: var(--clara-combobox-option-padding-inline);
+  border-radius: var(--clara-combobox-option-radius);
+  cursor: pointer;
+}
+/* The ACTIVE option is the activedescendant cursor. The selected CHOICE is aria-selected, and they
+   are different facts a screen reader announces separately. */
+.clara-combobox__option--active { background: var(--clara-combobox-option-bg-active); }
+.clara-combobox__option--disabled { color: var(--clara-combobox-option-fg-disabled); cursor: not-allowed; }
+.clara-combobox__group-label {
+  padding-block: var(--clara-combobox-option-padding-block);
+  padding-inline: var(--clara-combobox-option-padding-inline);
+  color: var(--clara-combobox-group-label-fg);
+  font-size: var(--clara-combobox-group-label-size);
+}
+.clara-combobox__message {
+  padding-block: var(--clara-combobox-option-padding-block);
+  padding-inline: var(--clara-combobox-option-padding-inline);
+  color: var(--clara-combobox-message-fg);
+}
+.clara-combobox__message--error { color: var(--clara-combobox-message-fg-error); }

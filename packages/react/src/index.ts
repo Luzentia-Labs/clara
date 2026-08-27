@@ -39,6 +39,8 @@ export type { SpinnerProps } from './components/Spinner/Spinner'
 // would not have shown in the public surface diff. That is the defect just fixed on Badge and
 // Tag's variant interfaces, and this is the same mechanism.
 export type { ListboxOption } from './lib/listbox'
+export { Combobox } from './components/Combobox/Combobox'
+export type { ComboboxProps, ComboboxOption, ComboboxStatus } from './components/Combobox/Combobox'
 export { Select } from './components/Select/Select'
 export type { SelectProps, SelectOption } from './components/Select/Select'
 export { Alert } from './components/Alert/Alert'
