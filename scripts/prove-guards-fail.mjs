@@ -1335,6 +1335,20 @@ const OUTPUT_CASES = [
     },
   },
   {
+    // A required section renamed away by APPENDING a word. `sectionBody` found headings with
+    // `indexOf`, so `## Keyboard notes` satisfied a required `## Keyboard` - and every required
+    // section in the record was defeatable by a suffix, which is the whole check gone. A review
+    // measured it exiting 0 on Drawer. The heading is now anchored to a whole line, and this
+    // mutation is what stops the anchor being simplified back out.
+    name: 'a required section renamed away by appending a word, which a prefix match accepts',
+    guard: 'check-verification.mjs',
+    expect: /missing section "## Keyboard"/,
+    stage: (stage) => {
+      const f = join(stage, 'packages/react/src/components/Checkbox/verification.md')
+      writeFileSync(f, readFileSync(f, 'utf8').replace(/^## Keyboard$/m, '## Keyboard notes'))
+    },
+  },
+  {
     name: 'a component whose documented docs page does not exist',
     guard: 'check-verification.mjs',
     expect: /names docs page switch\.md, which does not exist/,
