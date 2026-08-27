@@ -9,8 +9,14 @@ const meta = {
   component: Drawer,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
-  //  and  are required props, so meta has to supply them even though every story
-  // below drives them from its own state - a  alone does not satisfy the type.
+  // `open`, `onClose` and `title` are required props, so meta has to supply them even though every
+  // story below drives them from its own state - a `satisfies Meta<typeof Drawer>` alone does not
+  // satisfy the type.
+  //
+  // The three identifiers above were EATEN when this file was first written: passed through an
+  // unquoted shell heredoc, backtick spans ran as command substitution and the comment shipped
+  // reading "//  and  are required props". AGENTS.md names the rule - pass prose as a document,
+  // not as a shell argument.
   args: { open: false, onClose: () => {}, title: 'Filters', placement: 'right' },
   argTypes: {
     placement: { control: 'inline-radio', options: ['left', 'right', 'bottom'] },

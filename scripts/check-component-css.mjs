@@ -389,7 +389,11 @@ const SHAPE_CONTRACT = [
    */
   ['.clara-modal__scrim', ['position', 'inset', 'background']],
   ['.clara-popover', ['box-sizing', 'background', 'color', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
-  ['.clara-drawer', ['box-sizing', 'position', 'background', 'color']],
+  // `max-block-size` is not decoration: without it a bottom drawer with long content grows past
+  // the viewport and its footer becomes unreachable. It was deletable with every gate green.
+  ['.clara-drawer', ['box-sizing', 'position', 'background', 'color', 'max-block-size']],
+  ['.clara-drawer__body', ['overflow-y']],
+  ['.clara-drawer__body > *', ['flex-shrink']],
   ['.clara-tooltip', ['box-sizing', 'background', 'color', 'border-radius']],
   ['.clara-toast', ['box-sizing', 'background', 'color', 'border-radius']],
   ['.clara-dropdown-menu', ['box-sizing', 'background', 'color', 'border-radius', 'max-block-size', 'overflow-y']],
@@ -443,6 +447,16 @@ const VALUE_CONTRACT = [
   ['.clara-modal__body > *', 'flex', (prop, v) => (
     prop === 'flex-shrink' ? v === '0' : prop === 'flex' ? /^0(\s|$)/.test(v) : true
   ), 'children of the scroll container must not shrink (AC5) - a flex column squashes a fixed-height chart to nothing instead of scrolling it, and the `flex` shorthand resets flex-shrink to 1'],
+  // Drawer's body is the scroll container for the same reason Modal's is, and Drawer AC6 makes the
+  // same claim - but only Modal was enrolled, so `overflow-y: visible` on `.clara-drawer__body`
+  // passed every gate. A contract that covers one of two components implementing one rule is how
+  // the rule comes back in the component nobody enrolled.
+  ['.clara-drawer__body', 'overflow', (prop, v) => (
+    prop === 'overflow-x' ? true : /^(auto|scroll|overlay)$/.test(v.split(/\s+/)[0] ?? '')
+  ), 'the BODY is the scroll container; `visible` scrolls the whole panel and carries the header and footer away with it. The `overflow` shorthand sets it too'],
+  ['.clara-drawer__body > *', 'flex', (prop, v) => (
+    prop === 'flex-shrink' ? v === '0' : prop === 'flex' ? /^0(\s|$)/.test(v) : true
+  ), 'children of the scroll container must not shrink - a flex column squashes a fixed-height chart to nothing instead of scrolling it, and the `flex` shorthand resets flex-shrink to 1'],
   ['.clara-modal', 'background', (prop, v) => (
     prop === 'background-image' ? v === 'none' : v.includes('--clara-color-bg-surface')
   ), 'the panel is an opaque surface that resolves per theme; a scrim, a fixed colour or a gradient renders a dark modal on a light ground'],

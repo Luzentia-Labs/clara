@@ -81,22 +81,44 @@ focus relocates and the background goes inert.
   UNMOUNT route - `__tests__/drawer.test.tsx`
 - Scroll lock engages and compensates for exactly the scrollbar width it removes, and releases on
   close - `__tests__/drawer.test.tsx`
+- `dismissible={false}` blocks Escape and an outside pointer, and the close button still works and
+  fires `onClose` exactly once - `__tests__/drawer.test.tsx`
+- A `description` reaches the dialog's ACCESSIBLE DESCRIPTION and a `footer` renders, and a drawer
+  with no description carries no `aria-describedby` at all - `__tests__/drawer.test.tsx`
 - It renders through `ClaraPortal` and takes its stacking from a layer token - `check:overlay-contract`
-- Token-only styling - `check:component-css`
+- Token-only styling, plus the panel's containment (`box-sizing`, `max-block-size`) and its scroll
+  container (`overflow-y` on the body, `flex-shrink: 0` on the body's children) - `check:component-css`
 - axe in all four theme x density combinations - `check:axe`
+- **In a real browser** (`e2e/stacking.spec.ts`, run by `pnpm test:e2e`):
+  - each placement RESTS against the edge it names, spans the other axis, and does not fill the
+    viewport - measured against the viewport box, not inferred from a class name
+  - each placement ENTERS from outside that edge - measured on the animation's paused first frame,
+    because the keyframe's NAME is a proxy for its direction and swapping only the keyframe bodies
+    left every other gate green
+  - each placement's slide is removed entirely under `prefers-reduced-motion: reduce`
+  - the panel declares a `color` that resolves per theme, checked against both shipped stylesheets
 
 ## Stated gaps
 
-- **The slide is not verified in a browser, and gate 9's fixture cannot hold it.** jsdom resolves
-  no animation, so nothing here proves the panel slides from the correct edge or that the
-  reduced-motion branch removes it. Gate 9 asserts exactly this for Spinner and ProgressBar, but its
-  fixture is a `renderToStaticMarkup` render and `ClaraPortal` returns null on the server by design
-  (AC4 of the foundation story) - so a portalled overlay cannot appear in it at all. The assertion
-  needs a client render, which the scoping gate already performs for the portal case by serving the
-  Storybook build. The story file exists for it; the assertion does not yet. (Deliberately not
-  written here as a path: `check-verification` resolves a cited path as EVIDENCE, and naming a file
-  where the assertion is absent would claim the opposite of what this gap says.) This is the most likely thing here to be wrong and unnoticed, and it is a gap in the GATE's
-  reach rather than an oversight in this component.
+- **CLOSED 2026-08-27, recorded rather than deleted.** This section previously read "The slide is
+  not verified in a browser, and gate 9's fixture cannot hold it ... The story file exists for it;
+  the assertion does not yet." Half of that is still true and half of it went stale without being
+  corrected: gate 9's fixture genuinely cannot hold a portalled overlay - it is a
+  `renderToStaticMarkup` render and `ClaraPortal` returns null on the server by design (US-01M0GM61
+  AC4) - but the assertions have existed since commit `ae6fd29` and now live in
+  `e2e/stacking.spec.ts`, driven against a served Storybook build. A review found this record
+  stating a closed gap as open, which is the same defect as claiming an open one closed: a record
+  nobody re-reads is a record nobody can trust.
+- **The entrance is sampled, not watched.** The browser assertion pauses the animation at
+  `currentTime = 0` and reads the box. That proves where the travel STARTS and that it starts
+  off-screen on the correct side; it does not prove the easing, the duration a person perceives, or
+  that the panel arrives without overshoot. Gate 7 owns appearance.
+- **Radix's own focus restore is suppressed with nothing witnessing it** (BG-01M10BB8).
+  `Drawer.tsx` passes `onCloseAutoFocus` a `preventDefault` because Clara restores focus itself and
+  two mechanisms racing strands focus on `document.body`. Deleting that line leaves all 1200 tests
+  and every guard green. It is not a missing assertion so much as a jsdom limit: the two restores
+  only disagree observably on the UNMOUNT route, in a browser. Modal carries the identical line and
+  is equally unwitnessed.
 - **Scroll lock is asserted as a MECHANISM, not as an absence of shift.** jsdom computes no layout,
   so the test observes that the page is locked and that the scrollbar's width is handed back as
   padding. Whether the page actually holds still is gate 7's.

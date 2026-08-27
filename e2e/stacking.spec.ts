@@ -498,17 +498,83 @@ test('a drawer rests against the edge it names, and spans the other axis', async
   }
 })
 
+/**
+ * WHERE the entrance starts, which is a different claim from which keyframe is attached.
+ *
+ * The test above reads `animationName`. A review proved that is a proxy too (D0065): swapping only
+ * the keyframe BODIES - `translateX(-100%)` and `translateX(100%)` at `styles.css:407-408`, both
+ * names left alone - made the left drawer enter from the middle of the screen (paused first frame
+ * `startX` went -448 to +448 at a 1280 viewport) while `animationName` still read
+ * `clara-drawer-in-start`. 32 browser tests, 1191 unit tests and 26 guards stayed green. That is the
+ * AC1 -> AC7 defect reproduced one layer down, inside the criterion written to fix it.
+ *
+ * AC7 cannot cover this: it emulates `reducedMotion: 'reduce'` so that the box it reads is the
+ * resting position, which means nothing there ever observes the panel while it is ENTERING. This
+ * test is the entering half, and the two are deliberately separate for that reason.
+ *
+ * The animation is PAUSED at `currentTime = 0` rather than raced against - sampling a running
+ * animation is how a test becomes flaky for a reason that is not a defect.
+ */
+test('a drawer enters from outside the edge it is anchored to', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  const viewport = page.viewportSize()
+  if (!viewport) throw new Error('no viewport to measure against')
+  const EDGE = 1
+
+  for (const placement of ['left', 'right', 'bottom'] as const) {
+    await page.goto(`${origin}/iframe.html?id=overlays-drawer--${placement}&viewMode=story`)
+    await page.getByRole('button', { name: `Open ${placement} drawer` }).click()
+    const panel = page.locator('.clara-drawer')
+    await panel.waitFor({ state: 'visible' })
+
+    const first = await panel.evaluate((el) => {
+      const running = el.getAnimations()
+      if (running.length === 0) return null
+      for (const animation of running) {
+        animation.pause()
+        animation.currentTime = 0
+      }
+      const rect = el.getBoundingClientRect()
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+    })
+    // `null` means no animation at all, which is a different defect and must not read as a pass.
+    expect(first, `the ${placement} drawer has no entrance animation to sample`).not.toBeNull()
+    const box = first!
+
+    if (placement === 'left') {
+      // Entirely past the left edge at t=0: it travels rightward INTO view.
+      expect(box.x + box.width, 'the left drawer does not start off the left edge')
+        .toBeLessThanOrEqual(EDGE)
+    } else if (placement === 'right') {
+      expect(box.x, 'the right drawer does not start off the right edge')
+        .toBeGreaterThanOrEqual(viewport.width - EDGE)
+    } else {
+      expect(box.y, 'the bottom drawer does not start below the bottom edge')
+        .toBeGreaterThanOrEqual(viewport.height - EDGE)
+    }
+  }
+})
+
 test('a drawer removes its slide entirely under reduced motion', async ({ page }) => {
   // Class A, unlike Toast: the slide is spatial-origin decoration here, and the panel's presence is
   // already the information. D0100 says remove it rather than substitute something.
+  //
+  // ALL THREE placements, not just `right`. This visited one story while its sibling above iterated
+  // three, and a review measured the consequence: narrowing the reduced-motion rule from
+  // `.clara-drawer--left, .clara-drawer--right, .clara-drawer--bottom` to `.clara-drawer--right`
+  // alone left the whole e2e gate green while a left or bottom drawer kept sliding for a
+  // `prefers-reduced-motion: reduce` user - which is the D0100 violation this test exists to
+  // prevent, surviving inside the test written to prevent it.
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.goto(`${origin}/iframe.html?id=overlays-drawer--right&viewMode=story`)
-  await page.getByRole('button', { name: 'Open right drawer' }).click()
-  const panel = page.locator('.clara-drawer')
-  await panel.waitFor({ state: 'visible' })
+  for (const placement of ['left', 'right', 'bottom'] as const) {
+    await page.goto(`${origin}/iframe.html?id=overlays-drawer--${placement}&viewMode=story`)
+    await page.getByRole('button', { name: `Open ${placement} drawer` }).click()
+    const panel = page.locator('.clara-drawer')
+    await panel.waitFor({ state: 'visible' })
 
-  const name = await panel.evaluate((el) => getComputedStyle(el).animationName)
-  expect(name, 'the drawer still animates under reduced motion').toBe('none')
+    const name = await panel.evaluate((el) => getComputedStyle(el).animationName)
+    expect(name, `the ${placement} drawer still animates under reduced motion`).toBe('none')
+  }
 })
 
 test('a popover pinned against an edge stays on screen', async ({ page }) => {

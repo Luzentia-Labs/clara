@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 8 |
+| inbox | 10 |
 | Superseded | 1 |
-| **Total** | **25** |
+| **Total** | **27** |
 
 ## By Severity
 
@@ -50,6 +50,8 @@
 | [BG-01M105C0](BG-01M105C0-popover-s-trigger-announces-aria-haspopup-dialog-while.md) | Popover's trigger announces aria-haspopup=dialog while the panel is a group | Medium | Medium | inbox | -- | -- | 2026-08-27 |
 | [BG-01M107ND](BG-01M107ND-twenty-two-definition-of-done-criteria-assert-a.md) | Twenty-two definition-of-done criteria assert a visual baseline and a recorded manual pass that their own verifier never checks | Medium | Medium | inbox | -- | -- | 2026-08-27 |
 | [BG-01M109XY](BG-01M109XY-check-story-verifiers-silently-skips-a-story-with.md) | check-story-verifiers silently skips a story with no Test Plan, so 133 Verified stamps across 31 Done stories are outside the gate | Medium | Medium | inbox | -- | -- | 2026-08-27 |
+| [BG-01M10BB8](BG-01M10BB8-drawer-and-modal-suppress-radix-s-focus-restore.md) | Drawer and Modal suppress Radix's focus restore with nothing witnessing it, and jsdom cannot see the race | Medium | Medium | inbox | -- | -- | 2026-08-27 |
+| [BG-01M10BWX](BG-01M10BWX-check-keyboard-runs-a-hand-typed-file-list.md) | check:keyboard runs a hand-typed file list, so 33 of 35 components with a keyboard table have no per-component keyboard gate | Medium | Medium | inbox | -- | -- | 2026-08-27 |
 
 ## Notes
 

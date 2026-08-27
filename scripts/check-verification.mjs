@@ -47,9 +47,18 @@ const REQUIRED_SECTIONS = [
 
 /** The body of one `## Section`, up to the next heading of the same level. */
 function sectionBody (text, heading) {
-  const start = text.indexOf(heading)
-  if (start === -1) return null
-  const after = text.slice(start + heading.length)
+  // The heading must sit at a line start and END there. `indexOf` matched it as a PREFIX, so
+  // `## Keyboard notes` satisfied a required `## Keyboard` - and a review renamed the section to
+  // exactly that and watched this guard exit 0. Every required section could be renamed away by
+  // appending a word to it, which is the whole check defeated by a suffix.
+  //
+  // Found twice in one pass: once as a false SURVIVING mutant (a probe that renamed the heading to
+  // `## Keyboard-removed-by-mutant` and reported a gap that was not there), and once as the real
+  // hole underneath it.
+  const at = new RegExp(`^${heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[ \\t]*$`, 'm')
+  const found = at.exec(text)
+  if (!found) return null
+  const after = text.slice(found.index + found[0].length)
   const next = after.search(/\n## /)
   return next === -1 ? after : after.slice(0, next)
 }

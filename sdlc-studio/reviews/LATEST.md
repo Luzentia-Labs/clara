@@ -42,12 +42,12 @@ BG-01M0YTT4 also stays open: a toast ownership handover restarts every survivor'
 AND re-announces the whole stack, and the mechanism it would change is the one the regression above
 came from.
 
-The tree is on `main` with 1191 tests and every gate green. Nothing is on npm.
+The tree is on `main` with 1200 tests and every gate green. Nothing is on npm.
 
 ## Numbers
 
 - `pnpm check` runs **30 guards**; `prove-guards-fail` kills **146 mutations** on a staged copy.
-- **1191 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- **1200 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
 - **104 decisions**. Stories: **47 Done of 89**. `main` is the only branch - this project is
   trunk-based.
