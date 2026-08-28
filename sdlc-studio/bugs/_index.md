@@ -1,6 +1,6 @@
 # Bug Registry
 
-**Last Updated:** 2026-08-27
+**Last Updated:** 2026-08-29
 
 ## Summary
 
@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 13 |
+| inbox | 14 |
 | Superseded | 1 |
-| **Total** | **30** |
+| **Total** | **31** |
 
 ## By Severity
 
@@ -55,6 +55,7 @@
 | [BG-01M11JWY](BG-01M11JWY-skeletongroup-and-emptystate-create-their-live-region-and.md) | SkeletonGroup and EmptyState create their live region and its text in one commit, the shape this repo records as commonly silent | Medium | Medium | inbox | -- | -- | 2026-08-27 |
 | [BG-01M11KT6](BG-01M11KT6-badge-and-tag-claim-a-visible-non-colour.md) | Badge and Tag claim a visible non-colour carrier and render none, missing the sighted colour-deficient persona both stories name | Medium | Medium | inbox | -- | -- | 2026-08-27 |
 | [BG-01M11WQZ](BG-01M11WQZ-a-control-rendered-outside-a-field-has-no.md) | A control rendered outside a Field has no accessible name, and nothing warns - for role=combobox it is none at all | Medium | Medium | inbox | -- | -- | 2026-08-27 |
+| [BG-01M154FF](BG-01M154FF-every-review-worktree-branches-from-origin-main-which.md) | Every review worktree branches from origin/main, which is 38 commits behind local main, so a seat measures a tree that never contained the unit | High | Medium | inbox | -- | -- | 2026-08-29 |
 
 ## Notes
 
