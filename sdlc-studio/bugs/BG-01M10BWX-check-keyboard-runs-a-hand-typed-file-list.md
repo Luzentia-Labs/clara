@@ -55,6 +55,25 @@ Step 3 is the part that matters. A derived list that silently runs fewer files i
 
 \*\*Related:\*\* BG-01M109XY (a gate that silently skips what it cannot check) and BG-01M107ND (a criterion claiming more than its verifier checks). All three are the same shape: the check is narrower than the claim, and nothing says so.
 
+## Acceptance Criteria
+
+### AC1: The file list is derived, not typed
+
+- **Given** 35 components declaring a `## Keyboard` table
+- **When** `check:keyboard` runs
+- **Then** it resolves its file list from those records rather than from a hand-typed string, and its
+  PASS line reports how many components were found and how many test files were run
+- **Verify:** shell pnpm check:keyboard
+- **Verification target:** functional
+
+### AC2: A component with a keyboard table and no tests is a failure, not a silence
+
+- **Given** a component declaring a keyboard table
+- **When** it has no test file for the derived list to run
+- **Then** the gate FAILS and names it, because that absence is the finding and today it is invisible
+- **Verify:** shell pnpm check:keyboard
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

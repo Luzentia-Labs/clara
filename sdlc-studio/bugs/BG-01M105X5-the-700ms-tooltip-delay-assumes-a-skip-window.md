@@ -59,6 +59,28 @@ Option 2 (grouping via a shared provider) stays available and is strictly larger
 module-level shared-tree treatment the toast stack got in `toast-store.ts`, so that
 `skipDelayDuration` becomes real without `TooltipProps` gaining a public provider.
 
+## Acceptance Criteria
+
+### AC1: The delay is in the range a deleted skip window calls for
+
+- **Given** D0109's ruling
+- **When** Tooltip's internal provider is configured
+- **Then** `delayDuration` is between 300 and 400 ms inclusive
+- **Verify:** vitest "Tooltip opens on a delay a toolbar can live with"
+- **Verification target:** functional
+
+### AC2: The value is readable by a test at all
+
+- **Given** the measurement that `delayDuration={5000}` left jsdom 16/16 green and the e2e suite
+  passing at 37.7s against a ~7s baseline
+- **When** the delay is changed
+- **Then** an assertion fails, because a 7x pointer-latency regression being invisible to every gate
+  is the reason this bug could sit for three rounds
+- **And** the assertion reads the value Clara passes rather than an observed duration - jsdom returns
+  no real clock, so a timing assertion here would be a false green by construction
+- **Verify:** vitest "Tooltip opens on a delay a toolbar can live with"
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

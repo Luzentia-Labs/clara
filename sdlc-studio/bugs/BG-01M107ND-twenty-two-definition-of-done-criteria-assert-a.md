@@ -49,6 +49,25 @@ That is the guard's real contract, stated as a criterion.
 
 **Guard it, or it comes back.** The wording was copied 22 times because nothing objected. A `prove-guards-fail` mutant - a criterion naming an artefact its own verifier has no rule for - is the executable form, and it is the same shape as the existing `a verified criterion whose verifier cannot reach the file its mutant changes`.
 
+## Acceptance Criteria
+
+### AC1: No criterion claims an artefact its verifier cannot see
+
+- **Given** the copied definition-of-done sentence
+- **When** every story is searched for it
+- **Then** none claims "a visual baseline" or "a recorded manual keyboard pass" as things that exist
+- **Verify:** shell ! grep -rqF "a visual baseline, a docs page, a documented keyboard table and a recorded manual keyboard pass all exist" sdlc-studio/stories/
+- **Verification target:** functional
+
+### AC2: Every rewritten criterion is re-verified, not re-dated
+
+- **Given** that a `Verified:` stamp does not expire when the criterion text changes
+- **When** the wording is corrected
+- **Then** `verify_ac` re-runs each touched story and reports `changes=0` on a second pass, which is
+  what proves the stamps were EARNED against the new text rather than bumped
+- **Verify:** manual run `verify_ac.py run --ids <touched> --dry-run` and confirm changes=0 on every story
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

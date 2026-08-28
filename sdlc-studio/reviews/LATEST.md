@@ -53,7 +53,7 @@ The tree is on `main` with 1267 tests and every gate green. Nothing is on npm.
 - `pnpm check` runs **30 guards**; `prove-guards-fail` kills **147 mutations** on a staged copy.
 - **1267 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **105 decisions**. Stories: **55 Done of 89**. `main` is the only branch - this project is
+- **120 decisions**. Stories: **55 Done of 89**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line
@@ -176,3 +176,9 @@ skill rather than here.
 | **The GM61 review rounds** | (closed, ten of them) | Six consecutive rounds found the same class: a claim asserting proof where no mutation demonstrates it, twice inside the previous round's own fix. Broken by enumerating every branch of the guard and deleting each in isolation. |
 | **US-01M0WSME** | Gate 7, and the two definition-of-done artefacts named above | Storybook workspace + visual regression. |
 | **`NPM_TOKEN`** | Any publish | Unset on the repo, deliberately, until a release is actually wanted. |
+
+## Deferred at close (RUN-01M0Q8VF)
+
+- CR-01M1534S: [checklist] goal-seat-reviewed: Sprint Goal stated and seat-reviewed BEFORE the plan - past its window (`sprint plan`) (deferred, not waived)
+- CR-01M15331: [checklist] batch-boundary-review: Review at each delivery batch boundary - past its window (`sprint review-batch`) (deferred, not waived)
+- CR-01M153BV: [gate] mutation: 5 survived, 0 error(s) of 5 applied (0 truncated) - advisory - summary is from the run at c3982994a, not this tree (090edfbf7); mutation evidence covers 3/10 file(s) of the recorded surface (nothing changed since HEAD); 1 of those is self-reported (mutants registered by hand, not a measured run): package.json; STALE (edited since mutated): .size-limit.json, package.json, Toast.tsx (+4 more) (deferred, not waived)

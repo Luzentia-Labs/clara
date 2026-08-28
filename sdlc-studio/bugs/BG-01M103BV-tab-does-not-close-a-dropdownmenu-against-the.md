@@ -56,6 +56,28 @@ own story with an e2e assertion, since jsdom does not model the page tab sequenc
 overclaim is a defect either way: a criterion that names a spec it does not fully implement will
 mislead the next reader whichever direction the behaviour goes.
 
+## Acceptance Criteria
+
+### AC1: The deviation is documented rather than silent
+
+- **Given** D0108's ruling to accept Radix's behaviour
+- **When** the DropdownMenu docs page and verification record are read
+- **Then** both state that Tab does NOT close the menu, beside the Escape-inside-a-submenu deviation
+  already recorded there
+- **Verify:** shell node scripts/check-verification.mjs --component DropdownMenu --docs
+- **Verification target:** functional
+
+### AC2: AC1 of the story claims only what it implements
+
+- **Given** US-01M0GM9W AC1, which claims the WAI-ARIA menu-button pattern
+- **When** its text is read against what Clara actually implements
+- **Then** it names the behaviours it enumerates rather than the whole pattern
+- **And** this is the half that is a DEFECT either way. The deviation is a choice; a criterion that
+  names a spec it does not fully meet misleads the next reader whichever direction the behaviour
+  goes, and it was stamped `Verified: yes` while overclaiming
+- **Verify:** shell ! grep -q "behave per the WAI-ARIA authoring practices" sdlc-studio/stories/US-01M0GM9W-dropdownmenu.md
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

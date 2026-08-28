@@ -68,6 +68,20 @@ Two shapes, in preference order:
 a handover, and assert the announcer's content does NOT gain a repeat entry. The current handover
 test proves neither, which is how this shipped.
 
+## Acceptance Criteria
+
+### AC1: A handover preserves every survivor's deadline
+
+- **Given** two open toasts and a dismiss duration
+- **When** the toast that owns the shared host unmounts
+- **Then** each survivor's `onClose` fires at its ORIGINAL deadline, not a fresh one
+- **And** the announcer gains NO repeat entry. Both halves are the same cause - the host is
+  re-created in a new tree position, so every Radix Root inside it remounts - and a fix that
+  restored the timer while still re-announcing would leave a screen-reader user hearing the whole
+  remaining stack read out because somebody dismissed an unrelated toast
+- **Verify:** vitest "Toast handover preserves every survivor"
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

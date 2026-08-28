@@ -65,6 +65,27 @@ AGENTS.md already states the principle this violates - **no silent caps**. A gat
 
 \*\*Related:\*\* BG-01M107ND, the same class in the criteria themselves.
 
+## Acceptance Criteria
+
+### AC1: The gate reports what it could not check
+
+- **Given** that both checks begin `if (!text.includes('## Test Plan')) continue`
+- **When** `check-story-verifiers` runs
+- **Then** its PASS line names how many Done stories were SKIPPED for having no Test Plan, and how
+  many stamps that leaves unchecked
+- **And** AGENTS.md's no-silent-caps rule is the principle: a gate that bounds its own coverage must
+  say so, or its PASS is read as coverage it does not have
+- **Verify:** shell node scripts/check-story-verifiers.mjs
+- **Verification target:** functional
+
+### AC2: A DONE story with no Test Plan is refused
+
+- **Given** that a Draft story legitimately has no Test Plan and a Done one does not
+- **When** a Done story carries none
+- **Then** the gate FAILS rather than skipping
+- **Verify:** shell node scripts/prove-guards-fail.mjs --only "Done story with no Test Plan"
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

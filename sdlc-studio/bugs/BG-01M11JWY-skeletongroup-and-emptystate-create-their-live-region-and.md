@@ -49,6 +49,28 @@ The shape: render the live region ALWAYS, empty, and let the text arrive on a la
 
 **Do not choose on reasoning alone.** The premise - that this shape is commonly silent - is recorded from a measurement on Input, not on these two. Run the screen-reader check in the Steps above FIRST; if both already announce, option 3 is correct and the gap statement is the whole fix. This is Idris's call to make (inclusive design) and Mira's to prove, and those are deliberately two seats.
 
+## Acceptance Criteria
+
+### AC1: The live region exists before its text does
+
+- **Given** D0107's ruling - a shared `LiveAnnouncer` in `lib/`, marked `'use client'`
+- **When** SkeletonGroup or EmptyState mounts
+- **Then** the region is present and EMPTY on the first commit, and its text arrives on a later one,
+  so assistive technology has registered it before there is anything to announce
+- **Verify:** vitest "the live region is registered before its text arrives"
+- **Verification target:** functional
+
+### AC2: Both components keep their server boundary
+
+- **Given** that EmptyState's story sells "a list screen can be a Server Component"
+- **When** the classification is checked
+- **Then** SkeletonGroup and EmptyState are still `server`, with only the announcer hydrating
+- **And** if `check-client-boundary` refuses a server component importing a client module, D0107's
+  recorded fallback applies - reclassify both to client with a `special` note - and the decision is
+  amended rather than the guard weakened
+- **Verify:** shell node scripts/check-client-boundary.mjs
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

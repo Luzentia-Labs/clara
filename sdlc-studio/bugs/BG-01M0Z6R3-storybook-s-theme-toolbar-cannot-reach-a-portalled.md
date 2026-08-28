@@ -34,6 +34,20 @@ Alias `@luzentialabs/clara-react` to `packages/react/src` in the Storybook vite 
 one module instance whichever way a file imports it. Preferred over changing `preview.tsx`'s imports,
 because it fixes every such import rather than the two that are known.
 
+## Acceptance Criteria
+
+### AC1: The theme reaches a PORTALLED surface
+
+- **Given** Storybook loaded with `globals=theme:dark`
+- **When** an overlay opens
+- **Then** the `data-clara-theme` on the PORTAL ROOT reads `dark`, not only the one on the scope div
+- **And** it is asserted on the portal root specifically. The surrounding page is already dark, so a
+  screenshot or an assertion that reads the page looks plausible and is wrong - which is exactly how
+  this survived, and how a future gate-7 baseline would have shipped a light-theme shot of every
+  overlay labelled dark
+- **Verify:** shell pnpm check:scoping
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

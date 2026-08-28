@@ -45,6 +45,28 @@ No automated gate can decide this and none is claimed to: axe does not evaluate 
 
 **Recommendation: 1 for Tag, 3 for Badge**, and the split is the point rather than a hedge. A tag sits in a filter bar where a dot fits and where the intent is the whole message. A count badge is 20px of pill and its text is usually a number, where a glyph would crowd out the number and say less than the word already does. Whoever rules should say so per component rather than for both at once.
 
+## Acceptance Criteria
+
+### AC1: A Tag carries a VISIBLE non-colour mark
+
+- **Given** D0106's ruling, and a Tag with a non-neutral intent
+- **When** it renders
+- **Then** a visible mark accompanies the colour, so a sighted user with a colour deficiency can tell
+  two same-text tags apart
+- **And** neutral carries none. Neutral means "no intent", and a mark there would say something is
+  the matter when nothing is
+- **Verify:** vitest "Tag intent is not colour alone"
+- **Verification target:** functional
+
+### AC2: Badge claims only what it guarantees
+
+- **Given** D0106's ruling that a 20px pill of digits is the wrong surface for a glyph
+- **When** Badge's criterion and docs page are read
+- **Then** both state that the intent reaches the ACCESSIBLE NAME, and that two same-text badges are
+  not visually distinguishable - rather than claiming a mark that is not rendered
+- **Verify:** shell node scripts/check-verification.mjs --component Badge --docs
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

@@ -67,6 +67,19 @@ of staying silent about a misaim the user has not focused yet.
 `devWarning` caller with `NODE_ENV=production` and requires the message to be absent - so the
 condition has to stay at the call site, not move inside the helper.
 
+## Acceptance Criteria
+
+### AC1: A same-length substitution warns
+
+- **Given** an open DropdownMenu with keyboard focus on an entry
+- **When** that entry is swapped IN PLACE for a different one, keeping the array length
+- **Then** the same warning fires as for a length change, because the hazard is identical
+- **And** it must NOT warn on the common React shape of rebuilding the array inline with the same
+  contents. A warning that fires on correct code is the failure `dev-warning.ts` names as making a
+  warning worthless, and it is why the naive widening to `!==` was rejected
+- **Verify:** vitest "DropdownMenu warns when items change while open"
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

@@ -44,6 +44,19 @@ With the suppression removed, Radix's FocusScope restores to the element it stor
 
 **Do not attempt this in jsdom.** It has no layout, and its focus model does not reproduce the FocusScope race; a jsdom test that appeared to pass here would be a false green by construction, not a flaky one.
 
+## Acceptance Criteria
+
+### AC1: Deleting the suppression reddens something
+
+- **Given** `onCloseAutoFocus={(event) => event.preventDefault()}` on Drawer and on Modal
+- **When** either is deleted
+- **Then** a browser assertion fails
+- **And** it must be a BROWSER assertion. The two restores only disagree observably on the UNMOUNT
+  route, and jsdom has no announcement model and does not reproduce the FocusScope race - a jsdom
+  test that appeared to pass here would be a false green by construction
+- **Verify:** shell pnpm test:e2e -g "an overlay that unmounts returns focus to its opener"
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

@@ -26,3 +26,14 @@ schema_version: 3
 
 # tdd:
 #   edge_case_threshold: 3  # TDD for more stories
+
+# Raised from the default 4 on 2026-08-29, deliberately, to let RUN-01M0Q8VF take the
+# bounded exit. Four close attempts are recorded against that run: two from an earlier
+# session, then two from the session that finished RETRO0003, which went 4 outstanding
+# to 3. The cap counts attempts, not trend, so it fired on a loop that was converging.
+# The two items still refusing - goal-seat-reviewed and batch-boundary-review - cannot be
+# answered at any cap, because their windows closed months ago and the tool correctly
+# refuses a waiver for either ("a waiver here is a receipt, not an answer"). The exit is
+# therefore `--file-and-close`, not another repair round. Operator decision.
+review:
+  max_rounds: 6

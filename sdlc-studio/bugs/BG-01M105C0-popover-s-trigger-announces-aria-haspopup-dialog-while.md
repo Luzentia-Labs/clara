@@ -58,6 +58,18 @@ story; neither is a patch.
 modal, so the role would promise semantics the component does not deliver - a worse defect than the
 imprecision it would fix.
 
+## Acceptance Criteria
+
+### AC1: The mismatch is recorded where a reader will find it
+
+- **Given** D0108's ruling to accept Radix's hardcoded `aria-haspopup="dialog"`
+- **When** Popover's verification record is read
+- **Then** it states that the trigger announces "has dialog popup" while the panel is a `group`, and
+  why the panel's role is deliberately not `dialog` - a popover traps nothing, and the role would
+  promise modal semantics it does not deliver
+- **Verify:** shell node scripts/check-verification.mjs --component Popover
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

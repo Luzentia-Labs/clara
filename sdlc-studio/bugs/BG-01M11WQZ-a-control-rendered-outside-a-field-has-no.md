@@ -51,6 +51,28 @@ The condition is narrow and cheap: no Field wiring AND no `aria-label` or `aria-
 
 **Do NOT make the Field mandatory at the type level.** It would be a breaking change to every shipped control, and it would refuse the legitimate standalone case that an explicit `aria-label` covers. The warning is the proportionate mechanism: it reaches a developer at the moment they write the shape, and it costs nothing at runtime.
 
+## Acceptance Criteria
+
+### AC1: An unnamed control warns
+
+- **Given** a control rendered with no Field wiring
+- **When** it also carries no `aria-label` or `aria-labelledby` of its own
+- **Then** a development warning names the control and says the Field owns the label
+- **And** it must NOT fire when an explicit `aria-label` is supplied. A warning on the legitimate
+  standalone case teaches people to ignore it, which `dev-warning.ts` names as the failure that makes
+  a warning worthless
+- **Verify:** vitest "a control with no Field and no label warns"
+- **Verification target:** functional
+
+### AC2: The message does not ship
+
+- **Given** the warning's message literal
+- **When** the caller's chunk is bundled with `NODE_ENV=production` and minified
+- **Then** the message is gone, because `devWarning`'s arguments are evaluated before it returns and
+  a minifier cannot drop it unless the guard is at the CALL SITE
+- **Verify:** shell node scripts/check-dev-warnings.mjs
+- **Verification target:** functional
+
 ## Revision History
 
 | Date | Author | Change |

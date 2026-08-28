@@ -1,6 +1,6 @@
 # Change Request Registry
 
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-29
 **PRD Reference:** [Product Requirements Document](../prd.md)
 
 ## Summary
@@ -13,9 +13,9 @@
 | Complete | 5 |
 | Rejected | 0 |
 | Deferred | 0 |
-| inbox | 1 |
+| inbox | 4 |
 | Superseded | 1 |
-| **Total** | **9** |
+| **Total** | **12** |
 
 ## By Priority
 
@@ -35,6 +35,9 @@
 | [CR-01M0MND5](CR-01M0MND5-internal-dependency-range-is-exact-pinned-by-default.md) | Internal dependency range is exact-pinned by default, not by decision | Medium | Complete | Architecture | -- | 2026-08-22 |
 | [CR-01M0SKZ6](CR-01M0SKZ6-verify-selectors-must-select-the-tests-that-prove.md) | Verify selectors must select the tests that prove their criterion, not any test | Medium | Complete | Feature | -- | 2026-08-24 |
 | [CR-01M0WSFZ](CR-01M0WSFZ-low-severity-bugs-consolidated.md) | Low-severity bugs (consolidated) | Low | inbox | Improvement | -- | 2026-08-25 |
+| [CR-01M1534S](CR-01M1534S-deferred-close-blocker-checklist-goal-seat-reviewed-sprint.md) | Deferred close blocker (checklist): goal-seat-reviewed: Sprint Goal stated and seat-reviewed BEFORE the plan - past  | High | inbox | Process | -- | 2026-08-29 |
+| [CR-01M15331](CR-01M15331-deferred-close-blocker-checklist-batch-boundary-review-review.md) | Deferred close blocker (checklist): batch-boundary-review: Review at each delivery batch boundary - past its window  | High | inbox | Process | -- | 2026-08-29 |
+| [CR-01M153BV](CR-01M153BV-deferred-close-blocker-gate-mutation-5-survived-0.md) | Deferred close blocker (gate): mutation: 5 survived, 0 error(s) of 5 applied (0 truncated) - advisory - summary | High | inbox | Process | -- | 2026-08-29 |
 
 ## Dependencies
 
