@@ -1288,6 +1288,14 @@
   padding-inline: var(--clara-combobox-option-padding-inline);
   color: var(--clara-combobox-group-label-fg);
   font-size: var(--clara-combobox-group-label-size);
+  /* A bare number, matching the four existing uses - there is no weight token (see :224).
+     This is a CONSEQUENCE of D0121, not decoration. Moving the label to the 14px floor was right,
+     but SIZE was the only non-colour channel separating a heading from the options under it: after
+     the move both render 14px, weight 400, same indent, differing only by fg-muted against
+     fg-default. Under forced-colors both resolve to CanvasText and the panel reads as identical
+     lines where some of them are headings. D0124's objection to weight - that it shifts text
+     metrics as the cursor moves - does not apply to a heading that never moves. */
+  font-weight: 600;
 }
 .clara-combobox__message {
   padding-block: var(--clara-combobox-option-padding-block);

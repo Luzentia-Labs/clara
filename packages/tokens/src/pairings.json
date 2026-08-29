@@ -511,15 +511,51 @@
     },
     {
       "foreground": "select.option-cursor",
+      "background": "select.option-bg-active",
+      "minRatio": 3,
+      "why": "The listbox cursor bar against the TINT it is actually drawn on. An inset box-shadow paints over the element's OWN background, so `option-bg-active` is the adjacency the bar abuts along its full height - and the first fix pinned it against the PANEL instead, which is the more permissive of the two. Measured: repointing option-cursor to {color.border.default} sat at 2.72:1 light and 2.36:1 dark against the tint with every gate green. Two seats found it independently. Both adjacencies are declared now rather than whichever one looked right."
+    },
+    {
+      "foreground": "select.option-cursor",
       "background": "select.listbox-bg",
       "minRatio": 3,
-      "why": "The listbox activedescendant CURSOR bar, pinned at the TIER 3 pair the component actually paints. It was first declared as its tier 2 ancestors (bg.accent-emphasis on bg.surface) and that is NOT equivalent, for the reason the toast and dropdown-menu rows above already record: repointing the tier 3 alias to a different tier 2 name leaves every gate green because nothing measures the pair the rule paints. Measured on this tree - repointing select.option-cursor to {color.bg.row-hover} makes the bar the same colour as the tint it sits on, 1.00:1, reinstating the exact defect D0124 was written to fix, with 1282 tests, 27 guards and check:contrast all green. Two review seats found it independently."
+      "why": "The listbox cursor bar against the TINT it is actually drawn on. An inset box-shadow paints over the element's OWN background, so `option-bg-active` is the adjacency the bar abuts along its full height - and the first fix pinned it against the PANEL instead, which is the more permissive of the two. Measured: repointing option-cursor to {color.border.default} sat at 2.72:1 light and 2.36:1 dark against the tint with every gate green. Two seats found it independently. Both adjacencies are declared now rather than whichever one looked right."
+    },
+    {
+      "foreground": "select.option-check-fg",
+      "background": "select.option-bg-active",
+      "minRatio": 3,
+      "why": "The check glyph, which is the SOLE visible carrier of the selected choice since the `--selected` class was removed for carrying no CSS rule. That removal is what made this token load-bearing, and it was enrolled in no contrast gate at all: repointing option-check-fg to {color.bg.surface} made the check invisible - screenshot-confirmed - with check:contrast, check:component-css and 1283 tests green. Declared against BOTH the panel and the active row's tint, because the glyph sits on either depending on the row."
+    },
+    {
+      "foreground": "select.option-check-fg",
+      "background": "select.listbox-bg",
+      "minRatio": 3,
+      "why": "The check glyph, which is the SOLE visible carrier of the selected choice since the `--selected` class was removed for carrying no CSS rule. That removal is what made this token load-bearing, and it was enrolled in no contrast gate at all: repointing option-check-fg to {color.bg.surface} made the check invisible - screenshot-confirmed - with check:contrast, check:component-css and 1283 tests green. Declared against BOTH the panel and the active row's tint, because the glyph sits on either depending on the row."
+    },
+    {
+      "foreground": "combobox.option-cursor",
+      "background": "combobox.option-bg-active",
+      "minRatio": 3,
+      "why": "The listbox cursor bar against the TINT it is actually drawn on. An inset box-shadow paints over the element's OWN background, so `option-bg-active` is the adjacency the bar abuts along its full height - and the first fix pinned it against the PANEL instead, which is the more permissive of the two. Measured: repointing option-cursor to {color.border.default} sat at 2.72:1 light and 2.36:1 dark against the tint with every gate green. Two seats found it independently. Both adjacencies are declared now rather than whichever one looked right."
     },
     {
       "foreground": "combobox.option-cursor",
       "background": "combobox.panel-bg",
       "minRatio": 3,
-      "why": "The listbox activedescendant CURSOR bar, pinned at the TIER 3 pair the component actually paints. It was first declared as its tier 2 ancestors (bg.accent-emphasis on bg.surface) and that is NOT equivalent, for the reason the toast and dropdown-menu rows above already record: repointing the tier 3 alias to a different tier 2 name leaves every gate green because nothing measures the pair the rule paints. Measured on this tree - repointing select.option-cursor to {color.bg.row-hover} makes the bar the same colour as the tint it sits on, 1.00:1, reinstating the exact defect D0124 was written to fix, with 1282 tests, 27 guards and check:contrast all green. Two review seats found it independently."
+      "why": "The listbox cursor bar against the TINT it is actually drawn on. An inset box-shadow paints over the element's OWN background, so `option-bg-active` is the adjacency the bar abuts along its full height - and the first fix pinned it against the PANEL instead, which is the more permissive of the two. Measured: repointing option-cursor to {color.border.default} sat at 2.72:1 light and 2.36:1 dark against the tint with every gate green. Two seats found it independently. Both adjacencies are declared now rather than whichever one looked right."
+    },
+    {
+      "foreground": "combobox.option-check-fg",
+      "background": "combobox.option-bg-active",
+      "minRatio": 3,
+      "why": "The check glyph, which is the SOLE visible carrier of the selected choice since the `--selected` class was removed for carrying no CSS rule. That removal is what made this token load-bearing, and it was enrolled in no contrast gate at all: repointing option-check-fg to {color.bg.surface} made the check invisible - screenshot-confirmed - with check:contrast, check:component-css and 1283 tests green. Declared against BOTH the panel and the active row's tint, because the glyph sits on either depending on the row."
+    },
+    {
+      "foreground": "combobox.option-check-fg",
+      "background": "combobox.panel-bg",
+      "minRatio": 3,
+      "why": "The check glyph, which is the SOLE visible carrier of the selected choice since the `--selected` class was removed for carrying no CSS rule. That removal is what made this token load-bearing, and it was enrolled in no contrast gate at all: repointing option-check-fg to {color.bg.surface} made the check invisible - screenshot-confirmed - with check:contrast, check:component-css and 1283 tests green. Declared against BOTH the panel and the active row's tint, because the glyph sits on either depending on the row."
     }
   ]
 }

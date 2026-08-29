@@ -359,3 +359,40 @@ describe('Combobox render order collects by group', () => {
     expect(rendered).toEqual(['Alpha', 'Bravo', 'Charlie'])
   })
 })
+
+// D0127. The docstring's claims, each derived HERE by execution rather than written from prose -
+// which is the mistake that made the previous three attempts at that paragraph wrong.
+describe('Combobox render order, every claim pinned', () => {
+  const render3 = async (options: ComboboxOption[]) => {
+    inField(<Combobox options={options} />)
+    await openIt()
+    return screen.getAllByRole('option').map((o) => o.textContent)
+  }
+
+  it('places an ungrouped option BETWEEN two groups when that is where its bucket falls', async () => {
+    // The sentence this kills claimed such interleaving was "not expressible". It is.
+    expect(await render3([
+      { value: 'a', label: 'A', group: 'G1' },
+      { value: 'x', label: 'X' },
+      { value: 'b', label: 'B', group: 'G2' },
+    ])).toEqual(['A', 'X', 'B'])
+  })
+
+  it('cannot put ungrouped options in TWO positions - they share one bucket', async () => {
+    // This is what is ACTUALLY inexpressible. Y is pulled up to X's bucket.
+    expect(await render3([
+      { value: 'x', label: 'X' },
+      { value: 'a', label: 'A', group: 'G1' },
+      { value: 'y', label: 'Y' },
+    ])).toEqual(['X', 'Y', 'A'])
+  })
+
+  it('keeps relative order inside a NAMED bucket, not only the ungrouped one', async () => {
+    // Unpinned until now: reversing insertion order for non-empty keys survived the whole suite.
+    expect(await render3([
+      { value: 'a', label: 'A', group: 'G' },
+      { value: 'z', label: 'Z', group: 'H' },
+      { value: 'b', label: 'B', group: 'G' },
+    ])).toEqual(['A', 'B', 'Z'])
+  })
+})

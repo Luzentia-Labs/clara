@@ -417,3 +417,32 @@ describe('Select stylesheets select on the option state model', () => {
     expect(block('.clara-select__check')).toContain('color:')
   })
 })
+
+// AC8's Touches names the token source, so the verifier has to READ it - a vitest case cannot see
+// a change to an asset it never loads, which check-story-verifiers refuses. Both the source and the
+// build, for the reason Combobox records: reading only the build lets a stale dist certify a source
+// that moved, and reading only the source proves nothing about what ships.
+describe('Select option state tokens are pinned at both ends', () => {
+  const src = JSON.parse(readFileSync(
+    resolve(__dirname, '../../../../../tokens/src/component/select.json'), 'utf8'))
+  const built = readFileSync(
+    resolve(__dirname, '../../../../../tokens/dist/tokens.css'), 'utf8')
+
+  it('declares the cursor and the check against accent roles in the SOURCE', () => {
+    // Both were repointable with every gate green until round 3 enrolled their real adjacencies:
+    // the bar sits on the active row's TINT, and the glyph is the choice's only carrier.
+    expect(src.select['option-cursor'].value).toBe('{color.bg.accent-emphasis}')
+    expect(src.select['option-check-fg'].value).toBe('{color.fg.accent}')
+  })
+
+  it('and emits them in the BUILD, so a stale dist cannot certify the source', () => {
+    for (const [token, expected] of [
+      ['select-option-cursor', 'var(--clara-color-bg-accent-emphasis)'],
+      ['select-option-check-fg', 'var(--clara-color-fg-accent)'],
+    ] as const) {
+      const decl = built.match(new RegExp(`--clara-${token}:\\s*([^;]+);`))?.[1]?.trim()
+      expect(decl, `${token} is emitted`).toBeTruthy()
+      expect(decl).toBe(expected)
+    }
+  })
+})

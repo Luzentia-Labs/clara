@@ -14,13 +14,16 @@ export interface ComboboxOption<T extends string = string> extends ListboxOption
   /**
    * Groups options under an accessible label.
    *
-   * Options are COLLECTED by group, not left in array order. Every ungrouped option shares one
-   * bucket, and each bucket renders where its FIRST member appears. So
-   * `[Alpha, Charlie in "G", Bravo]` renders `Alpha, Bravo, G: Charlie` - Bravo joins Alpha above
-   * the group even though it came after it. Options within a bucket keep their relative order.
+   * Options are COLLECTED into buckets, not left in array order. Every ungrouped option shares one
+   * bucket; each named group is its own. A bucket renders where its FIRST member appears, and
+   * members keep their relative order inside it.
    *
-   * To control placement, order your array so each group's first member falls where you want the
-   * group. Interleaving an ungrouped option BETWEEN two groups is not expressible (D0125).
+   * - `[A in "G1", X, B in "G2"]` renders `A, X, B` - an ungrouped option CAN sit between groups.
+   * - `[X, A in "G1", Y]` renders `X, Y, A` - Y is pulled up to X's bucket.
+   * - `[A in "G", Z in "H", B in "G"]` renders `A, B, Z` - B joins its group above H.
+   *
+   * So what cannot be expressed is ungrouped options in MORE THAN ONE position. To place a group,
+   * put its first member where you want it (D0127).
    */
   group?: string
 }

@@ -117,12 +117,36 @@
   ],
   "nonText": [
     {
-      "comment": "The listbox activedescendant CURSOR bar, at the TIER 3 pair the rule paints. Declared here as tier 2 ancestors first, which is NOT equivalent - repointing select.option-cursor to {color.bg.row-hover} made the bar invisible at 1.00:1 with every gate green. Same reason toast and dropdown-menu are tier 3 in this file. D0124.",
+      "comment": "The listbox cursor bar AND the check glyph, each against BOTH surfaces they sit on - the panel and the active row tint. The first fix pinned the bar against the panel only, the more permissive of its two adjacencies, and the glyph against nothing at all. D0124.",
+      "fg": "select-option-cursor",
+      "bg": "select-option-bg-active"
+    },
+    {
       "fg": "select-option-cursor",
       "bg": "select-listbox-bg"
     },
     {
+      "fg": "select-option-check-fg",
+      "bg": "select-option-bg-active"
+    },
+    {
+      "fg": "select-option-check-fg",
+      "bg": "select-listbox-bg"
+    },
+    {
       "fg": "combobox-option-cursor",
+      "bg": "combobox-option-bg-active"
+    },
+    {
+      "fg": "combobox-option-cursor",
+      "bg": "combobox-panel-bg"
+    },
+    {
+      "fg": "combobox-option-check-fg",
+      "bg": "combobox-option-bg-active"
+    },
+    {
+      "fg": "combobox-option-check-fg",
       "bg": "combobox-panel-bg"
     },
     {
