@@ -125,6 +125,22 @@
     {
       "fg": "multi-select-listbox-fg",
       "bg": "multi-select-listbox-bg"
+    },
+    {
+      "fg": "date-picker-panel-fg",
+      "bg": "date-picker-panel-bg"
+    },
+    {
+      "fg": "date-picker-weekday-fg",
+      "bg": "date-picker-panel-bg"
+    },
+    {
+      "fg": "date-picker-day-fg-unavailable",
+      "bg": "date-picker-panel-bg"
+    },
+    {
+      "fg": "date-picker-day-fg-selected",
+      "bg": "date-picker-day-bg-selected"
     }
   ],
   "nonText": [
@@ -176,6 +192,14 @@
     {
       "fg": "multi-select-option-check-fg",
       "bg": "multi-select-listbox-bg"
+    },
+    {
+      "fg": "date-picker-day-cursor",
+      "bg": "date-picker-day-bg-focused"
+    },
+    {
+      "fg": "date-picker-day-cursor",
+      "bg": "date-picker-panel-bg"
     },
     {
       "fg": "color-border-default",

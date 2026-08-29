@@ -211,6 +211,7 @@ const SCRIPTS = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scr
 const DOCS_PAGE_FOR = {
   Select: 'select.md',
   MultiSelect: 'multi-select.md',
+  DatePicker: 'date-picker.md',
   Combobox: 'combobox.md',
   Alert: 'alert.md',
   Popover: 'popover.md',

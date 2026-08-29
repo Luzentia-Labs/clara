@@ -45,6 +45,8 @@ export { Select } from './components/Select/Select'
 export type { SelectProps, SelectOption } from './components/Select/Select'
 export { MultiSelect } from './components/MultiSelect/MultiSelect'
 export type { MultiSelectProps, MultiSelectOption } from './components/MultiSelect/MultiSelect'
+export { DatePicker } from './components/DatePicker/DatePicker'
+export type { DatePickerProps } from './components/DatePicker/DatePicker'
 export { Alert } from './components/Alert/Alert'
 // The VARIANT interfaces are exported too, not only the union. They are already public in
 // substance - they are the shapes a consumer writes - and api-extractor reported them only as

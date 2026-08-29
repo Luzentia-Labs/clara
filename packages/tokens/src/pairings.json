@@ -598,6 +598,42 @@
       "background": "multi-select.listbox-bg",
       "minRatio": 4.5,
       "why": "The pair a portalled panel ACTUALLY paints, as popover, drawer, tooltip, toast, dropdown-menu, select and combobox each declare. A portalled surface resolves its background against the portal scope and its text against the page unless it declares both."
+    },
+    {
+      "foreground": "date-picker.day-cursor",
+      "background": "date-picker.day-bg-focused",
+      "minRatio": 3,
+      "why": "Declared against BOTH surfaces from the start. Select, Combobox and MultiSelect's predecessors each needed two corrections here - tier 2 ancestors instead of the tier 3 pair, then the panel instead of the surface the mark is actually drawn on."
+    },
+    {
+      "foreground": "date-picker.day-cursor",
+      "background": "date-picker.panel-bg",
+      "minRatio": 3,
+      "why": "Declared against BOTH surfaces from the start. Select, Combobox and MultiSelect's predecessors each needed two corrections here - tier 2 ancestors instead of the tier 3 pair, then the panel instead of the surface the mark is actually drawn on."
+    },
+    {
+      "foreground": "date-picker.day-fg-selected",
+      "background": "date-picker.day-bg-selected",
+      "minRatio": 4.5,
+      "why": "The selected day's own text on its own fill - the pair the cell actually paints."
+    },
+    {
+      "foreground": "date-picker.panel-fg",
+      "background": "date-picker.panel-bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints, as every other portalled surface here declares."
+    },
+    {
+      "foreground": "date-picker.weekday-fg",
+      "background": "date-picker.panel-bg",
+      "minRatio": 4.5,
+      "why": "The column headers. Muted, but still reading text."
+    },
+    {
+      "foreground": "date-picker.day-fg-unavailable",
+      "background": "date-picker.panel-bg",
+      "minRatio": 4.5,
+      "why": "An unavailable day stays in the grid and must remain READABLE - it is announced as unavailable rather than removed (AC6), so its text is still text."
     }
   ]
 }

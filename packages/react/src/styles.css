@@ -1421,3 +1421,100 @@
   forced-color-adjust: auto;
   flex-shrink: 0;
 }
+
+/*
+ * DatePicker - a text field with a calendar grid.
+ *
+ * The grid is the one place in this library where focus really MOVES rather than an
+ * activedescendant highlight tracking it, so the focused day gets the same two-channel treatment
+ * the listbox cursor has (tint plus an inset bar) AND a real focus ring, because it is genuinely
+ * focused. The selected day is a filled cell with its own foreground - a different channel again,
+ * so a day that is both focused and selected reads as both.
+ */
+.clara-date-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--clara-date-picker-gap);
+  inline-size: 100%;
+}
+.clara-date-picker__input {
+  box-sizing: border-box;
+  font: inherit;
+  font-size: var(--clara-font-body);
+  inline-size: 100%;
+  block-size: var(--clara-date-picker-height);
+  padding-inline: var(--clara-date-picker-padding-inline);
+  background: var(--clara-date-picker-bg);
+  color: var(--clara-date-picker-fg);
+  border: var(--clara-date-picker-border-width) solid var(--clara-date-picker-border);
+  border-radius: var(--clara-date-picker-radius);
+}
+.clara-date-picker__input:focus-visible,
+.clara-date-picker__toggle:focus-visible,
+.clara-date-picker__day:focus-visible {
+  outline: var(--clara-date-picker-focus-width) solid var(--clara-color-border-focus);
+  outline-offset: var(--clara-date-picker-focus-width);
+  box-shadow: 0 0 0 var(--clara-date-picker-focus-width) var(--clara-color-border-focus-offset);
+}
+.clara-date-picker__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: var(--clara-font-body);
+  min-inline-size: var(--clara-date-picker-day-size);
+  min-block-size: var(--clara-date-picker-day-size);
+  background: var(--clara-date-picker-bg);
+  color: var(--clara-date-picker-fg);
+  border: var(--clara-date-picker-border-width) solid var(--clara-date-picker-border);
+  border-radius: var(--clara-date-picker-radius);
+  cursor: pointer;
+}
+.clara-date-picker--disabled .clara-date-picker__toggle { cursor: not-allowed; }
+.clara-date-picker__panel {
+  box-sizing: border-box;
+  position: relative;
+  z-index: var(--clara-layer-overlay);
+  padding: var(--clara-date-picker-panel-padding);
+  /* DECLARED, not inherited: this panel portals to document.body, so it takes its text colour and
+     its size from the PAGE unless it says otherwise. */
+  color: var(--clara-date-picker-panel-fg);
+  font-size: var(--clara-font-body);
+  background: var(--clara-date-picker-panel-bg);
+  border: var(--clara-date-picker-border-width) solid var(--clara-date-picker-panel-border);
+  border-radius: var(--clara-date-picker-panel-radius);
+  max-block-size: var(--radix-popover-content-available-height, var(--clara-date-picker-max-block-size));
+  overflow-y: auto;
+}
+.clara-date-picker__grid { border-collapse: collapse; }
+.clara-date-picker__weekday {
+  inline-size: var(--clara-date-picker-day-size);
+  color: var(--clara-date-picker-weekday-fg);
+  font-weight: 600;
+}
+.clara-date-picker__day {
+  inline-size: var(--clara-date-picker-day-size);
+  block-size: var(--clara-date-picker-day-size);
+  border-radius: var(--clara-date-picker-day-radius);
+  text-align: center;
+  cursor: pointer;
+}
+/* FOCUSED is the roving cursor. Tint plus an inset bar, for the reason the listbox cursor carries
+   both: the tint alone is 1.14:1 light and 2.28:1 dark, and colour alone is refused whatever the
+   ratio. */
+.clara-date-picker__day--focused {
+  background: var(--clara-date-picker-day-bg-focused);
+  box-shadow: inset var(--clara-date-picker-day-cursor-width) 0 0 0 var(--clara-date-picker-day-cursor);
+}
+/* SELECTED is the choice - a filled cell with its own foreground, a different channel from the
+   cursor, so a day that is both reads as both. */
+.clara-date-picker__day--selected {
+  background: var(--clara-date-picker-day-bg-selected);
+  color: var(--clara-date-picker-day-fg-selected);
+}
+/* UNAVAILABLE stays in the grid and stays READABLE - it is announced as unavailable rather than
+   removed, so its text is still text and still measured against the panel. */
+.clara-date-picker__day--unavailable {
+  color: var(--clara-date-picker-day-fg-unavailable);
+  cursor: not-allowed;
+}

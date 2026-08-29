@@ -437,6 +437,12 @@ const SHAPE_CONTRACT = [
   ['.clara-multi-select__listbox-panel', ['box-sizing', 'background', 'color', 'font-size', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
   ['.clara-multi-select__option--active', ['background', 'box-shadow']],
   ['.clara-multi-select__check', ['color', 'forced-color-adjust']],
+  // DatePicker, enrolled with the component.
+  ['.clara-date-picker__input', ['font-size']],
+  ['.clara-date-picker__panel', ['box-sizing', 'background', 'color', 'font-size', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
+  ['.clara-date-picker__day--focused', ['background', 'box-shadow']],
+  ['.clara-date-picker__day--selected', ['background', 'color']],
+  ['.clara-date-picker__day--unavailable', ['color']],
   ['.clara-modal__body', ['overflow-y']],
   // A flex column shrinks its children by default, so a fixed-height child is squashed rather than
   // scrolled. The rule that stops it is on the CHILDREN, and nothing else can see its absence.

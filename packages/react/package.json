@@ -40,6 +40,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
+    "@internationalized/date": "^3.12.3",
     "@luzentialabs/clara-icons": "workspace:^",
     "@luzentialabs/clara-tokens": "workspace:^",
     "@radix-ui/react-dialog": "^1.1.23",

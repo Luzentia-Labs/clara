@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK91
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/etc/clara-react.api.md, packages/react/src/components/DatePicker/**, packages/react/src/components/DatePicker/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/DatePicker/**, packages/react/src/components/DatePicker/verification.md, packages/react/src/lib/calendar.ts, packages/react/src/styles.css, packages/react/src/index.ts, packages/react/package.json, packages/react/client-boundary.json, packages/react/src/components/__tests__/boundary.test.tsx, packages/tokens/src/component/date-picker.json, packages/tokens/src/pairings.json, packages/tokens/contrast-required.json, scripts/check-component-css.mjs, scripts/check-verification.mjs, apps/docs/src/content/components/date-picker.md, .size-limit.json
 > **Points:** 8
 
 ## User Story
@@ -71,7 +71,7 @@
 - **Given** the DatePicker stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell node scripts/check-component-css.mjs
+- **Verify:** shell node scripts/check-component-css.mjs --component DatePicker
 - **Verification target:** functional
 
 ### AC8: Both themes and densities
@@ -100,6 +100,28 @@
   stories that still copy it
 - **Verify:** shell node scripts/check-verification.mjs --component DatePicker
 - **Verification target:** functional
+
+## Test Plan
+
+Every row below was RUN against this tree. `Mutant` is the production change the criterion's own
+verifier must fail on, and the verdict beside it is what happened.
+
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/DatePicker/DatePicker.tsx | TWO mutants. (a) `disabled={isDisabled}` on the input, emitting the NATIVE attribute: KILLED - it leaves the tab order, which D0058 and D0064 exist to prevent. (b) Removing the `fieldChangeGuard` SURVIVED, because `readOnly` already blocks typing - so the hand-rolled `if (!isDisabled)` it replaced was dead code. Recorded rather than hidden: the guard stays because it is the shared mechanism D0068 keeps in one place and it also preventDefaults, but this criterion is carried by `readOnly`. | Text entry is never disabled |
+| AC2 | packages/react/src/components/DatePicker/DatePicker.tsx | Drop `formatId` from the `aria-describedby` chain, leaving the format in the placeholder only. KILLED. The test reads the describedby ids back out of the document rather than checking the attribute is present, because an id naming nothing is the failure a presence check cannot see. | Format is discoverable |
+| AC3 | packages/react/src/components/DatePicker/DatePicker.tsx | THREE mutants, all KILLED, one per axis of the keyboard model. (a) PageUp/PageDown move a WEEK instead of a month. (b) Home/End jump to the MONTH bounds instead of the focused week's. (c) Escape closes without restoring focus, stranding the user at the top of the page. | Calendar keyboard model |
+| AC4 | packages/react/src/components/DatePicker/DatePicker.tsx | Pin the grid's `aria-label` to the VALUE's month rather than the focused date's, so paging past a month boundary stops announcing the new month. KILLED. This replaces a mutant that deleted a repeated month from the live region and SURVIVED - the day string already contains its month, so asserting the month inside it was a tautology. The redundancy was deleted and the property that actually changes is asserted instead. | Focused date is announced |
+| AC5 | packages/react/etc/clara-react.api.md | Export `CalendarDate` from the package entry. The verifier greps the API report for `@internationalized`, so a library type on the public surface exits 1. `packages/react/src/lib/calendar.ts` is the only module that imports the library, which is what makes the boundary enforceable rather than aspirational. | ISO string boundary |
+| AC6 | packages/react/src/lib/calendar.ts | Make `isUnavailable` ignore `min`, so a date before the minimum becomes selectable. KILLED, 1 failed. The grid keeps unavailable days IN it with `aria-disabled` rather than removing them, and the second case proves Enter refuses to commit one and the dialog stays open. | Unavailable dates |
+| AC7 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-date-picker__panel` - a raw literal where a token belongs. `check-component-css --component DatePicker` exits 1. No test imports a CSS file, so the verifier must be a guard that READS the stylesheet. | Token-only styling |
+| AC8 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. Mutating the PROVIDER proves the assertion walks up from inside the portalled panel rather than reading the render container. | Both themes and densities |
+| AC9 | packages/react/src/components/DatePicker/verification.md | Rename `## Keyboard` to `## Keys`. `check-verification --component DatePicker` exits 1 on the missing section. It also refused this record once already, for citing `lib/calendar.ts` by a path that does not resolve from the repo root. | Definition of done |
+
+**One mutant is deliberately absent.** Nothing here proves the grid LAYS OUT as a calendar - that
+seven cells sit in a row, or that the focused day is visibly marked. jsdom computes no layout and
+resolves no `var()`. The stylesheet-reading cases assert the declarations exist; what they render
+is gate 7's, and it is unwired.
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
 

@@ -85,7 +85,7 @@
     {
       "name": "DatePicker",
       "boundary": "client",
-      "status": "planned",
+      "status": "built",
       "overlay": true
     },
     {
