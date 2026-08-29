@@ -19,15 +19,33 @@ shared layer token.
 | --- | --- |
 | ArrowDown / ArrowUp / Enter / Space (closed) | Opens the list, with the highlight on the SELECTED option or on the first enabled one |
 | ArrowDown / ArrowUp (open) | Moves the highlight, SKIPPING disabled options. It does not wrap: the APG's listbox does not, and wrapping in a long list moves the highlight somewhere the user did not expect |
-| Home / End | Jumps to the first / last ENABLED option |
+| Home / End (OPEN) | Jumps to the first / last ENABLED option. Neither OPENS a closed Select - see the deviations below |
 | Enter | Selects the highlighted option and closes |
 | Escape | Closes WITHOUT selecting, and leaves focus on the trigger. A highlight is not a choice |
 | Tab | COMMITS the highlight and lets focus move on. Deliberately not prevented - swallowing Tab strands a keyboard user inside a control they are trying to leave |
 | A printable character | Typeahead. Repeating one character cycles through the options starting with it, rather than searching for the repeated string |
 
-**Two APG deviations remain, recorded rather than implied** (D0108 sets the precedent that a
-deviation is recorded in this table). Neither Home nor a printable character OPENS a closed Select,
-where the APG's listbox pattern says both should. Both were found by measurement, not by reading.
+**Four APG deviations remain, recorded rather than implied** (D0108 sets the precedent that a
+deviation is recorded in this table). This section said TWO until 2026-08-29, and two review seats
+found four by execution - a count nothing checked, in a record that exists to be checkable. All
+four are now pinned by tests in `packages/react/src/components/Select/__tests__/select.test.tsx`, along with the four keys that DO open, so the
+count cannot drift again in either direction.
+
+Against the APG's select-only combobox pattern:
+
+| Key | APG | Clara |
+| --- | --- | --- |
+| Home (closed) | Opens the listbox | Does nothing |
+| End (closed) | Opens the listbox | Does nothing |
+| A printable character (closed) | Opens the listbox | Does nothing |
+| Alt+ArrowUp (open) | Commits the highlight and closes | Moves the highlight up |
+
+The first three share one cause: the engine's closed branch in `packages/react/src/lib/listbox.ts` handles ArrowDown,
+ArrowUp, Enter and button-Space only. Alt+ArrowUp falls through to the plain ArrowUp case.
+
+These are recorded rather than fixed because fixing them changes keyboard behaviour, which is a
+decision rather than a correction - unlike D0123's Space case, which was fixed because it was
+silently inert on a key this component itself teaches. Both were found by measurement, not by reading.
 
 A third deviation was found in the same round and FIXED rather than recorded (D0123): Space while
 the list was OPEN fell through to the typeahead branch, which prevented the key and then searched

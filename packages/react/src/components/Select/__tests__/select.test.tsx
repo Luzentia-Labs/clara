@@ -446,3 +446,45 @@ describe('Select option state tokens are pinned at both ends', () => {
     }
   })
 })
+
+// The four APG deviations, pinned. The verification record claimed TWO and four exist, which two
+// seats caught independently - a record that asserts a count nothing checks drifts silently, and
+// this one told a reader that End works. These cases assert CURRENT behaviour, so they redden if
+// the behaviour changes without the record changing with it, in either direction.
+describe('Select APG deviations are recorded and pinned', () => {
+  const opens = async (key: string) => {
+    render(<Select options={OPTIONS} />)
+    screen.getByRole('combobox').focus()
+    await userEvent.keyboard(key)
+    return screen.queryByRole('listbox') !== null
+  }
+
+  it.each([
+    ['ArrowDown', '{ArrowDown}'],
+    ['ArrowUp', '{ArrowUp}'],
+    ['Enter', '{Enter}'],
+    ['Space', ' '],
+  ])('opens a closed Select on %s, as the APG requires', async (_name, key) => {
+    expect(await opens(key)).toBe(true)
+  })
+
+  it.each([
+    ['Home', '{Home}'],
+    ['End', '{End}'],
+    ['a printable character', 'p'],
+  ])('DEVIATION: %s does not open a closed Select', async (_name, key) => {
+    // The APG's select-only combobox lists all three as opening keys. The engine's closed branch
+    // handles ArrowDown, ArrowUp, Enter and button-Space only.
+    expect(await opens(key)).toBe(false)
+  })
+
+  it('DEVIATION: Alt+ArrowUp does not commit and close an open Select', async () => {
+    // The APG has Alt+Up commit the highlight and close. Here it falls through to the plain
+    // ArrowUp case and just moves the highlight.
+    const onValueChange = vi.fn()
+    await renderOpen({ onValueChange })
+    await userEvent.keyboard('{Alt>}{ArrowUp}{/Alt}')
+    expect(onValueChange).not.toHaveBeenCalled()
+    expect(screen.queryByRole('listbox')).not.toBeNull()
+  })
+})

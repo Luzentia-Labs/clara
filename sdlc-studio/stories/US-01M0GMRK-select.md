@@ -39,7 +39,7 @@
   printable key held with Meta, Control or Alt is left to the browser. Each deleted clean against
   the whole suite before this round. The cycling behaviour is stated in the keyboard table; the
   modifier-key exclusion is NOT, which an earlier version of this clause wrongly claimed
-- **Verify:** vitest "Select keyboard operation|commits on Space|cycles typeahead|modified printable key"
+- **Verify:** vitest "Select keyboard operation|commits on Space|cycles typeahead|modified printable key|APG deviations are recorded and pinned"
 - **Verified:** yes (2026-08-29)
 - **Verification target:** functional
 
