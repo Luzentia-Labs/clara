@@ -1,8 +1,8 @@
 [
   {
-    "name": "@luzentialabs/clara-react (ESM entry, 40 components x 300 B, floor 5000 B)",
+    "name": "@luzentialabs/clara-react (ESM entry, 41 components x 300 B, floor 5000 B)",
     "path": "packages/react/dist/index.js",
-    "limit": "12000 B",
+    "limit": "12300 B",
     "gzip": true,
     "ignore": [
       "react",
@@ -367,6 +367,23 @@
   {
     "name": "Modal (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-Modal.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-toast",
+      "@radix-ui/react-tooltip"
+    ]
+  },
+  {
+    "name": "MultiSelect (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-MultiSelect.js",
     "limit": "5 kB",
     "gzip": true,
     "ignore": [

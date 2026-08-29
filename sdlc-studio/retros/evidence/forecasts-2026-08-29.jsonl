@@ -1,0 +1,3 @@
+{"id": "US01M0GM0F", "tokens": 125000, "points": 5, "estimator": "unattributed", "size_gate": "compulsory", "constants": {"TOKENS_PER_POINT": 25000}, "planned_at": "2026-08-29T21:41:17Z", "project": "clara"}
+{"id": "US01M0GMC1", "tokens": 200000, "points": 8, "estimator": "unattributed", "size_gate": "compulsory", "constants": {"TOKENS_PER_POINT": 25000}, "planned_at": "2026-08-29T21:41:17Z", "project": "clara"}
+{"id": "US01M0GMC7", "tokens": 125000, "points": 5, "estimator": "unattributed", "size_gate": "compulsory", "constants": {"TOKENS_PER_POINT": 25000}, "planned_at": "2026-08-29T21:41:17Z", "project": "clara"}

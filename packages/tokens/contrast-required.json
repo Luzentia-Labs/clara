@@ -121,6 +121,10 @@
     {
       "fg": "combobox-panel-fg",
       "bg": "combobox-panel-bg"
+    },
+    {
+      "fg": "multi-select-listbox-fg",
+      "bg": "multi-select-listbox-bg"
     }
   ],
   "nonText": [
@@ -156,6 +160,22 @@
     {
       "fg": "combobox-option-check-fg",
       "bg": "combobox-panel-bg"
+    },
+    {
+      "fg": "multi-select-option-cursor",
+      "bg": "multi-select-option-bg-active"
+    },
+    {
+      "fg": "multi-select-option-cursor",
+      "bg": "multi-select-listbox-bg"
+    },
+    {
+      "fg": "multi-select-option-check-fg",
+      "bg": "multi-select-option-bg-active"
+    },
+    {
+      "fg": "multi-select-option-check-fg",
+      "bg": "multi-select-listbox-bg"
     },
     {
       "fg": "color-border-default",

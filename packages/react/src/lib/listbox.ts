@@ -45,6 +45,13 @@ export interface UseListboxInput<T> {
    */
   triggerKind: 'button' | 'textbox'
   /**
+   * Whether choosing an option closes the list. Single-select closes; a MULTI-select must not, or
+   * the user reopens the list for every value (D0128). Escape closes in both modes - it is the
+   * dismiss key, and making it conditional would strand a keyboard user in a control they are
+   * trying to leave.
+   */
+  closeOnSelect?: boolean
+  /**
    * Typeahead is a LISTBOX affordance and is wrong for a combobox, where the same keystrokes are
    * the filter query. Select turns it on; Combobox leaves it off.
    */
@@ -63,7 +70,8 @@ function seek<T> (options: ReadonlyArray<ListboxOption<T>>, from: number, step: 
 }
 
 export function useListbox<T> (input: UseListboxInput<T>) {
-  const { options, open, onOpen, onClose, onSelect, isSelected, triggerKind, typeahead = false } = input
+  const { options, open, onOpen, onClose, onSelect, isSelected, triggerKind,
+          closeOnSelect = true, typeahead = false } = input
   const baseId = useId()
   const listboxId = `${baseId}-listbox`
   const optionId = useCallback((index: number) => `${baseId}-option-${index}`, [baseId])
@@ -99,6 +107,11 @@ export function useListbox<T> (input: UseListboxInput<T>) {
     onSelect(option)
     return true
   }, [options, onSelect])
+
+  /** Commit, then close only when the mode says a choice ends the interaction (D0128). */
+  const choose = useCallback((index: number) => {
+    if (commit(index) && closeOnSelect) onClose()
+  }, [commit, closeOnSelect, onClose])
 
   const move = useCallback((step: 1 | -1) => {
     setActiveIndex((current) => {
@@ -151,7 +164,7 @@ export function useListbox<T> (input: UseListboxInput<T>) {
       case 'End': event.preventDefault(); setActiveIndex(last); return
       case 'Enter':
         event.preventDefault()
-        if (commit(activeIndex)) onClose()
+        choose(activeIndex)
         return
       case 'Escape':
         event.preventDefault()
@@ -167,12 +180,14 @@ export function useListbox<T> (input: UseListboxInput<T>) {
         // character and must fall through untouched.
         if (triggerKind !== 'button') break
         event.preventDefault()
-        if (commit(activeIndex)) onClose()
+        choose(activeIndex)
         return
       case 'Tab':
-        // Tab COMMITS and lets focus move on - deliberately NOT prevented, because swallowing Tab
-        // strands a keyboard user inside a control they are trying to leave.
-        commit(activeIndex)
+        // Tab lets focus move on - deliberately NOT prevented, because swallowing Tab strands a
+        // keyboard user inside a control they are trying to leave. It COMMITS only in single-select
+        // (D0128): where selections accumulate, committing a cursor the user never chose adds a
+        // value they may not notice, and an accidental toggle is worse than a lost one.
+        if (closeOnSelect) commit(activeIndex)
         onClose()
         return
       default:
@@ -181,7 +196,8 @@ export function useListbox<T> (input: UseListboxInput<T>) {
           runTypeahead(key)
         }
     }
-  }, [open, onOpen, onClose, move, first, last, commit, activeIndex, typeahead, runTypeahead, triggerKind])
+  }, [open, onOpen, onClose, move, first, last, commit, choose, closeOnSelect, activeIndex,
+      typeahead, runTypeahead, triggerKind])
 
   return {
     activeIndex,
@@ -209,7 +225,7 @@ export function useListbox<T> (input: UseListboxInput<T>) {
         // Pointer highlight follows the mouse, so the visible highlight and the announced
         // activedescendant never disagree about where the user is.
         onPointerMove: () => { if (!option?.disabled) setActiveIndex(index) },
-        onClick: () => { if (commit(index)) onClose() },
+        onClick: () => { choose(index) },
       }
     },
   }

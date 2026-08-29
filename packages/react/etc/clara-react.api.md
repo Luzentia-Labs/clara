@@ -496,6 +496,26 @@ export interface ModalProps {
     title: string;
 }
 
+// @public
+export function MultiSelect<T extends string = string>(input: MultiSelectProps<T>): JSX_2.Element;
+
+// @public (undocumented)
+export type MultiSelectOption<T extends string = string> = ListboxOption<T>;
+
+// @public (undocumented)
+export interface MultiSelectProps<T extends string = string> {
+    // (undocumented)
+    className?: string;
+    defaultValues?: ReadonlyArray<T>;
+    // (undocumented)
+    disabled?: boolean;
+    onValuesChange?: (values: T[]) => void;
+    // (undocumented)
+    options: ReadonlyArray<MultiSelectOption<T>>;
+    placeholder?: string;
+    values?: ReadonlyArray<T>;
+}
+
 // @public (undocumented)
 export const NumberInput: ForwardRefExoticComponent<NumberInputProps & RefAttributes<HTMLInputElement>>;
 

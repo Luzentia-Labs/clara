@@ -1319,3 +1319,105 @@
   color: var(--clara-combobox-message-fg);
 }
 .clara-combobox__message--error { color: var(--clara-combobox-message-fg-error); }
+
+/*
+ * MultiSelect - a Select whose list stays open and whose choices show as removable tags.
+ *
+ * Every rule here carries a carrier that Select and Combobox each had to be corrected into over
+ * four review rounds: the cursor is a tint PLUS an inset bar (colour alone measures 1.14:1 light
+ * and 2.28:1 dark), the choice is a glyph with its own colour, the panel declares its own
+ * `color` and `font-size` because it portals, and the trigger declares a font because a <button>
+ * otherwise takes the UA's 13.3px. They are here from the start rather than after the fact.
+ */
+.clara-multi-select {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--clara-multi-select-tag-gap);
+  inline-size: 100%;
+}
+.clara-multi-select__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--clara-multi-select-tag-gap);
+  margin: var(--clara-box-padding-none);
+  padding: var(--clara-box-padding-none);
+  list-style: none;
+}
+.clara-multi-select__trigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--clara-multi-select-gap);
+  /* A <button> takes the UA font, not the page's - measured at 13.3333px on a stock page. */
+  font: inherit;
+  font-size: var(--clara-font-body);
+  inline-size: 100%;
+  block-size: var(--clara-multi-select-height);
+  padding-inline: var(--clara-multi-select-padding-inline);
+  background: var(--clara-multi-select-bg);
+  color: var(--clara-multi-select-fg);
+  border: var(--clara-multi-select-border-width) solid var(--clara-multi-select-border);
+  border-radius: var(--clara-multi-select-radius);
+  text-align: start;
+  cursor: pointer;
+}
+.clara-multi-select__trigger:focus-visible {
+  outline: var(--clara-multi-select-focus-width) solid var(--clara-color-border-focus);
+  outline-offset: var(--clara-multi-select-focus-width);
+  /* Two-part per D0054: the outline plus an offset ring, so the indicator survives on both a light
+     and a dark surface. The guard caught this missing, as it did on Select. */
+  box-shadow: 0 0 0 var(--clara-multi-select-focus-width) var(--clara-color-border-focus-offset);
+}
+.clara-multi-select--disabled .clara-multi-select__trigger { cursor: not-allowed; }
+.clara-multi-select__value--placeholder { color: var(--clara-multi-select-placeholder-fg); }
+.clara-multi-select__listbox-panel {
+  box-sizing: border-box;
+  /* `position` earns the z-index: Radix's popper reads the computed z-index off this element and
+     copies it onto the wrapper it renders itself, and z-index is inert on a static element. */
+  position: relative;
+  z-index: var(--clara-layer-overlay);
+  min-inline-size: var(--clara-multi-select-min-inline-size);
+  inline-size: var(--radix-popover-trigger-width);
+  max-block-size: var(--radix-popover-content-available-height, var(--clara-multi-select-max-block-size));
+  /* DECLARED, not inherited: this panel portals to document.body, so it takes its text colour and
+     its size from the PAGE unless it says otherwise. */
+  color: var(--clara-multi-select-listbox-fg);
+  font-size: var(--clara-font-body);
+  background: var(--clara-multi-select-listbox-bg);
+  border: var(--clara-multi-select-border-width) solid var(--clara-multi-select-listbox-border);
+  border-radius: var(--clara-multi-select-listbox-radius);
+  overflow-y: auto;
+}
+.clara-multi-select__listbox {
+  margin: var(--clara-box-padding-none);
+  padding-block: var(--clara-multi-select-listbox-padding-block);
+  padding-inline: var(--clara-box-padding-none);
+  list-style: none;
+}
+.clara-multi-select__option {
+  display: flex;
+  align-items: center;
+  gap: var(--clara-multi-select-option-padding-inline);
+  padding-block: var(--clara-multi-select-option-padding-block);
+  padding-inline: var(--clara-multi-select-option-padding-inline);
+  border-radius: var(--clara-multi-select-option-radius);
+  cursor: pointer;
+}
+.clara-multi-select__option--active {
+  background: var(--clara-multi-select-option-bg-active);
+  box-shadow: inset var(--clara-multi-select-option-cursor-width) 0 0 0 var(--clara-multi-select-option-cursor);
+}
+.clara-multi-select__option--disabled {
+  color: var(--clara-multi-select-option-fg-disabled);
+  cursor: not-allowed;
+}
+.clara-multi-select__check {
+  margin-inline-start: auto;
+  color: var(--clara-multi-select-option-check-fg);
+  /* An SVG's UA `forced-color-adjust` is `preserve-parent-color`, so an author colour set ON the
+     svg is not forced. Without this the glyph keeps Clara's accent on the user's Canvas. */
+  forced-color-adjust: auto;
+  flex-shrink: 0;
+}

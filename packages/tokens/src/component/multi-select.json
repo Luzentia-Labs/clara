@@ -1,0 +1,111 @@
+{
+  "multi-select": {
+    "bg": {
+      "value": "{color.bg.surface}",
+      "type": "color"
+    },
+    "fg": {
+      "value": "{color.fg.default}",
+      "type": "color"
+    },
+    "placeholder-fg": {
+      "value": "{color.fg.muted}",
+      "type": "color"
+    },
+    "border": {
+      "value": "{color.border.default}",
+      "type": "color"
+    },
+    "border-width": {
+      "value": "{border-width.default}",
+      "type": "dimension"
+    },
+    "focus-width": {
+      "value": "{border-width.focus}",
+      "type": "dimension"
+    },
+    "radius": {
+      "value": "{radius.control}",
+      "type": "dimension"
+    },
+    "height": {
+      "value": "{size.control-height}",
+      "type": "dimension"
+    },
+    "padding-inline": {
+      "value": "{space.control-padding-x}",
+      "type": "dimension"
+    },
+    "gap": {
+      "value": "{space.control-gap}",
+      "type": "dimension"
+    },
+    "listbox-bg": {
+      "value": "{color.bg.surface}",
+      "type": "color"
+    },
+    "listbox-fg": {
+      "value": "{color.fg.default}",
+      "type": "color"
+    },
+    "listbox-border": {
+      "value": "{color.border.default}",
+      "type": "color"
+    },
+    "listbox-radius": {
+      "value": "{radius.surface}",
+      "type": "dimension"
+    },
+    "listbox-padding-block": {
+      "value": "{space.control-padding-y}",
+      "type": "dimension"
+    },
+    "option-padding-block": {
+      "value": "{space.control-padding-y}",
+      "type": "dimension"
+    },
+    "option-padding-inline": {
+      "value": "{space.control-padding-x}",
+      "type": "dimension"
+    },
+    "option-radius": {
+      "value": "{radius.control}",
+      "type": "dimension"
+    },
+    "option-bg-active": {
+      "value": "{color.bg.row-hover}",
+      "type": "color"
+    },
+    "option-fg-disabled": {
+      "value": "{color.fg.muted}",
+      "type": "color"
+    },
+    "option-cursor": {
+      "value": "{color.bg.accent-emphasis}",
+      "type": "color"
+    },
+    "option-cursor-width": {
+      "value": "{size.bar-thickness}",
+      "type": "dimension"
+    },
+    "option-check-fg": {
+      "value": "{color.fg.accent}",
+      "type": "color"
+    },
+    "min-inline-size": {
+      "value": "12rem",
+      "type": "dimension",
+      "comment": "A raw dimension, following dropdown-menu.min-inline-size. A listbox MINIMUM width has no semantic ancestor in tier 2 size, and without one a list of short labels renders as a sliver that is hard to aim at."
+    },
+    "max-block-size": {
+      "value": "85vh",
+      "type": "dimension",
+      "comment": "A FALLBACK, used only when the positioning engine has not reported an available height - it cannot itself hold a var(--radix-...) reference. A var() referencing another var() is substituted at the element where it is DECLARED, and this token is declared at :root where no Radix variable exists, so routing it through here would collapse the whole declaration to `none` and let the listbox grow unbounded. That is BG-01M0WQY1 one tier down. The live value is read in the rule, where the popper has set it."
+    },
+    "tag-gap": {
+      "value": "{space.control-gap}",
+      "type": "dimension",
+      "comment": "The gap between the selected-value tags in the trigger. Its own name because it is a gap BETWEEN tags rather than between a control's parts, and the two are re-tuned by density for different reasons."
+    }
+  }
+}

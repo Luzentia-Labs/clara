@@ -568,6 +568,36 @@
       "background": "combobox.panel-bg",
       "minRatio": 4.5,
       "why": "The pair a portalled panel ACTUALLY paints, the same reason popover, drawer, tooltip, toast and dropdown-menu carry one. Select and Combobox were the only portalled surfaces without it: repointing select.listbox-fg to {color.fg.muted} left every gate green."
+    },
+    {
+      "foreground": "multi-select.option-cursor",
+      "background": "multi-select.option-bg-active",
+      "minRatio": 3,
+      "why": "The MultiSelect cursor bar, declared against BOTH surfaces it sits on from the start. Select and Combobox each had to be corrected twice here - once for declaring the tier 2 ancestors instead of the tier 3 pair, then again for declaring only the panel when an inset box-shadow paints over the element's OWN background. Both adjacencies, no third correction."
+    },
+    {
+      "foreground": "multi-select.option-cursor",
+      "background": "multi-select.listbox-bg",
+      "minRatio": 3,
+      "why": "The MultiSelect cursor bar, declared against BOTH surfaces it sits on from the start. Select and Combobox each had to be corrected twice here - once for declaring the tier 2 ancestors instead of the tier 3 pair, then again for declaring only the panel when an inset box-shadow paints over the element's OWN background. Both adjacencies, no third correction."
+    },
+    {
+      "foreground": "multi-select.option-check-fg",
+      "background": "multi-select.option-bg-active",
+      "minRatio": 3,
+      "why": "The MultiSelect check glyph, the sole visible carrier of a selected option, against both surfaces. On Select and Combobox this token was in no pairing at all until round 3, and the gap was created by the same change that made the glyph load-bearing."
+    },
+    {
+      "foreground": "multi-select.option-check-fg",
+      "background": "multi-select.listbox-bg",
+      "minRatio": 3,
+      "why": "The MultiSelect check glyph, the sole visible carrier of a selected option, against both surfaces. On Select and Combobox this token was in no pairing at all until round 3, and the gap was created by the same change that made the glyph load-bearing."
+    },
+    {
+      "foreground": "multi-select.listbox-fg",
+      "background": "multi-select.listbox-bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints, as popover, drawer, tooltip, toast, dropdown-menu, select and combobox each declare. A portalled surface resolves its background against the portal scope and its text against the page unless it declares both."
     }
   ]
 }

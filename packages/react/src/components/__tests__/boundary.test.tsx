@@ -69,6 +69,7 @@ const REQUIRED_PROPS: Record<string, Record<string, unknown>> = {
   // boundary verdict, which is the failure the Alert entry above records.
   Select: { options: [{ value: 'a', label: 'A' }] },
   Combobox: { options: [{ value: 'a', label: 'A' }] },
+  MultiSelect: { options: [{ value: 'a', label: 'A' }] },
 }
 
 /** Render with the watched globals replaced by getters that record any read. */

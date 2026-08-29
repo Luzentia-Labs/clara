@@ -432,6 +432,11 @@ const SHAPE_CONTRACT = [
   // forced-colors, where both resolve to CanvasText.
   ['.clara-combobox__group-label', ['font-size', 'font-weight']],
   ['.clara-combobox__check', ['color', 'forced-color-adjust']],
+  // MultiSelect, enrolled with the component rather than after it.
+  ['.clara-multi-select__trigger', ['font-size']],
+  ['.clara-multi-select__listbox-panel', ['box-sizing', 'background', 'color', 'font-size', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
+  ['.clara-multi-select__option--active', ['background', 'box-shadow']],
+  ['.clara-multi-select__check', ['color', 'forced-color-adjust']],
   ['.clara-modal__body', ['overflow-y']],
   // A flex column shrinks its children by default, so a fixed-height child is squashed rather than
   // scrolled. The rule that stops it is on the CHILDREN, and nothing else can see its absence.

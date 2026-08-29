@@ -12,7 +12,8 @@
     "_overlay": "`overlay: true` marks a component that renders a surface floating above the page. check-overlay-contract.mjs requires every BUILT overlay to render through ClaraPortal and to take its stacking from a layer token. Without it, US-01M0GM61's portal is a mechanism nothing obliges anyone to use - which is verbatim the defect D0087 records about the z-index scale.",
     "Tag": "Client-only, reclassified during implementation: AC2 requires a remove control, so Tag takes `onRemove` - a function prop. Kept as ONE component rather than a server Tag and a client RemovableTag, because splitting it would move the choice into the consumer's import statement.",
     "Select": "Client-only: it holds open state and the activedescendant highlight, which TRD Section 7 makes the boundary test. There is no server-capable variant to split out - a select that cannot open is not a select. `overlay: true` because its listbox floats above the page, so check-overlay-contract requires it to render through ClaraPortal and take the shared layer token (D0105).",
-    "Combobox": "Client-only: it holds open state, the query, and the activedescendant highlight. `overlay: true` because its listbox floats above the page, so check-overlay-contract requires ClaraPortal and the shared layer token (D0105)."
+    "Combobox": "Client-only: it holds open state, the query, and the activedescendant highlight. `overlay: true` because its listbox floats above the page, so check-overlay-contract requires ClaraPortal and the shared layer token (D0105).",
+    "MultiSelect": "Client-only for the same reason Select is: it holds open state and the activedescendant highlight, which TRD Section 7 makes the boundary test. `overlay: true` because its listbox floats above the page, so check-overlay-contract requires it to render through ClaraPortal and take the shared layer token (D0105). It also holds the SELECTION array, which a server variant could not, and D0128's `closeOnSelect: false` means that array changes without a navigation."
   },
   "components": [
     {
@@ -174,7 +175,7 @@
     {
       "name": "MultiSelect",
       "boundary": "client",
-      "status": "planned",
+      "status": "built",
       "overlay": true
     },
     {
