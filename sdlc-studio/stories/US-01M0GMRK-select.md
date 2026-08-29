@@ -36,8 +36,9 @@
   typeahead branch, which prevented the key and searched for a label beginning with a space, so it
   was silently inert on a key this component itself teaches as one of the keys that OPENS the list
 - **And** typeahead cycles on a repeated character rather than searching for the repeat, and a
-  printable key held with Meta, Control or Alt is left to the browser. Both behaviours were stated
-  in the keyboard table and asserted nowhere: each deleted clean against the whole suite
+  printable key held with Meta, Control or Alt is left to the browser. Each deleted clean against
+  the whole suite before this round. The cycling behaviour is stated in the keyboard table; the
+  modifier-key exclusion is NOT, which an earlier version of this clause wrongly claimed
 - **Verify:** vitest "Select keyboard operation|commits on Space|cycles typeahead|modified printable key"
 - **Verified:** yes (2026-08-29)
 - **Verification target:** functional
@@ -123,7 +124,7 @@
 
 > The RENDERED result of this criterion is not verified and is not claimed to be. jsdom computes no
 > layout and resolves no `var()`, so what is checked here is that the second channel is DECLARED
-> (`check-component-css`, which reddens on its deletion while all 53 tests stay green) and that the
+> (`check-component-css`, which exits 1 on its deletion - and so does the stylesheet-reading case in this criterion's own verifier, so BOTH channels see it) and that the
 > token pair MEASURES (`check:contrast`, over a pairing that did not exist before D0124). What a
 > user sees stays a stated gap until gate 7, owned by US-01M0WSME.
 
@@ -164,7 +165,7 @@ verifier must fail on, and the verdict beside it is what happened.
 | AC5 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-select__listbox-panel` - a raw literal where a token belongs. KILLED, `check-component-css` exits 1. No test imports a CSS file, so the verifier must be a guard that READS the stylesheet or the row is green by construction. | Token-only styling |
 | AC6 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. KILLED, 4 of 4. Mutating the PROVIDER is what proves the assertion walks up from inside the portalled panel rather than reading the render container, which carries the same attributes and was never the portal's scope. | Both themes and densities |
 | AC7 | packages/react/src/components/Select/verification.md | Rename `## Keyboard` to `## Keys`. KILLED - `missing section "## Keyboard"`, exit 1. | Definition of done |
-| AC8 | packages/react/src/styles.css, packages/react/src/components/Select/Select.tsx | TWO mutants, both KILLED by the GUARD while every test stayed green - which is the point of the row. (a) Delete the `box-shadow` from `.clara-select__option--active`, returning the cursor to colour alone: `check-component-css` exits 1, vitest reports 53 passed. (b) Delete `color` from `.clara-select__listbox-panel`, the dark-on-dark defect its own comment describes: guard exits 1, vitest reports 53 passed. jsdom resolves no `var()` and computes no layout, so a vitest-only verifier over this criterion is green by construction. TWO mutants, both KILLED. (a) Remove the `--selected` class, so the CHOICE has no carrier - the state this criterion was written against. (b) Bind `--selected` to `activeIndex` instead of the value, collapsing choice into cursor: the separation case reddens, which is what stops the two facts sharing one treatment. | The option state model carries both facts, and neither by colour alone |
+| AC8 | packages/react/src/styles.css, packages/react/src/components/Select/Select.tsx | TWO mutants, both KILLED by the GUARD while every test stayed green - which is the point of the row. (a) Delete the `box-shadow` from `.clara-select__option--active`, returning the cursor to colour alone: `check-component-css` exits 1 AND the stylesheet-reading case fails. An earlier version of this row said vitest stayed green at 53 passed; that figure was the PRE-REPAIR count, written before the stylesheet-reading tests existed and never re-measured, and three review seats caught it independently. (b) Delete `color` from `.clara-select__listbox-panel`, the dark-on-dark defect its own comment describes: guard exits 1 while vitest stays green - this one IS guard-only, and it is the reason the panel is enrolled in the shape contract. jsdom resolves no `var()` and computes no layout, so a vitest-only verifier over this criterion is green by construction. TWO mutants, both KILLED. (a) Remove the `--selected` class, so the CHOICE has no carrier - the state this criterion was written against. (b) Bind the check GLYPH to `activeIndex` instead of the value, collapsing choice into cursor. This replaces an earlier mutant that bound a `--selected` CLASS: that class carried no CSS rule anywhere, so the mutant reddened a test while changing nothing a user could see - a proxy, caught by two seats. The class is gone and the glyph is asserted after the cursor has been moved off the choice, because at open the two coincide. | The option state model carries both facts, and neither by colour alone |
 
 **One mutant is deliberately absent.** Nothing here proves the listbox PAINTS above a modal, flips
 at a viewport edge, or stays unclipped in a scrollable container. Those are rendered facts, jsdom

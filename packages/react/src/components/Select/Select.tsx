@@ -129,7 +129,6 @@ export function Select<T extends string = string> ({
                 className={cx(
                   'clara-select__option',
                   index === listbox.activeIndex && 'clara-select__option--active',
-                  option.value === current && 'clara-select__option--selected',
                   option.disabled && 'clara-select__option--disabled',
                 )}
               >

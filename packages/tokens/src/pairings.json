@@ -510,10 +510,16 @@
       "why": "The pair a portalled panel ACTUALLY paints. Tier 3, where the rest of this table is tier 2, and deliberately so: a portalled surface resolves its background against the portal scope and, with no declared colour, its text against the page - which shipped 1.26:1 in dark theme. Declaring only the tier 2 ancestors is not equivalent; repointing a tier 3 fg to a DIFFERENT tier 2 alias measured 3.10:1 in light with every gate green, because nothing measured the pair the component paints."
     },
     {
-      "foreground": "color.bg.accent-emphasis",
-      "background": "color.bg.surface",
+      "foreground": "select.option-cursor",
+      "background": "select.listbox-bg",
       "minRatio": 3,
-      "why": "The listbox activedescendant CURSOR bar, shared by Select and Combobox through the engine D0105 built (D0124). Declared because it was NOT: the cursor was a background tint alone, and the only row-hover pairing in this table is fg.default ON it, as TEXT - so the state INDICATOR against the surface it sits on was never a pairing at all, and check:contrast reported PASS over an indicator measuring 1.14:1 in light and 2.28:1 in dark. A state indicator is non-text, so 3:1 is its floor."
+      "why": "The listbox activedescendant CURSOR bar, pinned at the TIER 3 pair the component actually paints. It was first declared as its tier 2 ancestors (bg.accent-emphasis on bg.surface) and that is NOT equivalent, for the reason the toast and dropdown-menu rows above already record: repointing the tier 3 alias to a different tier 2 name leaves every gate green because nothing measures the pair the rule paints. Measured on this tree - repointing select.option-cursor to {color.bg.row-hover} makes the bar the same colour as the tint it sits on, 1.00:1, reinstating the exact defect D0124 was written to fix, with 1282 tests, 27 guards and check:contrast all green. Two review seats found it independently."
+    },
+    {
+      "foreground": "combobox.option-cursor",
+      "background": "combobox.panel-bg",
+      "minRatio": 3,
+      "why": "The listbox activedescendant CURSOR bar, pinned at the TIER 3 pair the component actually paints. It was first declared as its tier 2 ancestors (bg.accent-emphasis on bg.surface) and that is NOT equivalent, for the reason the toast and dropdown-menu rows above already record: repointing the tier 3 alias to a different tier 2 name leaves every gate green because nothing measures the pair the rule paints. Measured on this tree - repointing select.option-cursor to {color.bg.row-hover} makes the bar the same colour as the tint it sits on, 1.00:1, reinstating the exact defect D0124 was written to fix, with 1282 tests, 27 guards and check:contrast all green. Two review seats found it independently."
     }
   ]
 }

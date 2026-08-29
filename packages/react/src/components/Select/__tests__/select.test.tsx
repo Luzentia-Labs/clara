@@ -326,26 +326,28 @@ describe('Select option state model and keyboard gaps', () => {
     await renderOpen({ defaultValue: 'eur' })
     const chosen = screen.getByRole('option', { name: /Euro/ })
     expect(chosen).toHaveAttribute('aria-selected', 'true')
-    expect(chosen.className, 'the CHOICE carries its own class, distinct from the cursor')
-      .toContain('clara-select__option--selected')
-    expect(chosen.querySelector('.clara-select__check'), 'and a visible glyph').toBeTruthy()
-
+    expect(chosen.querySelector('.clara-select__check'), 'the CHOICE carries a visible glyph')
+      .toBeTruthy()
     const other = screen.getByRole('option', { name: /Pound sterling/ })
-    expect(other.className).not.toContain('clara-select__option--selected')
     expect(other.querySelector('.clara-select__check')).toBeNull()
   })
 
   it('separates the CURSOR from the CHOICE - they are different facts', async () => {
     // The engine's own comment insists on this and nothing asserted it. Open on the selected
     // option, then arrow away: the choice must stay marked where it is.
+    // The cursor MUST be moved off the choice first. At open they coincide, so a test that
+    // asserts before moving cannot tell a glyph bound to the CHOICE from one bound to the CURSOR -
+    // which is exactly how rebinding it to `activeIndex` passed the whole suite.
     await renderOpen({ defaultValue: 'eur' })
     await userEvent.keyboard('{ArrowDown}')
     const chosen = screen.getByRole('option', { name: /Euro/ })
     const cursor = screen.getByRole('option', { name: /Swedish krona/ })
-    expect(chosen.className).toContain('clara-select__option--selected')
-    expect(chosen.className).not.toContain('clara-select__option--active')
+    expect(chosen.querySelector('.clara-select__check'),
+      'the glyph stays with the CHOICE after the cursor moves away').toBeTruthy()
+    expect(cursor.querySelector('.clara-select__check'),
+      'and never follows the cursor').toBeNull()
     expect(cursor.className).toContain('clara-select__option--active')
-    expect(cursor.className).not.toContain('clara-select__option--selected')
+    expect(chosen.className).not.toContain('clara-select__option--active')
   })
 
   it('commits on Space while OPEN and closes, per the APG (D0123)', async () => {

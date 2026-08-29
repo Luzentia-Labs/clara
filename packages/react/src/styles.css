@@ -1099,6 +1099,12 @@
  */
 .clara-select {
   box-sizing: border-box;
+  /* A <button> takes the UA font, not the page's: measured at 13.3333px in Chromium on a stock
+     page, below the 14px floor, with no consumer CSS involved. `.clara-input` and `.clara-button`
+     both declare these two lines and Select declared neither. D0104 Q1 admits no judgement here -
+     the trigger's value is the value of a control. */
+  font: inherit;
+  font-size: var(--clara-font-body);
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
@@ -1144,6 +1150,10 @@
      custom properties without declaring `color`, so an undeclared panel takes its text colour from
      the PAGE while taking its background from the portal's scope. */
   color: var(--clara-select-listbox-fg);
+  /* DECLARED for the same reason `color` is: this panel portals to document.body, so it inherits
+     the CONSUMER's body size rather than Clara's. On a 13px body every option label, and the check
+     glyph sized at 1em, fell below the floor. Tooltip fixed this exact mechanism at :506-510. */
+  font-size: var(--clara-font-body);
   background: var(--clara-select-listbox-bg);
   border: var(--clara-select-border-width) solid var(--clara-select-listbox-border);
   border-radius: var(--clara-select-listbox-radius);
@@ -1235,6 +1245,8 @@
   /* DECLARED, not inherited: the panel portals to document.body, and [data-clara-theme] redefines
      custom properties without declaring `color`. */
   color: var(--clara-combobox-panel-fg);
+  /* Same portal-inheritance reason as the Select panel above. */
+  font-size: var(--clara-font-body);
   background: var(--clara-combobox-panel-bg);
   border: var(--clara-combobox-border-width) solid var(--clara-combobox-panel-border);
   border-radius: var(--clara-combobox-panel-radius);

@@ -51,3 +51,8 @@ packages/*/temp/
 .claude/worktrees/
 e2e/fixtures/geometry.html
 e2e/fixtures/scoping.html
+
+# Playwright MCP scratch output - console logs and screenshots a browser probe drops in the repo
+# root. It has been committed and cleaned up three times (1328353, 260cce3, 9098547), which is the
+# enumeration-staleness shape: each cleanup fixed the instance and left the mechanism.
+.playwright-mcp/

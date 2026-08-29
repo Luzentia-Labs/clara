@@ -12,11 +12,15 @@ import { useListbox, type ListboxOption } from '../../lib/listbox'
 /** An option, optionally belonging to a named group. */
 export interface ComboboxOption<T extends string = string> extends ListboxOption<T> {
   /**
-   * Groups options under an accessible label. Options render in FIRST-ENCOUNTER order: a group
-   * appears where its first member appears, and ungrouped options keep their place in the array
-   * rather than being hoisted above every group. This docstring used to claim the hoisting, which
-   * the code has never done (D0122) - the array order is what ships, because it is what the
-   * consumer wrote and the only order that lets them interleave.
+   * Groups options under an accessible label.
+   *
+   * Options are COLLECTED by group, not left in array order. Every ungrouped option shares one
+   * bucket, and each bucket renders where its FIRST member appears. So
+   * `[Alpha, Charlie in "G", Bravo]` renders `Alpha, Bravo, G: Charlie` - Bravo joins Alpha above
+   * the group even though it came after it. Options within a bucket keep their relative order.
+   *
+   * To control placement, order your array so each group's first member falls where you want the
+   * group. Interleaving an ungrouped option BETWEEN two groups is not expressible (D0125).
    */
   group?: string
 }
@@ -221,7 +225,6 @@ export function Combobox<T extends string = string> ({
                   className={cx(
                     'clara-combobox__option',
                     index === listbox.activeIndex && 'clara-combobox__option--active',
-                    option.value === selected?.value && 'clara-combobox__option--selected',
                     option.disabled && 'clara-combobox__option--disabled',
                   )}
                 >

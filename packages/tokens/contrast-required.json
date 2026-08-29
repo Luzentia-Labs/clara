@@ -117,9 +117,13 @@
   ],
   "nonText": [
     {
-      "comment": "The listbox activedescendant CURSOR bar, shared by Select and Combobox through the engine D0105 built. It is here because it was NOT here: the cursor was a background tint alone at 1.14:1 light and 2.28:1 dark, and check:contrast could not see it because the only row-hover pairing in this file is fg-default ON it, as TEXT. A state indicator is non-text, so the pair that had to be measured was the indicator against the surface it sits on, and no such pair existed. D0124.",
-      "fg": "color-bg-accent-emphasis",
-      "bg": "color-bg-surface"
+      "comment": "The listbox activedescendant CURSOR bar, at the TIER 3 pair the rule paints. Declared here as tier 2 ancestors first, which is NOT equivalent - repointing select.option-cursor to {color.bg.row-hover} made the bar invisible at 1.00:1 with every gate green. Same reason toast and dropdown-menu are tier 3 in this file. D0124.",
+      "fg": "select-option-cursor",
+      "bg": "select-listbox-bg"
+    },
+    {
+      "fg": "combobox-option-cursor",
+      "bg": "combobox-panel-bg"
     },
     {
       "fg": "color-border-default",

@@ -253,11 +253,19 @@ describe('Combobox option state model and the Space key', () => {
     expect(input).toBeTruthy()
     const chosen = screen.getByRole('option', { name: /Euro/ })
     expect(chosen).toHaveAttribute('aria-selected', 'true')
-    expect(chosen.className).toContain('clara-combobox__option--selected')
     expect(chosen.querySelector('.clara-combobox__check')).toBeTruthy()
     const other = screen.getByRole('option', { name: /Pound sterling/ })
-    expect(other.className).not.toContain('clara-combobox__option--selected')
     expect(other.querySelector('.clara-combobox__check')).toBeNull()
+    // Move the cursor off the choice: at open they coincide, so asserting before moving cannot
+    // distinguish a glyph bound to the choice from one bound to the cursor.
+    await userEvent.keyboard('{ArrowDown}')
+    expect(screen.getByRole('option', { name: /Euro/ }).querySelector('.clara-combobox__check'),
+      'the glyph stays with the CHOICE').toBeTruthy()
+    // ArrowDown from Euro skips the disabled US dollar and lands on Swedish krona.
+    const cursor = screen.getByRole('option', { name: /Swedish krona/ })
+    expect(cursor.className).toContain('clara-combobox__option--active')
+    expect(cursor.querySelector('.clara-combobox__check'),
+      'and never follows the cursor').toBeNull()
   })
 
   it('warns when the list GROWS past the ceiling after mount (AC3)', async () => {
@@ -332,5 +340,22 @@ describe('Combobox group label sits at the body floor', () => {
     expect(decl, 'the token is emitted at all').toBeTruthy()
     expect(decl).toBe('var(--clara-font-body)')
     expect(decl).not.toContain('font-caption')
+  })
+})
+
+// D0125. Render order was documented twice and pinned never - the first docstring was false, and
+// so was its replacement, because the claim was carried from a review report rather than derived.
+// This is the test that would have caught either.
+describe('Combobox render order collects by group', () => {
+  it('puts every ungrouped option in one bucket, placed at its first member', async () => {
+    inField(<Combobox options={[
+      { value: 'a', label: 'Alpha' },
+      { value: 'c', label: 'Charlie', group: 'G' },
+      { value: 'b', label: 'Bravo' },
+    ]} />)
+    await openIt()
+    const rendered = screen.getAllByRole('option').map((o) => o.textContent)
+    // NOT ['Alpha','Charlie','Bravo'] - Bravo joins Alpha's bucket above the group.
+    expect(rendered).toEqual(['Alpha', 'Bravo', 'Charlie'])
   })
 })

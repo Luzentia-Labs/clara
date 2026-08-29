@@ -405,8 +405,17 @@ const SHAPE_CONTRACT = [
    * nine guards and all 26 tests stayed green, while the comment directly above that declaration
    * describes precisely the dark-on-dark failure it prevents.
    */
-  ['.clara-select__listbox-panel', ['box-sizing', 'background', 'color', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
-  ['.clara-combobox__panel', ['box-sizing', 'background', 'color', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
+  /*
+   * `font-size` is here for the same reason `color` is, and it was missing for the same reason.
+   * A portalled panel inherits the CONSUMER's body size, not Clara's: measured on a 13px body,
+   * every option label and the 1em check glyph fell under the 14px floor. The trigger is a
+   * <button>, which takes the UA font entirely - 13.3333px in Chromium on a STOCK page, with no
+   * consumer CSS at all. jsdom resolves no `var()` and computes no layout, so nothing else here
+   * can see any of it.
+   */
+  ['.clara-select', ['font-size']],
+  ['.clara-select__listbox-panel', ['box-sizing', 'background', 'color', 'font-size', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
+  ['.clara-combobox__panel', ['box-sizing', 'background', 'color', 'font-size', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
   /*
    * The activedescendant CURSOR needs a SECOND CHANNEL, not just a background (D0124). The tint
    * alone measures 1.14:1 light and 2.28:1 dark against the panel, and jsdom resolves no `var()`

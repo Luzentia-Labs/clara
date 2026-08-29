@@ -36,6 +36,31 @@ Decide the policy first, then apply it: which state indicators must survive forc
 
 Every state Clara conveys with a background tint is invisible in Windows High Contrast Mode. The PRD claims WCAG 2.2 AA, and the library has 35 components carrying keyboard tables whose highlighted state is a tint.
 
+## Measured mechanism, 2026-08-29
+
+Two review seats measured this in Chromium with `forced-colors: active`, against the built dist,
+so whoever picks this up starts with the answer rather than the question:
+
+| Declaration | In forced-colors |
+| --- | --- |
+| `background-color` | forced to `Canvas` - the tint is gone |
+| `box-shadow` | forced to **`none`** - an inset bar is gone too |
+| `border-inline-start` | **SURVIVES**, colour forced to `CanvasText` |
+| `outline` | **SURVIVES** |
+
+Clara already proves the border case in its own stylesheet: `.clara-toast`'s accent is a
+`border-inline-start` and it survives.
+
+This corrects D0124, which claimed an inset `box-shadow` bar would survive where the tint did not.
+It does not. The listbox activedescendant cursor currently has **zero** carriers in forced-colors,
+which is what this bug's own summary already said and the decision contradicted. D0126 records the
+correction.
+
+The consequence for scoping: a component whose state is a background tint cannot be fixed by adding
+a shadow. The remedy is a `@media (forced-colors: active)` block per component, and the reason it is
+not being done one component at a time is that doing so would leave the other 34 with the same gap
+and a decision claiming it was handled.
+
 ## Revision History
 
 | Date | Author | Change |
