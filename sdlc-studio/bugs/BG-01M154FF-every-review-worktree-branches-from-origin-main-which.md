@@ -54,6 +54,21 @@ Make the base correct rather than ask every seat to check it. The ruling belongs
 
 A whole review round can report a total regression of code that is present and green on main, or - worse - return a mix of stale and current verdicts with nothing in the verdict rows to distinguish them. The two-role gate would then record independent sign-off that was performed against a tree without the unit in it.
 
+## Status note, 2026-08-29
+
+**The INSTANCE is cleared; the CLASS is not, so this stays open.** `main` was pushed on 2026-08-29
+(`14eaed4..10d2824`, 41 commits), so `origin/main` is current and a worktree branched from it today
+is correct. That was the operator's chosen remedy and it is option 1 above.
+
+What it does not do is stop the next occurrence. The gap reappears the moment commits accumulate
+locally again, which is the normal state of a trunk-based repo between pushes - it was 33 when
+LATEST.md first recorded the symptom and 38 by the time it was root-caused. Options 2 and 3 remain
+the durable half: a dispatcher that verifies the base before handing over, and a base-ref check that
+is a gate rather than a prompt convention, with the measured ref recorded on every verdict row so a
+MIXED round is detectable after the fact rather than by luck.
+
+Verified after the push: `git merge-base --is-ancestor 10d2824 origin/main` exits 0.
+
 ## Revision History
 
 | Date | Author | Change |
