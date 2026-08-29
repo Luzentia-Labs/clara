@@ -34,6 +34,17 @@ export interface UseListboxInput<T> {
   onSelect: (option: ListboxOption<T>) => void
   isSelected: (option: ListboxOption<T>) => boolean
   /**
+   * What the trigger IS, which decides how printable keys are treated. Required rather than
+   * defaulted: a default would silently give a new consumer the button semantics, and the defect
+   * this field exists to stop was exactly that assumption made in a comment - Space was prevented
+   * for every trigger on the reasoning that an input "handles it before this ever sees it", which
+   * is false because keydown precedes insertion.
+   *
+   * `button` - Space opens the list when closed, and selects and closes when open (D0123).
+   * `textbox` - Space is a query character in both states and is never prevented.
+   */
+  triggerKind: 'button' | 'textbox'
+  /**
    * Typeahead is a LISTBOX affordance and is wrong for a combobox, where the same keystrokes are
    * the filter query. Select turns it on; Combobox leaves it off.
    */
@@ -52,7 +63,7 @@ function seek<T> (options: ReadonlyArray<ListboxOption<T>>, from: number, step: 
 }
 
 export function useListbox<T> (input: UseListboxInput<T>) {
-  const { options, open, onOpen, onClose, onSelect, isSelected, typeahead = false } = input
+  const { options, open, onOpen, onClose, onSelect, isSelected, triggerKind, typeahead = false } = input
   const baseId = useId()
   const listboxId = `${baseId}-listbox`
   const optionId = useCallback((index: number) => `${baseId}-option-${index}`, [baseId])
@@ -121,9 +132,12 @@ export function useListbox<T> (input: UseListboxInput<T>) {
     const { key } = event
 
     if (!open) {
-      // Closed: the keys that OPEN. Space is included for the button trigger and is harmless for an
-      // input, where it is a printable character the input handles before this ever sees it.
-      if (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Enter' || key === ' ') {
+      // Closed: the keys that OPEN. Space opens a BUTTON trigger only. It must never be prevented
+      // on a textbox, where it is a query character: keydown precedes insertion, so preventing it
+      // deletes the user's space rather than being "harmless for an input" as this comment used to
+      // claim. Measured before the fix - typing " Ac" into a closed Combobox produced "Ac".
+      const opensOnSpace = key === ' ' && triggerKind === 'button'
+      if (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Enter' || opensOnSpace) {
         event.preventDefault()
         onOpen()
       }
@@ -145,6 +159,16 @@ export function useListbox<T> (input: UseListboxInput<T>) {
         // makes Escape destructive on the one key users press to back out.
         onClose()
         return
+      case ' ':
+        // D0123: Space SELECTS AND CLOSES on a button trigger, per the APG. It used to fall through
+        // to the typeahead default, which prevented the key and then searched for an option label
+        // beginning with a space - so it was silently inert on a key this component itself teaches,
+        // because Space is one of the keys that OPENS the list. On a TEXTBOX trigger it is a query
+        // character and must fall through untouched.
+        if (triggerKind !== 'button') break
+        event.preventDefault()
+        if (commit(activeIndex)) onClose()
+        return
       case 'Tab':
         // Tab COMMITS and lets focus move on - deliberately NOT prevented, because swallowing Tab
         // strands a keyboard user inside a control they are trying to leave.
@@ -157,7 +181,7 @@ export function useListbox<T> (input: UseListboxInput<T>) {
           runTypeahead(key)
         }
     }
-  }, [open, onOpen, onClose, move, first, last, commit, activeIndex, typeahead, runTypeahead])
+  }, [open, onOpen, onClose, move, first, last, commit, activeIndex, typeahead, runTypeahead, triggerKind])
 
   return {
     activeIndex,

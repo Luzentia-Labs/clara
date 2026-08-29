@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import * as RadixPopover from '@radix-ui/react-popover'
+import { CheckIcon } from '@luzentialabs/clara-icons'
 import { cx } from '../../lib/cx'
 import { ClaraPortal } from '../../theme/ClaraPortal'
 import { devWarning } from '../../lib/dev-warning'
@@ -10,7 +11,13 @@ import { useListbox, type ListboxOption } from '../../lib/listbox'
 
 /** An option, optionally belonging to a named group. */
 export interface ComboboxOption<T extends string = string> extends ListboxOption<T> {
-  /** Groups options under an accessible label. Ungrouped options render before every group. */
+  /**
+   * Groups options under an accessible label. Options render in FIRST-ENCOUNTER order: a group
+   * appears where its first member appears, and ungrouped options keep their place in the array
+   * rather than being hoisted above every group. This docstring used to claim the hoisting, which
+   * the code has never done (D0122) - the array order is what ships, because it is what the
+   * consumer wrote and the only order that lets them interleave.
+   */
   group?: string
 }
 
@@ -100,9 +107,16 @@ export function Combobox<T extends string = string> ({
     // `check-dev-warnings.mjs` proves that by bundling this caller and requiring the message gone.
     if (process.env.NODE_ENV === 'production') return
     if (ceilingRef.current) return
-    ceilingRef.current = true
+    const past = !async && options.length > COMBOBOX_LOCAL_OPTION_CEILING
+    // The latch records that the warning FIRED, never that this effect merely ran. Setting it
+    // unconditionally here made the `options.length` dependency dead: a list that grew past the
+    // ceiling after mount warned zero times, measured at 3 options growing to 700, which is the
+    // most realistic instance of the mistake AC3 exists to catch. `devWarning` also dedupes
+    // globally on the message, so this ref is only a cheap early-out, never the thing that makes
+    // the warning single-shot.
+    if (past) ceilingRef.current = true
     devWarning(
-      !async && options.length > COMBOBOX_LOCAL_OPTION_CEILING,
+      past,
       `A Combobox was given ${options.length} options with no \`onQueryChange\`, past the ` +
       `${COMBOBOX_LOCAL_OPTION_CEILING} the client-side path is documented for. Every keystroke ` +
       'filters the whole array and renders every match, and there is no virtualization - that is ' +
@@ -125,6 +139,7 @@ export function Combobox<T extends string = string> ({
     onClose: () => setOpen(false),
     onSelect: select,
     isSelected: (option) => option.value === current,
+    triggerKind: 'textbox',
     // OFF. Printable keys are the query here; see the docblock.
     typeahead: false,
   })
@@ -206,10 +221,15 @@ export function Combobox<T extends string = string> ({
                   className={cx(
                     'clara-combobox__option',
                     index === listbox.activeIndex && 'clara-combobox__option--active',
+                    option.value === selected?.value && 'clara-combobox__option--selected',
                     option.disabled && 'clara-combobox__option--disabled',
                   )}
                 >
                   {option.label}
+                  {/* The CHOICE, given a visible carrier by D0124 - see Select for the reasoning.
+                      `aria-hidden` because `aria-selected` on this same element already says it. */}
+                  {option.value === selected?.value
+                    && <CheckIcon className="clara-combobox__check" aria-hidden="true" />}
                 </li>
               ))
               if (group.label === '') return body

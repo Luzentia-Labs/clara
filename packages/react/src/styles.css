@@ -1156,14 +1156,35 @@
   list-style: none;
 }
 .clara-select__option {
+  display: flex;
+  align-items: center;
+  gap: var(--clara-select-option-padding-inline);
   padding-block: var(--clara-select-option-padding-block);
   padding-inline: var(--clara-select-option-padding-inline);
   border-radius: var(--clara-select-option-radius);
   cursor: pointer;
 }
 /* The ACTIVE option is the activedescendant cursor, which is a different fact from the selected
-   CHOICE - a screen reader announces both, so the two must not share one visual treatment. */
-.clara-select__option--active { background: var(--clara-select-option-bg-active); }
+   CHOICE - a screen reader announces both, so the two must not share one visual treatment (D0124).
+   The tint is NOT sufficient on its own and never was: measured against the panel it is 1.14:1 in
+   light and 2.28:1 in dark, below the 3:1 PRD Section 7 sets for a non-text state indicator, and
+   colour alone is refused by D0100 and D0104 whatever the ratio. The inset bar is the carrier that
+   clears both. It is INSET rather than an outline because D0054 makes the focus indicator an
+   outline plus an offset ring, and a keyboard cursor must not render as a focus ring; it is a
+   box-shadow rather than a border-inline-start so the option's text does not shift as the cursor
+   moves down the list. */
+.clara-select__option--active {
+  background: var(--clara-select-option-bg-active);
+  box-shadow: inset var(--clara-select-option-cursor-width) 0 0 0 var(--clara-select-option-cursor);
+}
+/* The selected CHOICE. Before D0124 this had no rule at all, so `aria-selected` was announced to a
+   screen reader while a sighted user saw nothing - the colour-alone defect in its purest form, with
+   zero channels rather than one. The glyph is a second CHANNEL, not a second colour. */
+.clara-select__check {
+  margin-inline-start: auto;
+  color: var(--clara-select-option-check-fg);
+  flex-shrink: 0;
+}
 .clara-select__option--disabled { color: var(--clara-select-option-fg-disabled); cursor: not-allowed; }
 
 /*
@@ -1227,14 +1248,28 @@
   list-style: none;
 }
 .clara-combobox__option {
+  display: flex;
+  align-items: center;
+  gap: var(--clara-combobox-option-padding-inline);
   padding-block: var(--clara-combobox-option-padding-block);
   padding-inline: var(--clara-combobox-option-padding-inline);
   border-radius: var(--clara-combobox-option-radius);
   cursor: pointer;
 }
 /* The ACTIVE option is the activedescendant cursor. The selected CHOICE is aria-selected, and they
-   are different facts a screen reader announces separately. */
-.clara-combobox__option--active { background: var(--clara-combobox-option-bg-active); }
+   are different facts a screen reader announces separately - so each needs its own visible carrier
+   and they must not share one (D0124). See the Select rules above for why the cursor's carrier is
+   an INSET bar: the tint measures 1.14:1 light and 2.28:1 dark against the panel, and an outline
+   would collide with D0054's focus indicator. */
+.clara-combobox__option--active {
+  background: var(--clara-combobox-option-bg-active);
+  box-shadow: inset var(--clara-combobox-option-cursor-width) 0 0 0 var(--clara-combobox-option-cursor);
+}
+.clara-combobox__check {
+  margin-inline-start: auto;
+  color: var(--clara-combobox-option-check-fg);
+  flex-shrink: 0;
+}
 .clara-combobox__option--disabled { color: var(--clara-combobox-option-fg-disabled); cursor: not-allowed; }
 .clara-combobox__group-label {
   padding-block: var(--clara-combobox-option-padding-block);

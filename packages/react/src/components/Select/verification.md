@@ -25,6 +25,15 @@ shared layer token.
 | Tab | COMMITS the highlight and lets focus move on. Deliberately not prevented - swallowing Tab strands a keyboard user inside a control they are trying to leave |
 | A printable character | Typeahead. Repeating one character cycles through the options starting with it, rather than searching for the repeated string |
 
+**Two APG deviations remain, recorded rather than implied** (D0108 sets the precedent that a
+deviation is recorded in this table). Neither Home nor a printable character OPENS a closed Select,
+where the APG's listbox pattern says both should. Both were found by measurement, not by reading.
+
+A third deviation was found in the same round and FIXED rather than recorded (D0123): Space while
+the list was OPEN fell through to the typeahead branch, which prevented the key and then searched
+for a label beginning with a space - silently inert on a key this component itself teaches as one of
+the keys that opens the list. It now selects and closes, as the APG requires.
+
 **Focus never moves off the trigger.** That is what `aria-activedescendant` means, and it is why
 `onOpenAutoFocus` is prevented. Let Radix move focus into the panel and the announced highlight and
 the real focus disagree, which is worse than having no highlight at all.

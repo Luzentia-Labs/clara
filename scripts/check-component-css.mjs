@@ -397,6 +397,28 @@ const SHAPE_CONTRACT = [
   ['.clara-tooltip', ['box-sizing', 'background', 'color', 'border-radius']],
   ['.clara-toast', ['box-sizing', 'background', 'color', 'border-radius']],
   ['.clara-dropdown-menu', ['box-sizing', 'background', 'color', 'border-radius', 'max-block-size', 'overflow-y']],
+  /*
+   * Select and Combobox, enrolled late and for the reason this whole block exists. Both shipped
+   * AFTER the list above was written and neither was added to it, so the list silently exempted
+   * what it forgot - the same enumeration-staleness class as `check:keyboard`'s hand-typed file
+   * list (BG-01M10BWX). A review seat proved the gap by deleting `color` from the Select panel:
+   * nine guards and all 26 tests stayed green, while the comment directly above that declaration
+   * describes precisely the dark-on-dark failure it prevents.
+   */
+  ['.clara-select__listbox-panel', ['box-sizing', 'background', 'color', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
+  ['.clara-combobox__panel', ['box-sizing', 'background', 'color', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
+  /*
+   * The activedescendant CURSOR needs a SECOND CHANNEL, not just a background (D0124). The tint
+   * alone measures 1.14:1 light and 2.28:1 dark against the panel, and jsdom resolves no `var()`
+   * and computes no layout, so no test in this repository can see the bar appear or disappear.
+   * These two entries are the only thing standing between the colour-alone defect and a green run.
+   */
+  ['.clara-select__option--active', ['background', 'box-shadow']],
+  ['.clara-combobox__option--active', ['background', 'box-shadow']],
+  // The CHOICE's glyph. Deleting its colour makes it inherit the option's, which erases the
+  // distinction between cursor and choice that the option state model exists to draw.
+  ['.clara-select__check', ['color']],
+  ['.clara-combobox__check', ['color']],
   ['.clara-modal__body', ['overflow-y']],
   // A flex column shrinks its children by default, so a fixed-height child is squashed rather than
   // scrolled. The rule that stops it is on the CHILDREN, and nothing else can see its absence.

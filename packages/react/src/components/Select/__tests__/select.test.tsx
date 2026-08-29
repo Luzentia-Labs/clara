@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import type * as React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
@@ -310,5 +312,106 @@ describe('Select theme and density matrix', () => {
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
     await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
+  })
+})
+
+// Added by the D0121-D0124 repair round. Every case here pins a mechanism a review seat proved
+// could be deleted with the whole suite still green - which in this project means it was unbuilt,
+// however correct it looked.
+describe('Select option state model and keyboard gaps', () => {
+  it('marks the SELECTED choice with a visible carrier, not only aria-selected', async () => {
+    // Deleting the `--selected` class or the check glyph must redden this. Before D0124 there was
+    // no rule and no glyph at all, so a sighted user could not tell their own choice from any
+    // other option while a screen reader was told plainly.
+    await renderOpen({ defaultValue: 'eur' })
+    const chosen = screen.getByRole('option', { name: /Euro/ })
+    expect(chosen).toHaveAttribute('aria-selected', 'true')
+    expect(chosen.className, 'the CHOICE carries its own class, distinct from the cursor')
+      .toContain('clara-select__option--selected')
+    expect(chosen.querySelector('.clara-select__check'), 'and a visible glyph').toBeTruthy()
+
+    const other = screen.getByRole('option', { name: /Pound sterling/ })
+    expect(other.className).not.toContain('clara-select__option--selected')
+    expect(other.querySelector('.clara-select__check')).toBeNull()
+  })
+
+  it('separates the CURSOR from the CHOICE - they are different facts', async () => {
+    // The engine's own comment insists on this and nothing asserted it. Open on the selected
+    // option, then arrow away: the choice must stay marked where it is.
+    await renderOpen({ defaultValue: 'eur' })
+    await userEvent.keyboard('{ArrowDown}')
+    const chosen = screen.getByRole('option', { name: /Euro/ })
+    const cursor = screen.getByRole('option', { name: /Swedish krona/ })
+    expect(chosen.className).toContain('clara-select__option--selected')
+    expect(chosen.className).not.toContain('clara-select__option--active')
+    expect(cursor.className).toContain('clara-select__option--active')
+    expect(cursor.className).not.toContain('clara-select__option--selected')
+  })
+
+  it('commits on Space while OPEN and closes, per the APG (D0123)', async () => {
+    // Space used to fall through to the typeahead default, which prevented the key and then
+    // searched for a label beginning with a space - silently inert on a key Select itself teaches,
+    // because Space is one of the keys that OPENS the list.
+    const onValueChange = vi.fn()
+    await renderOpen({ onValueChange })
+    await userEvent.keyboard('{ArrowDown}')
+    await userEvent.keyboard(' ')
+    expect(onValueChange, 'Space selects').toHaveBeenCalledWith('eur')
+    await waitFor(() => expect(screen.queryByRole('listbox'), 'and closes').toBeNull())
+  })
+
+  it('cycles typeahead on a repeated character rather than searching for the repeat', async () => {
+    // `const cycling = ...` in the engine deletes clean against the whole suite (measured), while
+    // the behaviour is stated in the keyboard table. Pressing "s" twice must reach the SECOND
+    // option starting with s, not search for "ss" and find nothing.
+    // Needs two enabled options sharing a first letter, or there is nothing to cycle THROUGH.
+    const trigger = await renderOpen({ options: [
+      { value: 'eur', label: 'Euro' },
+      { value: 'egp', label: 'Egyptian pound' },
+      { value: 'gbp', label: 'Pound sterling' },
+    ] })
+    await userEvent.keyboard('e')
+    const first = trigger.getAttribute('aria-activedescendant')
+    await userEvent.keyboard('e')
+    const second = trigger.getAttribute('aria-activedescendant')
+    expect(first).toBeTruthy()
+    // Without the cycling branch the buffer grows to "ee", nothing starts with it, and the
+    // highlight never moves - so this is the assertion that kills that mutant.
+    expect(second, 'a repeated key moves to the NEXT match rather than searching for "ee"')
+      .not.toBe(first)
+    expect(document.getElementById(first!)?.textContent).toMatch(/Euro|Egyptian pound/)
+    expect(document.getElementById(second!)?.textContent).toMatch(/Euro|Egyptian pound/)
+  })
+
+  it('leaves a modified printable key to the browser', async () => {
+    // Dropping the metaKey/ctrlKey/altKey exclusion deletes clean, and then the preventDefault on
+    // the typeahead branch swallows Ctrl+F and Cmd+A - a browser shortcut a user expects to work.
+    const trigger = await renderOpen()
+    const before = trigger.getAttribute('aria-activedescendant')
+    await userEvent.keyboard('{Control>}s{/Control}')
+    expect(trigger.getAttribute('aria-activedescendant'),
+      'a modified key is not typeahead and must not move the highlight').toBe(before)
+  })
+})
+
+// jsdom applies no stylesheet, resolves no `var()` and computes no layout, so the only way a test
+// can see the cursor's SECOND CHANNEL is to read the asset. Without this the criterion's Touches
+// names a file its own verifier never loads, which check-story-verifiers refuses - correctly.
+describe('Select stylesheets select on the option state model', () => {
+  const css = readFileSync(resolve(__dirname, '../../../styles.css'), 'utf8')
+  const block = (selector: string) => {
+    const at = css.indexOf(selector + ' {')
+    expect(at, `${selector} has no rule`).toBeGreaterThan(-1)
+    return css.slice(at, css.indexOf('}', at))
+  }
+
+  it('gives the CURSOR a non-colour carrier beside its tint', () => {
+    const rule = block('.clara-select__option--active')
+    expect(rule, 'the tint alone is 1.14:1 light and 2.28:1 dark').toContain('background:')
+    expect(rule, 'and the inset bar is what clears 3:1').toContain('box-shadow: inset')
+  })
+
+  it('gives the CHOICE glyph its own colour, so it cannot collapse into the option text', () => {
+    expect(block('.clara-select__check')).toContain('color:')
   })
 })

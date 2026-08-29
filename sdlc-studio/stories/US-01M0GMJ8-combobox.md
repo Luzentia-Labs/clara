@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK91
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** packages/react/src/components/Combobox/**, packages/react/src/components/Combobox/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/Combobox/**, packages/react/src/components/Combobox/verification.md, packages/react/src/lib/listbox.ts, packages/react/src/styles.css, packages/tokens/src/component/combobox.json, scripts/check-component-css.mjs
 > **Points:** 8
 
 ## User Story
@@ -23,8 +23,13 @@
 - **Given** an open Combobox
 - **When** I type to filter
 - **Then** the WAI-ARIA combobox pattern holds, including aria-activedescendant tracking the highlighted option
-- **Verify:** vitest "Combobox WAI-ARIA pattern"
-- **Verified:** yes (2026-08-27)
+- **And** a printable key reaches the INPUT rather than being prevented. The engine treated Space
+  as an OPEN key for every trigger, on a comment claiming it was "harmless for an input, where it is
+  a printable character the input handles before this ever sees it" - false, because keydown
+  precedes insertion. Measured before the fix, typing " Ac" produced "Ac". The engine now takes a
+  required `triggerKind`, so the trigger says what it is instead of the engine assuming
+- **Verify:** vitest "Combobox WAI-ARIA pattern|leading Space|Space as typing"
+- **Verified:** yes (2026-08-29)
 - **Verification target:** functional
 
 ### AC2: Async states
@@ -41,8 +46,12 @@
 - **Given** a Combobox given more local options than the documented ceiling
 - **When** it renders
 - **Then** a development warning directs the consumer to async loading; client-side virtualization is v1.1 (D0019)
-- **Verify:** vitest "Combobox warns above local option ceiling"
-- **Verified:** yes (2026-08-27)
+- **And** it fires when the list GROWS past the ceiling after mount, not only when it mounts past
+  it. The latch was set before its own condition was evaluated, so the `options.length` dependency
+  was dead and a list growing from 3 to 700 warned zero times - the most realistic shape of the
+  mistake this criterion exists to catch
+- **Verify:** vitest "Combobox warns above local option ceiling|GROWS past the ceiling"
+- **Verified:** yes (2026-08-29)
 - **Verification target:** functional
 
 ### AC4: Option groups
@@ -73,8 +82,8 @@
 - **Given** the Combobox stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell node scripts/check-component-css.mjs
-- **Verified:** yes (2026-08-27)
+- **Verify:** shell node scripts/check-component-css.mjs --component Combobox
+- **Verified:** yes (2026-08-29)
 - **Verification target:** functional
 
 ### AC7: Both themes and densities
@@ -105,6 +114,29 @@
 - **Verify:** shell node scripts/check-verification.mjs --component Combobox
 - **Verified:** yes (2026-08-27)
 - **Verification target:** functional
+
+### AC9: The option state model carries both facts, and the group label is readable
+
+- **Given** an open Combobox
+- **When** the activedescendant cursor and the selected choice are both on screen
+- **Then** each has its own visible carrier and they are never the same treatment: the cursor is a
+  tint PLUS an inset leading bar, the choice is a check glyph (D0124)
+- **And** the cursor's carrier clears the 3:1 PRD Section 7 sets for a non-text state indicator. The
+  tint alone measured 1.14:1 light and 2.28:1 dark against the panel, and `check:contrast` could not
+  see it because the only `bg.row-hover` pairing in the table was `fg.default` ON it, as TEXT - a
+  state indicator is non-text, so the pair that needed measuring never existed
+- **And** the group label renders at the 14px body floor, not 12px. It is the accessible name of the
+  group and the sole carrier of its identity, so D0104's Q1 answers yes and there is no second
+  question (D0121). It reached 12px through a tier 3 alias to `font.caption`, which made it
+  invisible to the `--clara-font-caption` census D0104 was decided from
+- **Verify:** vitest "visible carrier|stylesheets select on the option state model|group label sits at the body floor"
+- **Verified:** yes (2026-08-29)
+- **Verification target:** functional
+
+> The RENDERED result is not verified and is not claimed to be: jsdom computes no layout and
+> resolves no `var()`. What is checked is that the second channel is DECLARED
+> (`check-component-css`, which reddens on its deletion while all 53 tests stay green) and that the
+> token pair MEASURES (`check:contrast`). Appearance stays a stated gap until gate 7 (US-01M0WSME).
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
 
@@ -144,6 +176,7 @@ verifier must fail on, and the verdict beside it is what happened.
 | AC6 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-combobox__panel`. KILLED, `check-component-css` exits 1. No test imports a CSS file, so the verifier must be a guard that READS the stylesheet. | Token-only styling |
 | AC7 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`. KILLED, 4 of 4. Mutating the PROVIDER proves the assertion walks up from inside the portalled panel rather than reading the render container. | Both themes and densities |
 | AC8 | packages/react/src/components/Combobox/verification.md | Rename `## Keyboard` to `## Keys`. KILLED - `missing section "## Keyboard"`, exit 1. | Definition of done |
+| AC9 | packages/react/src/styles.css, packages/react/src/components/Combobox/Combobox.tsx, packages/tokens/src/component/combobox.json | THREE mutants, all KILLED, and the first two by the GUARD while every test stayed green - which is the point. (a) Delete the `box-shadow` from `.clara-combobox__option--active`, returning the cursor to colour alone: `check-component-css` exits 1, vitest reports 53 passed. (b) Delete `color` from `.clara-combobox__check`, so the glyph inherits the option's colour and stops distinguishing choice from cursor: guard exits 1. (c) Remove the `--selected` class and the glyph from the option, so the CHOICE has no carrier at all: the vitest case reddens. jsdom resolves no `var()`, so a vitest-only verifier over the first two is green by construction. | The option state model carries both facts, and the group label is readable |
 
 **Two mutants are deliberately absent.** Nothing here proves the panel stays ANCHORED while a real
 container scrolls, or that it is unclipped in a rendered sense - jsdom does no layout and no

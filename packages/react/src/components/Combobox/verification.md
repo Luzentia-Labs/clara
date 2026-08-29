@@ -23,7 +23,8 @@ shared layer token.
 | Enter | Selects the highlighted option and closes |
 | Escape | Closes WITHOUT selecting. A highlight is not a choice |
 | Tab | COMMITS the highlight and lets focus move on |
-| Any printable character | Goes to the INPUT as the query. **Typeahead is off here**, unlike Select: the same keystrokes cannot both filter the list and jump the highlight somewhere else |
+| Any printable character, INCLUDING Space | Goes to the INPUT as the query. **Typeahead is off here**, unlike Select: the same keystrokes cannot both filter the list and jump the highlight somewhere else |
+| Space | Types a space. It is NOT an opening key here, because on a textbox trigger Space is a query character. The engine takes a required `triggerKind` so the trigger states what it is rather than the engine assuming - it previously prevented Space for every trigger, on a comment claiming that was harmless for an input, and typing " Ac" produced "Ac" |
 
 Focus and the text caret never leave the input. That is what `aria-activedescendant` is for, and it
 is why `onOpenAutoFocus` is prevented.

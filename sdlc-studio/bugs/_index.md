@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 17 |
+| inbox | 18 |
 | Superseded | 1 |
-| **Total** | **34** |
+| **Total** | **35** |
 
 ## By Severity
 
@@ -59,6 +59,7 @@
 | [BG-01M159MP](BG-01M159MP-radix-leaks-data-radix-popper-side-and-data.md) | Radix leaks data-radix-popper-side and data-radix-popper-align onto Clara's public trigger, and the no-leak rule enumerates only three attributes | Medium | Medium | inbox | -- | -- | 2026-08-29 |
 | [BG-01M159D6](BG-01M159D6-no-forced-colors-or-prefers-contrast-support-exists.md) | No forced-colors or prefers-contrast support exists anywhere in the stylesheet, and never has | Medium | Medium | inbox | -- | -- | 2026-08-29 |
 | [BG-01M159WJ](BG-01M159WJ-a-parent-re-render-with-fresh-array-identity.md) | A parent re-render with fresh array identity silently resets the listbox highlight to the first option | High | Medium | inbox | -- | -- | 2026-08-29 |
+| [BG-01M15FKZ](BG-01M15FKZ-generate-semantic-mjs-rewrites-src-pairings-json-wholesale.md) | generate-semantic.mjs rewrites src/pairings.json wholesale and silently destroys the five hand-added tier 3 panel pairings | High | Medium | inbox | -- | -- | 2026-08-29 |
 
 ## Notes
 

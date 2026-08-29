@@ -95,6 +95,11 @@ export function pairings () {
 
   for (const bg of ['bg.canvas', 'bg.surface']) nonText('border.default', bg, 'table rules, card edges, input boundaries')
   for (const bg of ['bg.canvas', 'bg.surface']) nonText('border.strong', bg)
+  // The listbox activedescendant CURSOR bar, shared by Select and Combobox (D0124). It is declared
+  // because it was NOT: the cursor was a background tint alone, and the only row-hover pairing in
+  // this list is `fg.default` ON it, as TEXT - so the state INDICATOR against the surface it sits
+  // on was never a pairing at all, and the gate could report PASS over an indicator at 1.14:1.
+  nonText('bg.accent-emphasis', 'bg.surface', 'the listbox cursor bar (D0124)')
   // The two-part focus indicator, resolved (D0054). PRD Section 7 lists `border-focus` against
   // every emphasis surface and says in the same breath that a single ring colour CANNOT do this -
   // which is why it specifies a two-part indicator and leaves the resolution to F00. Measured, the

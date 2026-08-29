@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { useState } from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
@@ -58,7 +60,13 @@ describe('Combobox WAI-ARIA pattern', () => {
     inField(<Combobox options={OPTIONS} />)
     const input = await openIt()
     await userEvent.keyboard('{End}')
-    await userEvent.type(input, 'kro')
+    // `skipClick` is LOAD-BEARING, not tidiness. userEvent.type() clicks the input first, and that
+    // click is an outside pointerdown for Radix's DismissableLayer while the input's own onClick
+    // reopens - so the list goes open -> closed -> open and the seeding effect re-seats the
+    // highlight through its `open` dependency. That masked the mechanism this criterion is about:
+    // with the click, removing `options` from the seeding effect's deps left this test green
+    // (measured). Without it, the mutant is killed and clean code still passes.
+    await userEvent.type(input, 'kro', { skipClick: true })
     await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(1))
     const active = input.getAttribute('aria-activedescendant')
     expect(document.getElementById(active!), 'the highlight survived into a shorter list').toBeTruthy()
@@ -212,5 +220,117 @@ describe('Combobox theme and density matrix', () => {
     expect(scope).toHaveAttribute('data-clara-theme', theme)
     expect(scope).toHaveAttribute('data-clara-density', density)
     await expect(runAxe(document.body)).resolves.toHaveNoBlockingViolations()
+  })
+})
+
+// Added by the D0121-D0124 repair round.
+describe('Combobox option state model and the Space key', () => {
+  it('lets a leading Space reach the input as a query character', async () => {
+    // The engine prevented Space for EVERY trigger, on a comment claiming it was "harmless for an
+    // input, where it is a printable character the input handles before this ever sees it". That
+    // is false: keydown precedes insertion. Measured before the fix, typing " Ac" produced "Ac".
+    inField(<Combobox options={[{ value: 'a', label: ' Actual leading space' }]} />)
+    const input = screen.getByRole('combobox') as HTMLInputElement
+    input.focus()
+    await userEvent.type(input, ' Ac', { skipClick: true })
+    expect(input.value, 'the space the user typed is still there').toBe(' Ac')
+  })
+
+  it('treats Space as typing rather than as the OPEN key', async () => {
+    // The discriminator is the input's VALUE, not whether the list opened. Typing opens a combobox
+    // and should; what the old code did was preventDefault the key so nothing was typed at all,
+    // and then open - an empty query with an open list, which looks deceptively correct.
+    inField(<Combobox options={OPTIONS} />)
+    const input = screen.getByRole('combobox') as HTMLInputElement
+    input.focus()
+    await userEvent.keyboard(' ')
+    expect(input.value, 'the keystroke reached the input').toBe(' ')
+  })
+
+  it('marks the SELECTED choice with a visible carrier, not only aria-selected', async () => {
+    inField(<Combobox options={OPTIONS} defaultValue="eur" />)
+    const input = await openIt()
+    expect(input).toBeTruthy()
+    const chosen = screen.getByRole('option', { name: /Euro/ })
+    expect(chosen).toHaveAttribute('aria-selected', 'true')
+    expect(chosen.className).toContain('clara-combobox__option--selected')
+    expect(chosen.querySelector('.clara-combobox__check')).toBeTruthy()
+    const other = screen.getByRole('option', { name: /Pound sterling/ })
+    expect(other.className).not.toContain('clara-combobox__option--selected')
+    expect(other.querySelector('.clara-combobox__check')).toBeNull()
+  })
+
+  it('warns when the list GROWS past the ceiling after mount (AC3)', async () => {
+    // The latch was set before its own condition was evaluated, so the `options.length` dependency
+    // was dead and a list that grew past the ceiling warned zero times - measured at 3 growing to
+    // 700, which is the realistic shape of the mistake this criterion exists to catch.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const small: ComboboxOption[] = [{ value: 'a', label: 'A' }]
+    const big: ComboboxOption[] = Array.from(
+      { length: COMBOBOX_LOCAL_OPTION_CEILING + 1 },
+      (_, i) => ({ value: `v${i}`, label: `Option ${i}` }),
+    )
+    const Grower = () => {
+      const [options, setOptions] = useState(small)
+      return (
+        <>
+          <button type="button" onClick={() => setOptions(big)}>grow</button>
+          <Combobox options={options} />
+        </>
+      )
+    }
+    inField(<Grower />)
+    expect(warn, 'a small list is silent').not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'grow' }))
+    await waitFor(() => expect(warn, 'growing past the ceiling warns').toHaveBeenCalled())
+    warn.mockRestore()
+  })
+})
+
+// Same reason as Select: jsdom cannot see a stylesheet, so the asset is read directly.
+describe('Combobox stylesheets select on the option state model', () => {
+  const css = readFileSync(resolve(__dirname, '../../../styles.css'), 'utf8')
+  const block = (selector: string) => {
+    const at = css.indexOf(selector + ' {')
+    expect(at, `${selector} has no rule`).toBeGreaterThan(-1)
+    return css.slice(at, css.indexOf('}', at))
+  }
+
+  it('gives the CURSOR a non-colour carrier beside its tint', () => {
+    const rule = block('.clara-combobox__option--active')
+    expect(rule).toContain('background:')
+    expect(rule).toContain('box-shadow: inset')
+  })
+
+  it('gives the CHOICE glyph its own colour', () => {
+    expect(block('.clara-combobox__check')).toContain('color:')
+  })
+})
+
+// D0121: the group label is the accessible name of the group and the sole carrier of its identity,
+// so D0104's Q1 answers yes and it sits at the 14px body floor. It reached 12px through a tier 3
+// alias to `font.caption`, which is why the `--clara-font-caption` census D0104 was decided from
+// could not see it - a grep for the tier 2 name finds nothing when the reference is an alias.
+// Read from the BUILT token stylesheet, because no test imports a token source.
+describe('Combobox group label sits at the body floor', () => {
+  // BOTH the source and the build, deliberately. Reading only the built stylesheet lets a stale
+  // build certify a source that has changed underneath it, which is a sharp edge this repository
+  // has already been cut by; reading only the source proves nothing about what ships.
+  const src = JSON.parse(readFileSync(
+    resolve(__dirname, '../../../../../tokens/src/component/combobox.json'), 'utf8'))
+  const built = readFileSync(
+    resolve(__dirname, '../../../../../tokens/dist/tokens.css'), 'utf8')
+
+  it('declares group-label-size against the body size in the token SOURCE', () => {
+    expect(src.combobox['group-label-size'].value, 'D0121: Q1 answers yes, so 14px')
+      .toBe('{font.body}')
+    expect(src.combobox['group-label-size'].value).not.toBe('{font.caption}')
+  })
+
+  it('and emits it that way in the BUILD, so a stale build cannot certify the source', () => {
+    const decl = built.match(/--clara-combobox-group-label-size:\s*([^;]+);/)?.[1]?.trim()
+    expect(decl, 'the token is emitted at all').toBeTruthy()
+    expect(decl).toBe('var(--clara-font-body)')
+    expect(decl).not.toContain('font-caption')
   })
 })

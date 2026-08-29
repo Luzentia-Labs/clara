@@ -20,6 +20,9 @@
     "option-radius": { "value": "{radius.control}", "type": "dimension" },
     "option-bg-active": { "value": "{color.bg.row-hover}", "type": "color" },
     "option-fg-disabled": { "value": "{color.fg.muted}", "type": "color" },
+    "option-cursor": { "value": "{color.bg.accent-emphasis}", "type": "color" },
+    "option-cursor-width": { "value": "{size.bar-thickness}", "type": "dimension" },
+    "option-check-fg": { "value": "{color.fg.accent}", "type": "color" },
     "min-inline-size": {
       "value": "12rem",
       "type": "dimension",

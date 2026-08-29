@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import * as RadixPopover from '@radix-ui/react-popover'
-import { ChevronDownIcon } from '@luzentialabs/clara-icons'
+import { CheckIcon, ChevronDownIcon } from '@luzentialabs/clara-icons'
 import { cx } from '../../lib/cx'
 import { ClaraPortal } from '../../theme/ClaraPortal'
 import { fieldAriaProps, fieldDisabled, useFieldWiring } from '../../lib/field-context'
@@ -75,6 +75,7 @@ export function Select<T extends string = string> ({
     onClose: () => setOpen(false),
     onSelect: select,
     isSelected: (option) => option.value === current,
+    triggerKind: 'button',
     // A select-only combobox has no text entry, so printable keys are free to mean typeahead.
     typeahead: true,
   })
@@ -128,10 +129,17 @@ export function Select<T extends string = string> ({
                 className={cx(
                   'clara-select__option',
                   index === listbox.activeIndex && 'clara-select__option--active',
+                  option.value === current && 'clara-select__option--selected',
                   option.disabled && 'clara-select__option--disabled',
                 )}
               >
                 {option.label}
+                {/* The CHOICE, given a visible carrier by D0124. `aria-selected` on the same element
+                    announces it; before this the announcement was the only channel, so a sighted
+                    user could not tell their own selection from any other option. `aria-hidden`
+                    because the glyph duplicates what `aria-selected` already says. */}
+                {option.value === current
+                  && <CheckIcon className="clara-select__check" aria-hidden="true" />}
               </li>
             ))}
           </ul>
