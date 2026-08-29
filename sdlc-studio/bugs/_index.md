@@ -1,6 +1,6 @@
 # Bug Registry
 
-**Last Updated:** 2026-08-29
+**Last Updated:** 2026-08-30
 
 ## Summary
 
@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 18 |
+| inbox | 20 |
 | Superseded | 1 |
-| **Total** | **35** |
+| **Total** | **37** |
 
 ## By Severity
 
@@ -60,6 +60,8 @@
 | [BG-01M159D6](BG-01M159D6-no-forced-colors-or-prefers-contrast-support-exists.md) | No forced-colors or prefers-contrast support exists anywhere in the stylesheet, and never has | Medium | Medium | inbox | -- | -- | 2026-08-29 |
 | [BG-01M159WJ](BG-01M159WJ-a-parent-re-render-with-fresh-array-identity.md) | A parent re-render with fresh array identity silently resets the listbox highlight to the first option | High | Medium | inbox | -- | -- | 2026-08-29 |
 | [BG-01M15FKZ](BG-01M15FKZ-generate-semantic-mjs-rewrites-src-pairings-json-wholesale.md) | generate-semantic.mjs rewrites src/pairings.json wholesale and silently destroys the five hand-added tier 3 panel pairings | High | Medium | inbox | -- | -- | 2026-08-29 |
+| [BG-01M17P6M](BG-01M17P6M-arrowdown-can-move-the-listbox-highlight-up-the.md) | ArrowDown can move the listbox highlight UP the screen, because rendering buckets by group while the engine numbers by array index | High | Medium | inbox | -- | -- | 2026-08-30 |
+| [BG-01M17PCH](BG-01M17PCH-select-and-combobox-convey-disabled-by-text-colour.md) | Select and Combobox convey disabled by text colour alone, with no disabled surface, unlike every sibling control | Medium | Medium | inbox | -- | -- | 2026-08-30 |
 
 ## Notes
 

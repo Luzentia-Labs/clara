@@ -488,3 +488,16 @@ describe('Select APG deviations are recorded and pinned', () => {
     expect(screen.queryByRole('listbox')).not.toBeNull()
   })
 })
+
+// PageUp / PageDown, found by a seat that fetched the APG source three times rather than working
+// from memory. They fall to the typeahead default where `key.length === 1` is false, so nothing
+// happens. Added because the deviation table listed four and these are the fifth and sixth.
+describe('Select PageUp and PageDown are deviations too', () => {
+  it.each([['PageUp', '{PageUp}'], ['PageDown', '{PageDown}']])(
+    'DEVIATION: %s does not move the highlight', async (_n, key) => {
+      const trigger = await renderOpen()
+      const before = trigger.getAttribute('aria-activedescendant')
+      await userEvent.keyboard(key)
+      expect(trigger.getAttribute('aria-activedescendant')).toBe(before)
+    })
+})

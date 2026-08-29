@@ -19,7 +19,7 @@ shared layer token.
 | --- | --- |
 | ArrowDown / ArrowUp / Enter (closed) | Opens the list |
 | ArrowDown / ArrowUp (open) | Moves the highlight, SKIPPING disabled options, without wrapping |
-| Home / End | Jumps to the first / last ENABLED option |
+| Home / End (OPEN) | Jumps to the first / last ENABLED option. Neither OPENS a closed Combobox - measured |
 | Enter | Selects the highlighted option and closes |
 | Escape | Closes WITHOUT selecting. A highlight is not a choice |
 | Tab | COMMITS the highlight and lets focus move on |
@@ -82,6 +82,16 @@ and a dialog wrapping a listbox is not this pattern.
   automated check passes.
 - **Screen reader testing is not automated.** PRD F17 names NVDA as a stated gap; it stays one.
 - **Visual regression is not yet wired** (gate 7, US-01M0WSME).
+
+**Forced-colors: the option state model has NO carrier for the cursor, and the check glyph was
+exempt.** Measured by two review seats in Chromium. `box-shadow` is forced to `none` and the active
+row's background is forced to `Canvas`, so the activedescendant cursor has zero carriers there -
+not one, as an earlier decision claimed. The check glyph had the opposite problem: an SVG's UA
+`forced-color-adjust` is `preserve-parent-color`, so its author colour was NOT forced and it painted
+Clara's accent on the user's Canvas at 2.83:1 and 1.62:1 in two of four theme x forced-palette
+combinations. `forced-color-adjust: auto` is now declared on the glyph as the remedy; **that remedy
+is not verified in a browser here**, because this repository has no forced-colors coverage - the
+mechanism is measured, the fix is not. Repo-wide forced-colors support is BG-01M159D6.
 
 ## Recorded manual keyboard pass
 

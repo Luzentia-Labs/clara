@@ -519,7 +519,7 @@
       "foreground": "select.option-cursor",
       "background": "select.listbox-bg",
       "minRatio": 3,
-      "why": "The listbox cursor bar against the TINT it is actually drawn on. An inset box-shadow paints over the element's OWN background, so `option-bg-active` is the adjacency the bar abuts along its full height - and the first fix pinned it against the PANEL instead, which is the more permissive of the two. Measured: repointing option-cursor to {color.border.default} sat at 2.72:1 light and 2.36:1 dark against the tint with every gate green. Two seats found it independently. Both adjacencies are declared now rather than whichever one looked right."
+      "why": "The listbox cursor bar and check glyph against the PANEL. Kept alongside the TINT rows because an option can be inactive, where the panel IS the backdrop. Defensive rather than load-bearing - a seat measured the tint as the binding adjacency in both themes - and this row's rationale was briefly overwritten with the tint row's text, which described a different pair."
     },
     {
       "foreground": "select.option-check-fg",
@@ -531,7 +531,7 @@
       "foreground": "select.option-check-fg",
       "background": "select.listbox-bg",
       "minRatio": 3,
-      "why": "The check glyph, which is the SOLE visible carrier of the selected choice since the `--selected` class was removed for carrying no CSS rule. That removal is what made this token load-bearing, and it was enrolled in no contrast gate at all: repointing option-check-fg to {color.bg.surface} made the check invisible - screenshot-confirmed - with check:contrast, check:component-css and 1283 tests green. Declared against BOTH the panel and the active row's tint, because the glyph sits on either depending on the row."
+      "why": "The listbox cursor bar and check glyph against the PANEL. Kept alongside the TINT rows because an option can be inactive, where the panel IS the backdrop. Defensive rather than load-bearing - a seat measured the tint as the binding adjacency in both themes - and this row's rationale was briefly overwritten with the tint row's text, which described a different pair."
     },
     {
       "foreground": "combobox.option-cursor",
@@ -543,7 +543,7 @@
       "foreground": "combobox.option-cursor",
       "background": "combobox.panel-bg",
       "minRatio": 3,
-      "why": "The listbox cursor bar against the TINT it is actually drawn on. An inset box-shadow paints over the element's OWN background, so `option-bg-active` is the adjacency the bar abuts along its full height - and the first fix pinned it against the PANEL instead, which is the more permissive of the two. Measured: repointing option-cursor to {color.border.default} sat at 2.72:1 light and 2.36:1 dark against the tint with every gate green. Two seats found it independently. Both adjacencies are declared now rather than whichever one looked right."
+      "why": "The listbox cursor bar and check glyph against the PANEL. Kept alongside the TINT rows because an option can be inactive, where the panel IS the backdrop. Defensive rather than load-bearing - a seat measured the tint as the binding adjacency in both themes - and this row's rationale was briefly overwritten with the tint row's text, which described a different pair."
     },
     {
       "foreground": "combobox.option-check-fg",
@@ -555,7 +555,19 @@
       "foreground": "combobox.option-check-fg",
       "background": "combobox.panel-bg",
       "minRatio": 3,
-      "why": "The check glyph, which is the SOLE visible carrier of the selected choice since the `--selected` class was removed for carrying no CSS rule. That removal is what made this token load-bearing, and it was enrolled in no contrast gate at all: repointing option-check-fg to {color.bg.surface} made the check invisible - screenshot-confirmed - with check:contrast, check:component-css and 1283 tests green. Declared against BOTH the panel and the active row's tint, because the glyph sits on either depending on the row."
+      "why": "The listbox cursor bar and check glyph against the PANEL. Kept alongside the TINT rows because an option can be inactive, where the panel IS the backdrop. Defensive rather than load-bearing - a seat measured the tint as the binding adjacency in both themes - and this row's rationale was briefly overwritten with the tint row's text, which described a different pair."
+    },
+    {
+      "foreground": "select.listbox-fg",
+      "background": "select.listbox-bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints, the same reason popover, drawer, tooltip, toast and dropdown-menu carry one. Select and Combobox were the only portalled surfaces without it: repointing select.listbox-fg to {color.fg.muted} left every gate green."
+    },
+    {
+      "foreground": "combobox.panel-fg",
+      "background": "combobox.panel-bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints, the same reason popover, drawer, tooltip, toast and dropdown-menu carry one. Select and Combobox were the only portalled surfaces without it: repointing select.listbox-fg to {color.fg.muted} left every gate green."
     }
   ]
 }

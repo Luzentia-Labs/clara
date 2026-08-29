@@ -426,12 +426,12 @@ const SHAPE_CONTRACT = [
   ['.clara-combobox__option--active', ['background', 'box-shadow']],
   // The CHOICE's glyph. Deleting its colour makes it inherit the option's, which erases the
   // distinction between cursor and choice that the option state model exists to draw.
-  ['.clara-select__check', ['color']],
+  ['.clara-select__check', ['color', 'forced-color-adjust']],
   // The group label's SECOND channel. Colour alone would leave a heading indistinguishable from the
   // options beneath it - identical size, indent and weight - and identical in colour too under
   // forced-colors, where both resolve to CanvasText.
   ['.clara-combobox__group-label', ['font-size', 'font-weight']],
-  ['.clara-combobox__check', ['color']],
+  ['.clara-combobox__check', ['color', 'forced-color-adjust']],
   ['.clara-modal__body', ['overflow-y']],
   // A flex column shrinks its children by default, so a fixed-height child is squashed rather than
   // scrolled. The rule that stops it is on the CHILDREN, and nothing else can see its absence.

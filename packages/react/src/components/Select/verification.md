@@ -25,23 +25,38 @@ shared layer token.
 | Tab | COMMITS the highlight and lets focus move on. Deliberately not prevented - swallowing Tab strands a keyboard user inside a control they are trying to leave |
 | A printable character | Typeahead. Repeating one character cycles through the options starting with it, rather than searching for the repeated string |
 
-**Four APG deviations remain, recorded rather than implied** (D0108 sets the precedent that a
-deviation is recorded in this table). This section said TWO until 2026-08-29, and two review seats
-found four by execution - a count nothing checked, in a record that exists to be checkable. All
-four are now pinned by tests in `packages/react/src/components/Select/__tests__/select.test.tsx`, along with the four keys that DO open, so the
-count cannot drift again in either direction.
+**At least SIX APG deviations remain, and this list is NOT proven complete.** The count has been
+wrong three times - it read three, then two, then four, and a seat found two more by fetching the
+APG source rather than working from memory. What follows is what has been MEASURED by execution
+against the shipped component. Nothing enumerates the APG's key list, so absence from this table is
+not evidence.
 
-Against the APG's select-only combobox pattern:
+| Key | APG select-only combobox | Clara | Pinned |
+| --- | --- | --- | --- |
+| Home (closed) | Opens the listbox | Does nothing | yes |
+| End (closed) | Opens the listbox | Does nothing | yes |
+| A printable character (closed) | Opens the listbox | Does nothing | yes |
+| Alt+ArrowUp (open) | Commits and closes | Moves the highlight up | yes |
+| PageUp (open) | Moves up 10 options | Does nothing | yes |
+| PageDown (open) | Moves down 10 options | Does nothing | yes |
 
-| Key | APG | Clara |
-| --- | --- | --- |
-| Home (closed) | Opens the listbox | Does nothing |
-| End (closed) | Opens the listbox | Does nothing |
-| A printable character (closed) | Opens the listbox | Does nothing |
-| Alt+ArrowUp (open) | Commits the highlight and closes | Moves the highlight up |
+Not in the table and not resolved: the APG says ArrowDown, Alt+ArrowDown, Enter and Space open the
+listbox *"without moving focus or changing selection"*, while Clara seats the highlight on open.
+Whether that is a deviation or a reasonable reading is unsettled, so it is named here rather than
+counted.
 
-The first three share one cause: the engine's closed branch in `packages/react/src/lib/listbox.ts` handles ArrowDown,
-ArrowUp, Enter and button-Space only. Alt+ArrowUp falls through to the plain ArrowUp case.
+The first three share one cause - the engine's closed branch in
+`packages/react/src/lib/listbox.ts` handles ArrowDown, ArrowUp, Enter and button-Space only.
+Alt+ArrowUp falls through to plain ArrowUp; PageUp and PageDown fall to the typeahead default,
+where `key.length === 1` is false.
+
+**What the tests pin, precisely.** All six deviations are pinned in
+`packages/react/src/components/Select/__tests__/select.test.tsx`, so removing one reddens. The four
+keys that DO open are also asserted, but two of those four cannot fail on the engine branch:
+`Enter` and `Space` reach a native `<button>`, which jsdom activates regardless, so deleting them
+from the closed branch leaves the suite green. `ArrowDown` does redden. An earlier version of this
+section claimed the count "cannot drift again in either direction" - it cannot drift downward, and
+nothing here checks the count itself.
 
 These are recorded rather than fixed because fixing them changes keyboard behaviour, which is a
 decision rather than a correction - unlike D0123's Space case, which was fixed because it was
@@ -102,6 +117,16 @@ the control keeps its tab stop and a keyboard user can reach it and learn it is 
   epic's own Risks section says the combobox pattern is intricate and easy to get subtly wrong in
   ways every automated check passes, and that a manual pass is required rather than an axe assertion.
 - **Visual regression is not yet wired** (gate 7, US-01M0WSME).
+
+**Forced-colors: the option state model has NO carrier for the cursor, and the check glyph was
+exempt.** Measured by two review seats in Chromium. `box-shadow` is forced to `none` and the active
+row's background is forced to `Canvas`, so the activedescendant cursor has zero carriers there -
+not one, as an earlier decision claimed. The check glyph had the opposite problem: an SVG's UA
+`forced-color-adjust` is `preserve-parent-color`, so its author colour was NOT forced and it painted
+Clara's accent on the user's Canvas at 2.83:1 and 1.62:1 in two of four theme x forced-palette
+combinations. `forced-color-adjust: auto` is now declared on the glyph as the remedy; **that remedy
+is not verified in a browser here**, because this repository has no forced-colors coverage - the
+mechanism is measured, the fix is not. Repo-wide forced-colors support is BG-01M159D6.
 
 ## Recorded manual keyboard pass
 

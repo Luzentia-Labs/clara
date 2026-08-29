@@ -1193,6 +1193,14 @@
 .clara-select__check {
   margin-inline-start: auto;
   color: var(--clara-select-option-check-fg);
+  /* An SVG's UA `forced-color-adjust` is `preserve-parent-color`, so an author colour set ON the
+     svg is NOT forced while an inherited one is. Two review seats measured the consequence: this
+     glyph keeps Clara's accent on the user's Canvas at 2.83:1 and 1.62:1 in two of four theme x
+     forced-palette combinations. These two rules are the only ones in this stylesheet that set a
+     colour on an SVG, and the `color` above - which the shape contract now requires - is what
+     causes it. NOT VERIFIED IN A BROWSER HERE: the mechanism is measured, this remedy is not,
+     because no forced-colors coverage exists (BG-01M159D6, gate 7). */
+  forced-color-adjust: auto;
   flex-shrink: 0;
 }
 .clara-select__option--disabled { color: var(--clara-select-option-fg-disabled); cursor: not-allowed; }
@@ -1280,6 +1288,14 @@
 .clara-combobox__check {
   margin-inline-start: auto;
   color: var(--clara-combobox-option-check-fg);
+  /* An SVG's UA `forced-color-adjust` is `preserve-parent-color`, so an author colour set ON the
+     svg is NOT forced while an inherited one is. Two review seats measured the consequence: this
+     glyph keeps Clara's accent on the user's Canvas at 2.83:1 and 1.62:1 in two of four theme x
+     forced-palette combinations. These two rules are the only ones in this stylesheet that set a
+     colour on an SVG, and the `color` above - which the shape contract now requires - is what
+     causes it. NOT VERIFIED IN A BROWSER HERE: the mechanism is measured, this remedy is not,
+     because no forced-colors coverage exists (BG-01M159D6, gate 7). */
+  forced-color-adjust: auto;
   flex-shrink: 0;
 }
 .clara-combobox__option--disabled { color: var(--clara-combobox-option-fg-disabled); cursor: not-allowed; }
