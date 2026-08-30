@@ -275,6 +275,35 @@ const collectTests = (dir) => {
     }
   }
 }
+/**
+ * A record may cite a test over a SHARED ENGINE its component sits on, and that citation is not
+ * evidence of the wrong thing - sometimes it is the only place the evidence can live.
+ *
+ * Measured case: Select's trigger is a native `<button>`, so jsdom activates it on Enter and Space
+ * regardless of the engine. Deleting `key === 'Enter'` from `lib/listbox.ts`'s closed branch left
+ * all 45 Select tests green. The pin therefore has to call the hook directly, in
+ * `lib/__tests__/listbox.test.ts`, which imports `useListbox` and not `Select` - so the rule above
+ * called a real pin a bad citation and would have pushed the record back to citing a test that
+ * cannot fail.
+ *
+ * The allowance is narrow on purpose: the cited test must live in a `lib/__tests__/` directory, and
+ * the component's own source must import the matching `lib/` module. It is not a general escape
+ * from "cite a test that tests you".
+ */
+function pinsASharedEngine (home, resolved) {
+  const inLib = /(^|\/)lib\/__tests__\/([\w-]+)\.test\.tsx?$/.exec(resolved)
+  if (!inLib) return false
+  const module = inLib[2]
+  let sources = []
+  try {
+    sources = readdirSync(home).filter((f) => /\.tsx?$/.test(f) && !/\.test\./.test(f))
+  } catch { return false }
+  return sources.some((f) => {
+    const src = readFileSync(join(home, f), 'utf8')
+    return new RegExp(`from '[^']*lib/${module}'`).test(src)
+  })
+}
+
 // Every directory that holds tests, not just the react package: the matcher accepts any
 // `.test.ts(x)` path, so a record citing `scripts/lib/__tests__/...` or a tokens test was told the
 // file "does not import" its component - when the truth was that the collector never looked there.
@@ -433,7 +462,7 @@ for (const name of inScope) {
       const resolved = existsSync(join(home, cited))
         ? join(home, cited).slice(ROOT.length + 1)
         : cited
-      if (covering.length && !covering.includes(resolved)) {
+      if (covering.length && !covering.includes(resolved) && !pinsASharedEngine(home, resolved)) {
         problems.push(
           `${where}: cites ${cited} as its evidence, but that file does not import ${name} - ` +
           `the assertions are in ${covering.join(', ')}`,

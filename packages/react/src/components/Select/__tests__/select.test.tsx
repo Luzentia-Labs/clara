@@ -447,10 +447,31 @@ describe('Select option state tokens are pinned at both ends', () => {
   })
 })
 
-// The four APG deviations, pinned. The verification record claimed TWO and four exist, which two
-// seats caught independently - a record that asserts a count nothing checks drifts silently, and
-// this one told a reader that End works. These cases assert CURRENT behaviour, so they redden if
-// the behaviour changes without the record changing with it, in either direction.
+/**
+ * The APG deviations: ONE canonical list, driving both the pinned cases and the count check.
+ *
+ * The count has now been wrong four times - it read three, then two, then four, and a seat found
+ * PageUp and PageDown by fetching the APG source rather than working from memory. Each repair
+ * asserted the count could not drift again, and each was followed by another round finding it had.
+ * The reason was always the same and was stated in the record itself: nothing anywhere READ the
+ * number, so it was prose, and prose drifts.
+ *
+ * It is read now. `pins the COUNT` below parses verification.md and fails if the asserted count,
+ * the table in the record, and this array disagree. Adding a deviation to the record without a
+ * case here reddens, and so does the reverse.
+ */
+const APG_DEVIATIONS = [
+  { key: 'Home', press: '{Home}', where: 'closed' },
+  { key: 'End', press: '{End}', where: 'closed' },
+  { key: 'A printable character', press: 'p', where: 'closed' },
+  { key: 'Alt+ArrowUp', press: '{Alt>}{ArrowUp}{/Alt}', where: 'open' },
+  { key: 'PageUp', press: '{PageUp}', where: 'open' },
+  { key: 'PageDown', press: '{PageDown}', where: 'open' },
+] as const
+
+const CLOSED_DEVIATIONS = APG_DEVIATIONS.filter((d) => d.where === 'closed')
+const OPEN_DEVIATIONS = APG_DEVIATIONS.filter((d) => d.where === 'open')
+
 describe('Select APG deviations are recorded and pinned', () => {
   const opens = async (key: string) => {
     render(<Select options={OPTIONS} />)
@@ -465,18 +486,27 @@ describe('Select APG deviations are recorded and pinned', () => {
     ['Enter', '{Enter}'],
     ['Space', ' '],
   ])('opens a closed Select on %s, as the APG requires', async (_name, key) => {
+    // NOTE: Enter and Space cannot fail HERE - the trigger is a native <button>, which jsdom
+    // activates regardless of the engine. They are pinned against the engine's own closed branch
+    // in packages/react/src/lib/__tests__/listbox.test.ts, where the native path does not exist.
     expect(await opens(key)).toBe(true)
   })
 
-  it.each([
-    ['Home', '{Home}'],
-    ['End', '{End}'],
-    ['a printable character', 'p'],
-  ])('DEVIATION: %s does not open a closed Select', async (_name, key) => {
-    // The APG's select-only combobox lists all three as opening keys. The engine's closed branch
-    // handles ArrowDown, ArrowUp, Enter and button-Space only.
-    expect(await opens(key)).toBe(false)
-  })
+  it.each(CLOSED_DEVIATIONS.map((d) => [d.key, d.press] as const))(
+    'DEVIATION: %s does not open a closed Select', async (_name, key) => {
+      // The APG's select-only combobox lists all three as opening keys. The engine's closed branch
+      // handles ArrowDown, ArrowUp, Enter and button-Space only.
+      expect(await opens(key)).toBe(false)
+    })
+
+  it.each(OPEN_DEVIATIONS.filter((d) => d.key !== 'Alt+ArrowUp').map((d) => [d.key, d.press] as const))(
+    'DEVIATION: %s does not move the highlight', async (_n, key) => {
+      // They fall to the typeahead default, where `key.length === 1` is false, so nothing happens.
+      const trigger = await renderOpen()
+      const before = trigger.getAttribute('aria-activedescendant')
+      await userEvent.keyboard(key)
+      expect(trigger.getAttribute('aria-activedescendant')).toBe(before)
+    })
 
   it('DEVIATION: Alt+ArrowUp does not commit and close an open Select', async () => {
     // The APG has Alt+Up commit the highlight and close. Here it falls through to the plain
@@ -487,17 +517,30 @@ describe('Select APG deviations are recorded and pinned', () => {
     expect(onValueChange).not.toHaveBeenCalled()
     expect(screen.queryByRole('listbox')).not.toBeNull()
   })
-})
 
-// PageUp / PageDown, found by a seat that fetched the APG source three times rather than working
-// from memory. They fall to the typeahead default where `key.length === 1` is false, so nothing
-// happens. Added because the deviation table listed four and these are the fifth and sixth.
-describe('Select PageUp and PageDown are deviations too', () => {
-  it.each([['PageUp', '{PageUp}'], ['PageDown', '{PageDown}']])(
-    'DEVIATION: %s does not move the highlight', async (_n, key) => {
-      const trigger = await renderOpen()
-      const before = trigger.getAttribute('aria-activedescendant')
-      await userEvent.keyboard(key)
-      expect(trigger.getAttribute('aria-activedescendant')).toBe(before)
-    })
+  it('pins the COUNT: the record, its table and this file agree', () => {
+    const record = readFileSync(
+      resolve(__dirname, '../verification.md'), 'utf8')
+
+    const WORDS: Record<string, number> = {
+      ONE: 1, TWO: 2, THREE: 3, FOUR: 4, FIVE: 5, SIX: 6, SEVEN: 7, EIGHT: 8, NINE: 9, TEN: 10,
+    }
+    const claim = record.match(/At least ([A-Z]+) APG deviations remain/)
+    expect(claim, 'the record must state a count in words').not.toBeNull()
+    const asserted = WORDS[claim![1]!]
+    expect(asserted, `"${claim![1]}" is not a count this test can read`).toBeDefined()
+
+    // The table's data rows: between its header separator and the blank line that ends it.
+    const table = record.slice(record.indexOf('| Key | APG select-only combobox | Clara | Pinned |'))
+    const rows = table.split('\n').slice(2).filter((line) => line.startsWith('|'))
+
+    expect(rows.length, 'the record\'s table must list exactly the count it asserts').toBe(asserted)
+    expect(APG_DEVIATIONS.length,
+      'and this file must pin exactly that many - a deviation in the record with no case here, ' +
+      'or a case here missing from the record, is the drift that happened four times').toBe(asserted)
+
+    // Same keys, not merely the same number.
+    const inRecord = rows.map((line) => line.split('|')[1]!.trim().replace(/ \((closed|open|OPEN)\)$/, ''))
+    expect(inRecord.slice().sort()).toEqual(APG_DEVIATIONS.map((d) => d.key).slice().sort())
+  })
 })

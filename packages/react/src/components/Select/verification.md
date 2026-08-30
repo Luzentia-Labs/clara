@@ -51,12 +51,26 @@ Alt+ArrowUp falls through to plain ArrowUp; PageUp and PageDown fall to the type
 where `key.length === 1` is false.
 
 **What the tests pin, precisely.** All six deviations are pinned in
-`packages/react/src/components/Select/__tests__/select.test.tsx`, so removing one reddens. The four
-keys that DO open are also asserted, but two of those four cannot fail on the engine branch:
-`Enter` and `Space` reach a native `<button>`, which jsdom activates regardless, so deleting them
-from the closed branch leaves the suite green. `ArrowDown` does redden. An earlier version of this
-section claimed the count "cannot drift again in either direction" - it cannot drift downward, and
-nothing here checks the count itself.
+`packages/react/src/components/Select/__tests__/select.test.tsx`, so removing one reddens.
+
+**The count itself is now read by a machine**, which it was not through four consecutive rounds of
+getting it wrong (three, then two, then four, then six). `pins the COUNT` parses THIS FILE - the
+count asserted in the sentence above, and the rows of the table below it - and compares both against
+the one canonical `APG_DEVIATIONS` array the pinned cases iterate. It compares the KEYS, not merely
+the number. Measured in all three directions: writing FIVE in the sentence reddens it, deleting a
+table row reddens it, and deleting an array entry reddens it. The previous version of this section
+said "nothing here checks the count itself", which was true and was the whole mechanism by which a
+number in prose drifted four times.
+
+**The opening keys are pinned against the ENGINE, not against jsdom.** Two of the four keys that
+open a closed Select could not fail at component level: `Enter` and `Space` reach a native
+`<button>`, which jsdom activates regardless, so deleting either from the engine's closed branch
+left all 45 Select tests green. That is measured, and it is why
+`packages/react/src/lib/__tests__/listbox.test.ts` calls `triggerProps.onKeyDown` directly, where no
+native path exists. Deleting `key === 'Enter'` from `packages/react/src/lib/listbox.ts` now reddens there, and so does
+deleting `opensOnSpace`. An earlier version of this section claimed the count "cannot drift again in
+either direction" while the opening half was vacuous; that claim is now true of both halves because
+both are executed rather than asserted.
 
 These are recorded rather than fixed because fixing them changes keyboard behaviour, which is a
 decision rather than a correction - unlike D0123's Space case, which was fixed because it was
