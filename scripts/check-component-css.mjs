@@ -443,6 +443,15 @@ const SHAPE_CONTRACT = [
   ['.clara-date-picker__day--focused', ['background', 'box-shadow']],
   ['.clara-date-picker__day--selected', ['background', 'color']],
   ['.clara-date-picker__day--unavailable', ['color']],
+  // DateRangePicker, enrolled with the component. The cursor is on `box-shadow` ALONE here, unlike
+  // the other pickers: a day can be the cursor and an endpoint at once, so the background belongs
+  // to the endpoint state and the cursor takes the channel that composes with it.
+  ['.clara-date-range-picker__trigger', ['font-size']],
+  ['.clara-date-range-picker__panel', ['box-sizing', 'background', 'color', 'font-size', 'border', 'border-radius', 'max-block-size', 'overflow-y']],
+  ['.clara-date-range-picker__day--focused', ['box-shadow']],
+  ['.clara-date-range-picker__day--endpoint', ['background', 'color']],
+  ['.clara-date-range-picker__day--in-range', ['background', 'color']],
+  ['.clara-date-range-picker__day--unavailable', ['color']],
   ['.clara-modal__body', ['overflow-y']],
   // A flex column shrinks its children by default, so a fixed-height child is squashed rather than
   // scrolled. The rule that stops it is on the CHILDREN, and nothing else can see its absence.

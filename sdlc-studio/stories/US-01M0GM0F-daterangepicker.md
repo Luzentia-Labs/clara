@@ -7,7 +7,7 @@
 > **Template:** planning
 > **Epic:** EP-01M0GK91
 > **Serves:** Grace Adeyemi, Sofia Marchetti
-> **Affects:** apps/reference-app/src/screens/List.tsx, packages/react/src/components/DateRangePicker/**, packages/react/src/components/DateRangePicker/verification.md, scripts/check-component-css.mjs
+> **Affects:** packages/react/src/components/DateRangePicker/**, packages/react/src/components/DateRangePicker/verification.md, packages/react/src/lib/calendar.ts, packages/react/src/lib/calendar-grid.ts, packages/react/src/components/DatePicker/DatePicker.tsx, packages/react/src/styles.css, packages/react/src/index.ts, packages/react/client-boundary.json, packages/react/src/components/__tests__/boundary.test.tsx, packages/tokens/src/component/date-range-picker.json, packages/tokens/src/pairings.json, packages/tokens/contrast-required.json, scripts/check-component-css.mjs, scripts/check-verification.mjs, apps/docs/src/content/components/date-range-picker.md, .size-limit.json
 > **Points:** 5
 
 ## User Story
@@ -24,6 +24,7 @@
 - **When** I select a start and end
 - **Then** both are captured and the range is announced
 - **Verify:** vitest "DateRangePicker range selection"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC2: Presets
@@ -32,6 +33,7 @@
 - **When** I open the presets
 - **Then** this month, last quarter and year to date are available and keyboard reachable
 - **Verify:** vitest "DateRangePicker presets are keyboard reachable"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC3: Consumable in the shape a filter bar needs
@@ -54,6 +56,7 @@
   composition a filter bar requires. When EP-01M0GKV1 builds the list screen it inherits a component
   already proved consumable, and its own criterion owns the integration
 - **Verify:** vitest "DateRangePicker drives a filter bar"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC4: Token-only styling
@@ -61,7 +64,8 @@
 - **Given** the DateRangePicker stylesheet
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
-- **Verify:** shell node scripts/check-component-css.mjs
+- **Verify:** shell node scripts/check-component-css.mjs --component DateRangePicker
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC5: Both themes and densities
@@ -74,6 +78,7 @@
   all. That is gate 7's (US-01M0WSME), and every story in the preceding epic was corrected the
   same way
 - **Verify:** vitest "DateRangePicker theme and density matrix"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC6: Definition of done
@@ -89,7 +94,31 @@
   honest "outstanding" for the manual pass. **BG-01M107ND** carries the same correction for the
   stories that still copy it
 - **Verify:** shell node scripts/check-verification.mjs --component DateRangePicker
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
+
+## Test Plan
+
+Every row below was RUN against this tree. `Mutant` is the production change the criterion's own
+verifier must fail on, and the verdict beside it is what happened.
+
+| Criterion | Touches | Mutant - the production change this test must fail on | Title |
+| --- | --- | --- | --- |
+| AC1 | packages/react/src/components/DateRangePicker/DateRangePicker.tsx | THREE mutants, all KILLED. (a) Commit a range on the FIRST choice instead of holding it as a pending start - the panel closes after one date and a range can never be picked. (b) Drop the `.sort()` so endpoints chosen backwards report end-before-start. (c) Widen the in-range test from `>` to `>=` so an endpoint is ALSO drawn as context. (c) SURVIVED at first: the test asserted an in-range day is not an endpoint but never that an endpoint is not in-range, so both classes on one cell passed. A cell carrying both puts two backgrounds on one day and which paints depends on stylesheet order. | Range selection |
+| AC2 | packages/react/src/lib/calendar.ts | TWO mutants, both KILLED, and both found a proxy first. (a) `lastQuarterStart = thisQuarterStart` turns "Last quarter" into the current quarter. (b) Year to date starts in February. Both SURVIVED the original test, which checked only that the preset buttons existed and that a range came back - the label is a claim about WHICH dates, so the dates are now computed from today and asserted. | Presets |
+| AC3 | packages/react/src/components/DateRangePicker/DateRangePicker.tsx | Make Clear reset only the internal pending state without calling `onValueChange`, so a controlled caller's value never changes and the filter cannot be removed. KILLED. The test drives a real controlled component with an `output` reading the value back, because a filter bar's requirement is that the caller's state moves - not that a handler fired. | Consumable in the shape a filter bar needs |
+| AC4 | packages/react/src/styles.css | Add `border-radius: 7px` to `.clara-date-range-picker__panel` - a raw literal where a token belongs. `check-component-css --component DateRangePicker` exits 1. No test imports a CSS file, so the verifier must be a guard that READS the stylesheet. | Token-only styling |
+| AC5 | packages/react/src/theme/resolve.ts | `claraAttributes` returns `{}`, so the provider stops stamping its scope. Mutating the PROVIDER proves the assertion walks up from inside the portalled panel rather than reading the render container. | Both themes and densities |
+| AC6 | packages/react/src/components/DateRangePicker/verification.md | Rename `## Keyboard` to `## Keys`. `check-verification --component DateRangePicker` exits 1 on the missing section. | Definition of done |
+
+**Also mutated, and killed by BOTH channels:** giving the roving cursor a `background` instead of
+its `box-shadow` fails the stylesheet-reading case AND `check-component-css`. That one matters
+because a day can be the cursor and an endpoint simultaneously, so the cursor takes the channel
+that composes rather than the one it would have to win.
+
+**One mutant is deliberately absent.** Nothing here proves the two endpoints and the days between
+them are DISTINGUISHABLE on screen - that is three surfaces whose difference jsdom cannot see. The
+contrast pairs are measured and the declarations are asserted; what they look like is gate 7's.
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
 

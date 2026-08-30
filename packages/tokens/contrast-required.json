@@ -141,6 +141,26 @@
     {
       "fg": "date-picker-day-fg-selected",
       "bg": "date-picker-day-bg-selected"
+    },
+    {
+      "fg": "date-range-picker-panel-fg",
+      "bg": "date-range-picker-panel-bg"
+    },
+    {
+      "fg": "date-range-picker-weekday-fg",
+      "bg": "date-range-picker-panel-bg"
+    },
+    {
+      "fg": "date-range-picker-day-fg-unavailable",
+      "bg": "date-range-picker-panel-bg"
+    },
+    {
+      "fg": "date-range-picker-day-fg-selected",
+      "bg": "date-range-picker-day-bg-selected"
+    },
+    {
+      "fg": "date-range-picker-day-fg-in-range",
+      "bg": "date-range-picker-day-bg-in-range"
     }
   ],
   "nonText": [
@@ -200,6 +220,14 @@
     {
       "fg": "date-picker-day-cursor",
       "bg": "date-picker-panel-bg"
+    },
+    {
+      "fg": "date-range-picker-day-cursor",
+      "bg": "date-range-picker-day-bg-focused"
+    },
+    {
+      "fg": "date-range-picker-day-cursor",
+      "bg": "date-range-picker-panel-bg"
     },
     {
       "fg": "color-border-default",

@@ -46,14 +46,14 @@ rather than date-bumped.
 SURVIVED against a tree that never contained the fix, and the round would have read as a total
 regression. **Check the base ref before trusting any mutation result.**
 
-The tree is on `main` with 1336 tests and every gate green. Nothing is on npm.
+The tree is on `main` with 1354 tests and every gate green. Nothing is on npm.
 
 ## Numbers
 
 - `pnpm check` runs **30 guards**; `prove-guards-fail` kills **147 mutations** on a staged copy.
-- **1336 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- **1354 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
-- **130 decisions**. Stories: **55 Done of 89**. `main` is the only branch - this project is
+- **131 decisions**. Stories: **55 Done of 89**. `main` is the only branch - this project is
   trunk-based.
 - **23 verification records** and **15 docs pages**, each with a keyboard table. The **manual
   keyboard pass is outstanding on every one of them, and says so.** An earlier version of this line

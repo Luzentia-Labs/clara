@@ -71,6 +71,7 @@ const REQUIRED_PROPS: Record<string, Record<string, unknown>> = {
   Combobox: { options: [{ value: 'a', label: 'A' }] },
   MultiSelect: { options: [{ value: 'a', label: 'A' }] },
   DatePicker: {},
+  DateRangePicker: {},
 }
 
 /** Render with the watched globals replaced by getters that record any read. */

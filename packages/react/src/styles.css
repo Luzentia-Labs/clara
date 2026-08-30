@@ -1518,3 +1518,118 @@
   color: var(--clara-date-picker-day-fg-unavailable);
   cursor: not-allowed;
 }
+
+/*
+ * DateRangePicker - the same grid as DatePicker, with two endpoints and the days between them.
+ *
+ * Three day states rather than two, and they must compose: an endpoint is a filled cell, an
+ * in-range day is a weaker tinted surface, and the roving cursor is the same tint-plus-inset-bar
+ * the other pickers use. A day can be the cursor AND an endpoint at once, so the cursor's carrier
+ * is a box-shadow rather than a background it would have to fight for.
+ */
+.clara-date-range-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--clara-date-range-picker-gap);
+  inline-size: 100%;
+}
+.clara-date-range-picker__trigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--clara-date-range-picker-gap);
+  font: inherit;
+  font-size: var(--clara-font-body);
+  inline-size: 100%;
+  block-size: var(--clara-date-range-picker-height);
+  padding-inline: var(--clara-date-range-picker-padding-inline);
+  background: var(--clara-date-range-picker-bg);
+  color: var(--clara-date-range-picker-fg);
+  border: var(--clara-date-range-picker-border-width) solid var(--clara-date-range-picker-border);
+  border-radius: var(--clara-date-range-picker-radius);
+  text-align: start;
+  cursor: pointer;
+}
+.clara-date-range-picker__trigger:focus-visible,
+.clara-date-range-picker__clear:focus-visible,
+.clara-date-range-picker__preset:focus-visible,
+.clara-date-range-picker__day:focus-visible {
+  outline: var(--clara-date-range-picker-focus-width) solid var(--clara-color-border-focus);
+  outline-offset: var(--clara-date-range-picker-focus-width);
+  box-shadow: 0 0 0 var(--clara-date-range-picker-focus-width) var(--clara-color-border-focus-offset);
+}
+.clara-date-range-picker__value--placeholder { color: var(--clara-date-range-picker-placeholder-fg); }
+.clara-date-range-picker__clear {
+  font: inherit;
+  font-size: var(--clara-font-body);
+  background: var(--clara-date-range-picker-bg);
+  color: var(--clara-date-range-picker-fg);
+  border: var(--clara-date-range-picker-border-width) solid var(--clara-date-range-picker-border);
+  border-radius: var(--clara-date-range-picker-radius);
+  padding-inline: var(--clara-date-range-picker-padding-inline);
+  cursor: pointer;
+}
+.clara-date-range-picker--disabled .clara-date-range-picker__trigger { cursor: not-allowed; }
+.clara-date-range-picker__panel {
+  box-sizing: border-box;
+  position: relative;
+  z-index: var(--clara-layer-overlay);
+  padding: var(--clara-date-range-picker-panel-padding);
+  /* DECLARED, not inherited: a portalled panel takes its text colour and size from the PAGE. */
+  color: var(--clara-date-range-picker-panel-fg);
+  font-size: var(--clara-font-body);
+  background: var(--clara-date-range-picker-panel-bg);
+  border: var(--clara-date-range-picker-border-width) solid var(--clara-date-range-picker-panel-border);
+  border-radius: var(--clara-date-range-picker-panel-radius);
+  max-block-size: var(--radix-popover-content-available-height, var(--clara-date-range-picker-max-block-size));
+  overflow-y: auto;
+}
+.clara-date-range-picker__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--clara-date-range-picker-preset-gap);
+}
+.clara-date-range-picker__preset {
+  font: inherit;
+  font-size: var(--clara-font-body);
+  background: var(--clara-date-range-picker-panel-bg);
+  color: var(--clara-date-range-picker-panel-fg);
+  border: var(--clara-date-range-picker-border-width) solid var(--clara-date-range-picker-border);
+  border-radius: var(--clara-date-range-picker-radius);
+  padding-inline: var(--clara-date-range-picker-padding-inline);
+  cursor: pointer;
+}
+.clara-date-range-picker__grid { border-collapse: collapse; }
+.clara-date-range-picker__weekday {
+  inline-size: var(--clara-date-range-picker-day-size);
+  color: var(--clara-date-range-picker-weekday-fg);
+  font-weight: 600;
+}
+.clara-date-range-picker__day {
+  inline-size: var(--clara-date-range-picker-day-size);
+  block-size: var(--clara-date-range-picker-day-size);
+  border-radius: var(--clara-date-range-picker-day-radius);
+  text-align: center;
+  cursor: pointer;
+}
+/* The two ENDPOINTS - the choice itself, a filled cell with its own foreground. */
+.clara-date-range-picker__day--endpoint {
+  background: var(--clara-date-range-picker-day-bg-selected);
+  color: var(--clara-date-range-picker-day-fg-selected);
+}
+/* The days BETWEEN them - context rather than choice, so a weaker surface, and it must not be
+   mistaken for an endpoint. Its own foreground because it IS a reading pair. */
+.clara-date-range-picker__day--in-range {
+  background: var(--clara-date-range-picker-day-bg-in-range);
+  color: var(--clara-date-range-picker-day-fg-in-range);
+}
+/* The roving cursor, on the SHADOW channel so it composes with either of the two above rather than
+   competing for the background. */
+.clara-date-range-picker__day--focused {
+  box-shadow: inset var(--clara-date-range-picker-day-cursor-width) 0 0 0 var(--clara-date-range-picker-day-cursor);
+}
+.clara-date-range-picker__day--unavailable {
+  color: var(--clara-date-range-picker-day-fg-unavailable);
+  cursor: not-allowed;
+}

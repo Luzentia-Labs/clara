@@ -265,6 +265,29 @@ export interface DatePickerProps extends Availability {
 }
 
 // @public (undocumented)
+export interface DateRange {
+    // (undocumented)
+    end: IsoDate;
+    // (undocumented)
+    start: IsoDate;
+}
+
+// @public
+export function DateRangePicker(input: DateRangePickerProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface DateRangePickerProps extends Availability {
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    defaultValue?: DateRange;
+    // (undocumented)
+    disabled?: boolean;
+    onValueChange?: (value: DateRange) => void;
+    value?: DateRange;
+}
+
+// @public (undocumented)
 export const Divider: ForwardRefExoticComponent<DividerProps & RefAttributes<HTMLHRElement>>;
 
 // @public

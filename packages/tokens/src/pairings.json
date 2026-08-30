@@ -634,6 +634,48 @@
       "background": "date-picker.panel-bg",
       "minRatio": 4.5,
       "why": "An unavailable day stays in the grid and must remain READABLE - it is announced as unavailable rather than removed (AC6), so its text is still text."
+    },
+    {
+      "foreground": "date-range-picker.day-cursor",
+      "background": "date-range-picker.day-bg-focused",
+      "minRatio": 3,
+      "why": "Declared against BOTH surfaces from the start - the pattern Select, Combobox and MultiSelect each had to be corrected into over four review rounds."
+    },
+    {
+      "foreground": "date-range-picker.day-cursor",
+      "background": "date-range-picker.panel-bg",
+      "minRatio": 3,
+      "why": "Declared against BOTH surfaces from the start - the pattern Select, Combobox and MultiSelect each had to be corrected into over four review rounds."
+    },
+    {
+      "foreground": "date-range-picker.day-fg-selected",
+      "background": "date-range-picker.day-bg-selected",
+      "minRatio": 4.5,
+      "why": "An endpoint's own text on its own fill."
+    },
+    {
+      "foreground": "date-range-picker.day-fg-in-range",
+      "background": "date-range-picker.day-bg-in-range",
+      "minRatio": 4.5,
+      "why": "The days between the endpoints. Context, but still reading text on a tinted surface - the pair a user reads the date off."
+    },
+    {
+      "foreground": "date-range-picker.panel-fg",
+      "background": "date-range-picker.panel-bg",
+      "minRatio": 4.5,
+      "why": "The pair a portalled panel ACTUALLY paints."
+    },
+    {
+      "foreground": "date-range-picker.weekday-fg",
+      "background": "date-range-picker.panel-bg",
+      "minRatio": 4.5,
+      "why": "Column headers."
+    },
+    {
+      "foreground": "date-range-picker.day-fg-unavailable",
+      "background": "date-range-picker.panel-bg",
+      "minRatio": 4.5,
+      "why": "An unavailable day stays in the grid and stays readable."
     }
   ]
 }

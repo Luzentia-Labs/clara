@@ -110,4 +110,33 @@ export function isUnavailable (iso: IsoDate, { min, max, isDateUnavailable }: Av
   return isDateUnavailable?.(iso) ?? false
 }
 
+export interface DateRange {
+  start: IsoDate
+  end: IsoDate
+}
+
+/**
+ * The presets a filter bar actually asks for (DateRangePicker AC2).
+ *
+ * These are the three the story names. They are computed rather than listed because "last quarter"
+ * is a moving target and a hardcoded pair would be wrong the day after it was written - which is
+ * also why the labels are fixed and the DATES are derived from today.
+ */
+export function presetRanges (): Array<{ label: string, range: DateRange }> {
+  const now = today(getLocalTimeZone())
+  const quarterStartMonth = Math.floor((now.month - 1) / 3) * 3 + 1
+  // The quarter BEFORE the current one, which is what "last quarter" means to someone reporting on
+  // a closed period - the current quarter is not finished, so its numbers are not comparable.
+  const thisQuarterStart = new CalendarDate(now.year, quarterStartMonth, 1)
+  const lastQuarterStart = thisQuarterStart.subtract({ months: 3 })
+  return [
+    { label: 'This month',
+      range: { start: toIso(startOfMonth(now)), end: toIso(endOfMonth(now)) } },
+    { label: 'Last quarter',
+      range: { start: toIso(lastQuarterStart), end: toIso(thisQuarterStart.subtract({ days: 1 })) } },
+    { label: 'Year to date',
+      range: { start: toIso(new CalendarDate(now.year, 1, 1)), end: toIso(now) } },
+  ]
+}
+
 export { isSameDay, isSameMonth, startOfMonth, endOfMonth, getWeeksInMonth }

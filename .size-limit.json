@@ -1,8 +1,8 @@
 [
   {
-    "name": "@luzentialabs/clara-react (ESM entry, 42 components x 325 B, floor 5000 B)",
+    "name": "@luzentialabs/clara-react (ESM entry, 43 components x 350 B, floor 5000 B)",
     "path": "packages/react/dist/index.js",
-    "limit": "13650 B",
+    "limit": "15050 B",
     "gzip": true,
     "ignore": [
       "react",
@@ -314,6 +314,24 @@
   {
     "name": "DatePicker (client chunk, D0048)",
     "path": "packages/react/dist/clara-client-DatePicker.js",
+    "limit": "5 kB",
+    "gzip": true,
+    "ignore": [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react-dom/client",
+      "@internationalized/date",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-toast",
+      "@radix-ui/react-tooltip"
+    ]
+  },
+  {
+    "name": "DateRangePicker (client chunk, D0048)",
+    "path": "packages/react/dist/clara-client-DateRangePicker.js",
     "limit": "5 kB",
     "gzip": true,
     "ignore": [

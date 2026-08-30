@@ -7,9 +7,10 @@ import { cx } from '../../lib/cx'
 import { ClaraPortal } from '../../theme/ClaraPortal'
 import { fieldAriaProps, fieldChangeGuard, fieldDisabled, useFieldWiring } from '../../lib/field-context'
 import {
-  announceDate, announceMonth, fromIso, isUnavailable, monthGrid, todayIso, toIso,
+  announceDate, announceMonth, fromIso, isUnavailable,
   weekdayLabels, type Availability, type IsoDate,
 } from '../../lib/calendar'
+import { useCalendarGrid } from '../../lib/calendar-grid'
 
 export interface DatePickerProps extends Availability {
   /** ISO `YYYY-MM-DD`. No `@internationalized/date` type reaches this surface (ADR-008, AC5). */
@@ -66,74 +67,28 @@ export function DatePicker ({
   const [uncontrolled, setUncontrolled] = useState<IsoDate>(defaultValue ?? '')
   const current = value !== undefined ? value : uncontrolled
   /** The grid's roving focus. Not the value: a user can browse without choosing. */
-  const [focused, setFocused] = useState<IsoDate>(current || todayIso())
   const [announcement, setAnnouncement] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
-  const gridRef = useRef<HTMLTableSectionElement | null>(null)
-
-  /**
-   * A CALLBACK ref, not a plain one, because the grid lives behind a portal: when `open` flips, the
-   * effect below runs before the portal content is in the DOM, so `gridRef.current` is still null
-   * and the focus never lands. Measured - focus stayed on the toggle button while all 42 cells
-   * rendered and the roving cell existed. Focusing at ATTACH time is the only moment the node is
-   * guaranteed to be there.
-   */
-  const attachGrid = useCallback((node: HTMLTableSectionElement | null) => {
-    gridRef.current = node
-    node?.querySelector<HTMLElement>('[tabindex="0"]')?.focus()
-  }, [])
 
   const commit = (next: IsoDate) => {
     if (value === undefined) setUncontrolled(next)
     onValueChange?.(next)
   }
 
-  // Opening seats the roving focus on the current value, or today. Closing does not reset it, so
-  // reopening returns the user where they were rather than to a month they already left.
-  useEffect(() => {
-    if (open) setFocused(current || todayIso())
-  }, [open, current])
-
-  // Move DOM focus to the focused cell whenever it changes while open - that is what roving
-  // tabindex means, and without it the arrow keys move a highlight the screen reader never follows.
-  useEffect(() => {
-    if (!open) return
-    const cell = gridRef.current?.querySelector<HTMLElement>('[tabindex="0"]')
-    cell?.focus()
-  }, [open, focused])
-
   const availability = { min, max, isDateUnavailable }
   const closeAndRestore = () => { setOpen(false); inputRef.current?.focus() }
 
-  const onGridKeyDown = (event: React.KeyboardEvent) => {
-    const { key } = event
-    if (key === 'Escape') {
-      event.preventDefault()
-      // Escape CLOSES and RESTORES focus to the input (AC3). A dialog that closes and drops focus
-      // to the body strands a keyboard user at the top of the page.
-      closeAndRestore()
-      return
-    }
-    if (key === 'Enter' || key === ' ') {
-      event.preventDefault()
-      if (!isUnavailable(focused, availability)) { commit(focused); closeAndRestore() }
-      return
-    }
-    const anchor = fromIso(focused)
-    if (!anchor) return
-    if (key === 'Home' || key === 'End') {
-      event.preventDefault()
-      // Week bounds, not month bounds: the row the user is on is the unit they are navigating.
-      const row = monthGrid(anchor).find((week) => week.includes(focused))
-      const edge = key === 'Home' ? row?.[0] : row?.[row.length - 1]
-      if (edge) setFocused(edge)
-      return
-    }
-    const step = STEP[key]
-    if (!step) return
-    event.preventDefault()
-    setFocused(toIso(anchor.add(step)))
-  }
+  // The keyboard model and roving focus are the shared hook's (D0131). What CHOOSING means is
+  // this component's: commit the day and close. DateRangePicker gives the same hook a different
+  // answer, which is why the model is a hook and not a shared Calendar component.
+  const grid = useCalendarGrid({
+    open,
+    seed: current,
+    onChoose: (iso) => { commit(iso); closeAndRestore() },
+    onDismiss: closeAndRestore,
+    isUnavailable: (iso) => isUnavailable(iso, availability),
+  })
+  const { focused } = grid
 
   // The focused date AND its month, every time focus moves (AC4). The month is not decoration:
   // arrowing off the end of a month changes it, and a bare "14" tells the user nothing about which.
@@ -152,7 +107,6 @@ export function DatePicker ({
   const aria = fieldAriaProps(wiring, 'text', isDisabled) as Record<string, unknown>
   const describedBy = [aria['aria-describedby'] as string | undefined, formatId]
     .filter(Boolean).join(' ')
-  const grid = fromIso(focused) ? monthGrid(fromIso(focused)!) : []
   const weekdays = weekdayLabels()
 
   return (
@@ -214,8 +168,8 @@ export function DatePicker ({
                 ))}
               </tr>
             </thead>
-            <tbody ref={attachGrid} onKeyDown={onGridKeyDown}>
-              {grid.map((week) => (
+            <tbody ref={grid.attachGrid} onKeyDown={grid.onKeyDown}>
+              {grid.rows.map((week) => (
                 <tr key={week[0]} role="row">
                   {week.map((iso) => {
                     const unavailable = isUnavailable(iso, availability)
@@ -238,7 +192,7 @@ export function DatePicker ({
                         )}
                         onClick={() => {
                           if (unavailable) return
-                          setFocused(iso); commit(iso); closeAndRestore()
+                          grid.setFocused(iso); commit(iso); closeAndRestore()
                         }}
                       >
                         {fromIso(iso)?.day}

@@ -212,6 +212,7 @@ const DOCS_PAGE_FOR = {
   Select: 'select.md',
   MultiSelect: 'multi-select.md',
   DatePicker: 'date-picker.md',
+  DateRangePicker: 'date-range-picker.md',
   Combobox: 'combobox.md',
   Alert: 'alert.md',
   Popover: 'popover.md',
