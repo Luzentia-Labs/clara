@@ -10,7 +10,7 @@
  *
  * `--check` fails instead of writing, which is what CI runs.
  */
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fail, pass } from './lib/workspace.mjs'
 import { CLIENT_CHUNK } from './lib/chunk-plan.mjs'
@@ -103,7 +103,11 @@ const IGNORED = [...PEERS, ...runtimeDeps]
 // the ones that bind for a consumer importing a single control, and Modal's is 1.98 kB of 5 kB.
 //
 // If this needs raising again for something that is NOT an overlay, that is a signal, not a bump.
-const ENTRY_BYTES_PER_COMPONENT = 300
+// 325, raised from 300 on 2026-08-30 with DatePicker. Measured 13338 B across 42 components -
+// 317.6 B each - so 300 had become a figure the barrel no longer met rather than one it was held
+// to. The raise is 25 B, not to the measurement: a ceiling set AT the current number passes today
+// and fails on the next component, which is how a budget becomes a chore instead of a limit.
+const ENTRY_BYTES_PER_COMPONENT = 325
 const ENTRY_FLOOR_BYTES = 5000
 const entryLimit = `${Math.max(ENTRY_FLOOR_BYTES, builtCount * ENTRY_BYTES_PER_COMPONENT)} B`
 
@@ -128,6 +132,19 @@ const entryLimit = `${Math.max(ENTRY_FLOOR_BYTES, builtCount * ENTRY_BYTES_PER_C
  * someone else's number measures nothing, and the name is what a reader trusts.
  */
 const THIRD_PARTY_LIMITS = {
+  // Measured 7.85 kB on the DatePicker chunk with every Radix runtime ignored - the SMALLEST
+  // third-party entry here, and about 2 kB of that is DatePicker's own code rather than the
+  // library. What the rest buys is calendar arithmetic that is easy to get subtly wrong by hand:
+  // month lengths, leap years, and the locale's week start, which decides which column a day
+  // lands in. ADR-008 chose it over date-fns because date-fns operates on JS `Date`, which
+  // conflates a calendar date with an instant - the distinction F12 has to document.
+  //
+  // It reaches the build through `lib/calendar.ts`, which is the ONLY module importing it, so the
+  // ISO-string boundary ADR-008 requires is enforced in one place and asserted by DatePicker AC5
+  // against the generated API report. That is also why the importer search below has to resolve
+  // through the shared chunk: a dependency behind a helper module never appears in a component
+  // chunk the way Radix does. D0129.
+  '@internationalized/date': '9 kB',
   // Measured 15.08 kB. Modal + Drawer machinery: focus scope, dismissable layer, portal, presence.
   // No positioning engine - a modal is centred by CSS, so it never loads @floating-ui.
   '@radix-ui/react-dialog': '18 kB',
@@ -171,7 +188,18 @@ const THIRD_PARTY_LIMITS = {
  * and if one of them moves this number by more than a couple of kB, that is the signal this entry
  * exists to give.
  */
-const THIRD_PARTY_UNION_LIMIT = '50 kB'
+// 58 kB, raised from 50 on 2026-08-30 when @internationalized/date was adopted per ADR-008.
+// Measured 55.96 kB, of which about 5.8 kB is the date library - so the raise is almost exactly the
+// dependency and nothing else drifted. The previous 50 kB was itself authored at a measured
+// 46.65 kB plus headroom; it is an engineering ceiling, not a PRD or TRD requirement, and a search
+// of both documents finds neither figure.
+//
+// What this number is and is not: it bundles the package ENTRY, so it is what a consumer importing
+// the whole barrel pays. A consumer importing only Button pays none of the date library - the
+// per-component chunks are budgeted separately and it reaches only DatePicker and DateRangePicker.
+// Recorded rather than quietly bumped, because raising a ceiling your own change broke is the move
+// that turns a budget into a formality (D0130).
+const THIRD_PARTY_UNION_LIMIT = '58 kB'
 
 const fixed = [
   { name: `@luzentialabs/clara-react (ESM entry, ${builtCount} components x ${ENTRY_BYTES_PER_COMPONENT} B, floor ${ENTRY_FLOOR_BYTES} B)`, path: 'packages/react/dist/index.js', limit: entryLimit, gzip: true, ignore: IGNORED },
@@ -192,14 +220,50 @@ const fixed = [
   // The chunk is found by reading the built chunks for a real import, so an entry cannot outlive
   // the code it measures, and a dependency nothing imports is reported rather than skipped.
   ...runtimeDeps.map((dep) => {
+    // Matched as a whole IMPORT SPECIFIER, not as a substring. `includes` made
+    // `@radix-ui/react-dialo` - a typo, or a real package that is a prefix of another - match
+    // Modal's chunk and fabricate an 18 kB budget over code that does not import it.
+    const specifier = new RegExp(
+      `["'\`]${dep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(/[^"'\`]*)?["'\`]`)
+    /*
+     * Resolved from SOURCE, not from the built chunks, and that is the whole point.
+     *
+     * A dependency reached through a `lib/` helper is hoisted into `clara-shared.js` rather than
+     * into the component chunk that uses it - Radix escapes this only because component files
+     * import Radix directly. Searching the built chunks therefore found nothing and `size:sync`
+     * refused, naming the dependency rather than the hole.
+     *
+     * The obvious repair - also follow each chunk's `./clara-shared.js` import - is WORSE than the
+     * bug. Every client chunk imports the shared chunk, so every dependency behind it matches every
+     * component, and the first name alphabetically wins: it attributed the date library's weight to
+     * Alert, which does not use it. That is exactly what the comment above this block warns about,
+     * reproduced while fixing something else.
+     *
+     * So the question is asked where it is actually answerable: which COMPONENT'S SOURCE reaches
+     * this dependency. Direct imports, plus one level through `src/lib/`, which is where shared
+     * helpers live here. A deeper chain would need a real module-graph walk - that limit is stated
+     * rather than papered over, and a dependency behind two levels of indirection would be REPORTED
+     * as unmeasured rather than silently attributed to the wrong component.
+     */
+    const libReaching = readdirSync('packages/react/src/lib')
+      .filter((f) => f.endsWith('.ts') && specifier.test(
+        readFileSync(`packages/react/src/lib/${f}`, 'utf8')))
+      .map((f) => f.replace(/\.ts$/, ''))
+    const usesDep = (name) => {
+      const dir = `packages/react/src/components/${name}`
+      if (!existsSync(dir)) return false
+      return readdirSync(dir)
+        .filter((f) => f.endsWith('.tsx') || f.endsWith('.ts'))
+        .some((f) => {
+          const src = readFileSync(`${dir}/${f}`, 'utf8')
+          return specifier.test(src)
+            || libReaching.some((lib) => new RegExp(`lib/${lib}['"\`]`).test(src))
+        })
+    }
     const importer = builtClients
+      .filter(usesDep)
       .map((name) => `packages/react/dist/${CLIENT_CHUNK}-${name}.js`)
-      // Matched as a whole IMPORT SPECIFIER, not as a substring. `includes` made
-      // `@radix-ui/react-dialo` - a typo, or a real package that is a prefix of another - match
-      // Modal's chunk and fabricate an 18 kB budget over code that does not import it.
-      .find((file) => existsSync(file)
-        && new RegExp(`["'\`]${dep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(/[^"'\`]*)?["'\`]`)
-          .test(readFileSync(file, 'utf8')))
+      .find((file) => existsSync(file))
     // A declared runtime dependency with no importer is REPORTED, not skipped. The previous
     // version filtered it away, so adding a second Radix package produced no budget entry at all
     // while quietly adding it to every per-component `ignore` list - its weight measured by

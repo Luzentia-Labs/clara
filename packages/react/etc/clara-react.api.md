@@ -244,6 +244,26 @@ export interface ComboboxProps<T extends string = string> {
 // @public
 export type ComboboxStatus = 'idle' | 'loading' | 'error';
 
+// @public
+export function DatePicker(input: DatePickerProps): JSX_2.Element;
+
+// Warning: (ae-forgotten-export) The symbol "Availability" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface DatePickerProps extends Availability {
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    defaultValue?: IsoDate;
+    // (undocumented)
+    disabled?: boolean;
+    format?: string;
+    // (undocumented)
+    onValueChange?: (value: IsoDate) => void;
+    // Warning: (ae-forgotten-export) The symbol "IsoDate" needs to be exported by the entry point index.d.ts
+    value?: IsoDate;
+}
+
 // @public (undocumented)
 export const Divider: ForwardRefExoticComponent<DividerProps & RefAttributes<HTMLHRElement>>;
 

@@ -7,13 +7,13 @@
 
 | Status | Count |
 | --- | --- |
-| Draft | 34 |
+| Draft | 33 |
 | Ready | 0 |
 | Planned | 0 |
 | In Progress | 0 |
 | Review | 0 |
 | Done | 55 |
-| Blocked | 0 |
+| Blocked | 1 |
 | **Total** | **89** |
 
 ## Stories by Epic
@@ -81,7 +81,7 @@
 | [US-01M0GMRK](US-01M0GMRK-select.md) | Select | EP-01M0GK91 | Draft | 5 | -- |
 | [US-01M0GMJ8](US-01M0GMJ8-combobox.md) | Combobox | EP-01M0GK91 | Draft | 8 | -- |
 | [US-01M0GMC7](US-01M0GMC7-multiselect.md) | MultiSelect | EP-01M0GK91 | Draft | 5 | -- |
-| [US-01M0GMC1](US-01M0GMC1-datepicker.md) | DatePicker | EP-01M0GK91 | Draft | 8 | -- |
+| [US-01M0GMC1](US-01M0GMC1-datepicker.md) | DatePicker | EP-01M0GK91 | Blocked | 8 | -- |
 | [US-01M0GM0F](US-01M0GM0F-daterangepicker.md) | DateRangePicker | EP-01M0GK91 | Draft | 5 | -- |
 | [US-01M0GM5P](US-01M0GM5P-table-core.md) | Table core | EP-01M0GK5K | Draft | 8 | -- |
 | [US-01M0GM77](US-01M0GM77-table-sorting.md) | Table sorting | EP-01M0GK5K | Draft | 3 | -- |

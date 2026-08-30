@@ -1,6 +1,6 @@
 # US-01M0GMC1: DatePicker
 
-> **Status:** Draft
+> **Status:** Blocked
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -24,6 +24,7 @@
 - **When** I type a date
 - **Then** direct text entry works and is never disabled in favour of the calendar
 - **Verify:** vitest "DatePicker accepts direct text entry"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC2: Format is discoverable
@@ -32,6 +33,7 @@
 - **When** I look for the expected format
 - **Then** it appears in the field description, not only the placeholder
 - **Verify:** vitest "DatePicker format is in the description"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC3: Calendar keyboard model
@@ -40,6 +42,7 @@
 - **When** I navigate by keyboard
 - **Then** arrows move by day, PageUp and PageDown by month, Home and End to week bounds, Escape closes and restores
 - **Verify:** vitest "DatePicker calendar keyboard navigation"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC4: Focused date is announced
@@ -48,6 +51,7 @@
 - **When** focus moves
 - **Then** the focused date and its month context are announced
 - **Verify:** vitest "DatePicker announces focused date and month"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC5: ISO string boundary
@@ -56,6 +60,7 @@
 - **When** I inspect the props
 - **Then** value and onValueChange use ISO date strings; no @internationalized/date type reaches the surface (TRD ADR-008)
 - **Verify:** shell ! grep -q "@internationalized" packages/react/etc/clara-react.api.md
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC6: Unavailable dates
@@ -64,6 +69,7 @@
 - **When** I reach an unavailable date
 - **Then** it is announced as unavailable rather than silently inert
 - **Verify:** vitest "DatePicker announces unavailable dates"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC7: Token-only styling
@@ -72,6 +78,7 @@
 - **When** the lint rule runs
 - **Then** it references tier 2 or tier 3 tokens only, with no raw literal
 - **Verify:** shell node scripts/check-component-css.mjs --component DatePicker
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC8: Both themes and densities
@@ -84,6 +91,7 @@
   all. That is gate 7's (US-01M0WSME), and every story in the preceding epic was corrected the
   same way
 - **Verify:** vitest "DatePicker theme and density matrix"
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ### AC9: Definition of done
@@ -99,6 +107,7 @@
   honest "outstanding" for the manual pass. **BG-01M107ND** carries the same correction for the
   stories that still copy it
 - **Verify:** shell node scripts/check-verification.mjs --component DatePicker
+- **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
 ## Test Plan
