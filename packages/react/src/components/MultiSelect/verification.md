@@ -63,6 +63,25 @@ See `packages/react/src/components/Select/verification.md` for the measured tabl
 - **The repo-wide keyboard gate does not reach this component.** Its file list is hand-typed, which
   BG-01M10BWX records, so no keyboard-table row here is gate-enforced beyond this unit's own tests.
 
+
+## Round 1 adversarial review (2026-08-30)
+
+An independent reviewer, not the author, probed this component and mutation-verified every finding.
+What it changed here:
+
+- **F3 (defect, fixed).** With `closeOnSelect: false` (D0128) the list stays open, so a controlled
+  parent with an inline `options` array re-rendered a fresh array identity on every toggle and the
+  shared engine's seat effect threw the highlight back to the first selected option mid-interaction.
+  The user's next Enter then toggled a value they were not looking at - the exact harm D0128's Tab
+  branch exists to prevent, arrived at from the other direction. The engine now holds the highlight
+  by VALUE while the list stays open. Scoped to `closeOnSelect: false`, so Combobox filtering is
+  unchanged.
+- **F6 (test that could not fail, fixed).** The check glyph - the CHOICE's visible carrier under
+  D0124 - could be deleted entirely with all 16 tests green. Its presence and absence are now both
+  asserted.
+- **F8 (fixed).** Each Tag's remove control was silently inert when disabled. `Tag` gained an
+  optional `disabled` prop (additive, non-breaking) so it can say so.
+
 ## Recorded manual keyboard pass
 
 Not performed. This is outstanding, and is stated rather than implied.

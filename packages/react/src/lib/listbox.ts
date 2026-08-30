@@ -77,6 +77,8 @@ export function useListbox<T> (input: UseListboxInput<T>) {
   const optionId = useCallback((index: number) => `${baseId}-option-${index}`, [baseId])
 
   const [activeIndex, setActiveIndex] = useState(-1)
+  /** The highlighted option's VALUE, so a fresh `options` array identity cannot move the highlight. */
+  const activeValue = useRef<T | null>(null)
   const buffer = useRef('')
   const bufferAt = useRef(0)
 
@@ -87,19 +89,34 @@ export function useListbox<T> (input: UseListboxInput<T>) {
   // it, so a reopened list never announces a stale position.
   useEffect(() => {
     if (!open) { setActiveIndex(-1); return }
+    // A list that STAYS OPEN across choices (D0128) must not move the highlight when the parent
+    // re-renders with a fresh `options` identity - which a controlled MultiSelect does on every
+    // single toggle, because `values` changing re-runs the parent's render. Re-seating there threw
+    // the highlight back onto the first selected option mid-interaction, so the user's next Enter
+    // toggled a value they were not looking at. Hold the highlight on the SAME option, by value,
+    // for as long as that option survives in the list.
+    if (!closeOnSelect && activeValue.current !== null) {
+      const kept = options.findIndex((o) => !o.disabled && o.value === activeValue.current)
+      setActiveIndex(kept === -1 ? first : kept)
+      return
+    }
     const selected = options.findIndex((o) => !o.disabled && isSelected(o))
     setActiveIndex(selected === -1 ? first : selected)
     // `isSelected` is a fresh closure every render, so it is deliberately not a dependency: this
     // effect must run when the list OPENS, not on every parent render while it is open.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, options, first])
+  }, [open, options, first, closeOnSelect])
 
-  // NOTE: there is no second effect clamping the highlight when `options` changes. There was, and a
-  // mutation proved it dead: the effect above already lists `options` as a dependency, so any change
-  // to the list re-runs it and re-seats the highlight. Deleting the clamp changed nothing any test
-  // could see, which is the definition of code that is not doing work. Resetting to the selected
-  // option or the first enabled one is also the RIGHT behaviour when a combobox filters - the list
-  // the user was pointing into no longer exists.
+  // Track the highlighted option BY VALUE. Declared after the seat effect on purpose: effects run in
+  // declaration order, so when `options` changes the seat effect above still reads the value from
+  // the previous commit, which is the one it needs to look up.
+  useEffect(() => {
+    activeValue.current = activeIndex === -1 ? null : (options[activeIndex]?.value ?? null)
+  }, [activeIndex, options])
+
+  // NOTE on the mode that closes (Select, Combobox): re-seating to the selected option or the first
+  // enabled one is the RIGHT behaviour when a combobox filters - the list the user was pointing into
+  // no longer exists - so that path is deliberately left as it was.
 
   const commit = useCallback((index: number) => {
     const option = options[index]

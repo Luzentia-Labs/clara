@@ -67,7 +67,14 @@ export function DateRangePicker ({
     if (value === undefined) setUncontrolled(next)
     onValueChange?.(next)
   }
-  const closeAndRestore = () => { setOpen(false); triggerRef.current?.focus() }
+  /**
+   * Closing DISCARDS a pending start. Every route out of the panel goes through here: Escape, a
+   * completed range, an outside click, a second click on the trigger, and Radix's own dismiss. It
+   * used to be cleared on Escape alone, so a user who picked a start and then clicked away had that
+   * abandoned date silently waiting - their next single pick completed a range against it.
+   */
+  const closePanel = () => { setPending(''); setOpen(false) }
+  const closeAndRestore = () => { closePanel(); triggerRef.current?.focus() }
 
   const availability = { min, max, isDateUnavailable }
 
@@ -92,7 +99,7 @@ export function DateRangePicker ({
     open,
     seed: current.start || todayIso(),
     onChoose: choose,
-    onDismiss: () => { setPending(''); closeAndRestore() },
+    onDismiss: closeAndRestore,
     isUnavailable: (iso) => isUnavailable(iso, availability),
   })
 
@@ -109,7 +116,11 @@ export function DateRangePicker ({
   const weekdays = weekdayLabels()
 
   return (
-    <RadixPopover.Root open={open} onOpenChange={(next) => { if (!isDisabled) setOpen(next) }} modal={false}>
+    <RadixPopover.Root
+      open={open}
+      onOpenChange={(next) => { if (!isDisabled) { if (next) setOpen(true); else closePanel() } }}
+      modal={false}
+    >
       <div className={cx('clara-date-range-picker', isDisabled && 'clara-date-range-picker--disabled', className)}>
         <RadixPopover.Anchor asChild>
           <button
@@ -121,7 +132,7 @@ export function DateRangePicker ({
             aria-expanded={open}
             aria-haspopup="dialog"
             // `aria-disabled` plus a suppressed handler, never the native attribute (D0058, D0064).
-            onClick={() => { if (!isDisabled) setOpen((o) => !o) }}
+            onClick={() => { if (!isDisabled) { if (open) closePanel(); else setOpen(true) } }}
           >
             <span className={cx('clara-date-range-picker__value',
               !current.start && 'clara-date-range-picker__value--placeholder')}>{label}</span>
@@ -132,6 +143,7 @@ export function DateRangePicker ({
           <button
             type="button"
             className="clara-date-range-picker__clear"
+            aria-disabled={isDisabled || undefined}
             onClick={() => { if (!isDisabled) { apply(EMPTY); setPending(''); setAnnouncement('Range cleared') } }}
           >
             Clear

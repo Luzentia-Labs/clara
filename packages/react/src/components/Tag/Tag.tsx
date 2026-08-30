@@ -32,6 +32,12 @@ export interface TagRemovableProps extends TagBaseProps {
   onRemove: () => void
   /** Overrides the `Remove <children>` accessible name, for a different word or another language. */
   removeLabel?: string
+  /**
+   * Marks the remove control unavailable. It KEEPS its tab stop and gains `aria-disabled` rather
+   * than the native attribute (D0058, D0064) - a keyboard user has to be able to reach it and learn
+   * it is unavailable, which a silently-inert button does not tell them.
+   */
+  disabled?: boolean
 }
 
 export type TagProps = TagStaticProps | TagRemovableProps
@@ -56,7 +62,8 @@ export function Tag (input: TagProps) {
   const removable = input.onRemove !== undefined
 
   return (
-    <span className={cx('clara-tag', `clara-tag--${intent}`, removable && 'clara-tag--removable', className)}>
+    <span className={cx('clara-tag', `clara-tag--${intent}`, removable && 'clara-tag--removable',
+      removable && input.disabled && 'clara-tag--disabled', className)}>
       {intent !== 'neutral' && (
         <span className="clara-visually-hidden">{INTENT_WORD[intent]}: </span>
       )}
@@ -68,7 +75,8 @@ export function Tag (input: TagProps) {
           // Named for what it removes. `children` is a string on this variant precisely so this
           // name can exist without the consumer having to supply it twice.
           aria-label={input.removeLabel ?? `Remove ${input.children}`}
-          onClick={input.onRemove}
+          aria-disabled={input.disabled || undefined}
+          onClick={() => { if (!input.disabled) input.onRemove() }}
         >
           {/* aria-hidden: the button already has its name, and "x" read aloud is noise. */}
           <span aria-hidden="true">&times;</span>

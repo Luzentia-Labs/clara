@@ -63,6 +63,24 @@ axis and one focus owner, and forcing a grid through it would fit worse than the
 - **Screen reader output.** axe reads the accessibility tree, not what NVDA or VoiceOver say.
 - **Storybook stories.** The app is a bare `package.json` (US-01M0GMZW).
 
+
+## Round 1 adversarial review (2026-08-30)
+
+An independent reviewer, not the author, probed this component and mutation-verified every finding.
+What it changed here:
+
+- **F2 (defect, fixed).** A truthy-but-unparseable seed (`2026-0` mid-typing, or an invalid `value`
+  prop) passed the `||` guard and failed the `fromIso` guard, so the calendar rendered ZERO day
+  cells - no roving tab stop, arrow keys inert, no way out but fixing the text. `seatFrom` now
+  falls back to today.
+- **F5 (test that could not fail, fixed).** Nothing asserted the selected day was marked. The suite
+  proved `.clara-date-picker__day--selected` HAS a background in `styles.css` while nothing proved
+  the class was ever emitted, so `aria-selected={false}` shipped green. Both are now asserted.
+- **F7 (proxy test, fixed).** "Tolerates a half-typed date" asserted only that a controlled input
+  echoed its value; it never opened the calendar, so the try/catch it cited could be deleted with
+  the test still green. It now opens the calendar - which is what exposed F2.
+- **F8 (fixed).** The "Choose date" toggle had no `aria-disabled`.
+
 ## Recorded manual keyboard pass
 
 Not performed. This is outstanding, and is stated rather than implied.

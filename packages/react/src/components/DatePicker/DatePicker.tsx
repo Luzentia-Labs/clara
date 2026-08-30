@@ -23,12 +23,6 @@ export interface DatePickerProps extends Availability {
   className?: string
 }
 
-const STEP: Record<string, { days?: number, months?: number }> = {
-  ArrowLeft: { days: -1 }, ArrowRight: { days: 1 },
-  ArrowUp: { days: -7 }, ArrowDown: { days: 7 },
-  PageUp: { months: -1 }, PageDown: { months: 1 },
-}
-
 /**
  * A date field with a calendar, following the APG's date-picker dialog.
  *
@@ -135,6 +129,9 @@ export function DatePicker ({
             aria-label="Choose date"
             aria-expanded={open}
             aria-haspopup="dialog"
+            // `aria-disabled` plus a suppressed handler, never the native attribute (D0058, D0064).
+            // The tab stop stays so a keyboard user can reach it and LEARN it is unavailable.
+            aria-disabled={isDisabled || undefined}
             onClick={() => { if (!isDisabled) setOpen((o) => !o) }}
           >
             <CalendarIcon aria-hidden="true" />

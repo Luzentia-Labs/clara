@@ -41,12 +41,30 @@ describe('DatePicker accepts direct text entry', () => {
     expect(onValueChange, 'and the handler is suppressed too').not.toHaveBeenCalled()
   })
 
-  it('tolerates a half-typed date rather than throwing', async () => {
+  it('tolerates a half-typed date rather than throwing, AND still opens a usable calendar', async () => {
     // `parseDate` throws on a malformed string, and half-typed is the normal state of an input
     // someone is still filling in. Treating that as an error makes the control unusable.
+    //
+    // Round 1 review, F7 and F2. This used to assert only that the input echoed `2026-0` back,
+    // which is a controlled input doing its job - it never opened the calendar, so `fromIso` was
+    // never handed the malformed string and the try/catch this comment cites could be deleted with
+    // the test still green. Opening it exposed the real defect: a truthy-but-unparseable seed
+    // passed the `||` guard and failed the `fromIso` guard, so the grid rendered ZERO day cells,
+    // with no roving tab stop and inert arrow keys.
     inField(<DatePicker />)
     await userEvent.type(screen.getByRole('textbox'), '2026-0')
     expect(screen.getByRole('textbox')).toHaveValue('2026-0')
+
+    const roving = await openCalendar()
+    expect(document.querySelectorAll('[role="gridcell"]').length,
+      'a half-typed date falls back to today, it does not empty the grid').toBe(42)
+    expect(roving, 'and the roving tab stop exists, so the arrow keys have an anchor').not.toBeNull()
+  })
+
+  it('falls back to today when the VALUE prop itself is unparseable (F2)', async () => {
+    inField(<DatePicker value="2026-13-45" />)
+    await openCalendar()
+    expect(document.querySelectorAll('[role="gridcell"]').length).toBe(42)
   })
 })
 
@@ -197,5 +215,37 @@ describe('DatePicker stylesheets select on the day state model', () => {
 
   it('keeps an UNAVAILABLE day readable rather than hiding it', () => {
     expect(block('.clara-date-picker__day--unavailable')).toContain('color:')
+  })
+})
+
+/**
+ * Round 1 review, F5 and F8. The suite asserted that `.clara-date-picker__day--selected` HAS a
+ * background and a colour in `styles.css`, but nothing asserted the class is ever emitted - so
+ * `aria-selected={false}` and a deleted class modifier both shipped green. That is the "class
+ * asserted but styling nothing" defect this sprint caught four times, run in reverse: a rule proven
+ * to exist for a state proven nowhere to be applied.
+ */
+describe('DatePicker marks the day already chosen', () => {
+  it('marks it in the accessibility tree AND in the class list', async () => {
+    inField(<DatePicker value="2026-03-14" />)
+    await openCalendar()
+    const chosen = screen.getByRole('gridcell', { name: '14 March 2026' })
+    expect(chosen.getAttribute('aria-selected'),
+      'a screen reader is told which cell is the current value').toBe('true')
+    expect(chosen.className,
+      'and the rule proven to exist in styles.css is actually applied').toContain('clara-date-picker__day--selected')
+
+    const others = Array.from(document.querySelectorAll('[role="gridcell"]'))
+      .filter((cell) => cell !== chosen)
+    expect(others.some((cell) => cell.getAttribute('aria-selected') === 'true'),
+      'and it is the ONLY selected cell').toBe(false)
+  })
+
+  it('marks the toggle unavailable rather than leaving it silently inert (F8)', () => {
+    inField(<DatePicker disabled />)
+    const toggle = screen.getByRole('button', { name: 'Choose date' })
+    expect(toggle.getAttribute('aria-disabled'),
+      'D0058: reachable, and TOLD it is unavailable').toBe('true')
+    expect(toggle.hasAttribute('disabled'), 'never the native attribute (D0064)').toBe(false)
   })
 })

@@ -193,6 +193,9 @@
   font: inherit;
   cursor: pointer;
 }
+/* Unavailable, and SAYING so: the control keeps its tab stop and its `aria-disabled` (D0058), so it
+   needs a matching visual state rather than being silently inert. */
+.clara-tag--disabled .clara-tag__remove { cursor: not-allowed; color: var(--clara-color-fg-muted); }
 .clara-tag__remove:focus-visible {
   outline: var(--clara-tag-focus-width) solid var(--clara-color-border-focus);
   outline-offset: var(--clara-tag-focus-width);
@@ -1569,6 +1572,10 @@
   border-radius: var(--clara-date-range-picker-radius);
   padding-inline: var(--clara-date-range-picker-padding-inline);
   cursor: pointer;
+}
+.clara-date-range-picker--disabled .clara-date-range-picker__clear {
+  cursor: not-allowed;
+  color: var(--clara-color-fg-muted);
 }
 .clara-date-range-picker--disabled .clara-date-range-picker__trigger { cursor: not-allowed; }
 .clara-date-range-picker__panel {

@@ -105,8 +105,9 @@ export function MultiSelect<T extends string = string> ({
                     screen-reader user tabbing through several of these otherwise hears the same
                     string every time and cannot tell which one they are about to drop. */}
                 <Tag
-                  onRemove={() => { if (!isDisabled) apply(current.filter((v) => v !== option.value)) }}
+                  onRemove={() => apply(current.filter((v) => v !== option.value))}
                   removeLabel={`Remove ${option.label}`}
+                  disabled={isDisabled}
                 >
                   {option.label}
                 </Tag>

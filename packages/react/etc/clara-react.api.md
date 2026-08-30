@@ -758,6 +758,7 @@ export type TagProps = TagStaticProps | TagRemovableProps;
 export interface TagRemovableProps extends TagBaseProps {
     // (undocumented)
     children: string;
+    disabled?: boolean;
     // (undocumented)
     onRemove: () => void;
     removeLabel?: string;

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
@@ -169,5 +170,80 @@ describe('MultiSelect option state tokens are pinned at both ends', () => {
       expect(decl, `${token} is emitted`).toBeTruthy()
       expect(decl).toBe(expected)
     }
+  })
+})
+
+/**
+ * Round 1 review, F3, F6 and F8.
+ *
+ * The existing "stays open across several toggles" test uses the module-level `OPTIONS` const and
+ * `defaultValues`, which is the one configuration in which F3's effect cannot re-fire. A CONTROLLED
+ * MultiSelect with an inline options array - the ordinary way a consumer writes this - produces a
+ * fresh array identity on every toggle, which is exactly what re-seated the highlight.
+ */
+describe('MultiSelect holds its place while it stays open', () => {
+  /** A controlled parent with an INLINE options array: fresh identity on every render. */
+  function Controlled () {
+    const [values, setValues] = useState<string[]>(['gbp'])
+    return (
+      <MultiSelect
+        options={[
+          { value: 'gbp', label: 'Pound sterling' },
+          { value: 'eur', label: 'Euro' },
+          { value: 'usd', label: 'US dollar', disabled: true },
+          { value: 'sek', label: 'Swedish krona' },
+        ]}
+        values={values}
+        onValuesChange={setValues}
+      />
+    )
+  }
+
+  const highlighted = () => {
+    const id = screen.getByRole('combobox').getAttribute('aria-activedescendant')
+    return id ? document.getElementById(id)?.textContent : null
+  }
+
+  it('keeps the highlight on the option the user moved to, across a toggle (F3)', async () => {
+    inField(<Controlled />)
+    await openIt()
+    expect(highlighted(), 'opening seats on the selected option').toBe('Pound sterling')
+
+    // Down to Euro, then again past the DISABLED US dollar to Swedish krona.
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    expect(highlighted()).toBe('Swedish krona')
+
+    await userEvent.keyboard('{Enter}')
+    expect(screen.queryByRole('listbox'), 'the list stays open (D0128)').not.toBeNull()
+    expect(highlighted(),
+      'and the highlight does NOT snap back to the first selected option').toBe('Swedish krona')
+
+    // The next Enter must therefore act on the option the user is looking at.
+    await userEvent.keyboard('{Enter}')
+    expect(highlighted()).toBe('Swedish krona')
+    expect(screen.queryByRole('button', { name: 'Remove Swedish krona' }),
+      'the second Enter toggled Swedish krona back off, not some other value').toBeNull()
+  })
+})
+
+describe('MultiSelect shows the choice, not only the cursor', () => {
+  it('renders a check on each selected option (F6, D0124)', async () => {
+    inField(<MultiSelect options={OPTIONS} defaultValues={['eur']} />)
+    await openIt()
+    const euro = screen.getByRole('option', { name: /Euro/ })
+    const krona = screen.getByRole('option', { name: /Swedish krona/ })
+    expect(euro.querySelector('.clara-multi-select__check'),
+      'the CHOICE needs a visible carrier of its own').not.toBeNull()
+    expect(krona.querySelector('.clara-multi-select__check'),
+      'and an unselected option has none').toBeNull()
+    expect(euro.getAttribute('aria-selected')).toBe('true')
+  })
+
+  it('marks each remove control unavailable rather than leaving it silently inert (F8)', () => {
+    inField(<MultiSelect options={OPTIONS} defaultValues={['eur']} disabled />)
+    const remove = screen.getByRole('button', { name: 'Remove Euro' })
+    expect(remove.getAttribute('aria-disabled'),
+      'D0058: reachable, and TOLD it is unavailable').toBe('true')
+    expect(remove.hasAttribute('disabled'), 'never the native attribute (D0064)').toBe(false)
   })
 })

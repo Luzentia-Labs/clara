@@ -59,6 +59,21 @@ components. What differs is what CHOOSING means, which each component supplies.
 - **Screen reader output.** axe reads the accessibility tree, not what NVDA or VoiceOver say.
 - **Storybook stories.** The app is a bare `package.json` (US-01M0GMZW).
 
+
+## Round 1 adversarial review (2026-08-30)
+
+An independent reviewer, not the author, probed this component and mutation-verified every finding.
+What it changed here:
+
+- **F1 (defect, fixed).** A pending start survived every dismissal except Escape. Clicking outside
+  and reopening completed a range against a date the user had abandoned. `closePanel` now clears it
+  on every route out - Escape, outside click, a second trigger click, and Radix's own dismiss.
+- **F4 (test that could not fail, fixed).** Every grid interaction in this suite was a CLICK, so
+  deleting `onKeyDown` from the tbody left all 16 tests green and the keyboard table above rested on
+  nothing. Five keyboard tests now drive it; deleting `onKeyDown` turns 3 red.
+- **F8 (fixed).** The Clear control was silently inert when disabled - no `aria-disabled`, no visual
+  state. It now carries both (D0058, D0064).
+
 ## Recorded manual keyboard pass
 
 Not performed. This is outstanding, and is stated rather than implied.

@@ -29,13 +29,23 @@ export interface UseCalendarGridInput {
   isUnavailable: (iso: IsoDate) => boolean
 }
 
+/**
+ * Where the roving focus starts. The seed is a RAW text-input value on DatePicker, so it is routinely
+ * half-typed (`2026-0`) or outright invalid - a truthy string that `fromIso` cannot parse. Guarding
+ * on truthiness alone let such a seed through to `monthGrid`, which produced a calendar of zero day
+ * cells: no roving tab stop, arrow keys inert, and no way out except fixing the text.
+ */
+function seatFrom (seed: IsoDate): IsoDate {
+  return seed && fromIso(seed) ? seed : todayIso()
+}
+
 export function useCalendarGrid ({ open, seed, onChoose, onDismiss, isUnavailable }: UseCalendarGridInput) {
-  const [focused, setFocused] = useState<IsoDate>(seed || todayIso())
+  const [focused, setFocused] = useState<IsoDate>(seatFrom(seed))
   const gridRef = useRef<HTMLTableSectionElement | null>(null)
 
   // Opening seats the roving focus. Closing does not reset it, so reopening returns the user where
   // they were rather than to a month they already left.
-  useEffect(() => { if (open) setFocused(seed || todayIso()) }, [open, seed])
+  useEffect(() => { if (open) setFocused(seatFrom(seed)) }, [open, seed])
 
   /**
    * A CALLBACK ref, not a plain one, because the grid lives behind a portal: when `open` flips, an

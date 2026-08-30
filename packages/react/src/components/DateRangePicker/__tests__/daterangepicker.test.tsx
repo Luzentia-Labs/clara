@@ -191,3 +191,87 @@ describe('DateRangePicker stylesheets select on the three day states', () => {
     expect(rule, 'and it does NOT claim the background').not.toContain('background:')
   })
 })
+
+/**
+ * Round 1 review, F1 and F4. Both existed because every grid interaction in this file was a CLICK:
+ * deleting `onKeyDown` from the tbody left all 16 tests green, so the nine-row keyboard table in
+ * this component's `verification.md` rested on nothing - and the one route that discarded a pending
+ * start (Escape) was the one route no test drove.
+ */
+describe('DateRangePicker grid keyboard model', () => {
+  const gridFocus = () => document.activeElement?.getAttribute('aria-label')
+
+  it('moves by day, by week and by month, and commits with Enter', async () => {
+    const onValueChange = vi.fn()
+    inField(<DateRangePicker defaultValue={{ start: '2026-03-10', end: '' }} onValueChange={onValueChange} />)
+    await openPanel()
+    await waitFor(() => expect(gridFocus()).toBe('10 March 2026'))
+
+    await userEvent.keyboard('{ArrowRight}')
+    expect(gridFocus(), 'ArrowRight moves one DAY').toBe('11 March 2026')
+    await userEvent.keyboard('{ArrowDown}')
+    expect(gridFocus(), 'ArrowDown moves one WEEK, not one day').toBe('18 March 2026')
+    await userEvent.keyboard('{ArrowUp}')
+    expect(gridFocus()).toBe('11 March 2026')
+    await userEvent.keyboard('{ArrowLeft}')
+    expect(gridFocus()).toBe('10 March 2026')
+
+    await userEvent.keyboard('{PageDown}')
+    expect(gridFocus(), 'PageDown moves one MONTH').toBe('10 April 2026')
+    await userEvent.keyboard('{PageUp}')
+    expect(gridFocus()).toBe('10 March 2026')
+
+    // Enter commits the start; the panel stays open, exactly as a click does.
+    await userEvent.keyboard('{Enter}')
+    expect(onValueChange, 'the first commit is a start, not a range').not.toHaveBeenCalled()
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    expect(onValueChange).toHaveBeenCalledWith({ start: '2026-03-10', end: '2026-03-17' })
+  })
+
+  it('Home and End move to the bounds of the WEEK, not the month', async () => {
+    inField(<DateRangePicker defaultValue={{ start: '2026-03-11', end: '' }} />)
+    await openPanel()
+    await waitFor(() => expect(gridFocus()).toBe('11 March 2026'))
+    await userEvent.keyboard('{Home}')
+    expect(gridFocus(), 'the row the user is on is the unit being navigated').toBe('9 March 2026')
+    await userEvent.keyboard('{End}')
+    expect(gridFocus()).toBe('15 March 2026')
+  })
+
+  it('Escape closes, restores focus to the trigger, and DISCARDS a pending start', async () => {
+    const onValueChange = vi.fn()
+    inField(<DateRangePicker defaultValue={{ start: '2026-03-10', end: '' }} onValueChange={onValueChange} />)
+    await openPanel()
+    await userEvent.click(screen.getByRole('gridcell', { name: '12 March 2026' }))
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Period' }))
+
+    // Reopening and picking ONE date must not complete a range against the abandoned start.
+    await openPanel()
+    await userEvent.click(screen.getByRole('gridcell', { name: '20 March 2026' }))
+    expect(onValueChange, 'the discarded start must not come back').not.toHaveBeenCalled()
+  })
+
+  it('discards a pending start when the panel is dismissed by any other route (F1)', async () => {
+    // The defect: `pending` was cleared on Escape alone. Clicking away left the abandoned date
+    // waiting, so the user's next SINGLE pick silently completed a range against it.
+    const onValueChange = vi.fn()
+    inField(<DateRangePicker defaultValue={{ start: '2026-03-10', end: '' }} onValueChange={onValueChange} />)
+    await openPanel()
+    await userEvent.click(screen.getByRole('gridcell', { name: '12 March 2026' }))
+    await userEvent.click(document.body)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+    await openPanel()
+    await userEvent.click(screen.getByRole('gridcell', { name: '20 March 2026' }))
+    expect(onValueChange, 'a dismissed start is abandoned, not banked').not.toHaveBeenCalled()
+  })
+
+  it('marks the clear control unavailable rather than leaving it silently inert (F8)', async () => {
+    inField(<DateRangePicker defaultValue={{ start: '2026-03-10', end: '2026-03-18' }} disabled />)
+    const clear = screen.getByRole('button', { name: /clear/i })
+    expect(clear.getAttribute('aria-disabled'), 'D0058: reachable AND told it is unavailable').toBe('true')
+    expect(clear.hasAttribute('disabled'), 'never the native attribute (D0064)').toBe(false)
+  })
+})
