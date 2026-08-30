@@ -1,50 +1,56 @@
 # Where Clara stands
 
-> **Updated:** 2026-08-27 (overlay run closed: four stories Done after five review rounds)
+> **Updated:** 2026-08-30 (RUN-01M17Q8Z left OPEN by operator decision - see One paragraph)
 > The figures below are generated - `pnpm latest:sync`, checked by `pnpm check:latest`. They were
 > typed by hand twice and were wrong both times.
 > Read this first after any compaction or reset, then run `/sdlc-studio status`.
 
 ## One paragraph
 
-**EP-01M0GK4P is DONE - all fourteen stories.** The five overlays, the portal and layer-scale
-foundation, Modal, and the seven feedback components. PRD F13 and F14 both move to Done with it;
-they had read "Not Started" while every component in them was built and shipping.
+**RUN-01M17Q8Z is OPEN, deliberately, and EP-01M0GK91 is NOT closed.** The building half of the
+Sprint Goal is done: MultiSelect, DatePicker and DateRangePicker all exist, are gated by
+`pnpm preflight`, and are pushed. The resolving half is not: **none of the five units in the batch
+reached Done.** The retro (RETRO-0004) is written and validated and the goal verdict is recorded as
+`partial`. Read `0/5 Done, 3/5 built` as two facts, not one.
 
-**It took eight adversarial review rounds and every one of them found something.** Rounds 1-5 on
-the four overlays, one on Drawer (never reviewed - it had shipped at planning tier with zero review
-rows), and two on the seven feedback components. Nine seats REJECTed. Nothing reached Done on the
-author's own say-so.
+**Why the run is open is a decision, not an omission.** `sprint close` refuses at 14 outstanding
+items and refuses `--file-and-close` too, on the correct grounds that a correctness gate is never
+filed away. Every one of the 14 traces to a single root the tool names itself: **all five stories
+are `Template: planning` scaffolds.** They were coded against directly, never promoted to full
+specs, never plan-reviewed. Closing therefore needs 40 sections of retrospective specification plus
+five plan-review overrides, and the operator judged that not worth doing now. Nothing is falsely
+certified; the run simply stays open.
 
-**One defect class accounts for most of it, and it kept reappearing one layer deeper than the fix.**
+**That is the engagement floor in AGENTS.md, skipped before the code rather than after it.** The
+floor exists precisely so the specification delta is derived FIRST. Five components were built past
+it. The cost did not appear as bad code - the code is green and now reviewed - it appeared as a
+sprint that cannot close.
 
-> **A proxy replaced by a better proxy is still a proxy.** Ask of every new assertion: what is the
-> nearest edit that changes the property and not the thing being read?
+**Round 1 on the three new components found nine things, and it was the FIRST round on them.**
+Three were real user-facing defects: DateRangePicker banked a pending start across every dismissal
+except Escape, so a later single pick completed a range against an abandoned date; DatePicker
+rendered a calendar of ZERO day cells for any unparseable seed, including a half-typed `2026-0`;
+and MultiSelect re-seated its highlight to the first selected option on every toggle, so the next
+Enter hit a value the user was not looking at. Five more were tests that could not fail - the
+entire DateRangePicker keyboard model was unverified because every interaction in its suite was a
+click, while its record published a nine-row keyboard table. All nine are fixed in `cff4616`, each
+mutation-verified red.
 
-Drawer: a placement CLASS stood in for the position, so AC7 measured the box - then the animation
-NAME stood in for the direction, so AC8 measured the paused first frame. Alert, Badge and Tag: AC6
-bound a class to its tokens, and a seat then hardcoded the MODIFIER so every intent rendered info
-colours with 1200 tests, typecheck, 34 e2e and 147 prover mutations green. Skeleton and EmptyState:
-`role="status"` PRESENCE stood in for announcing, and `aria-live="off"` silenced both with every gate
-passing. Alert again: icon PRESENCE stood in for icon IDENTITY, so a danger alert could show an "i".
+> **The first review round is the cheap one.** Rounds 3 and 4 on Select and Combobox cost ~1.35M
+> tokens and returned one user-facing defect. Round 1 here cost ~130k and returned three, plus five
+> dead tests. Judge the marginal value of each round; do not run them by reflex, and do not skip
+> the first one to save money.
 
-**Three gates were certifying a stale build.** `check:geometry` ran bare `playwright test` while its
-fixture inlines `dist/styles.css`; `check:scoping` and `check:storybook` built Storybook but not the
-library, and the Storybook build does not build its workspace dependencies. All three build first
-now, and `check-ci-gates` fails any playwright script without it. This file had already recorded the
-class as fixed for `test:e2e` - fixing one instance without enumerating the rest is how it came back.
+**One mutation probe silently failed to apply** and reported a green run that proved nothing - the
+third instance of that class this sprint. Probes now assert the substitution landed before trusting
+the result.
 
-**The worst self-inflicted moment was a commit message.** It said "Re-stamped" while re-stamping two
-criteria out of seventeen whose text was authored after the date they carried, several of which had
-changed their VERIFIER, so the certificate predated the verifier that produced it. A seat
-reconstructed every criterion's text at every commit and caught it. All 41 stamps were then stripped
-and re-earned; `verify_ac --dry-run` reports `changes=0`, which is what proves they were earned
-rather than date-bumped.
-
-**Six worktrees in a row arrived 28-33 commits behind their target.** Every seat caught it with
-`git merge-base --is-ancestor` before measuring. Had one not, every probe would have reported
-SURVIVED against a tree that never contained the fix, and the round would have read as a total
-regression. **Check the base ref before trusting any mutation result.**
+**Select (US-01M0GMRK) still carries round 4's REJECT.** Its findings are mostly the accuracy of
+the record's own prose: an APG deviation count that says four where at least six exist, a "pinned
+in both directions" claim that is false for the opening half, and no test reading the count at all.
+One is a real gap: the listbox panel has no tier 3 text pairing while every other portalled surface
+does. Combobox's latest verdict is APPROVE; Select's is not, which is the whole of why review
+coverage reads 4 of 5.
 
 The tree is on `main` with 1365 tests and every gate green. Nothing is on npm.
 
@@ -176,6 +182,17 @@ skill rather than here.
 | **The GM61 review rounds** | (closed, ten of them) | Six consecutive rounds found the same class: a claim asserting proof where no mutation demonstrates it, twice inside the previous round's own fix. Broken by enumerating every branch of the guard and deleting each in isolation. |
 | **US-01M0WSME** | Gate 7, and the two definition-of-done artefacts named above | Storybook workspace + visual regression. |
 | **`NPM_TOKEN`** | Any publish | Unset on the repo, deliberately, until a release is actually wanted. |
+
+## Open at the close of RUN-01M17Q8Z (2026-08-30)
+
+The run was left OPEN by operator decision. These are the 14 outstanding items' roots, not a waiver:
+
+| Open | Why it is open |
+| --- | --- |
+| **All five stories are `Template: planning`** | US-01M0GM0F, US-01M0GMC1, US-01M0GMC7, US-01M0GMJ8, US-01M0GMRK were coded against as scaffolds. Each defers 8 sections and needs a plan-review. This is the single root of 12 of the 14 blockers, and closing needs 40 retrospective sections plus 5 overrides. |
+| **Select carries round 4's REJECT** | US-01M0GMRK's latest verdict is REJECT (mira-calderon, 2026-08-29); Combobox's is APPROVE. That asymmetry alone is why review coverage reads 4 of 5. Its findings are mostly record-prose accuracy, plus one real gap: no tier 3 text pairing for the listbox panel. |
+| **The mutation lane is stale** | Evidence is from `c3982994a`, not this tree; 3 of 10 files of the recorded surface, one self-reported. Already carried as CR-01M153BV - do not re-file it. |
+| **The per-commit gate is unenforced** | The policy declares a `selected` per-commit lane, and no commit hook is readable at any of the four paths checked. Policy and reality are UNRECONCILED, and no full run has ever been measured, so the gate's cost is UNKNOWN rather than zero. |
 
 ## Deferred at close (RUN-01M0Q8VF)
 
