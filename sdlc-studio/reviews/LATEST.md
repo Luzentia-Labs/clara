@@ -52,12 +52,12 @@ One is a real gap: the listbox panel has no tier 3 text pairing while every othe
 does. Combobox's latest verdict is APPROVE; Select's is not, which is the whole of why review
 coverage reads 4 of 5.
 
-The tree is on `main` with 1376 tests and every gate green. Nothing is on npm.
+The tree is on `main` with 1395 tests and every gate green. Nothing is on npm.
 
 ## Numbers
 
 - `pnpm check` runs **30 guards**; `prove-guards-fail` kills **147 mutations** on a staged copy.
-- **1376 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
+- **1395 tests.** **19 CI gates**, 18 wired; the one pending is gate 7 (visual regression), owned by
   US-01M0GMZW. Mutation score 74.89% against a 70 break threshold.
 - **131 decisions**. Stories: **55 Done of 89**. `main` is the only branch - this project is
   trunk-based.

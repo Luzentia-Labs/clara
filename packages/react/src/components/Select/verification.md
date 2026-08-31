@@ -56,19 +56,34 @@ where `key.length === 1` is false.
 **The count itself is now read by a machine**, which it was not through four consecutive rounds of
 getting it wrong (three, then two, then four, then six). `pins the COUNT` parses THIS FILE - the
 count asserted in the sentence above, and the rows of the table below it - and compares both against
-the one canonical `APG_DEVIATIONS` array the pinned cases iterate. It compares the KEYS, not merely
-the number. Measured in all three directions: writing FIVE in the sentence reddens it, deleting a
-table row reddens it, and deleting an array entry reddens it. The previous version of this section
-said "nothing here checks the count itself", which was true and was the whole mechanism by which a
-number in prose drifted four times.
+the one canonical `APG_DEVIATIONS` array the pinned cases iterate. It compares each row's KEY AND
+THE STATE it deviates in, not merely the number. Measured: writing FIVE in the sentence reddens it,
+deleting a table row reddens it, deleting an array entry reddens it, renaming a key on either side
+reddens it, and changing `Home (closed)` to `Home (open)` reddens it. The table is read only to the
+first line that is not a row, so a deviation deleted here but mentioned in prose further down no
+longer counts - a seat measured that escape, and the earlier version also failed spuriously when any
+unrelated table was appended to this file. The version before that said "nothing here checks the
+count itself", which was true and was the whole mechanism by which a number in prose drifted four
+times.
+
+**The PageUp row is pinned from a seat that is not an end.** Its case opens with `value="eur"`,
+which seats the highlight on index 1 of four. Opened with no value it sits on index 0, where `move`
+clamps every upward step to a no-op - so the assertion "PageUp does not change
+`aria-activedescendant`" held no matter what PageUp did, and a faithful `Math.max(first, c - 10)`
+implementation of the APG behaviour left the suite green. A seat measured that, inside the very
+commit that was fixing this class of defect. The same deviation is now also pinned at the hook, in
+the engine test, where the seat is set directly.
 
 **The opening keys are pinned against the ENGINE, not against jsdom.** Two of the four keys that
 open a closed Select could not fail at component level: `Enter` and `Space` reach a native
 `<button>`, which jsdom activates regardless, so deleting either from the engine's closed branch
-left all 45 Select tests green. That is measured, and it is why
-`packages/react/src/lib/__tests__/listbox.test.ts` calls `triggerProps.onKeyDown` directly, where no
-native path exists. Deleting `key === 'Enter'` from `packages/react/src/lib/listbox.ts` now reddens there, and so does
-deleting `opensOnSpace`. An earlier version of this section claimed the count "cannot drift again in
+left all 45 Select tests green. That is measured, and it is why the engine
+`packages/react/src/lib/listbox.ts` is pinned by `packages/react/src/lib/__tests__/listbox.test.ts`,
+which calls `triggerProps.onKeyDown` directly, where no native path exists. Deleting
+`key === 'Enter'` from the closed branch now reddens there, and so does deleting `opensOnSpace`.
+That file also pins the branch to open on ONLY those four keys: adding `Tab` to it left both suites
+green until an exhaustive case was added, and a closed trigger that swallows Tab strands a keyboard
+user inside a control they are trying to leave. An earlier version of this section claimed the count "cannot drift again in
 either direction" while the opening half was vacuous; that claim is now true of both halves because
 both are executed rather than asserted.
 

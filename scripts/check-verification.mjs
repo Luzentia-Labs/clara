@@ -286,21 +286,49 @@ const collectTests = (dir) => {
  * called a real pin a bad citation and would have pushed the record back to citing a test that
  * cannot fail.
  *
- * The allowance is narrow on purpose: the cited test must live in a `lib/__tests__/` directory, and
- * the component's own source must import the matching `lib/` module. It is not a general escape
- * from "cite a test that tests you".
+ * THREE conditions, all required. The first version of this had only the middle one, and a seat
+ * broke it in one move: `lib/cx.ts` is imported by 39 of the 41 component directories, so
+ * `lib/__tests__/cx.test.ts` - a className-joining utility's test - passed as recorded evidence for
+ * Select's keyboard model and screen reader announcements. "Nothing wider" was the claim; it was
+ * not what the code did.
+ *
+ *   1. the cited test lives in a `lib/__tests__/` directory;
+ *   2. the component's own source imports the matching `lib/` module;
+ *   3. the SAME LINE of the record also cites `lib/<module>.ts` - so the record has to name the
+ *      shared module it is leaning on, in the place a reader will see it.
+ *
+ * (3) is what makes this narrow. A citation cannot borrow a shared test's credibility without
+ * saying, in the same breath, which engine it is talking about.
  */
-function pinsASharedEngine (home, resolved) {
+function pinsASharedEngine (home, resolved, line) {
   const inLib = /(^|\/)lib\/__tests__\/([\w-]+)\.test\.tsx?$/.exec(resolved)
   if (!inLib) return false
   const module = inLib[2]
+
+  // (3) The record must name the module on the same line as the test citation.
+  if (!line.includes(`lib/${module}.ts`)) return false
+
+  // (4) The shared module must export a HOOK. This is the principled half of the rule: a hook's
+  // behaviour can only be pinned by calling it, so its test is sometimes the ONLY place a
+  // component's evidence can live. A pure utility has no such excuse - `lib/cx.ts` joins class
+  // names, and its test can never be behavioural evidence for a keyboard model, however honestly
+  // the record names it. Without this, naming the module was the whole price of admission.
+  const libFile = join(ROOT, 'packages/react/src/lib', `${module}.ts`)
+  let lib = ''
+  try { lib = readFileSync(libFile, 'utf8') } catch {
+    try { lib = readFileSync(`${libFile}x`, 'utf8') } catch { return false }
+  }
+  if (!/export function use[A-Z]/.test(lib)) return false
+
+  // (2) The component must actually import it. A leading `/` is required so a directory merely
+  // ENDING in "lib" (`../../sublib/listbox`) cannot satisfy it.
   let sources = []
   try {
     sources = readdirSync(home).filter((f) => /\.tsx?$/.test(f) && !/\.test\./.test(f))
   } catch { return false }
   return sources.some((f) => {
     const src = readFileSync(join(home, f), 'utf8')
-    return new RegExp(`from '[^']*lib/${module}'`).test(src)
+    return new RegExp(`from '(?:[^']*/)?lib/${module}'`).test(src)
   })
 }
 
@@ -462,7 +490,9 @@ for (const name of inScope) {
       const resolved = existsSync(join(home, cited))
         ? join(home, cited).slice(ROOT.length + 1)
         : cited
-      if (covering.length && !covering.includes(resolved) && !pinsASharedEngine(home, resolved)) {
+      const line = text.slice(text.lastIndexOf('\n', m.index) + 1,
+        (text.indexOf('\n', m.index) + 1 || text.length + 1) - 1)
+      if (covering.length && !covering.includes(resolved) && !pinsASharedEngine(home, resolved, line)) {
         problems.push(
           `${where}: cites ${cited} as its evidence, but that file does not import ${name} - ` +
           `the assertions are in ${covering.join(', ')}`,

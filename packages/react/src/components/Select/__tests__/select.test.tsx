@@ -502,8 +502,17 @@ describe('Select APG deviations are recorded and pinned', () => {
   it.each(OPEN_DEVIATIONS.filter((d) => d.key !== 'Alt+ArrowUp').map((d) => [d.key, d.press] as const))(
     'DEVIATION: %s does not move the highlight', async (_n, key) => {
       // They fall to the typeahead default, where `key.length === 1` is false, so nothing happens.
-      const trigger = await renderOpen()
+      //
+      // `value: 'eur'` seats the highlight on index 1 of four, and that is load-bearing rather
+      // than incidental. Opened with no value the highlight sits on index 0, where `move` clamps
+      // every UPWARD step to a no-op - so this assertion held no matter what PageUp did, and a
+      // faithful `Math.max(first, c - 10)` implementation of the APG behaviour left it green. A
+      // seat measured exactly that. Seated at index 1, a real PageUp moves to 0 and a real
+      // PageDown moves to 3, so both directions can now fail.
+      const trigger = await renderOpen({ value: 'eur' })
       const before = trigger.getAttribute('aria-activedescendant')
+      expect(document.getElementById(before!)?.textContent,
+        'the fixture must seat OFF both ends, or this test cannot fail').toBe('Euro')
       await userEvent.keyboard(key)
       expect(trigger.getAttribute('aria-activedescendant')).toBe(before)
     })
@@ -530,17 +539,28 @@ describe('Select APG deviations are recorded and pinned', () => {
     const asserted = WORDS[claim![1]!]
     expect(asserted, `"${claim![1]}" is not a count this test can read`).toBeDefined()
 
-    // The table's data rows: between its header separator and the blank line that ends it.
-    const table = record.slice(record.indexOf('| Key | APG select-only combobox | Clara | Pinned |'))
-    const rows = table.split('\n').slice(2).filter((line) => line.startsWith('|'))
+    // The table's data rows, BOUNDED at the first line that is not a row. Filtering the whole rest
+    // of the file for lines beginning with `|` instead - which this did - meant an unrelated table
+    // further down inflated the count, and a deviation deleted from this table but mentioned in
+    // prose below it still counted. A seat measured both.
+    const after = record.slice(record.indexOf('| Key | APG select-only combobox | Clara | Pinned |'))
+    const rows: string[] = []
+    for (const line of after.split('\n').slice(2)) {
+      if (!line.startsWith('|')) break
+      rows.push(line)
+    }
 
     expect(rows.length, 'the record\'s table must list exactly the count it asserts').toBe(asserted)
     expect(APG_DEVIATIONS.length,
       'and this file must pin exactly that many - a deviation in the record with no case here, ' +
       'or a case here missing from the record, is the drift that happened four times').toBe(asserted)
 
-    // Same keys, not merely the same number.
-    const inRecord = rows.map((line) => line.split('|')[1]!.trim().replace(/ \((closed|open|OPEN)\)$/, ''))
-    expect(inRecord.slice().sort()).toEqual(APG_DEVIATIONS.map((d) => d.key).slice().sort())
+    // The same keys IN THE SAME STATE, not merely the same number. Stripping the `(closed)` /
+    // `(open)` qualifier and comparing only the key let the record assert a deviation in the wrong
+    // state - contradicting its own keyboard table - while this test stayed green.
+    const inRecord = rows.map((line) => line.split('|')[1]!.trim())
+    const inTests = APG_DEVIATIONS.map((d) => `${d.key} (${d.where})`)
+    expect(inRecord.slice().sort(),
+      'each row must name the key AND the state it deviates in').toEqual(inTests.slice().sort())
   })
 })
