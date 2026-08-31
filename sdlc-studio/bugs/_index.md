@@ -1,6 +1,6 @@
 # Bug Registry
 
-**Last Updated:** 2026-08-30
+**Last Updated:** 2026-08-31
 
 ## Summary
 
@@ -12,9 +12,9 @@
 | Verified | 0 |
 | Closed | 0 |
 | Won't Fix | 0 |
-| inbox | 21 |
+| inbox | 22 |
 | Superseded | 1 |
-| **Total** | **38** |
+| **Total** | **39** |
 
 ## By Severity
 
@@ -63,6 +63,7 @@
 | [BG-01M17P6M](BG-01M17P6M-arrowdown-can-move-the-listbox-highlight-up-the.md) | ArrowDown can move the listbox highlight UP the screen, because rendering buckets by group while the engine numbers by array index | High | Medium | inbox | -- | -- | 2026-08-30 |
 | [BG-01M17PCH](BG-01M17PCH-select-and-combobox-convey-disabled-by-text-colour.md) | Select and Combobox convey disabled by text colour alone, with no disabled surface, unlike every sibling control | Medium | Medium | inbox | -- | -- | 2026-08-30 |
 | [BG-01M19411](BG-01M19411-the-barrel-entry-size-budget-is-a-flat.md) | The barrel-entry size budget is a flat per-component allowance, and it has drifted twice in one sprint because components are not interchangeable in size | Medium | Medium | inbox | -- | -- | 2026-08-30 |
+| [BG-01M1AJSR](BG-01M1AJSR-six-apg-deviations-on-the-shared-listbox-pattern.md) | Six APG deviations on the shared listbox pattern are recorded and pinned, but not resolved | Medium | Medium | inbox | -- | -- | 2026-08-31 |
 
 ## Notes
 

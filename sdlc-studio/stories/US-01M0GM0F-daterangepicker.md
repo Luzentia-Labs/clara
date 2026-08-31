@@ -53,7 +53,7 @@ defect: the pending start survived being dismissed.
 | Source | Type | Constraint | AC Implication |
 | --- | --- | --- | --- |
 | Epic | Architecture | Sits on `useCalendarGrid` (D0131). The hook owns roving focus, the step table and week bounds; the component owns cell state | Keyboard ACs are satisfied by the hook, so its tests are the evidence for them |
-| PRD | Architecture | `@internationalized/date` is the only date library, reached only through `lib/calendar.ts` (ADR-008). ISO strings on the public surface, never a Date object | No AC may expose a library type; the public API takes and returns `YYYY-MM-DD` strings |
+| PRD | Architecture | `@internationalized/date` is the only date library (ADR-008), reached only through `lib/calendar.ts` (D0129). ISO strings on the public surface, never a Date object | No AC may expose a library type; the public API takes and returns `YYYY-MM-DD` strings |
 | PRD | Accessibility | WCAG 2.2 AA. A date grid is 2D, so it uses roving tabindex and focus MOVES - unlike the listbox, where focus stays on the trigger | Focus-management ACs differ from the listbox components on purpose, and say so |
 | Epic | Architecture | Reuses the calendar HOOK, not a calendar component - a range needs in-range cell states a single picker does not | Markup ACs are this component's own; keyboard ACs are the hook's |
 
@@ -166,13 +166,15 @@ defect: the pending start survived being dismissed.
 | The two dates are chosen backwards (end first) | They are ordered rather than rejected. A user who clicks the later date first meant a range, not an error. |
 | The panel is dismissed with a start chosen but no end | The pending start is DISCARDED. Round 1 found it cleared on Escape alone, so clicking away and reopening completed a range against a date the user had abandoned. |
 | The same date is chosen twice | A single-day range, which is a legitimate period and not an error state. |
-| An endpoint is also inside the range | Endpoint and in-range styling must compose rather than conflict - the endpoint's background and the in-range fill are separate channels, and the cursor uses `box-shadow` only so it can sit on top of either. |
+| An endpoint would otherwise also count as in-range | It never does: `inRange` uses STRICT `>` and `<`, so the two classes are mutually exclusive by construction rather than composed. They have to be - both `--endpoint` and `--in-range` declare `background`, the same channel, so an element carrying both would have one silently win. AC1's own mutant is widening `>` to `>=`. The CURSOR is the thing that composes, and only because it uses `box-shadow` rather than a background. |
 | A preset is chosen | It sets both endpoints at once and closes, with no pending state in between. |
 | Clear is pressed | Both endpoints and any pending start are dropped together, and the announcement says so. |
 | The control is disabled | The trigger and the Clear button both carry `aria-disabled`; round 1 found Clear silently inert. |
 
-> 7 edge cases. The last three in this table were found by round 1's adversarial
-> review rather than at design time, which is what skipping the engagement floor cost.
+> 7 edge cases.
+> Row 2 is round 1's F1 - a pending start banked across every dismissal except Escape, so a later
+> single pick completed a range against an abandoned date. Row 7 is F8: the Clear control was
+> silently inert when disabled. Both were found by an adversarial review rather than at design time.
 
 ## Test Scenarios
 
@@ -185,8 +187,15 @@ defect: the pending start survived being dismissed.
 - [x] Clear carries `aria-disabled` when the control is disabled
 - [x] axe passes across four theme x density combinations
 
-> All scenarios are executed by the suites named in the Test Plan below. The manual
-> keyboard pass is NOT among them and is outstanding, which the verification record states.
+> Every scenario above is executed. Most are covered by the suites named in the Test Plan below;
+> a few are held by repo-wide guards that the Test Plan does not list, because they are not
+> per-component verifiers - the public-surface scenario is `scripts/api-report.mjs`, and the
+> token-only styling one is `scripts/check-component-css.mjs`. Naming that difference matters: an
+> earlier version of this footnote said "the suites named in the Test Plan below" and a plan-review
+> found scenarios ticked off with nothing behind them at all.
+>
+> The manual keyboard pass is NOT among them. It is outstanding on every record in this epic, it is
+> the thing no automated check reaches, and each verification record says so in its own words.
 
 ## Dependencies
 
@@ -202,7 +211,7 @@ defect: the pending start survived being dismissed.
 | --- | --- | --- |
 | React 18 and 19 | peer | Supported, both |
 | Radix UI primitives | runtime | Used for the portal and positioning only - never leaked to the API |
-| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008) |
+| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008 picks it, D0129 confines it) |
 
 ## Estimation
 
@@ -215,7 +224,7 @@ defect: the pending start survived being dismissed.
 > **This estimate was never measured against an actual.** The run was driven interactively rather
 > than by the sprint runner, so no per-unit token or time actual was recorded, and
 > `retro.py accuracy` cannot run at all here - its id regex wants four digits where this project
-> uses ULIDs. RETRO-0004 records both facts. The points below are therefore a forecast with no
+> uses ULIDs. RETRO0004 records both facts. The points below are therefore a forecast with no
 > feedback loop attached, and should be read as one.
 
 ## Rollback Envelope

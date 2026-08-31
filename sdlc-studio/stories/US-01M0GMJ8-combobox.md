@@ -218,8 +218,9 @@ longer exist, so re-seating is correct here where it is wrong for MultiSelect.
 | Space is typed into the query | Inserted as a character. It must never be prevented: keydown precedes insertion, so preventing it deletes the space. Measured - typing " Ac" into a closed Combobox produced "Ac" before the fix. |
 | A printable character is typed | It is a QUERY character, never a typeahead key. Typeahead is a listbox affordance and is wrong for an editable trigger. |
 
-> 10 edge cases. The last three in this table were found by round 1's adversarial
-> review rather than at design time, which is what skipping the engagement floor cost.
+> 10 edge cases.
+> NO row here comes from round 1, which did not review Combobox. These rows come from the earlier
+> D0121-D0124 repair round, and the Space-on-a-textbox row from the measurement behind D0123.
 
 ## Test Scenarios
 
@@ -233,8 +234,15 @@ longer exist, so re-seating is correct here where it is wrong for MultiSelect.
 - [x] axe passes across four theme x density combinations
 - [x] It stays operable inside a Modal
 
-> All scenarios are executed by the suites named in the Test Plan below. The manual
-> keyboard pass is NOT among them and is outstanding, which the verification record states.
+> Every scenario above is executed. Most are covered by the suites named in the Test Plan below;
+> a few are held by repo-wide guards that the Test Plan does not list, because they are not
+> per-component verifiers - the public-surface scenario is `scripts/api-report.mjs`, and the
+> token-only styling one is `scripts/check-component-css.mjs`. Naming that difference matters: an
+> earlier version of this footnote said "the suites named in the Test Plan below" and a plan-review
+> found scenarios ticked off with nothing behind them at all.
+>
+> The manual keyboard pass is NOT among them. It is outstanding on every record in this epic, it is
+> the thing no automated check reaches, and each verification record says so in its own words.
 
 ## Dependencies
 
@@ -250,7 +258,7 @@ longer exist, so re-seating is correct here where it is wrong for MultiSelect.
 | --- | --- | --- |
 | React 18 and 19 | peer | Supported, both |
 | Radix UI primitives | runtime | Used for the portal and positioning only - never leaked to the API |
-| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008) |
+| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008 picks it, D0129 confines it) |
 
 ## Estimation
 
@@ -263,7 +271,7 @@ longer exist, so re-seating is correct here where it is wrong for MultiSelect.
 > **This estimate was never measured against an actual.** The run was driven interactively rather
 > than by the sprint runner, so no per-unit token or time actual was recorded, and
 > `retro.py accuracy` cannot run at all here - its id regex wants four digits where this project
-> uses ULIDs. RETRO-0004 records both facts. The points below are therefore a forecast with no
+> uses ULIDs. RETRO0004 records both facts. The points below are therefore a forecast with no
 > feedback loop attached, and should be read as one.
 
 ## Rollback Envelope

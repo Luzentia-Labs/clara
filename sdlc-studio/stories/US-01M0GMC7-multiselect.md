@@ -181,10 +181,14 @@ named for what it removes" rather than growing a second vocabulary for the same 
 | Forced-colors mode | `box-shadow` is forced to `none`, so any state carried only by a shadow disappears. Recorded as a gap (BG-01M159D6) rather than claimed - jsdom cannot see it either way. |
 | A choice is made while the list is open | The list STAYS open (D0128) and the highlight stays on the option the user is looking at. Round 1 found it snapping back to the first selected option on every toggle, so the next Enter hit a value the user had not chosen. |
 | Tab is pressed with a highlight seated | The list closes WITHOUT committing. In an accumulating list, committing a cursor the user never chose adds a value they may not notice, and an accidental toggle is worse than a lost one (D0128). |
-| The last selected value is removed | The tag list disappears entirely rather than leaving an empty `<ul>`, and the live region announces the new count. |
+| The last selected value is removed | The tag list disappears entirely rather than leaving an empty `<ul>`. The live region goes EMPTY rather than announcing a count - it renders `${n} selected` only when `n > 0`, so at zero it says nothing. That is deliberate for the initial render, where a region created with text in it is commonly not announced at all; whether silence is right for a user who has just cleared their last filter is NOT settled, and no test covers the zero case. |
 
-> 9 edge cases. The last three in this table were found by round 1's adversarial
-> review rather than at design time, which is what skipping the engagement floor cost.
+> 9 edge cases.
+> Row 7 is round 1's F3 - the highlight snapping back to the first selected option on every toggle,
+> found by an adversarial review rather than at design time. Row 3 is broader than it was for the
+> same reason: F8 found each Tag's remove control silently inert when the control was disabled.
+> Round 1's other MultiSelect finding, F6, has no row here on purpose - a check glyph that could be
+> deleted with every test green is a test-coverage defect, not an edge case.
 
 ## Test Scenarios
 
@@ -197,8 +201,15 @@ named for what it removes" rather than growing a second vocabulary for the same 
 - [x] The live region is present and empty before there is anything to say
 - [x] axe passes across four theme x density combinations, on the container and on `document.body`
 
-> All scenarios are executed by the suites named in the Test Plan below. The manual
-> keyboard pass is NOT among them and is outstanding, which the verification record states.
+> Every scenario above is executed. Most are covered by the suites named in the Test Plan below;
+> a few are held by repo-wide guards that the Test Plan does not list, because they are not
+> per-component verifiers - the public-surface scenario is `scripts/api-report.mjs`, and the
+> token-only styling one is `scripts/check-component-css.mjs`. Naming that difference matters: an
+> earlier version of this footnote said "the suites named in the Test Plan below" and a plan-review
+> found scenarios ticked off with nothing behind them at all.
+>
+> The manual keyboard pass is NOT among them. It is outstanding on every record in this epic, it is
+> the thing no automated check reaches, and each verification record says so in its own words.
 
 ## Dependencies
 
@@ -207,7 +218,7 @@ named for what it removes" rather than growing a second vocabulary for the same 
 | Story | Type | What's Needed | Status |
 | --- | --- | --- | --- |
 | US-01M0GMRK | Engine | The shared listbox engine and its option-state token model | Draft (built) |
-| US-01M0GM0D | Pattern | Tag, reused for the selected values | Done |
+| US-01M0GMBA | Pattern | Tag, reused for the selected values | Done |
 
 ### External Dependencies
 
@@ -215,7 +226,7 @@ named for what it removes" rather than growing a second vocabulary for the same 
 | --- | --- | --- |
 | React 18 and 19 | peer | Supported, both |
 | Radix UI primitives | runtime | Used for the portal and positioning only - never leaked to the API |
-| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008) |
+| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008 picks it, D0129 confines it) |
 
 ## Estimation
 
@@ -228,7 +239,7 @@ named for what it removes" rather than growing a second vocabulary for the same 
 > **This estimate was never measured against an actual.** The run was driven interactively rather
 > than by the sprint runner, so no per-unit token or time actual was recorded, and
 > `retro.py accuracy` cannot run at all here - its id regex wants four digits where this project
-> uses ULIDs. RETRO-0004 records both facts. The points below are therefore a forecast with no
+> uses ULIDs. RETRO0004 records both facts. The points below are therefore a forecast with no
 > feedback loop attached, and should be read as one.
 
 ## Rollback Envelope

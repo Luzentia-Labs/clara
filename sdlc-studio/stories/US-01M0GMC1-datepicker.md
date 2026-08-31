@@ -55,7 +55,7 @@ staying on a trigger with `aria-activedescendant`.
 | Source | Type | Constraint | AC Implication |
 | --- | --- | --- | --- |
 | Epic | Architecture | Sits on `useCalendarGrid` (D0131). The hook owns roving focus, the step table and week bounds; the component owns cell state | Keyboard ACs are satisfied by the hook, so its tests are the evidence for them |
-| PRD | Architecture | `@internationalized/date` is the only date library, reached only through `lib/calendar.ts` (ADR-008). ISO strings on the public surface, never a Date object | No AC may expose a library type; the public API takes and returns `YYYY-MM-DD` strings |
+| PRD | Architecture | `@internationalized/date` is the only date library (ADR-008), reached only through `lib/calendar.ts` (D0129). ISO strings on the public surface, never a Date object | No AC may expose a library type; the public API takes and returns `YYYY-MM-DD` strings |
 | PRD | Accessibility | WCAG 2.2 AA. A date grid is 2D, so it uses roving tabindex and focus MOVES - unlike the listbox, where focus stays on the trigger | Focus-management ACs differ from the listbox components on purpose, and say so |
 | PRD | API | The text input is never disabled in favour of the calendar | AC1 asserts it directly; the calendar is an additional route to the same value, never the only one |
 
@@ -186,8 +186,11 @@ staying on a trigger with `aria-activedescendant`.
 | The control is disabled | `aria-disabled` plus suppressed handlers on BOTH the input and the toggle. Round 1 found the toggle silently inert with no state in the a11y tree. |
 | Escape while the calendar is open | Closes and RESTORES focus to the input. A dialog that closes and drops focus to the body strands a keyboard user at the top of the page. |
 
-> 7 edge cases. The last three in this table were found by round 1's adversarial
-> review rather than at design time, which is what skipping the engagement floor cost.
+> 7 edge cases.
+> Rows 1 and 2 are round 1's F2 and F7 - a truthy-but-unparseable seed emptying the entire grid,
+> which survived because the test that named it never opened the calendar. Row 6 is F8: the "Choose
+> date" toggle carried no `aria-disabled`. All three were found by an adversarial review rather than
+> at design time.
 
 ## Test Scenarios
 
@@ -201,8 +204,15 @@ staying on a trigger with `aria-activedescendant`.
 - [x] Exactly one cell carries `tabindex="0"`
 - [x] axe passes across four theme x density combinations
 
-> All scenarios are executed by the suites named in the Test Plan below. The manual
-> keyboard pass is NOT among them and is outstanding, which the verification record states.
+> Every scenario above is executed. Most are covered by the suites named in the Test Plan below;
+> a few are held by repo-wide guards that the Test Plan does not list, because they are not
+> per-component verifiers - the public-surface scenario is `scripts/api-report.mjs`, and the
+> token-only styling one is `scripts/check-component-css.mjs`. Naming that difference matters: an
+> earlier version of this footnote said "the suites named in the Test Plan below" and a plan-review
+> found scenarios ticked off with nothing behind them at all.
+>
+> The manual keyboard pass is NOT among them. It is outstanding on every record in this epic, it is
+> the thing no automated check reaches, and each verification record says so in its own words.
 
 ## Dependencies
 
@@ -218,7 +228,7 @@ staying on a trigger with `aria-activedescendant`.
 | --- | --- | --- |
 | React 18 and 19 | peer | Supported, both |
 | Radix UI primitives | runtime | Used for the portal and positioning only - never leaked to the API |
-| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008) |
+| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008 picks it, D0129 confines it) |
 
 ## Estimation
 
@@ -231,7 +241,7 @@ staying on a trigger with `aria-activedescendant`.
 > **This estimate was never measured against an actual.** The run was driven interactively rather
 > than by the sprint runner, so no per-unit token or time actual was recorded, and
 > `retro.py accuracy` cannot run at all here - its id regex wants four digits where this project
-> uses ULIDs. RETRO-0004 records both facts. The points below are therefore a forecast with no
+> uses ULIDs. RETRO0004 records both facts. The points below are therefore a forecast with no
 > feedback loop attached, and should be read as one.
 
 ## Rollback Envelope

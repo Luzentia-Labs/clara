@@ -8,6 +8,7 @@ import { runAxe } from '../../../../../../test/axe'
 import { resetDevWarnings } from '../../../lib/dev-warning'
 import { ClaraProvider } from '../../../theme/ClaraProvider'
 import { Field } from '../../Field/Field'
+import { Modal } from '../../Modal/Modal'
 import { Combobox, COMBOBOX_LOCAL_OPTION_CEILING, type ComboboxOption } from '../Combobox'
 
 const OPTIONS: ComboboxOption[] = [
@@ -394,5 +395,78 @@ describe('Combobox render order, every claim pinned', () => {
       { value: 'z', label: 'Z', group: 'H' },
       { value: 'b', label: 'B', group: 'G' },
     ])).toEqual(['A', 'B', 'Z'])
+  })
+})
+
+/**
+ * Four behaviours this component's story checked off as covered while nothing tested them.
+ *
+ * A plan-review found them: "It stays operable inside a Modal" had been copied from Select's story,
+ * which has such a test where Combobox had none; Escape, typeahead-off and no-wrap were claimed and
+ * unpinned. Written here rather than unchecked in the story, because three of them are behaviours
+ * the shared engine only gets right for Combobox by way of a FLAG, and an unpinned flag is one
+ * nobody notices flipping.
+ */
+describe('Combobox behaviours its story claimed but nothing pinned', () => {
+  it('Escape closes and restores focus to the input', async () => {
+    inField(<Combobox options={OPTIONS} />)
+    const input = await openIt()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+    expect(document.activeElement, 'focus must not be dropped to the body').toBe(input)
+  })
+
+  it('does NOT typeahead - a printable character is a query character', async () => {
+    // `typeahead: false` is the flag that distinguishes an editable trigger from a listbox one.
+    // Typing 's' must filter, never jump the highlight to "Swedish krona" the way Select's does.
+    inField(<Combobox options={OPTIONS} />)
+    const input = await openIt()
+    const before = input.getAttribute('aria-activedescendant')
+    expect(document.getElementById(before!)?.textContent).toBe('Pound sterling')
+    await userEvent.type(input, 's')
+
+    // THE pin for `typeahead: false`: with typeahead ON the engine calls preventDefault() on any
+    // printable key, so the character never reaches the input at all. It arriving is the proof.
+    expect(input, 'a query character must not be swallowed by a typeahead branch').toHaveValue('s')
+
+    // And it FILTERED rather than jumping the highlight inside an unfiltered list, which is what
+    // Select does with the same keystroke. The match is `includes`, not `startsWith`.
+    const options = screen.getAllByRole('option').map((o) => o.textContent)
+    expect(options, 'the character filtered the list').toEqual(
+      ['Pound sterling', 'US dollar', 'Swedish krona'])
+    expect(options.length, 'a typeahead would have left all four in place').toBeLessThan(OPTIONS.length)
+  })
+
+  it('does not WRAP past either end', async () => {
+    inField(<Combobox options={OPTIONS} />)
+    const input = await openIt()
+    const first = input.getAttribute('aria-activedescendant')
+    await userEvent.keyboard('{ArrowUp}')
+    expect(input.getAttribute('aria-activedescendant'),
+      'ArrowUp at the first option stays put rather than jumping to the last').toBe(first)
+
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    const last = input.getAttribute('aria-activedescendant')
+    expect(document.getElementById(last!)?.textContent,
+      'and the disabled US dollar was skipped on the way').toBe('Swedish krona')
+    await userEvent.keyboard('{ArrowDown}')
+    expect(input.getAttribute('aria-activedescendant')).toBe(last)
+  })
+
+  it('renders its listbox and stays operable inside a Modal', async () => {
+    // The panel portals to document.body while the Modal traps focus there. Select has this test;
+    // its story and Combobox's both claimed it, and only one of them was true.
+    const onValueChange = vi.fn()
+    render(
+      <Modal open onClose={() => {}} title="Filters">
+        <Field label="Currency"><Combobox options={OPTIONS} onValueChange={onValueChange} /></Field>
+      </Modal>,
+    )
+    const input = screen.getByRole('combobox')
+    input.focus()
+    await userEvent.keyboard('{ArrowDown}')
+    await screen.findByRole('listbox')
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    expect(onValueChange).toHaveBeenCalledWith('eur')
   })
 })
