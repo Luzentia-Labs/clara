@@ -4,7 +4,7 @@
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GK91
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** packages/react/src/components/Select/**, packages/react/src/components/Select/verification.md, packages/react/src/lib/listbox.ts, packages/react/src/styles.css, packages/tokens/src/component/select.json, packages/tokens/src/pairings.json, scripts/check-component-css.mjs
@@ -15,6 +15,47 @@
 **As a** Grace Adeyemi
 **I want** a select for short, known option sets
 **So that** picking from a handful of options is fast and predictable
+
+## Context
+
+> **Written retrospectively.** This section was authored on 2026-08-31, after the code shipped,
+> when `sprint close` refused the run because every story in the batch was a planning-tier scaffold
+> that had been coded against directly. That is the engagement floor in AGENTS.md, and it was
+> skipped. Recording that here rather than presenting this as a plan that preceded the work: a
+> specification written after the fact is evidence of what was built, not of what was intended.
+
+### Persona Reference
+
+**Sofia Marchetti** (primary) - full-stack developer building internal ERP apps; she is the one who
+calls this component's API and overrides its tokens.
+**Grace Adeyemi** (served) - accounts payable clerk, 200-400 lines a day on one fixed monitor, with
+a mild red-green colour vision deficiency she has never mentioned at work. She never touches the
+API, and every contrast, density and focus floor in this story exists for her.
+[Full persona details](../personas/index.md#design-personas)
+
+### Background
+
+The single-choice list, and the component the rest of this epic is built on. Its
+keyboard model became `lib/listbox.ts` (D0105), which Combobox and MultiSelect now share.
+
+It follows the APG's **select-only combobox**: the trigger carries `role="combobox"`, focus never
+leaves it, and the highlight is communicated with `aria-activedescendant`. That choice is why the
+focus model differs from the calendar components in this epic, and the record says so explicitly
+rather than leaving a reader to infer that one model covers everything.
+
+The component deviates from the APG in six measured places. Those deviations are recorded rather
+than fixed, because fixing them changes keyboard behaviour, which is a decision rather than a
+correction. The count itself has a history - see Open Questions.
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| Epic | Architecture | Sits on the shared listbox engine (D0105). The engine owns the keyboard model and the highlight; the component owns its markup | AC covering keyboard behaviour is satisfied by the engine, so a change there reddens every component on it |
+| PRD | Accessibility | WCAG 2.2 AA. Non-text state indicators need 3:1 (PRD Section 7); the cursor and the CHOICE need separate visible carriers (D0124) | A criterion asserting a state is visible must name the channel carrying it, not just the class |
+| PRD | Security | No network calls, no environment variables, no user data leaves the component | No AC covers data handling because there is none; stated so absence reads as deliberate |
+| PRD | API | Radix must not leak: `asChild`, `onOpenChange` and `data-state` are never Clara API; `as` is the single polymorphism idiom | No AC may expose a Radix prop, and the API surface guard enforces it |
 
 ## Acceptance Criteria
 
@@ -150,6 +191,88 @@
 **Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
 
 **Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Edge Cases & Error Handling
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| The consumer passes an empty `options` array | Renders an empty listbox rather than throwing. No highlight is seated, and arrow keys are inert because there is nothing to move to. |
+| Every option is `disabled` | The highlight seats nowhere (`seek` returns -1) and stays at -1. Enter commits nothing. The list still opens, so the user can see that everything is unavailable rather than facing a control that appears broken. |
+| The control is `disabled` | `aria-disabled` plus a suppressed handler, never the native attribute (D0058, D0064). The tab stop is KEPT so a keyboard user can reach it and learn it is unavailable. Every affordance inside it carries the same state - round 1 found three that did not. |
+| The consumer re-renders with a fresh `options` array identity | The list must not lose the user's place. For a list that closes on choice this is a re-seat; for one that stays open it holds the highlight by value (D0128). |
+| The panel is portalled outside the provider's DOM scope | The panel declares its own `color` and `font-size` rather than inheriting: a portal escapes the consumer's cascade, so anything inherited is whatever `document.body` happens to carry. |
+| Forced-colors mode | `box-shadow` is forced to `none`, so any state carried only by a shadow disappears. Recorded as a gap (BG-01M159D6) rather than claimed - jsdom cannot see it either way. |
+| The APG lists a key Clara does not handle | Recorded as a measured deviation with the count machine-checked, not fixed silently. Six exist. The count read three, then two, then four before anything executed it. |
+| Space while the list is OPEN | Selects and closes, per the APG (D0123). It previously fell to the typeahead branch and searched for a label beginning with a space - silently inert on a key this component itself teaches as one that opens the list. |
+| Space on a TEXTBOX trigger | Never prevented - it is a query character there, and keydown precedes insertion, so preventing it deletes the user's space. |
+| A printable character is repeated | Typeahead cycles through options starting with that character rather than searching for the repeated string. |
+
+> 10 edge cases. The last three in this table were found by round 1's adversarial
+> review rather than at design time, which is what skipping the engagement floor cost.
+
+## Test Scenarios
+
+- [x] The trigger is a combobox owning a listbox, and says so only while open
+- [x] The highlight tracks with `aria-activedescendant` and the id RESOLVES to a rendered option
+- [x] The highlight skips disabled options and does not wrap at either end
+- [x] Home and End jump to the first and last ENABLED options
+- [x] Space while open commits and closes (D0123)
+- [x] The six APG deviations are pinned, and the COUNT is read by a machine
+- [x] Enter and Space open the closed list through the ENGINE, not through native button activation
+- [x] The option state tokens are pinned at both ends
+- [x] It stays operable inside a Modal
+
+> All scenarios are executed by the suites named in the Test Plan below. The manual
+> keyboard pass is NOT among them and is outstanding, which the verification record states.
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| US-01M0GM3D | Framework | Field wiring and `fieldAriaProps` | Done |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| React 18 and 19 | peer | Supported, both |
+| Radix UI primitives | runtime | Used for the portal and positioning only - never leaked to the API |
+| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008) |
+
+## Estimation
+
+**Points:** 5
+**Complexity:** Medium
+
+> Sized against the components already delivered in the preceding epic. This is a RELATIVE size on
+> the modified Fibonacci scale, not a duration.
+>
+> **This estimate was never measured against an actual.** The run was driven interactively rather
+> than by the sprint runner, so no per-unit token or time actual was recorded, and
+> `retro.py accuracy` cannot run at all here - its id regex wants four digits where this project
+> uses ULIDs. RETRO-0004 records both facts. The points below are therefore a forecast with no
+> feedback loop attached, and should be read as one.
+
+## Rollback Envelope
+
+**Affects production runtime:** false
+
+*Not applicable - this story does not change runtime behaviour of any deployed system.* Clara is a
+library with no backend, no network calls and no environment variables. Nothing here is published:
+both packages sit at `0.0.0` and `NPM_TOKEN` is unset on the repo, deliberately, until a release is
+actually wanted.
+
+The reversal that DOES matter is the one that cannot be done: publishing is a one-way door. A
+renamed prop, exported name or tier 2 token breaks consumers already shipped, and a bad release is
+fixed forward with a patch, never unpublished. That is why the public surface diff is reviewed
+before the implementation rather than after it.
+
+## Open Questions
+
+- [x] BG-01M17P6M - should the six APG deviations be FIXED rather than recorded? UNRESOLVED as a product question, and deliberately so: each changes keyboard behaviour for three components at once, which is a decision for the operator rather than a correction an implementer makes. Recorded, measured and pinned in the meantime.
+- [x] Why did the deviation count drift four times? RESOLVED: nothing read it. It was prose, and every repair asserted it could not drift again without adding anything that would notice. It is now parsed out of the record and compared against the pinned cases by key.
 
 ## Test Plan
 

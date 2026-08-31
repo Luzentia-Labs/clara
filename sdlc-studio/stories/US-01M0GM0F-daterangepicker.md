@@ -4,7 +4,7 @@
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
-> **Template:** planning
+> **Template:** full
 > **Epic:** EP-01M0GK91
 > **Serves:** Grace Adeyemi, Sofia Marchetti
 > **Affects:** packages/react/src/components/DateRangePicker/**, packages/react/src/components/DateRangePicker/verification.md, packages/react/src/lib/calendar.ts, packages/react/src/lib/calendar-grid.ts, packages/react/src/components/DatePicker/DatePicker.tsx, packages/react/src/styles.css, packages/react/src/index.ts, packages/react/client-boundary.json, packages/react/src/components/__tests__/boundary.test.tsx, packages/tokens/src/component/date-range-picker.json, packages/tokens/src/pairings.json, packages/tokens/contrast-required.json, scripts/check-component-css.mjs, scripts/check-verification.mjs, apps/docs/src/content/components/date-range-picker.md, .size-limit.json
@@ -15,6 +15,47 @@
 **As a** Grace Adeyemi
 **I want** a start and end date with common period presets
 **So that** selecting last quarter takes one click rather than two calendar hunts
+
+## Context
+
+> **Written retrospectively.** This section was authored on 2026-08-31, after the code shipped,
+> when `sprint close` refused the run because every story in the batch was a planning-tier scaffold
+> that had been coded against directly. That is the engagement floor in AGENTS.md, and it was
+> skipped. Recording that here rather than presenting this as a plan that preceded the work: a
+> specification written after the fact is evidence of what was built, not of what was intended.
+
+### Persona Reference
+
+**Sofia Marchetti** (primary) - full-stack developer building internal ERP apps; she is the one who
+calls this component's API and overrides its tokens.
+**Grace Adeyemi** (served) - accounts payable clerk, 200-400 lines a day on one fixed monitor, with
+a mild red-green colour vision deficiency she has never mentioned at work. She never touches the
+API, and every contrast, density and focus floor in this story exists for her.
+[Full persona details](../personas/index.md#design-personas)
+
+### Background
+
+Grace reconciles a period, not a day: "last quarter", "this month", or two dates
+she picks herself. The presets are not a convenience feature - they are the common case, and putting
+them before the grid in the tab order says so.
+
+DateRangePicker reuses `useCalendarGrid` (D0131) rather than a shared calendar COMPONENT, because a
+range needs cell states a single picker does not: days that are neither endpoint but lie between
+them. Sharing the model and not the markup was the cheaper half to share.
+
+The interaction is two picks with a state between them. That intermediate state - a start chosen and
+an end still pending - is where this story's real complexity lives, and it is where round 1 found a
+defect: the pending start survived being dismissed.
+## Inherited Constraints
+
+> See Epic for full constraint chain. Key constraints for this story:
+
+| Source | Type | Constraint | AC Implication |
+| --- | --- | --- | --- |
+| Epic | Architecture | Sits on `useCalendarGrid` (D0131). The hook owns roving focus, the step table and week bounds; the component owns cell state | Keyboard ACs are satisfied by the hook, so its tests are the evidence for them |
+| PRD | Architecture | `@internationalized/date` is the only date library, reached only through `lib/calendar.ts` (ADR-008). ISO strings on the public surface, never a Date object | No AC may expose a library type; the public API takes and returns `YYYY-MM-DD` strings |
+| PRD | Accessibility | WCAG 2.2 AA. A date grid is 2D, so it uses roving tabindex and focus MOVES - unlike the listbox, where focus stays on the trigger | Focus-management ACs differ from the listbox components on purpose, and say so |
+| Epic | Architecture | Reuses the calendar HOOK, not a calendar component - a range needs in-range cell states a single picker does not | Markup ACs are this component's own; keyboard ACs are the hook's |
 
 ## Acceptance Criteria
 
@@ -97,6 +138,105 @@
 - **Verified:** yes (2026-08-30)
 - **Verification target:** functional
 
+## Scope
+
+### In Scope
+
+- DateRangePicker
+
+### Out of Scope
+
+- Anything outside this component's own surface
+- Documentation page content (owned by the documentation epic)
+
+## Technical Notes
+
+**TDD.** This component has a documented keyboard interaction table, so the table is the specification and its tests are written first (D0024).
+
+**Points:** 5 (modified Fibonacci; nothing here exceeds 8, the split threshold).
+
+**Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
+
+**Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
+
+## Edge Cases & Error Handling
+
+| Scenario | Expected Behaviour |
+| --- | --- |
+| The two dates are chosen backwards (end first) | They are ordered rather than rejected. A user who clicks the later date first meant a range, not an error. |
+| The panel is dismissed with a start chosen but no end | The pending start is DISCARDED. Round 1 found it cleared on Escape alone, so clicking away and reopening completed a range against a date the user had abandoned. |
+| The same date is chosen twice | A single-day range, which is a legitimate period and not an error state. |
+| An endpoint is also inside the range | Endpoint and in-range styling must compose rather than conflict - the endpoint's background and the in-range fill are separate channels, and the cursor uses `box-shadow` only so it can sit on top of either. |
+| A preset is chosen | It sets both endpoints at once and closes, with no pending state in between. |
+| Clear is pressed | Both endpoints and any pending start are dropped together, and the announcement says so. |
+| The control is disabled | The trigger and the Clear button both carry `aria-disabled`; round 1 found Clear silently inert. |
+
+> 7 edge cases. The last three in this table were found by round 1's adversarial
+> review rather than at design time, which is what skipping the engagement floor cost.
+
+## Test Scenarios
+
+- [x] Both endpoints are captured and the panel stays open between them
+- [x] Endpoints chosen backwards are ordered rather than rejected
+- [x] A pending start is discarded by Escape AND by any other dismissal route
+- [x] Each preset produces the dates its label claims, asserted by value not by presence
+- [x] Arrow, Page and Home/End keys drive the grid; Enter commits; Escape closes and restores focus
+- [x] An endpoint does not also carry the in-range class
+- [x] Clear carries `aria-disabled` when the control is disabled
+- [x] axe passes across four theme x density combinations
+
+> All scenarios are executed by the suites named in the Test Plan below. The manual
+> keyboard pass is NOT among them and is outstanding, which the verification record states.
+
+## Dependencies
+
+### Story Dependencies
+
+| Story | Type | What's Needed | Status |
+| --- | --- | --- | --- |
+| US-01M0GMC1 | Engine | `useCalendarGrid` and `lib/calendar.ts` (D0131) | Blocked (built) |
+
+### External Dependencies
+
+| Dependency | Type | Status |
+| --- | --- | --- |
+| React 18 and 19 | peer | Supported, both |
+| Radix UI primitives | runtime | Used for the portal and positioning only - never leaked to the API |
+| `@internationalized/date` | runtime | Only for the two calendar stories, reached only through `lib/calendar.ts` (ADR-008) |
+
+## Estimation
+
+**Points:** 5
+**Complexity:** Medium
+
+> Sized against the components already delivered in the preceding epic. This is a RELATIVE size on
+> the modified Fibonacci scale, not a duration.
+>
+> **This estimate was never measured against an actual.** The run was driven interactively rather
+> than by the sprint runner, so no per-unit token or time actual was recorded, and
+> `retro.py accuracy` cannot run at all here - its id regex wants four digits where this project
+> uses ULIDs. RETRO-0004 records both facts. The points below are therefore a forecast with no
+> feedback loop attached, and should be read as one.
+
+## Rollback Envelope
+
+**Affects production runtime:** false
+
+*Not applicable - this story does not change runtime behaviour of any deployed system.* Clara is a
+library with no backend, no network calls and no environment variables. Nothing here is published:
+both packages sit at `0.0.0` and `NPM_TOKEN` is unset on the repo, deliberately, until a release is
+actually wanted.
+
+The reversal that DOES matter is the one that cannot be done: publishing is a one-way door. A
+renamed prop, exported name or tier 2 token breaks consumers already shipped, and a bad release is
+fixed forward with a patch, never unpublished. That is why the public surface diff is reviewed
+before the implementation rather than after it.
+
+## Open Questions
+
+- [x] One month or two side by side? RESOLVED: one, paging. A two-month view is more keystrokes saved but more layout than this story carries, and it is recorded as a stated gap in the verification record rather than left implicit.
+- [x] Where do presets sit in the tab order? RESOLVED: before the grid, because they are the common case. Reaching them should not require tabbing through 42 day cells.
+
 ## Test Plan
 
 Every row below was RUN against this tree. `Mutant` is the production change the criterion's own
@@ -121,27 +261,6 @@ them are DISTINGUISHABLE on screen - that is three surfaces whose difference jsd
 contrast pairs are measured and the declarations are asserted; what they look like is gate 7's.
 
 > **Verification target tiers:** `functional` | `conversational` | `soak` | `live` - see `reference-test-best-practices.md#verification-depth-tiers`. The `- **Mutation-checked:**` and `- **Verified:**` lines arrive with promotion: they record work only implementation can do.
-
-## Scope
-
-### In Scope
-
-- DateRangePicker
-
-### Out of Scope
-
-- Anything outside this component's own surface
-- Documentation page content (owned by the documentation epic)
-
-## Technical Notes
-
-**TDD.** This component has a documented keyboard interaction table, so the table is the specification and its tests are written first (D0024).
-
-**Points:** 5 (modified Fibonacci; nothing here exceeds 8, the split threshold).
-
-**Inherited constraints.** Component CSS references tier 2 or tier 3 tokens only, never a literal. `as` is the only polymorphism idiom. No Radix type, prop name, or `data-*` attribute may reach the public surface. All CSS is emitted inside `@layer clara.reset, clara.tokens, clara.components;`.
-
-**Definition of done** is the TSD's, not this story's: stories, unit and interaction tests using accessible queries, an axe assertion over default and error states, a visual baseline in both themes and both densities, a docs page, a mutation score at or above threshold, a documented keyboard interaction table, and a recorded manual keyboard pass.
 
 ## Revision History
 
