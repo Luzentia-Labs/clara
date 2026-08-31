@@ -313,7 +313,13 @@ function pinsASharedEngine (home, resolved, line) {
   // component's evidence can live. A pure utility has no such excuse - `lib/cx.ts` joins class
   // names, and its test can never be behavioural evidence for a keyboard model, however honestly
   // the record names it. Without this, naming the module was the whole price of admission.
-  const libFile = join(ROOT, 'packages/react/src/lib', `${module}.ts`)
+  // Resolved from the CITED test's own directory, not a hardcoded one. Taking the module name from
+  // the basename while vetting `packages/react/src/lib/<name>.ts` meant condition 4 could vet a
+  // file the citation never pointed at: a seat planted a decoy at `scripts/lib/__tests__/
+  // listbox.test.ts` whose whole body was `expect(1).toBe(1)`, cited it with `lib/listbox.ts` named
+  // on the same line, and the guard passed. `scripts/lib/__tests__/` is a real directory here with
+  // 15 test files, so the collision surface was not hypothetical.
+  const libFile = join(ROOT, resolved.slice(0, resolved.indexOf('__tests__')), `${module}.ts`)
   let lib = ''
   try { lib = readFileSync(libFile, 'utf8') } catch {
     try { lib = readFileSync(`${libFile}x`, 'utf8') } catch { return false }
