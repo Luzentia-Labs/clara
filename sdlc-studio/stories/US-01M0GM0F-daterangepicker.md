@@ -1,6 +1,6 @@
 # US-01M0GM0F: DateRangePicker
 
-> **Status:** Draft
+> **Status:** Review
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -242,6 +242,14 @@ fixed forward with a patch, never unpublished. That is why the public surface di
 before the implementation rather than after it.
 
 ## Open Questions
+
+None. Every question this story raised has a ruling under Resolved Questions below.
+
+## Resolved Questions
+
+> Rulings, not open items. They live under their own heading because a ticked box with
+> no destination is how a question stops being visible without being answered - the
+> terminal-status gate refuses one, and it is right to.
 
 - [x] One month or two side by side? RESOLVED: one, paging. A two-month view is more keystrokes saved but more layout than this story carries, and it is recorded as a stated gap in the verification record rather than left implicit.
 - [x] Where do presets sit in the tab order? RESOLVED: before the grid, because they are the common case. Reaching them should not require tabbing through 42 day cells.

@@ -1,6 +1,6 @@
 # US-01M0GMC1: DatePicker
 
-> **Status:** Blocked
+> **Status:** Review
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -259,6 +259,14 @@ fixed forward with a patch, never unpublished. That is why the public surface di
 before the implementation rather than after it.
 
 ## Open Questions
+
+None. Every question this story raised has a ruling under Resolved Questions below.
+
+## Resolved Questions
+
+> Rulings, not open items. They live under their own heading because a ticked box with
+> no destination is how a question stops being visible without being answered - the
+> terminal-status gate refuses one, and it is right to.
 
 - [x] ADR-008 - which date library? RESOLVED: `@internationalized/date`, reached only through `lib/calendar.ts`. Measured at 7.85 kB, the smallest third-party dependency in the repo against 15-34 kB for the Radix packages. D0129 and D0130 raised both size ceilings to take it.
 - [x] Roving tabindex or `aria-activedescendant`? RESOLVED: roving tabindex. A grid is 2D and focus moves; the listbox pattern keeps focus on the trigger. They are different patterns and the record says so rather than implying one model covers both.

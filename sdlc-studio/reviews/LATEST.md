@@ -1,58 +1,53 @@
 # Where Clara stands
 
-> **Updated:** 2026-08-30 (RUN-01M17Q8Z left OPEN by operator decision - see One paragraph)
+> **Updated:** 2026-08-31 (RUN-01M17Q8Z: the blocking set cleared, the close at its round cap)
 > The figures below are generated - `pnpm latest:sync`, checked by `pnpm check:latest`. They were
 > typed by hand twice and were wrong both times.
 > Read this first after any compaction or reset, then run `/sdlc-studio status`.
 
 ## One paragraph
 
-**RUN-01M17Q8Z is OPEN, deliberately, and EP-01M0GK91 is NOT closed.** The building half of the
-Sprint Goal is done: MultiSelect, DatePicker and DateRangePicker all exist, are gated by
-`pnpm preflight`, and are pushed. The resolving half is not: **none of the five units in the batch
-reached Done.** The retro (RETRO-0004) is written and validated and the goal verdict is recorded as
-`partial`. Read `0/5 Done, 3/5 built` as two facts, not one.
-
-**Why the run is open is a decision, not an omission.** `sprint close` refuses at 14 outstanding
-items and refuses `--file-and-close` too, on the correct grounds that a correctness gate is never
-filed away. Every one of the 14 traces to a single root the tool names itself: **all five stories
-are `Template: planning` scaffolds.** They were coded against directly, never promoted to full
-specs, never plan-reviewed. Closing therefore needs 40 sections of retrospective specification plus
-five plan-review overrides, and the operator judged that not worth doing now. Nothing is falsely
-certified; the run simply stays open.
-
-**That is the engagement floor in AGENTS.md, skipped before the code rather than after it.** The
-floor exists precisely so the specification delta is derived FIRST. Five components were built past
-it. The cost did not appear as bad code - the code is green and now reviewed - it appeared as a
-sprint that cannot close.
-
-**Round 1 on the three new components found nine things, and it was the FIRST round on them.**
-Three were real user-facing defects: DateRangePicker banked a pending start across every dismissal
-except Escape, so a later single pick completed a range against an abandoned date; DatePicker
-rendered a calendar of ZERO day cells for any unparseable seed, including a half-typed `2026-0`;
-and MultiSelect re-seated its highlight to the first selected option on every toggle, so the next
-Enter hit a value the user was not looking at. Five more were tests that could not fail - the
-entire DateRangePicker keyboard model was unverified because every interaction in its suite was a
-click, while its record published a nine-row keyboard table. All nine are fixed in `cff4616`, each
-mutation-verified red.
-
-> **The first review round is the cheap one.** Rounds 3 and 4 on Select and Combobox cost ~1.35M
-> tokens and returned one user-facing defect. Round 1 here cost ~130k and returned three, plus five
-> dead tests. Judge the marginal value of each round; do not run them by reflex, and do not skip
-> the first one to save money.
-
-**One mutation probe silently failed to apply** and reported a green run that proved nothing - the
-third instance of that class this sprint. Probes now assert the substitution landed before trusting
-the result.
-
-**Select (US-01M0GMRK) still carries round 4's REJECT.** Its findings are mostly the accuracy of
-the record's own prose: an APG deviation count that says four where at least six exist, a "pinned
-in both directions" claim that is false for the opening half, and no test reading the count at all.
-One is a real gap: the listbox panel has no tier 3 text pairing while every other portalled surface
-does. Combobox's latest verdict is APPROVE; Select's is not, which is the whole of why review
-coverage reads 4 of 5.
+**EP-01M0GK91's five components are built, independently reviewed and repaired.** MultiSelect,
+DatePicker and DateRangePicker were built in this run; Select and Combobox were resolved in it. All
+five stories are `full` tier with an independent plan-review APPROVE, and every unit carries a
+delivery verdict. The tree is green.
 
 The tree is on `main` with 1399 tests and every gate green. Nothing is on npm.
+
+**Three review sequences ran, and each one found something the one before it had missed.** That is
+the finding worth carrying, not the fix list.
+
+> **A fix for a vacuity can itself be vacuous.** Twice in one day: the commit that made the APG
+> deviation count machine-read contained a PageUp pin that could not fail, and the commit that
+> fixed a scenario ticked-with-no-test contained a typeahead test that could not fail on the flag
+> it named. Both were caught by a seat, not by the author, and both were inside the repair for
+> exactly that defect class.
+
+**Round 1 on the three new components returned three real user-facing defects and five tests that
+could not fail** - and it was the FIRST round on that code. DateRangePicker banked a pending start
+across every dismissal except Escape. DatePicker rendered a calendar of ZERO day cells for any
+unparseable seed, including a half-typed `2026-0`. MultiSelect re-seated its highlight on every
+toggle, so the next Enter hit a value the user was not looking at. Cost about 130k tokens. Compare
+rounds 3-4 on Select and Combobox: ~1.35M for one user-facing defect. **The first round on
+unreviewed code is where quality is cheapest; late rounds are where it is dearest.**
+
+**The engagement floor was skipped, and the bill arrived at the close rather than in the code.** All
+five stories were `Template: planning` scaffolds coded against directly. Nothing failed at build
+time - preflight was green, a review had approved three components - and then `sprint close` refused
+at 14 items, twelve of them rooted in that one fact. Promoting the five and writing the 40 deferred
+sections is what cleared it. A specification written after the code is evidence of what was built,
+not of what was intended, and each story says so in its own Context section.
+
+**Verification method, three failures, one root.** A probe that silently did not apply and reported
+green; a probe that hit the wrong CSS selector; and a mutation "verified" on a suite-wide failure
+count when the failures came from pre-existing tests rather than the test under check. Every mutation
+probe now asserts the substitution landed, isolates with `-t`, and expects the count to move from 0
+failed to 1 failed on that one test.
+
+**Six REJECTs on Select before its APPROVE triggered a convergence escalation**, which is the tool
+working: `critic.py` notified the operator that the repair was not converging. The close then
+stopped at its declared round cap of 6 rather than starting a seventh, and says so - `a cap nobody
+enforces is a comment`.
 
 ## Numbers
 
@@ -193,6 +188,17 @@ The run was left OPEN by operator decision. These are the 14 outstanding items' 
 | **Select carries round 4's REJECT** | US-01M0GMRK's latest verdict is REJECT (mira-calderon, 2026-08-29); Combobox's is APPROVE. That asymmetry alone is why review coverage reads 4 of 5. Its findings are mostly record-prose accuracy, plus one real gap: no tier 3 text pairing for the listbox panel. |
 | **The mutation lane is stale** | Evidence is from `c3982994a`, not this tree; 3 of 10 files of the recorded surface, one self-reported. Already carried as CR-01M153BV - do not re-file it. |
 | **The per-commit gate is unenforced** | The policy declares a `selected` per-commit lane, and no commit hook is readable at any of the four paths checked. Policy and reality are UNRECONCILED, and no full run has ever been measured, so the gate's cost is UNKNOWN rather than zero. |
+
+## Outstanding at the close of RUN-01M17Q8Z (2026-08-31)
+
+| Open | Why |
+| --- | --- |
+| **BG-01M1AJSR** | Six measured APG deviations on the shared listbox pattern, recorded and pinned but not resolved. Each changes keyboard behaviour for three shipped components at once, so it is an operator decision, not an implementer's correction. The bug lays out three options and picks none. |
+| **BG-01M1AN45** | `check-verification`'s shared-engine allowance validates the cited FILE, never the CLAIM. Filed rather than fixed: the base rule has the same granularity, and a further round of tightening risks implying a guarantee the check cannot give. |
+| **BG-01M19411, BG-01M17P6M, BG-01M159WJ** | Carried from earlier. The flat per-component barrel-entry budget; ArrowDown walking a grouped highlight upward; a highlight reset on a fresh array identity. |
+| **The mutation lane** | Evidence is from `c3982994a`, not this tree - 3 of 10 files of the recorded surface, one self-reported. Carried as CR-01M153BV; do not re-file. |
+| **The per-commit gate** | Policy declares a `selected` per-commit lane and no commit hook is readable at any of the four paths checked. Policy and reality UNRECONCILED, and no full run has ever been measured, so its cost is UNKNOWN rather than zero. |
+| **The manual keyboard pass** | Outstanding on every record in this epic, and each says so. Not a Done gate; it is the thing no automated check reaches. |
 
 ## Deferred at close (RUN-01M0Q8VF)
 

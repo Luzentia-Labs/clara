@@ -1,6 +1,6 @@
 # US-01M0GMJ8: Combobox
 
-> **Status:** Draft
+> **Status:** Review
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -293,8 +293,15 @@ before the implementation rather than after it.
 
 ## Open Questions
 
-- [x] Should typeahead be shared with Select? RESOLVED: no. It is a listbox affordance and is wrong for a combobox, where the same keystrokes are the query. It is a flag on the engine (`typeahead`) with the reason recorded, not a branch inside either component.
 - [x] BG-01M17P6M - ArrowDown can walk the highlight UP the screen on a grouped list. UNRESOLVED, filed, and inherited from the shared engine. Not stop-ship: nothing is published, and it is triaged with acceptance criteria.
+
+## Resolved Questions
+
+> Rulings, not open items. They live under their own heading because a ticked box with
+> no destination is how a question stops being visible without being answered - the
+> terminal-status gate refuses one, and it is right to.
+
+- [x] Should typeahead be shared with Select? RESOLVED: no. It is a listbox affordance and is wrong for a combobox, where the same keystrokes are the query. It is a flag on the engine (`typeahead`) with the reason recorded, not a branch inside either component.
 
 ## Test Plan
 

@@ -1,6 +1,6 @@
 # US-01M0GMRK: Select
 
-> **Status:** Draft
+> **Status:** Review
 > **Created:** 2026-08-21
 > **Created-by:** sdlc-studio new
 > **Raised-by:** sdlc-studio; agent; v1
@@ -281,6 +281,13 @@ before the implementation rather than after it.
 ## Open Questions
 
 - [x] BG-01M1AJSR - should the six APG deviations be FIXED rather than recorded? UNRESOLVED as a product question, and deliberately so: each changes keyboard behaviour for three components at once, which is a decision for the operator rather than a correction an implementer makes. Recorded, measured and pinned in the meantime. This question had NO artefact until a plan-review found the story citing BG-01M17P6M for it, which is a different bug (ArrowDown walking the highlight up a grouped list); BG-01M1AJSR was filed to hold it.
+
+## Resolved Questions
+
+> Rulings, not open items. They live under their own heading because a ticked box with
+> no destination is how a question stops being visible without being answered - the
+> terminal-status gate refuses one, and it is right to.
+
 - [x] Why did the deviation count drift four times? RESOLVED: nothing read it. It was prose, and every repair asserted it could not drift again without adding anything that would notice. It is now parsed out of the record and compared against the pinned cases by key.
 
 ## Test Plan
