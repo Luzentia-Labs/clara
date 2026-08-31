@@ -442,13 +442,18 @@ describe('Combobox behaviours its story claimed but nothing pinned', () => {
       ['Pound sterling', 'US dollar', 'Swedish krona'])
     expect(options.length, 'a typeahead would have left all four in place').toBeLessThan(OPTIONS.length)
 
-    // The scenario this backs is "a printable character does not JUMP the highlight", so assert
-    // the highlight AFTER the keystroke - the previous version read it only before, and never
-    // checked the thing its own name promised. A typeahead would have moved it to the first label
-    // containing "s" in an UNFILTERED list; re-seating to the first surviving match is not that.
+    // Where the highlight ends up after the keystroke. This RECORDS the behaviour; it does not
+    // discriminate, and saying so is the point. A seat built the isolating mutant - `typeahead:
+    // true` AND the typeahead branch's `preventDefault` deleted, so the character arrives and
+    // `runTypeahead` also runs - and this assertion SURVIVED it: the jump to "Swedish krona" is
+    // immediately overwritten when the query re-renders a filtered `options` and the seat effect
+    // re-seats to the first entry. The re-seat wins either way, so 'Pound sterling' holds under a
+    // live typeahead too.
+    //
+    // The pin on the flag is `toHaveValue('s')` above, which does fail when typeahead is on.
     const after = input.getAttribute('aria-activedescendant')
     expect(document.getElementById(after!)?.textContent,
-      'the highlight re-seated to the first MATCH, it was not jumped by typeahead').toBe('Pound sterling')
+      'after filtering, the highlight sits on the first surviving match').toBe('Pound sterling')
   })
 
   it('does not WRAP past either end', async () => {
