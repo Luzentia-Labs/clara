@@ -1,6 +1,6 @@
 # Where Clara stands
 
-> **Updated:** 2026-08-31 (RUN-01M17Q8Z: the blocking set cleared, the close at its round cap)
+> **Updated:** 2026-08-31 (RUN-01M17Q8Z CLOSED, outcome `closed-outstanding`)
 > The figures below are generated - `pnpm latest:sync`, checked by `pnpm check:latest`. They were
 > typed by hand twice and were wrong both times.
 > Read this first after any compaction or reset, then run `/sdlc-studio status`.
@@ -189,6 +189,20 @@ The run was left OPEN by operator decision. These are the 14 outstanding items' 
 | **The mutation lane is stale** | Evidence is from `c3982994a`, not this tree; 3 of 10 files of the recorded surface, one self-reported. Already carried as CR-01M153BV - do not re-file it. |
 | **The per-commit gate is unenforced** | The policy declares a `selected` per-commit lane, and no commit hook is readable at any of the four paths checked. Policy and reality are UNRECONCILED, and no full run has ever been measured, so the gate's cost is UNKNOWN rather than zero. |
 
+## RUN-01M17Q8Z closed 2026-08-31, outcome `closed-outstanding`
+
+The outstanding series across ten close attempts was **17, 18, 18, 14, 14, 13, 2, 2, 2, 2** - a loop
+that converged hard, with real repair between attempts. The last two were both deferrable and are
+FILED rather than waived: CR-01M1BD2D (the batch-boundary review, past its window) and CR-01M1BDWZ
+(the advisory mutation lane, which also remains as CR-01M153BV).
+
+**A note for whoever changes `review.max_rounds` next.** It is compared against
+`len(close_attempts)` - how many times `sprint close` has been RUN - not against `review_rounds`,
+which for this run was 1. The name misleads, and it cost a wrong diagnosis here: the cap was first
+raised 6 -> 8 on the theory that it counted review rounds, and fired again immediately because nine
+attempts already existed. A loop whose latest attempt has ZERO outstanding bypasses the cap
+entirely, which is the right rule.
+
 ## Outstanding at the close of RUN-01M17Q8Z (2026-08-31)
 
 | Open | Why |
@@ -205,3 +219,8 @@ The run was left OPEN by operator decision. These are the 14 outstanding items' 
 - CR-01M1534S: [checklist] goal-seat-reviewed: Sprint Goal stated and seat-reviewed BEFORE the plan - past its window (`sprint plan`) (deferred, not waived)
 - CR-01M15331: [checklist] batch-boundary-review: Review at each delivery batch boundary - past its window (`sprint review-batch`) (deferred, not waived)
 - CR-01M153BV: [gate] mutation: 5 survived, 0 error(s) of 5 applied (0 truncated) - advisory - summary is from the run at c3982994a, not this tree (090edfbf7); mutation evidence covers 3/10 file(s) of the recorded surface (nothing changed since HEAD); 1 of those is self-reported (mutants registered by hand, not a measured run): package.json; STALE (edited since mutated): .size-limit.json, package.json, Toast.tsx (+4 more) (deferred, not waived)
+
+## Deferred at close (RUN-01M17Q8Z)
+
+- CR-01M1BD2D: [checklist] batch-boundary-review: Review at each delivery batch boundary - past its window (`sprint review-batch`) (deferred, not waived)
+- CR-01M1BDWZ: [gate] mutation: 5 survived, 0 error(s) of 5 applied (0 truncated) - advisory - summary is from the run at c3982994a, not this tree (b7aecbd4a); mutation evidence covers 3/10 file(s) of the recorded surface (nothing changed since HEAD); 1 of those is self-reported (mutants registered by hand, not a measured run): package.json; STALE (edited since mutated): .size-limit.json, package.json, Toast.tsx (+4 more) (deferred, not waived)

@@ -1,6 +1,6 @@
 # Change Request Registry
 
-**Last Updated:** 2026-08-29
+**Last Updated:** 2026-08-31
 **PRD Reference:** [Product Requirements Document](../prd.md)
 
 ## Summary
@@ -13,9 +13,9 @@
 | Complete | 5 |
 | Rejected | 0 |
 | Deferred | 0 |
-| inbox | 4 |
+| inbox | 6 |
 | Superseded | 1 |
-| **Total** | **12** |
+| **Total** | **14** |
 
 ## By Priority
 
@@ -38,6 +38,8 @@
 | [CR-01M1534S](CR-01M1534S-deferred-close-blocker-checklist-goal-seat-reviewed-sprint.md) | Deferred close blocker (checklist): goal-seat-reviewed: Sprint Goal stated and seat-reviewed BEFORE the plan - past  | High | inbox | Process | -- | 2026-08-29 |
 | [CR-01M15331](CR-01M15331-deferred-close-blocker-checklist-batch-boundary-review-review.md) | Deferred close blocker (checklist): batch-boundary-review: Review at each delivery batch boundary - past its window  | High | inbox | Process | -- | 2026-08-29 |
 | [CR-01M153BV](CR-01M153BV-deferred-close-blocker-gate-mutation-5-survived-0.md) | Deferred close blocker (gate): mutation: 5 survived, 0 error(s) of 5 applied (0 truncated) - advisory - summary | High | inbox | Process | -- | 2026-08-29 |
+| [CR-01M1BD2D](CR-01M1BD2D-deferred-close-blocker-checklist-batch-boundary-review-review.md) | Deferred close blocker (checklist): batch-boundary-review: Review at each delivery batch boundary - past its window  | High | inbox | Process | -- | 2026-08-31 |
+| [CR-01M1BDWZ](CR-01M1BDWZ-deferred-close-blocker-gate-mutation-5-survived-0.md) | Deferred close blocker (gate): mutation: 5 survived, 0 error(s) of 5 applied (0 truncated) - advisory - summary | High | inbox | Process | -- | 2026-08-31 |
 
 ## Dependencies
 

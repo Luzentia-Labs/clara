@@ -249,3 +249,10 @@ The next sprint reads them automatically: `sprint plan` prints the digest in the
   commits, not here.
 - **Gate iterations:** 7 on MultiSelect, 3 on DatePicker, 3 on DateRangePicker. Every catch was
   real and none was visible to `pnpm test`.
+
+## Deferred at close
+
+Closed with known outstanding work (RUN-01M17Q8Z): the operator chose file-and-close over another fix cycle. Nothing here was waived - each blocker is a filed artefact:
+
+- CR-01M1BD2D: [checklist] batch-boundary-review: Review at each delivery batch boundary - past its window (`sprint review-batch`) (deferred, not waived)
+- CR-01M1BDWZ: [gate] mutation: 5 survived, 0 error(s) of 5 applied (0 truncated) - advisory - summary is from the run at c3982994a, not this tree (b7aecbd4a); mutation evidence covers 3/10 file(s) of the recorded surface (nothing changed since HEAD); 1 of those is self-reported (mutants registered by hand, not a measured run): package.json; STALE (edited since mutated): .size-limit.json, package.json, Toast.tsx (+4 more) (deferred, not waived)

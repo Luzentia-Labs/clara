@@ -36,4 +36,21 @@ schema_version: 3
 # refuses a waiver for either ("a waiver here is a receipt, not an answer"). The exit is
 # therefore `--file-and-close`, not another repair round. Operator decision.
 review:
-  max_rounds: 6
+  # Raised 6 -> 12 on 2026-08-31 by operator decision, for RUN-01M17Q8Z.
+  #
+  # Read what this cap actually counts before changing it again: `loop_termination` compares it
+  # against `len(close_attempts)` - how many times `sprint close` has been RUN - not against
+  # `review_rounds`, which for this run is 1. The name is misleading and cost a wrong diagnosis
+  # here: the cap was first raised to 8 on the theory that it counted review rounds, and it fired
+  # again immediately because there were already 9 attempts.
+  #
+  # This run's outstanding series is 17, 18, 18, 14, 14, 13, 2, 2, 2 - a loop that converged hard
+  # while each attempt was separated by real repair work. The two that remain are both deferrable:
+  # a batch-boundary checklist past its window, and the advisory mutation lane already carried as
+  # CR-01M153BV. A converged loop (latest outstanding == 0) bypasses the cap entirely, which is the
+  # right rule; this one is at 2, not 0, so it does not qualify and the exit is `--file-and-close`.
+  #
+  # It stays ENFORCED. `--force` was offered and declined: it would have overridden the Done-gate
+  # on Open Questions and everything else currently passing, buying a closed sprint by silencing
+  # checks that were green.
+  max_rounds: 12
