@@ -219,8 +219,11 @@ longer exist, so re-seating is correct here where it is wrong for MultiSelect.
 | A printable character is typed | It is a QUERY character, never a typeahead key. Typeahead is a listbox affordance and is wrong for an editable trigger. |
 
 > 10 edge cases.
-> NO row here comes from round 1, which did not review Combobox. These rows come from the earlier
-> D0121-D0124 repair round, and the Space-on-a-textbox row from the measurement behind D0123.
+> NO row here comes from round 1, which did not review Combobox. The last FOUR rows are this
+> component'''s own: three from the D0121-D0124 repair round and the Space-on-a-textbox row from the
+> measurement behind D0123. The rows above them are shared with the other listbox components, and
+> the fresh-array-identity row is D0128 - a later decision, made for MultiSelect. Scoping this
+> matters: the sentence it replaced over-attributed in exactly this way.
 
 ## Test Scenarios
 

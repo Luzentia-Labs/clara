@@ -43,8 +43,8 @@ list). A plan-review caught the misattribution.
 Each deviation is reproducible from a shipped component, and all six are already pinned as
 CURRENT behaviour, so the suite is green with them present and reddens if any is silently fixed.
 
-Closed-list deviations - `packages/react/src/lib/listbox.ts:169` handles `ArrowDown`, `ArrowUp`,
-`Enter` and button-`Space` only:
+Closed-list deviations - `packages/react/src/lib/listbox.ts:170` handles `ArrowDown`, `ArrowUp`,
+`Enter` and button-`Space` only (the `opensOnSpace` const it reads is on 169):
 
 1. Render `<Select options={OPTIONS} />`, focus the trigger, press `Home`. The listbox does not
    open. The APG's select-only combobox opens on it. Same for `End` and for any printable
@@ -57,7 +57,7 @@ Open-list deviations:
 
 3. Open a Select with `value="eur"`, press `PageUp`. `aria-activedescendant` does not move; the APG
    moves 10 options. Same for `PageDown`. Both fall to the typeahead default at
-   `packages/react/src/lib/listbox.ts:209`, where `key.length === 1` is false.
+   `packages/react/src/lib/listbox.ts:211`, where `key.length === 1` is false.
 4. Press `Alt+ArrowUp` on an open Select. It moves the highlight up instead of committing and
    closing - it falls through to the plain `ArrowUp` case.
 

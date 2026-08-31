@@ -423,7 +423,13 @@ describe('Combobox behaviours its story claimed but nothing pinned', () => {
     const input = await openIt()
     const before = input.getAttribute('aria-activedescendant')
     expect(document.getElementById(before!)?.textContent).toBe('Pound sterling')
-    await userEvent.type(input, 's')
+    // `skipClick` is load-bearing, not tidiness. `userEvent.type` clicks the target first, and the
+    // input sits OUTSIDE the portalled panel - so that click is an outside pointerdown, Radix's
+    // DismissableLayer closes the list, and the input's own handler reopens it. The keystroke then
+    // lands on the engine's CLOSED branch, where nothing is prevented whatever `typeahead` is set
+    // to. The first version of this test typed with the click and could not fail on the flag at
+    // all; a seat measured that. It has to reach the OPEN branch to test anything.
+    await userEvent.type(input, 's', { skipClick: true })
 
     // THE pin for `typeahead: false`: with typeahead ON the engine calls preventDefault() on any
     // printable key, so the character never reaches the input at all. It arriving is the proof.
@@ -435,6 +441,14 @@ describe('Combobox behaviours its story claimed but nothing pinned', () => {
     expect(options, 'the character filtered the list').toEqual(
       ['Pound sterling', 'US dollar', 'Swedish krona'])
     expect(options.length, 'a typeahead would have left all four in place').toBeLessThan(OPTIONS.length)
+
+    // The scenario this backs is "a printable character does not JUMP the highlight", so assert
+    // the highlight AFTER the keystroke - the previous version read it only before, and never
+    // checked the thing its own name promised. A typeahead would have moved it to the first label
+    // containing "s" in an UNFILTERED list; re-seating to the first surviving match is not that.
+    const after = input.getAttribute('aria-activedescendant')
+    expect(document.getElementById(after!)?.textContent,
+      'the highlight re-seated to the first MATCH, it was not jumped by typeahead').toBe('Pound sterling')
   })
 
   it('does not WRAP past either end', async () => {
